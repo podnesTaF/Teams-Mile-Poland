@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 
 import { Footer } from "@/components/marketing/footer";
 import { Header } from "@/components/marketing/header";
@@ -15,6 +16,7 @@ export default async function RegisterPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const counters = await getRegistrationCounters();
+  const t = await getTranslations("registration.page");
 
   return (
     <>
@@ -26,13 +28,15 @@ export default async function RegisterPage({
         <Container>
           <section className="border border-ink bg-bg">
             <div className="border-b border-ink p-5 md:p-7">
-              <span className="eyebrow eyebrow-red">Registration</span>
+              <span className="eyebrow eyebrow-red">{t("eyebrow")}</span>
               <h1 className="shout shout-md mt-3">
-                Choose your path.
+                {t("title")}
               </h1>
               <p className="mt-4 max-w-prose text-sm leading-relaxed text-muted md:text-base">
-                {EVENT.freeTier.pricePln} PLN per runner. First{" "}
-                {EVENT.freeTier.total} registered runners go free.
+                {t("description", {
+                  price: EVENT.freeTier.pricePln,
+                  total: EVENT.freeTier.total,
+                })}
               </p>
             </div>
             <div className="p-5 md:p-7">

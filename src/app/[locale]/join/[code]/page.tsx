@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 
 import { Footer } from "@/components/marketing/footer";
 import { Header } from "@/components/marketing/header";
@@ -19,17 +20,18 @@ export default async function JoinCodePage({
   const counters = await getRegistrationCounters();
   const normalizedCode = normalizeTeamCode(decodeURIComponent(code));
   const validation = await safeValidate(normalizedCode);
+  const t = await getTranslations("registration.join");
 
   return (
     <>
       <Header remaining={counters.freeSlotsRemaining} total={counters.freeSlotsTotal} />
       {validation.ok ? (
         <RegistrationShell
-          title={`Join ${validation.team.name}.`}
-          intro="Confirm your details to join this team."
+          title={t("title", { team: validation.team.name })}
+          intro={t("intro")}
           counters={counters}
-          raceBlock="Team mile"
-          raceNote="Captain notified after registration."
+          raceBlock={t("block")}
+          raceNote={t("note")}
           team={validation.team}
         >
           <RegistrationForm flow="join" teamCode={normalizedCode} />
@@ -38,15 +40,15 @@ export default async function JoinCodePage({
         <main className="bg-bg-2 py-8 md:py-12">
           <Container className="max-w-2xl">
             <section className="border border-ink bg-bg p-5 md:p-7">
-              <span className="eyebrow eyebrow-red">Team code problem</span>
-              <h1 className="shout shout-md mt-3">Can&apos;t join yet.</h1>
+              <span className="eyebrow eyebrow-red">{t("problem")}</span>
+              <h1 className="shout shout-md mt-3">{t("cannotJoin")}</h1>
               <p className="mt-4 text-muted">{validation.message}</p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <LinkButton href="/join" intent="primary">
-                  Try another code
+                  {t("tryAnother")}
                 </LinkButton>
                 <LinkButton href="/#register" intent="ghost">
-                  Pick another path
+                  {t("pickAnother")}
                 </LinkButton>
               </div>
             </section>

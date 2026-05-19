@@ -1,25 +1,28 @@
+import { useTranslations } from "next-intl";
+
 import { YouTubeEmbed } from "./youtube-embed";
 
 type ComparisonItem = { k: string; v: string };
+type Translation = ReturnType<typeof useTranslations>;
 
 const NORMAL: ComparisonItem[] = [
-  { k: "Runners", v: "1 runner" },
-  { k: "Distance", v: "1 mile" },
-  { k: "Tactics", v: "Pacing" },
-  { k: "Result", v: "Finish time" },
+  { k: "runners", v: "normalRunners" },
+  { k: "distance", v: "normalDistance" },
+  { k: "tactics", v: "normalTactics" },
+  { k: "result", v: "normalResult" },
 ];
 
 const TEAMS: ComparisonItem[] = [
   {
-    k: "Runners",
-    v: "7 runners",
+    k: "runners",
+    v: "teamsRunners",
   },
   {
-    k: "Distance",
-    v: "Role-based mile",
+    k: "distance",
+    v: "teamsDistance",
   },
-  { k: "Tactics", v: "Joker Zone hand-off" },
-  { k: "Result", v: "Team time + rankings" },
+  { k: "tactics", v: "teamsTactics" },
+  { k: "result", v: "teamsResult" },
 ];
 
 type NormalVsTeamsProps = {
@@ -31,31 +34,35 @@ export function NormalVsTeams({
   normalVideoId,
   teamsVideoId,
 }: NormalVsTeamsProps) {
+  const t = useTranslations("comparison");
+
   return (
     <div className="grid grid-cols-1 border border-ink md:grid-cols-2">
       <ComparisonCard
-        tag="Normal mile"
+        tag={t("normalTag")}
         title={
           <>
-            One runner.
+            {t("normalTitleA")}
             <br />
-            One mile.
+            {t("normalTitleB")}
           </>
         }
         videoId={normalVideoId}
         items={NORMAL}
+        t={t}
       />
       <ComparisonCard
-        tag="TEAMS MILE"
+        tag={t("teamsTag")}
         title={
           <>
-            Seven athletes.
+            {t("teamsTitleA")}
             <br />
-            One mile each.
+            {t("teamsTitleB")}
           </>
         }
         videoId={teamsVideoId}
         items={TEAMS}
+        t={t}
         dark
       />
     </div>
@@ -67,12 +74,14 @@ function ComparisonCard({
   title,
   videoId,
   items,
+  t,
   dark = false,
 }: {
   tag: string;
   title: React.ReactNode;
   videoId?: string;
   items: ComparisonItem[];
+  t: Translation;
   dark?: boolean;
 }) {
   return (
@@ -113,9 +122,9 @@ function ComparisonCard({
                   : "font-mono text-[10px] uppercase tracking-[0.08em] text-muted"
               }
             >
-              {k}
+              {t(`rows.${k}`)}
             </span>
-            <span>{v}</span>
+            <span>{t(`rows.${v}`)}</span>
           </li>
         ))}
       </ul>

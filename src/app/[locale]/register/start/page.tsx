@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 
 import { Footer } from "@/components/marketing/footer";
 import { Header } from "@/components/marketing/header";
@@ -10,16 +11,17 @@ export default async function StartTeamPage({ params }: { params: Promise<{ loca
   const { locale } = await params;
   setRequestLocale(locale);
   const counters = await getRegistrationCounters();
+  const t = await getTranslations("registration.start");
 
   return (
     <>
       <Header remaining={counters.freeSlotsRemaining} total={counters.freeSlotsTotal} />
       <RegistrationShell
-        title="Start a team."
-        intro="Create a team and get a shareable code."
+        title={t("title")}
+        intro={t("intro")}
         counters={counters}
-        raceBlock="Team mile"
-        raceNote="Afternoon team block."
+        raceBlock={t("block")}
+        raceNote={t("note")}
       >
         <RegistrationForm flow="start" />
       </RegistrationShell>

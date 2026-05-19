@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useLiveCounters } from "@/features/registration/use-live-counters";
 import type { RegistrationCounters } from "@/features/registration/data";
 import { EVENT, formatN, getUrgency } from "@/lib/marketing/event";
@@ -21,6 +23,7 @@ export function SlotBadge({
   remaining = EVENT.freeTier.total,
   total = EVENT.freeTier.total,
 }: SlotBadgeProps) {
+  const t = useTranslations("slotBadge");
   const initial: RegistrationCounters = {
     freeSlotsRemaining: remaining,
     freeSlotsTotal: total,
@@ -33,18 +36,18 @@ export function SlotBadge({
 
   const label =
     urgency === "gone"
-      ? `Free tier sold out · ${EVENT.freeTier.pricePln} PLN/runner`
-      : `${formatN(liveRemaining)} free slots left`;
+      ? t("soldOut", { price: EVENT.freeTier.pricePln })
+      : t("left", { remaining: formatN(liveRemaining) });
 
   return (
-    <div className="hidden h-8 items-center gap-2 border border-line bg-bg-2 px-3 font-mono text-[11px] tracking-wide md:inline-flex">
+    <div className="hidden h-8 max-w-[190px] items-center gap-2 overflow-hidden border border-line bg-bg-2 px-2.5 font-mono text-[10px] tracking-wide lg:inline-flex 2xl:max-w-none 2xl:px-3 2xl:text-[11px]">
       <span
         className={cn(
           "h-[7px] w-[7px] rounded-full",
           urgencyDotClass[urgency],
         )}
       />
-      <span>{label}</span>
+      <span className="truncate">{label}</span>
     </div>
   );
 }

@@ -1,8 +1,12 @@
+import { useTranslations } from "next-intl";
+
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Rank } from "@/components/ui/rank";
 import { ROLES } from "@/lib/marketing/event";
 
 export function RoleCards() {
+  const t = useTranslations("roles");
+
   return (
     <div className="mt-7 grid grid-cols-1 border border-ink md:grid-cols-3">
       {ROLES.map((role, idx) => (
@@ -19,12 +23,12 @@ export function RoleCards() {
               intent={role.accent ? "red" : "ink"}
               size="lg"
             />
-            <Eyebrow>{role.detail}</Eyebrow>
+            <Eyebrow>{t(role.detail)}</Eyebrow>
           </div>
           <h4 className="mb-2 font-display text-[28px] font-black italic uppercase leading-none tracking-tight">
-            {role.name}
+            {t(`${role.name.toLowerCase()}.name`)}
           </h4>
-          <p className="text-sm leading-relaxed text-muted">{role.line}</p>
+          <p className="text-sm leading-relaxed text-muted">{t(role.line)}</p>
         </div>
       ))}
     </div>

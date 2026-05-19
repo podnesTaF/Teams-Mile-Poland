@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 
 import { Footer } from "@/components/marketing/footer";
 import { Header } from "@/components/marketing/header";
@@ -10,16 +11,17 @@ export default async function FreeRunnerPage({ params }: { params: Promise<{ loc
   const { locale } = await params;
   setRequestLocale(locale);
   const counters = await getRegistrationCounters();
+  const t = await getTranslations("registration.free");
 
   return (
     <>
       <Header remaining={counters.freeSlotsRemaining} total={counters.freeSlotsTotal} />
       <RegistrationShell
-        title="Find me a team."
-        intro="Register now. We match you with an open team later."
+        title={t("title")}
+        intro={t("intro")}
         counters={counters}
-        raceBlock="Pending team assignment"
-        raceNote="We email you when matched."
+        raceBlock={t("block")}
+        raceNote={t("note")}
       >
         <RegistrationForm flow="free" />
       </RegistrationShell>

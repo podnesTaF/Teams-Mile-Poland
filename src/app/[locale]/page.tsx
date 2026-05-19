@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 
 import { Header } from "@/components/marketing/header";
 import { Footer } from "@/components/marketing/footer";
@@ -24,6 +25,7 @@ export default async function LandingPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const counters = await getRegistrationCounters();
+  const t = await getTranslations("landing");
 
   return (
     <>
@@ -38,41 +40,44 @@ export default async function LandingPage({
 
         <Section id="register" tone="muted">
           <SectionHead
-            eyebrow="Pick your path"
+            eyebrow={t("register.eyebrow")}
             title={
               <>
-                Four ways in.
+                {t("register.titleA")}
                 <br />
-                One race day.
+                {t("register.titleB")}
               </>
             }
-            description={`${EVENT.freeTier.pricePln} PLN per runner. First ${EVENT.freeTier.total} registered runners go free.`}
+            description={t("register.description", {
+              price: EVENT.freeTier.pricePln,
+              total: EVENT.freeTier.total,
+            })}
           />
           <PathPicker />
         </Section>
 
         <Section id="sport">
           <SectionHead
-            eyebrow="The sport · in 60 seconds"
+            eyebrow={t("sport.eyebrow")}
             title={
               <>
-                It&apos;s a mile.
+                {t("sport.titleA")}
                 <br />
-                But not the mile you know.
+                {t("sport.titleB")}
               </>
             }
-            description="A one-mile team race with role-switching and a baton hand-off."
+            description={t("sport.description")}
           />
-          <NormalVsTeams />
+          <NormalVsTeams teamsVideoId="zKlnB1buY4E" />
 
           <div className="mt-16">
             <div className="mb-3 flex items-center justify-between">
-              <span className="eyebrow">Three roles · one team</span>
+              <span className="eyebrow">{t("sport.rolesLabel")}</span>
               <Link
-                href="/rules"
+                href="/#documents"
                 className="border-b border-current text-sm font-medium text-ink"
               >
-                Full rules &amp; ratings →
+                {t("sport.rulesLink")}
               </Link>
             </div>
             <RoleCards />
@@ -81,15 +86,17 @@ export default async function LandingPage({
 
         <Section id="schedule" tone="muted">
           <SectionHead
-            eyebrow={`Race day · ${EVENT.dateLabel.en}`}
+            eyebrow={t("schedule.eyebrow", {
+              date: locale === "pl" ? EVENT.dateLabel.pl : EVENT.dateLabel.en,
+            })}
             title={
               <>
-                One day.
+                {t("schedule.titleA")}
                 <br />
-                Two race blocks.
+                {t("schedule.titleB")}
               </>
             }
-            description="Individual mile in the morning. Team races after lunch."
+            description={t("schedule.description")}
           />
           <ScheduleList />
         </Section>
@@ -100,37 +107,37 @@ export default async function LandingPage({
 
         <Section id="documents">
           <SectionHead
-            eyebrow="Official documents"
+            eyebrow={t("documents.eyebrow")}
             title={
               <>
-                Read before
+                {t("documents.titleA")}
                 <br />
-                you toe the line.
+                {t("documents.titleB")}
               </>
             }
-            description="Regulations, rating rules, and event documents."
+            description={t("documents.description")}
           />
           <Documents locale={locale === "pl" ? "pl" : "en"} />
         </Section>
 
         <Section id="faq">
           <SectionHead
-            eyebrow="FAQ"
+            eyebrow={t("faq.eyebrow")}
             title={
               <>
-                Most of what
+                {t("faq.titleA")}
                 <br />
-                runners ask.
+                {t("faq.titleB")}
               </>
             }
             description={
               <>
-                Questions? Email{" "}
+                {t("faq.description")}
                 <a
-                  href="mailto:warsaw@acebattle.run"
+                  href="mailto:info@acebattle.run"
                   className="border-b border-current text-ink"
                 >
-                  warsaw@acebattle.run
+                  info@acebattle.run
                 </a>
               </>
             }

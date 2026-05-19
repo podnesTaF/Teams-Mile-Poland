@@ -117,7 +117,7 @@ export function Documents({ locale = "en" }: DocumentsProps) {
                 )}
               >
                 {isPending
-                  ? "PDF · soon"
+                  ? `PDF · ${SOON_LABEL[locale].toLowerCase()}`
                   : `${file.meta}${isFallback ? ` · ${FALLBACK_NOTE[locale]}` : ""}`}
               </span>
               <span

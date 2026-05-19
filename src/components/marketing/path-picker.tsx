@@ -1,4 +1,5 @@
-import { Rank } from "@/components/ui/rank";
+import { useTranslations } from "next-intl";
+
 import { Link } from "@/i18n/navigation";
 import { REGISTRATION_PATHS } from "@/lib/marketing/event";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,8 @@ const pathHref: Record<string, string> = {
 };
 
 export function PathPicker() {
+  const t = useTranslations("paths");
+
   return (
     <div className="grid grid-cols-1 border border-ink sm:grid-cols-2 xl:grid-cols-4">
       {REGISTRATION_PATHS.map((card, idx) => {
@@ -34,10 +37,7 @@ export function PathPicker() {
             )}
           >
             <div className="flex items-center gap-2">
-              <Rank
-                rank={card.rank}
-                intent={isPrimary ? "outlineLight" : "red"}
-              />
+              
               <span
                 className={cn(
                   "font-mono text-[11px] uppercase tracking-[0.1em]",
@@ -50,7 +50,7 @@ export function PathPicker() {
 
             <div>
               <div className="font-display text-[clamp(26px,2.8vw,34px)] font-black italic uppercase leading-[0.95] tracking-tight">
-                {card.title}
+                {t(`${card.id}.title`)}
               </div>
               <p
                 className={cn(
@@ -58,7 +58,7 @@ export function PathPicker() {
                   isPrimary ? "text-white/85" : "text-muted",
                 )}
               >
-                {card.desc}
+                {t(`${card.id}.desc`)}
               </p>
             </div>
 
@@ -68,7 +68,7 @@ export function PathPicker() {
                 isPrimary ? "text-white/70" : "text-muted",
               )}
             >
-              <span>{card.meta}</span>
+              <span>{t(`${card.id}.meta`)}</span>
               <span
                 aria-hidden
                 className={cn(

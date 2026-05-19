@@ -1,28 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useLiveCounters } from "@/features/registration/use-live-counters";
 import type { RegistrationCounters } from "@/features/registration/data";
 import { EVENT, formatN, getUrgency } from "@/lib/marketing/event";
 import { cn } from "@/lib/utils";
-
-const URGENCY_COPY = {
-  ok: {
-    tag: "Free tier open",
-    line: "First-come, first-served. No payment required.",
-  },
-  amber: {
-    tag: "Filling up",
-    line: "Half the free slots are gone — secure yours.",
-  },
-  red: {
-    tag: "Almost gone",
-    line: "Less than 20% of free slots left.",
-  },
-  gone: {
-    tag: "Free tier closed",
-    line: `All flows continue at ${EVENT.freeTier.pricePln} PLN per runner.`,
-  },
-} as const;
 
 const fillColor = {
   ok: "bg-success",
@@ -49,6 +32,7 @@ export function ScarcityPanel({
   total = EVENT.freeTier.total,
   teamsFormed = 0,
 }: ScarcityPanelProps) {
+  const t = useTranslations("scarcity");
   const initial: RegistrationCounters = {
     freeSlotsRemaining: remaining,
     freeSlotsTotal: total,
@@ -61,7 +45,8 @@ export function ScarcityPanel({
   const liveTotal = live.freeSlotsTotal;
   const urgency = getUrgency(liveRemaining, liveTotal);
   const pct = Math.max(0, Math.min(100, (liveRemaining / liveTotal) * 100));
-  const { tag, line } = URGENCY_COPY[urgency];
+  const tag = t(`${urgency}.tag`);
+  const line = t(`${urgency}.line`, { price: EVENT.freeTier.pricePln });
 
   return (
     <div className="flex flex-col gap-3.5 border border-ink bg-bg p-5">
@@ -69,17 +54,17 @@ export function ScarcityPanel({
         <div>
           <div className="eyebrow eyebrow-ink mb-1.5 flex items-center gap-1.5">
             <span aria-hidden>♠</span>
-            <span>Free slots left</span>
+            <span>{t("label")}</span>
           </div>
           <div className="flex items-baseline gap-2 font-display text-[clamp(36px,5vw,52px)] font-black italic leading-[0.9] tracking-tight">
             <span className="text-ink">{formatN(liveRemaining)}</span>
             <span className="font-display-alt text-[0.32em] font-semibold uppercase tracking-[0.12em] text-muted">
-              remaining
+              {t("remaining")}
             </span>
           </div>
         </div>
         <div className="text-right">
-          <div className="eyebrow mb-1.5">Teams forming</div>
+          <div className="eyebrow mb-1.5">{t("teamsForming")}</div>
           <div className="font-display text-[clamp(20px,2.6vw,28px)] font-black italic leading-[0.9] text-ink">
             {live.teamsFormed}
           </div>
@@ -92,7 +77,7 @@ export function ScarcityPanel({
         aria-valuenow={Math.round(pct)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Free slots remaining"
+        aria-label={t("aria")}
       >
         <div
           className={cn(

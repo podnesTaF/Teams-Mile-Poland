@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { normalizeTeamCode } from "@/features/registration/schemas";
 
 export function JoinCodeForm() {
   const [code, setCode] = useState("");
+  const t = useTranslations("registration.join");
 
   return (
     <form
@@ -20,15 +22,15 @@ export function JoinCodeForm() {
       }}
     >
       <div>
-        <span className="eyebrow eyebrow-red">Join a team</span>
-        <h1 className="shout shout-md mt-3">Enter your code.</h1>
+        <span className="eyebrow eyebrow-red">{t("manualEyebrow")}</span>
+        <h1 className="shout shout-md mt-3">{t("manualTitle")}</h1>
         <p className="mt-4 max-w-prose text-sm text-muted md:text-base">
-          We will show the team before you register.
+          {t("manualDescription")}
         </p>
       </div>
       <label className="mt-7 block">
         <span className="mb-1.5 block font-mono text-[11px] uppercase tracking-[0.1em] text-muted">
-          Team code
+          {t("code")}
         </span>
         <input
           value={code}
@@ -38,7 +40,7 @@ export function JoinCodeForm() {
         />
       </label>
       <Button type="submit" className="mt-5" block>
-        Preview team
+        {t("preview")}
         <span aria-hidden>→</span>
       </Button>
     </form>

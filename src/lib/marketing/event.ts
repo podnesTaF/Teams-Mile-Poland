@@ -49,13 +49,13 @@ export type ScheduleRow = {
 };
 
 export const SCHEDULE: ScheduleRow[] = [
-  { time: "09:00–10:00", name: "Registration & chip pickup", meta: "All athletes" },
-  { time: "10:00–10:15", name: "Opening ceremony", meta: "Centre track" },
-  { time: "10:30–12:00", name: "Individual rating mile runs", meta: "By age category", key: true },
-  { time: "12:00–13:00", name: "Team prep break", meta: "Warm-up" },
-  { time: "13:00–14:00", name: "Team mile races", meta: "Headline event", key: true },
-  { time: "14:30–15:00", name: "Awards ceremony", meta: "Podium" },
-  { time: "15:00–15:30", name: "Closing", meta: "—" },
+  { time: "09:00–10:00", name: "pickup", meta: "pickupMeta" },
+  { time: "10:00–10:15", name: "opening", meta: "openingMeta" },
+  { time: "10:30–12:00", name: "individual", meta: "individualMeta", key: true },
+  { time: "12:00–13:00", name: "break", meta: "breakMeta" },
+  { time: "13:00–14:00", name: "team", meta: "teamMeta", key: true },
+  { time: "14:30–15:00", name: "awards", meta: "awardsMeta" },
+  { time: "15:00–15:30", name: "closing", meta: "closingMeta" },
 ];
 
 export type Role = {
@@ -67,9 +67,9 @@ export type Role = {
 };
 
 export const ROLES: Role[] = [
-  { rank: "10", name: "Racer", line: "Runs the full mile, start to finish.", detail: "3 per team" },
-  { rank: "J", name: "Ace", line: "Starts with everyone, hands off the baton inside the Joker Zone, then stays put.", detail: "Pairs with a Joker", accent: true },
-  { rank: "Q", name: "Joker", line: "Waits in the Joker Zone, takes the baton, runs to the finish line.", detail: "Pairs with an Ace", accent: true },
+  { rank: "10", name: "Racer", line: "racer.line", detail: "racer.detail" },
+  { rank: "A", name: "Ace", line: "ace.line", detail: "ace.detail", accent: true },
+  { rank: "J", name: "Joker", line: "joker.line", detail: "joker.detail", accent: true },
 ];
 
 export type Faq = { q: string; a: string };
@@ -108,7 +108,6 @@ export const FAQS: Faq[] = [
 export type RegistrationPath = {
   id: "start" | "join" | "free" | "solo";
   num: string;
-  rank: string;
   title: string;
   desc: string;
   meta: string;
@@ -119,7 +118,6 @@ export const REGISTRATION_PATHS: RegistrationPath[] = [
   {
     id: "start",
     num: "01",
-    rank: "A",
     title: "Start a team",
     desc: "Create a team and invite runners.",
     meta: "7–12 runners",
@@ -128,23 +126,20 @@ export const REGISTRATION_PATHS: RegistrationPath[] = [
   {
     id: "join",
     num: "02",
-    rank: "K",
     title: "Join a team",
     desc: "Use your captain's code.",
     meta: "Invite code",
   },
   {
     id: "free",
-    num: "03",
-    rank: "Q",
+    num: "03",  
     title: "Find me a team",
     desc: "Register now. We match you later.",
     meta: "Free agent",
   },
   {
     id: "solo",
-    num: "04",
-    rank: "J",
+    num: "04",  
     title: "Run solo",
     desc: "Individual rating mile.",
     meta: "Individual",

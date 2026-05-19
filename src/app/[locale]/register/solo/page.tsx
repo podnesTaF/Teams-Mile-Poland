@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 
 import { Footer } from "@/components/marketing/footer";
 import { Header } from "@/components/marketing/header";
@@ -10,16 +11,17 @@ export default async function SoloPage({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   setRequestLocale(locale);
   const counters = await getRegistrationCounters();
+  const t = await getTranslations("registration.solo");
 
   return (
     <>
       <Header remaining={counters.freeSlotsRemaining} total={counters.freeSlotsTotal} />
       <RegistrationShell
-        title="Run solo."
-        intro="Run the morning rating mile."
+        title={t("title")}
+        intro={t("intro")}
         counters={counters}
-        raceBlock="10:30-12:00 individual mile"
-        raceNote="Official ranking time."
+        raceBlock={t("block")}
+        raceNote={t("note")}
       >
         <RegistrationForm flow="solo" />
       </RegistrationShell>

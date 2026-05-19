@@ -1,21 +1,24 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { FAQS } from "@/lib/marketing/event";
 import { cn } from "@/lib/utils";
+
+const FAQ_KEYS = ["one", "two", "three", "four", "five", "six", "seven"] as const;
 
 export function FaqAccordion() {
   const [openIndex, setOpenIndex] = useState(0);
+  const t = useTranslations("faqItems");
 
   return (
     <div className="border border-ink bg-bg px-8 py-2">
       <div className="flex flex-col">
-        {FAQS.map((item, i) => {
+        {FAQ_KEYS.map((item, i) => {
           const isOpen = openIndex === i;
           return (
             <div
-              key={item.q}
+              key={item}
               className="border-b border-line last:border-b-0"
             >
               <button
@@ -24,7 +27,7 @@ export function FaqAccordion() {
                 aria-expanded={isOpen}
                 className="flex w-full items-center justify-between gap-4 bg-transparent py-7 text-left font-display text-[clamp(18px,1.8vw,22px)] font-black italic uppercase tracking-tight text-ink"
               >
-                <span>{item.q}</span>
+                <span>{t(`${item}.q`)}</span>
                 <span
                   aria-hidden
                   className={cn(
@@ -43,7 +46,7 @@ export function FaqAccordion() {
                 )}
               >
                 <p className="m-0 max-w-[65ch] pb-7 text-[15px] leading-relaxed text-muted">
-                  {item.a}
+                  {t(`${item}.a`)}
                 </p>
               </div>
             </div>

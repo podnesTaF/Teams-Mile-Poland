@@ -1,7 +1,11 @@
+import { useTranslations } from "next-intl";
+
 import { SCHEDULE } from "@/lib/marketing/event";
 import { cn } from "@/lib/utils";
 
 export function ScheduleList() {
+  const t = useTranslations("schedule");
+
   return (
     <div className="border border-ink bg-bg p-9">
       <ol className="m-0 grid list-none grid-cols-1 gap-0 p-0">
@@ -21,10 +25,10 @@ export function ScheduleList() {
               )}
             />
             <span className="font-display text-lg font-black italic uppercase tracking-tight md:text-[22px]">
-              {row.name}
+              {t(row.name)}
             </span>
             <span className="hidden font-mono text-[11px] uppercase tracking-[0.06em] text-muted md:inline">
-              {row.meta}
+              {t(row.meta)}
             </span>
           </li>
         ))}

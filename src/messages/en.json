@@ -1,7 +1,422 @@
 {
+  "common": {
+    "register": "Register",
+    "backToLanding": "Back to landing",
+    "backToPaths": "Back to all paths",
+    "download": "Download",
+    "soon": "Soon",
+    "polishOnly": "Polish only",
+    "language": "Language",
+    "english": "English",
+    "polish": "Polski"
+  },
+  "metadata": {
+    "title": "TEAMS MILE Warsaw — 27 June 2026",
+    "description": "A one-mile team race with roles, tactics, and an official ranking."
+  },
+  "header": {
+    "city": "Warsaw",
+    "nav": {
+      "sport": "The Sport",
+      "schedule": "Schedule",
+      "venue": "Venue",
+      "documents": "Documents",
+      "faq": "FAQ"
+    }
+  },
+  "slotBadge": {
+    "soldOut": "Free tier sold out · {price} PLN/runner",
+    "left": "{remaining} free slots left"
+  },
+  "scarcity": {
+    "label": "Free slots left",
+    "remaining": "remaining",
+    "teamsForming": "Teams forming",
+    "aria": "Free slots remaining",
+    "ok": {
+      "tag": "Free tier open",
+      "line": "First-come, first-served. No payment required."
+    },
+    "amber": {
+      "tag": "Filling up",
+      "line": "Free slots are moving fast."
+    },
+    "red": {
+      "tag": "Almost gone",
+      "line": "Less than 20% of free slots left."
+    },
+    "gone": {
+      "tag": "Free tier closed",
+      "line": "All flows continue at {price} PLN per runner."
+    }
+  },
   "hero": {
-    "headline": "Poland's first ranked team mile race",
-    "subhead": "Warsaw · 27 June 2026 · Stadion Podskarbińska",
-    "cta_primary": "Register for the race"
+    "chipLaunch": "Polish launch",
+    "headlineTop": "Teams Mile",
+    "headlineAccent": "Poland",
+    "subhead": "A one-mile team race with roles, tactics, and an official ranking.",
+    "ctaPrimary": "Claim a free slot",
+    "ctaSecondary": "How it works",
+    "stats": {
+      "distance": "Distance",
+      "distanceValue": "1 mile · 1,609 m",
+      "teamSize": "Team size",
+      "teamSizeValue": "7–12 runners",
+      "track": "Track",
+      "trackValue": "400 m outdoor"
+    },
+    "imageAlt": "ACE BATTLE MILE track illustration"
+  },
+  "landing": {
+    "register": {
+      "eyebrow": "Pick your path",
+      "titleA": "Four ways in.",
+      "titleB": "One race day.",
+      "description": "{price} PLN per runner. First {total} registered runners go free."
+    },
+    "sport": {
+      "eyebrow": "The sport · in 60 seconds",
+      "titleA": "It's a mile.",
+      "titleB": "But not the mile you know.",
+      "description": "A one-mile team race with role-switching and a baton hand-off.",
+      "rolesLabel": "Three roles · one team",
+      "rulesLink": "Full rules & ratings →"
+    },
+    "schedule": {
+      "eyebrow": "Race day · {date}",
+      "titleA": "One day.",
+      "titleB": "Two race blocks.",
+      "description": "Individual mile in the morning. Team races after lunch."
+    },
+    "documents": {
+      "eyebrow": "Official documents",
+      "titleA": "Read before",
+      "titleB": "you toe the line.",
+      "description": "Regulations, rating rules, and event documents."
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "titleA": "Most of what",
+      "titleB": "runners ask.",
+      "description": "Questions? Email "
+    }
+  },
+  "paths": {
+    "start": {
+      "title": "Start a team",
+      "desc": "Create a team and invite runners.",
+      "meta": "7–12 runners"
+    },
+    "join": {
+      "title": "Join a team",
+      "desc": "Use your captain's code.",
+      "meta": "Invite code"
+    },
+    "free": {
+      "title": "Find me a team",
+      "desc": "Register now. We match you later.",
+      "meta": "Free agent"
+    },
+    "solo": {
+      "title": "Run solo",
+      "desc": "Individual rating mile.",
+      "meta": "Individual"
+    }
+  },
+  "comparison": {
+    "normalTag": "Normal mile",
+    "normalTitleA": "One runner.",
+    "normalTitleB": "One mile.",
+    "teamsTag": "TEAMS MILE",
+    "teamsTitleA": "Seven athletes.",
+    "teamsTitleB": "One mile each.",
+    "rows": {
+      "runners": "Runners",
+      "distance": "Distance",
+      "tactics": "Tactics",
+      "result": "Result",
+      "normalRunners": "1 runner",
+      "normalDistance": "1 mile",
+      "normalTactics": "Pacing",
+      "normalResult": "Finish time",
+      "teamsRunners": "7 runners",
+      "teamsDistance": "Role-based mile",
+      "teamsTactics": "Joker Zone hand-off",
+      "teamsResult": "Team time + rankings"
+    }
+  },
+  "roles": {
+    "racer": {
+      "name": "Racer",
+      "line": "Runs the full mile.",
+      "detail": "3 per team"
+    },
+    "ace": {
+      "name": "Ace",
+      "line": "Starts, then hands off.",
+      "detail": "Pairs with a Joker"
+    },
+    "joker": {
+      "name": "Joker",
+      "line": "Waits in the zone, then finishes.",
+      "detail": "Pairs with an Ace"
+    }
+  },
+  "schedule": {
+    "pickup": "Registration & chip pickup",
+    "pickupMeta": "All athletes",
+    "opening": "Opening ceremony",
+    "openingMeta": "Centre track",
+    "individual": "Individual rating mile runs",
+    "individualMeta": "By age category",
+    "break": "Team prep break",
+    "breakMeta": "Warm-up",
+    "team": "Team mile races",
+    "teamMeta": "Headline event",
+    "awards": "Awards ceremony",
+    "awardsMeta": "Podium",
+    "closing": "Closing",
+    "closingMeta": "—"
+  },
+  "venue": {
+    "eyebrow": "The venue",
+    "description": "400 m outdoor track in Warsaw.",
+    "imageAlt": "Diagram of {venue} track",
+    "address": "Address",
+    "track": "Track",
+    "surface": "Surface"
+  },
+  "documents": {
+    "pdfSoon": "PDF · soon"
+  },
+  "faqItems": {
+    "one": {
+      "q": "What is TEAMS MILE?",
+      "a": "A team mile race with role-switching and a baton hand-off."
+    },
+    "two": {
+      "q": "What does 50 PLN cover?",
+      "a": "Runner entry, bib, timing, medal, hydration, and ranking."
+    },
+    "three": {
+      "q": "How does the free tier work?",
+      "a": "First 300 registered runners pay 0 PLN. After that, every runner pays 50 PLN."
+    },
+    "four": {
+      "q": "I don't have a team. Can I still race?",
+      "a": "Yes. Choose \"Find me a team\" or register for the solo mile."
+    },
+    "five": {
+      "q": "Do I need a medical certificate?",
+      "a": "No. You complete a medical self-declaration during registration."
+    },
+    "six": {
+      "q": "What gear is allowed?",
+      "a": "Running shoes only. No metal spikes or headphones during races."
+    },
+    "seven": {
+      "q": "When does registration close?",
+      "a": "20 June 2026."
+    }
+  },
+  "footer": {
+    "event": "Event",
+    "legal": "Legal",
+    "text": "Polish launch event of ACE BATTLE MILE.",
+    "links": {
+      "sport": "The sport",
+      "schedule": "Schedule",
+      "venue": "Venue",
+      "documents": "Documents",
+      "start": "Start a team",
+      "join": "Join a team",
+      "free": "Find me a team",
+      "solo": "Run solo",
+      "rules": "Rules & regulations",
+      "refund": "Refund policy",
+      "privacy": "Privacy",
+      "contact": "Contact"
+    },
+    "legalLine": "© 2026 ACE BATTLE POLAND Ltd · Licensed event under ACE BATTLE ASSOCIATION · Luxembourg",
+    "version": "v1.0 · Warsaw edition"
+  },
+  "cta": {
+    "eyebrow": "Ready when you are",
+    "line1": "27 June 2026.",
+    "line2": "Stadion Podskarbińska.",
+    "line3": "Be on the line.",
+    "button": "Start your registration"
+  },
+  "registration": {
+    "page": {
+      "eyebrow": "Registration",
+      "title": "Choose your path.",
+      "description": "{price} PLN per runner. First {total} registered runners go free."
+    },
+    "start": {
+      "title": "Start a team.",
+      "intro": "Create a team and get a shareable code.",
+      "block": "Team mile",
+      "note": "Afternoon team block."
+    },
+    "free": {
+      "title": "Find me a team.",
+      "intro": "Register now. We match you with an open team later.",
+      "block": "Pending team assignment",
+      "note": "We email you when matched."
+    },
+    "solo": {
+      "title": "Run solo.",
+      "intro": "Run the morning rating mile.",
+      "block": "10:30–12:00 individual mile",
+      "note": "Official ranking time."
+    },
+    "join": {
+      "title": "Join {team}.",
+      "intro": "Confirm your details to join this team.",
+      "block": "Team mile",
+      "note": "Captain notified after registration.",
+      "problem": "Team code problem",
+      "cannotJoin": "Can't join yet.",
+      "tryAnother": "Try another code",
+      "pickAnother": "Pick another path",
+      "manualEyebrow": "Join a team",
+      "manualTitle": "Enter your code.",
+      "manualDescription": "We will show the team before you register.",
+      "code": "Team code",
+      "preview": "Preview team"
+    },
+    "shell": {
+      "eyebrow": "Registration",
+      "raceDay": "Race day",
+      "date": "Date",
+      "venue": "Venue",
+      "block": "Block",
+      "joining": "You are joining",
+      "captain": "Captain",
+      "captainPending": "Captain pending",
+      "category": "Category",
+      "runners": "Runners"
+    },
+    "form": {
+      "steps": {
+        "team": "Team",
+        "captain": "Captain",
+        "medical": "Medical",
+        "review": "Review",
+        "runner": "Runner",
+        "preferences": "Preferences",
+        "optional": "Optional"
+      },
+      "buttons": {
+        "back": "Back",
+        "continue": "Continue",
+        "submitting": "Submitting...",
+        "start": "Create team",
+        "join": "Join team",
+        "free": "Register as free runner",
+        "solo": "Register solo"
+      },
+      "sections": {
+        "team": "Team info",
+        "runner": "Runner info",
+        "preferences": "Preferences",
+        "solo": "Solo details",
+        "medical": "Medical + consents",
+        "review": "Review"
+      },
+      "fields": {
+        "teamName": "Team name",
+        "category": "Category",
+        "region": "Region",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Email",
+        "phone": "Phone",
+        "dob": "Date of birth",
+        "gender": "Gender",
+        "nationality": "Nationality",
+        "ageCategory": "Age category",
+        "club": "Running club",
+        "coach": "Coach",
+        "personalBest": "Personal best mile",
+        "preferredRegion": "Preferred region",
+        "teammates": "Teammates you would like to be grouped with"
+      },
+      "hints": {
+        "magic": "Magic link goes here",
+        "personalBest": "Use m:ss or seconds",
+        "optional": "Optional"
+      },
+      "placeholders": {
+        "team": "Warsaw Wolves",
+        "firstName": "Anna",
+        "lastName": "Kowalska",
+        "nationality": "Poland",
+        "club": "AZS Warsaw",
+        "coach": "Coach name"
+      },
+      "options": {
+        "choose": "Choose...",
+        "mens": "Mens",
+        "womens": "Womens",
+        "mixed": "Mixed",
+        "female": "Female",
+        "male": "Male",
+        "noPreference": "No preference"
+      },
+      "optionalSummary": "Optional: club, coach, personal best",
+      "consents": {
+        "medical": "I declare I have no medical contraindications to running a mile at competition pace.",
+        "gdpr": "I consent to personal data processing for race administration, ranking, and event contact.",
+        "rules": "I accept the TEAMS MILE Warsaw rules and ABA rating regulations.",
+        "image": "I consent to event photography and post-race publications.",
+        "liability": "I acknowledge the liability waiver and race at my own risk."
+      },
+      "pricingTitle": "First 300 runners pay 0 PLN",
+      "pricingLine": "Then {price} PLN",
+      "review": {
+        "team": "Team",
+        "teamCode": "Team code",
+        "runner": "Runner",
+        "email": "Email",
+        "flow": "Flow",
+        "price": "Price",
+        "priceValue": "0 PLN if slots remain, otherwise {price} PLN",
+        "empty": "Not provided",
+        "start": "Team initiator",
+        "join": "Joining runner",
+        "free": "Free runner",
+        "solo": "Solo rating mile"
+      },
+      "validation": {
+        "field": "Check this field."
+      }
+    },
+    "success": {
+      "eyebrow": "Registration complete",
+      "paymentReceived": "Payment received.",
+      "youAreIn": "You are in.",
+      "checkout": "Payment confirmed. Your email is on the way.",
+      "start": "Your team is live.",
+      "free": "You are registered as a free runner.",
+      "solo": "Your solo entry is confirmed.",
+      "join": "You have joined the team.",
+      "fallback": "Registration received.",
+      "teamCode": "Team code",
+      "shareCode": "Share this code with teammates.",
+      "payment": "Payment",
+      "magicLink": "Magic link",
+      "magicSent": "Sent by email",
+      "freeSlotsLeft": "Free slots left",
+      "teamsForming": "Teams forming",
+      "openInvite": "Open invite link",
+      "paymentLabels": {
+        "checkout": "Paid via Stripe",
+        "free": "Free runner slot claimed",
+        "paid": "Paid",
+        "pending": "Pending"
+      }
+    }
   }
 }
