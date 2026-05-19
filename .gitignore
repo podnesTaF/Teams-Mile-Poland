@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local env
+.env
+.env.local
+.env*.local
+
+# Drizzle
+src/db/migrations/meta/_journal.json.bak

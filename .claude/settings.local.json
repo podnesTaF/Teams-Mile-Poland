@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:api.anthropic.com)",
+      "Read(//tmp/**)",
+      "Read(//tmp/design/**)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\apodn\\\\Desktop\\\\abm\\\\teams-mile-warshaw\\\\.design\")",
+      "Bash(cp -r /tmp/design/teams-mile-warsaw-website/* \"C:\\\\Users\\\\apodn\\\\Desktop\\\\abm\\\\teams-mile-warshaw\\\\.design/\")",
+      "Bash(mkdir -p public/brand)",
+      "Bash(cp .design/project/assets/runner.svg public/brand/runner.svg)",
+      "Bash(cp .design/project/assets/track-light.svg public/brand/track-light.svg)",
+      "Bash(cp .design/project/assets/track-dark.svg public/brand/track-dark.svg)",
+      "Bash(cp .design/project/assets/track-red.svg public/brand/track-red.svg)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm dev *)",
+      "Bash(tasklist)",
+      "Bash(curl -s -o /tmp/landing.html -w \"STATUS:%{http_code} SIZE:%{size_download}\\\\n\" http://localhost:3001/)",
+      "Bash(curl *)"
+    ]
+  }
+}

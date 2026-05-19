@@ -1,0 +1,16 @@
+import { NextResponse } from "next/server";
+
+import { getRegistrationCounters } from "@/features/registration/data";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export async function GET() {
+  const counters = await getRegistrationCounters();
+
+  return NextResponse.json(counters, {
+    headers: {
+      "Cache-Control": "no-store, must-revalidate",
+    },
+  });
+}
