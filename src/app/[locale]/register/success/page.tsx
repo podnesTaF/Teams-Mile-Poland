@@ -1,10 +1,10 @@
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 
-import { Footer } from "@/components/marketing/footer";
-import { Header } from "@/components/marketing/header";
-import { Container } from "@/components/ui/container";
-import { LinkButton } from "@/components/ui/button";
+import "@/app/landing.css";
+
+import { InteriorHeader } from "@/components/landing/interior-header";
+import { Link } from "@/i18n/navigation";
 import { getRegistrationCounters } from "@/features/registration/data";
 
 type SuccessSearch = {
@@ -30,66 +30,54 @@ export default async function SuccessPage({
   const common = await getTranslations("common");
 
   return (
-    <>
-      <Header remaining={counters.freeSlotsRemaining} total={counters.freeSlotsTotal} />
-      <main className="bg-bg-2 py-8 md:py-12">
-        <Container className="max-w-3xl">
-          <section className="border border-ink bg-bg">
-            <div className="border-b border-ink p-5 md:p-7">
-              <span className="eyebrow eyebrow-red">{t("eyebrow")}</span>
-              <h1 className="shout shout-md mt-3">
-                {isCheckout ? t("paymentReceived") : t("youAreIn")}
-              </h1>
-              <p className="mt-4 max-w-prose text-muted">
-                {isCheckout
-                  ? t("checkout")
-                  : successCopy(search.flow, t)}
-              </p>
-            </div>
+    <div className="ace-landing iv">
+      <InteriorHeader />
+      <main className="iv-main">
+        <div className="iv-wrap">
+          <section className="iv-card">
+            <span className="iv-eyebrow">{t("eyebrow")}</span>
+            <h1 className="iv-title">{isCheckout ? t("paymentReceived") : t("youAreIn")}</h1>
+            <p className="iv-sub">{isCheckout ? t("checkout") : successCopy(search.flow, t)}</p>
 
-            <div className="grid grid-cols-1 gap-4 p-5 md:grid-cols-2 md:p-7">
-              {search.code ? (
-                <div className="border border-accent bg-accent p-5 text-white md:col-span-2">
-                  <div className="font-mono text-[11px] uppercase tracking-[0.12em] text-white/70">
-                    {t("teamCode")}
-                  </div>
-                  <div className="mt-2 break-all font-display text-[clamp(32px,7vw,58px)] font-black italic uppercase leading-none">
-                    {search.code}
-                  </div>
-                  <p className="mt-3 text-sm text-white/80">
-                    {t("shareCode")}
-                  </p>
-                </div>
-              ) : null}
+            {search.code ? (
+              <div className="iv-share">
+                <span className="iv-eyebrow" style={{ color: "rgba(255,255,255,0.8)" }}>
+                  {t("teamCode")}
+                </span>
+                <div className="iv-share__code">{search.code}</div>
+                <p style={{ marginTop: 12, color: "rgba(255,255,255,0.9)" }}>{t("shareCode")}</p>
+              </div>
+            ) : null}
+
+            <div className="iv-grid" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
               <Info label={t("payment")} value={paymentLabel(search.payment, isCheckout, t)} />
               <Info label={t("magicLink")} value={t("magicSent")} />
               <Info label={t("freeSlotsLeft")} value={String(counters.freeSlotsRemaining)} />
               <Info label={t("teamsForming")} value={String(counters.teamsFormed)} />
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-line p-5 sm:flex-row md:p-7">
+            <div className="iv-actions">
               {search.code ? (
-                <LinkButton href={`/join/${search.code}`} intent="primary">
+                <Link href={`/join/${search.code}`} className="btn btn-red">
                   {t("openInvite")}
-                </LinkButton>
+                </Link>
               ) : null}
-              <LinkButton href="/" intent={search.code ? "ghost" : "primary"}>
+              <Link href="/" className={search.code ? "btn btn-stroke" : "btn btn-red"}>
                 {common("backToLanding")}
-              </LinkButton>
+              </Link>
             </div>
           </section>
-        </Container>
+        </div>
       </main>
-      <Footer />
-    </>
+    </div>
   );
 }
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border border-line bg-bg-2 p-4">
-      <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">{label}</div>
-      <div className="mt-1 font-display-alt font-semibold">{value}</div>
+    <div className="iv-info">
+      <div className="iv-info__label">{label}</div>
+      <div className="iv-info__value">{value}</div>
     </div>
   );
 }

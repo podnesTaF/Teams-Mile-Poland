@@ -9,7 +9,6 @@ import { EVENT } from "@/lib/marketing/event";
 
 import {
   normalizeTeamCode,
-  parsePersonalBestSeconds,
   type RegistrationPayload,
 } from "./schemas";
 
@@ -27,8 +26,7 @@ export type TeamPreview = {
   id: string;
   code: string;
   name: string;
-  category: "mens" | "womens" | "mixed";
-  region: string;
+  size: number | null;
   status: "open" | "locked" | "final" | "cancelled";
   captainName: string | null;
   captainEmail: string | null;
@@ -38,13 +36,16 @@ export type TeamPreview = {
 
 export type JoinValidation =
   | { ok: true; team: TeamPreview }
-  | { ok: false; reason: "missing" | "locked" | "full" | "gender"; message: string; team?: TeamPreview };
+  | { ok: false; reason: "missing" | "locked" | "full"; message: string; team?: TeamPreview };
 
 export type StoredRegistration = {
   runnerId: string;
   teamId?: string;
   teamCode?: string;
+  teamName?: string;
   runnerEmail: string;
+  fullName: string;
+  phone: string;
   captainEmail?: string | null;
   flow: RegistrationPayload["flow"];
   paymentStatus: "free" | "paid";
@@ -72,10 +73,7 @@ export async function getRegistrationCounters(): Promise<RegistrationCounters> {
   }
 }
 
-export async function validateJoinCode(
-  code: string,
-  gender?: "male" | "female",
-): Promise<JoinValidation> {
+export async function validateJoinCode(code: string): Promise<JoinValidation> {
   const normalized = normalizeTeamCode(code);
   const db = getDb();
   const [team] = await db.select().from(teams).where(eq(teams.code, normalized)).limit(1);
@@ -84,7 +82,7 @@ export async function validateJoinCode(
     return {
       ok: false,
       reason: "missing",
-      message: "We could not find that team code. Check the code or ask your captain for a fresh invite link.",
+      message: "Invalid invite link.",
     };
   }
 
@@ -94,25 +92,17 @@ export async function validateJoinCode(
     return {
       ok: false,
       reason: "locked",
-      message: `${team.name} is not accepting runners right now. Ask the captain or organizer for help.`,
+      message: `${team.name} is not accepting runners right now.`,
       team: preview,
     };
   }
 
-  if (preview.runnerCount >= MAX_TEAM_SIZE) {
+  const cap = team.size ?? MAX_TEAM_SIZE;
+  if (preview.runnerCount >= cap) {
     return {
       ok: false,
       reason: "full",
-      message: `${team.name} is already full. Ask the organizer about another open team.`,
-      team: preview,
-    };
-  }
-
-  if (gender && !genderMatchesCategory(gender, team.category)) {
-    return {
-      ok: false,
-      reason: "gender",
-      message: `${team.name} is registered as ${team.category}. Choose a matching team or contact the organizer.`,
+      message: `${team.name} is already full.`,
       team: preview,
     };
   }
@@ -223,6 +213,10 @@ export function getAppUrl() {
   return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 }
 
+export function makeInviteUrl(teamCode: string) {
+  return `${getAppUrl()}/join/${encodeURIComponent(teamCode)}`;
+}
+
 export function makeSuccessPath(stored: StoredRegistration) {
   const params = new URLSearchParams({
     flow: stored.flow,
@@ -250,13 +244,12 @@ async function buildTeamPreview(teamId: string): Promise<TeamPreview> {
     id: team.id,
     code: team.code,
     name: team.name,
-    category: team.category,
-    region: team.region,
+    size: team.size,
     status: team.status,
-    captainName: captain ? `${captain.firstName} ${captain.lastName.charAt(0)}.` : null,
+    captainName: captain ? shortCaptainName(captain.fullName) : null,
     captainEmail: captain?.email ?? null,
     runnerCount: runnerCount?.value ?? 0,
-    capacity: MAX_TEAM_SIZE,
+    capacity: team.size ?? MAX_TEAM_SIZE,
   };
 }
 
@@ -267,14 +260,13 @@ async function insertRegistration(
   stripeSessionId?: string,
 ): Promise<StoredRegistration> {
   if (payload.flow === "start") {
-    const code = await generateTeamCode(payload.team.name);
+    const code = await generateTeamCode(payload.teamName);
     const [team] = await tx
       .insert(teams)
       .values({
         code,
-        name: payload.team.name,
-        category: payload.team.category,
-        region: payload.team.region,
+        name: payload.teamName,
+        size: payload.teamSize,
         freeSlot: false,
       })
       .returning();
@@ -294,14 +286,17 @@ async function insertRegistration(
       runnerId: runner.id,
       teamId: team.id,
       teamCode: team.code,
+      teamName: team.name,
       runnerEmail: runner.email,
+      fullName: runner.fullName,
+      phone: runner.phone,
       flow: payload.flow,
       paymentStatus,
     };
   }
 
   if (payload.flow === "join") {
-    const validation = await validateJoinCode(payload.teamCode, payload.runner.gender);
+    const validation = await validateJoinCode(payload.teamCode);
     if (!validation.ok) {
       throw new Error(validation.message);
     }
@@ -321,18 +316,22 @@ async function insertRegistration(
       runnerId: runner.id,
       teamId: validation.team.id,
       teamCode: validation.team.code,
+      teamName: validation.team.name,
       runnerEmail: runner.email,
+      fullName: runner.fullName,
+      phone: runner.phone,
       captainEmail: validation.team.captainEmail,
       flow: payload.flow,
       paymentStatus,
     };
   }
 
+  // flow === "free" — quick register, pending team assignment.
   const [runner] = await tx
     .insert(runners)
     .values(toRunnerValues(payload, {
-      registrationType: payload.flow === "free" ? "free_agent" : "solo",
-      assignmentStatus: payload.flow === "free" ? "pending_assignment" : "n/a",
+      registrationType: "free_agent",
+      assignmentStatus: "pending_assignment",
       paymentStatus,
       stripeSessionId,
     }))
@@ -341,6 +340,8 @@ async function insertRegistration(
   return {
     runnerId: runner.id,
     runnerEmail: runner.email,
+    fullName: runner.fullName,
+    phone: runner.phone,
     flow: payload.flow,
     paymentStatus,
   };
@@ -350,43 +351,24 @@ function toRunnerValues(
   payload: RegistrationPayload,
   meta: {
     teamId?: string;
-    registrationType: "captain" | "team_member" | "free_agent" | "solo";
+    registrationType: "captain" | "team_member" | "free_agent";
     assignmentStatus: "assigned" | "pending_assignment" | "n/a";
     paymentStatus: "free" | "paid";
     stripeSessionId?: string;
   },
 ) {
-  const runner = payload.runner;
-  const ageCategory =
-    payload.flow === "free"
-      ? payload.preferences.ageCategory
-      : payload.flow === "solo"
-        ? payload.solo.ageCategory
-        : "ageCategory" in runner
-          ? runner.ageCategory
-          : deriveAgeCategory(runner.dob);
-
+  const { person, terms } = payload;
   return {
     teamId: meta.teamId,
     registrationType: meta.registrationType,
     assignmentStatus: meta.assignmentStatus,
-    firstName: runner.firstName,
-    lastName: runner.lastName,
-    dob: runner.dob,
-    gender: runner.gender,
-    email: runner.email,
-    phone: runner.phone,
-    nationality: runner.nationality,
-    club: runner.club || null,
-    coach: runner.coach || null,
-    personalBestSeconds: parsePersonalBestSeconds(runner.personalBest),
-    ageCategory,
-    preferredRegion: payload.flow === "free" ? payload.preferences.preferredRegion || null : null,
-    preferredTeammates: payload.flow === "free" ? payload.preferences.preferredTeammates || null : null,
+    fullName: person.fullName,
+    email: person.email,
+    phone: person.phone,
+    terms,
     freeSlot: meta.paymentStatus === "free",
     paymentStatus: meta.paymentStatus,
     stripeSessionId: meta.stripeSessionId,
-    consents: payload.consents,
   };
 }
 
@@ -394,7 +376,7 @@ async function generateTeamCode(teamName: string) {
   const db = getDb();
   const slug = teamName
     .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 14)
@@ -409,25 +391,11 @@ async function generateTeamCode(teamName: string) {
   return `WAW-${slug}-${nanoid(8).toUpperCase()}`;
 }
 
-function genderMatchesCategory(gender: "male" | "female", category: "mens" | "womens" | "mixed") {
-  if (category === "mixed") return true;
-  if (category === "mens") return gender === "male";
-  return gender === "female";
-}
-
-function deriveAgeCategory(dob: string) {
-  const year = Number(dob.slice(0, 4));
-  if (!Number.isFinite(year)) return "SEN";
-  const age = new Date().getFullYear() - year;
-  if (age < 12) return "U12";
-  if (age < 14) return "U14";
-  if (age < 16) return "U16";
-  if (age < 18) return "U18";
-  if (age < 20) return "U20";
-  if (age < 23) return "U23";
-  if (age >= 55) return "V55";
-  if (age >= 40) return "M40";
-  return "SEN";
+function shortCaptainName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 0) return fullName;
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1].charAt(0).toUpperCase()}.`;
 }
 
 function signToken(raw: string) {

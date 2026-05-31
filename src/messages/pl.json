@@ -8,11 +8,12 @@
     "polishOnly": "Tylko po polsku",
     "language": "Język",
     "english": "English",
-    "polish": "Polski"
+    "polish": "Polski",
+    "ukrainian": "Українська"
   },
   "metadata": {
-    "title": "TEAMS MILE Warszawa — 27 czerwca 2026",
-    "description": "Mila drużynowa z rolami, taktyką i oficjalnym rankingiem."
+    "title": "ACE BATTLE RUN — Warszawa · 27 czerwca 2026",
+    "description": "ACE BATTLE RUN — nowy format taktycznego biegu drużynowego. Role, taktyka i oficjalny ranking."
   },
   "header": {
     "city": "Warszawa",
@@ -50,188 +51,271 @@
       "line": "Rejestracja trwa za {price} PLN od osoby."
     }
   },
-  "hero": {
-    "chipLaunch": "Polska premiera",
-    "headlineTop": "Zmień bieganie",
-    "headlineAccent": "w grę.",
-    "subhead": "Mila drużynowa z rolami, taktyką i oficjalnym rankingiem.",
-    "ctaPrimary": "Zgarnij darmowe miejsce",
-    "ctaSecondary": "Jak to działa",
-    "stats": {
-      "distance": "Dystans",
-      "distanceValue": "1 mila · 1609 m",
-      "teamSize": "Drużyna",
-      "teamSizeValue": "7–12 osób",
-      "track": "Bieżnia",
-      "trackValue": "400 m outdoor"
-    },
-    "imageAlt": "Ilustracja bieżni ACE BATTLE MILE"
-  },
   "landing": {
-    "register": {
-      "eyebrow": "Wybierz ścieżkę",
-      "titleA": "Cztery wejścia.",
-      "titleB": "Jeden dzień startu.",
-      "description": "{price} PLN od osoby. Pierwsze {total} osób startuje za darmo."
+    "hero": {
+      "lang": "PL",
+      "title": "To nie jest zwykły bieg.<br></br>Drużynowa battle-gra.",
+      "sub": "ACE BATTLE RUN — nowa taktyczna gra w formacie drużynowego biegu. Każdy uczestnik ma swoją rolę, a zwycięstwo zależy od zgranych działań całej drużyny.",
+      "ctaPrimary": "Zarejestruj się jednym kliknięciem →",
+      "ctaSecondary": "Skontaktuj się z nami",
+      "venue": "Stadion Podskarbińska",
+      "stats": {
+        "dateLabel": "Data",
+        "dateValue": "27 czerwca 2026",
+        "freeLabel": "Udział",
+        "freeValue": "FREE",
+        "prizeLabel": "Pula nagród",
+        "prizeValue": "🔥 3000 EUR",
+        "timeLabel": "Godziny",
+        "timeValue": "09:00 – 15:30"
+      }
     },
-    "sport": {
-      "eyebrow": "Sport · w 60 sekund",
-      "titleA": "To mila.",
-      "titleB": "Ale inna niż znasz.",
-      "description": "Mila drużynowa ze zmianą ról i przekazaniem pałeczki.",
-      "rolesLabel": "Trzy role · jedna drużyna",
-      "rulesLink": "Pełne zasady i ranking →"
+    "formatBand": {
+      "title": "Format, którego jeszcze nie było w Polsce",
+      "body": "Z okazji pierwszego ACE BATTLE udział dla drużyn i solo-uczestników jest darmowy, a zwycięzcy otrzymają nagrody pieniężne.",
+      "playLabel": "Jak to było"
     },
-    "schedule": {
-      "eyebrow": "Dzień startu · {date}",
-      "titleA": "Jeden dzień.",
-      "titleB": "Dwa bloki.",
-      "description": "Mila indywidualna rano. Wyścigi drużynowe po przerwie."
+    "whatIs": {
+      "title": "Czym jest ACE BATTLE RUN?",
+      "cards": {
+        "roles": {
+          "title": "Różne role w drużynie",
+          "body": "Drużyna z góry wybiera role i planuje, jak pokonać dystans. Intryga zaczyna się jeszcze przed pierwszym sygnałem.",
+          "alt": "Różne role w drużynie"
+        },
+        "team": {
+          "title": "Gra drużynowa",
+          "body": "ACE BATTLE RUN to gra drużynowa: przed startem zawodnicy wybierają role, planują taktykę i razem pokonują dystans.",
+          "alt": "Gra drużynowa"
+        },
+        "rating": {
+          "title": "Ranking po grze",
+          "body": "",
+          "alt": "Ranking po grze"
+        }
+      }
     },
-    "documents": {
-      "eyebrow": "Dokumenty",
-      "titleA": "Przeczytaj",
-      "titleB": "przed startem.",
-      "description": "Regulamin, zasady rankingu i dokumenty wydarzenia."
+    "howItGoes": {
+      "title": "Jak przebiega gra",
+      "steps": {
+        "one": {
+          "title": "Briefing",
+          "body": "Krótko wyjaśniamy zasady i to, jak będzie wyglądał cały dzień."
+        },
+        "two": {
+          "title": "Zbiórka drużyny",
+          "body": "Możesz przyjść z własną drużyną albo zbierzemy ją na miejscu."
+        },
+        "three": {
+          "title": "Gra",
+          "body": "Pokonujesz grę razem z drużyną i wykonujesz zadania."
+        },
+        "four": {
+          "title": "Meta",
+          "body": "Po mecie każda drużyna dostaje wyniki i upominki, a najlepsze drużyny — nagrody pieniężne."
+        }
+      }
+    },
+    "invite": {
+      "chips": {
+        "one": "🎯 Taktyka",
+        "two": "🔥 Show",
+        "three": "🤝 Współpraca drużynowa"
+      },
+      "title": "Przyjdź. Graj. Wygrywaj.",
+      "cta": "Zarejestruj się jednym kliknięciem →"
+    },
+    "audience": {
+      "title": "Dla kogo to jest",
+      "items": {
+        "runners": {
+          "icon": "🏃",
+          "label": "miłośnicy biegania"
+        },
+        "fitness": {
+          "icon": "🏋️",
+          "label": "Fitness / CrossFit"
+        },
+        "corporate": {
+          "icon": "🏢",
+          "label": "drużyny firmowe"
+        },
+        "clubs": {
+          "icon": "👟",
+          "label": "kluby biegowe"
+        },
+        "curious": {
+          "icon": "✨",
+          "label": "Dla tych, którzy chcą spróbować czegoś nowego"
+        }
+      },
+      "extraFaint": "i oczywiście",
+      "extraIcon": "🔥",
+      "extraText": "Grupy wsparcia i kibice"
+    },
+    "location": {
+      "title": "Lokalizacja — Stadion Podskarbińska",
+      "address": "ul. Chrzanowskiego 23, Warszawa",
+      "checklist": {
+        "cafe": {
+          "title": "Kawiarnia na terenie",
+          "body": "Przekąska przed startem albo odpoczynek po mecie z drużyną."
+        },
+        "medical": {
+          "title": "Zespół medyczny",
+          "body": "Personel medyczny na całym terenie zawodów."
+        },
+        "fans": {
+          "title": "Strefa kibica",
+          "body": "Miejsca na trybunach dla kibiców — to show dla wszystkich."
+        },
+        "timing": {
+          "title": "Chip-pomiar czasu",
+          "body": "Elektroniczny system, fotofinisz — wyniki dokładne co do sekundy."
+        }
+      },
+      "mapCta": "Zobacz na mapie",
+      "imageAlt": "Stadion Podskarbińska"
+    },
+    "formats": {
+      "title": "Formy udziału",
+      "noTeam": {
+        "title": "Nie mam drużyny",
+        "body": "Po rejestracji dobierzemy Ci drużynę, z którą zagrasz.",
+        "cta": "Zarejestruj się",
+        "alt": "Pojedynczy biegacz"
+      },
+      "hasTeam": {
+        "title": "Mam drużynę",
+        "body": "Masz już drużynę (7–12) i chcesz ją zarejestrować?",
+        "cta": "Zarejestruj drużynę",
+        "alt": "Drużyna"
+      }
+    },
+    "path": {
+      "title": "Twoja dalsza droga",
+      "steps": {
+        "one": {
+          "title": "Pokonujesz dystans",
+          "body": "Drużyna kończy bieg, a wynik jest oficjalnie zapisywany w systemie pomiaru czasu."
+        },
+        "two": {
+          "title": "Otrzymujesz profil",
+          "body": "Tworzymy Ci Player Profile na platformie ACE BATTLE — tam jest Twój ranking, statystyki i wyniki."
+        },
+        "three": {
+          "title": "Wchodzisz w sezon",
+          "body": "Warszawa to pierwszy etap National Regular Season — serii turniejów w całej Polsce."
+        },
+        "four": {
+          "title": "Wychodzisz na arenę światową",
+          "body": "Najlepsze drużyny dostają zaproszenia na International ACE BATTLE Season w innych miastach Europy."
+        }
+      },
+      "flag": "🏁",
+      "foot": "Warszawski qualifier to start całego systemu ACE BATTLE RUN w Polsce. Pierwsi uczestnicy dostają pierwszy ranking i stają się częścią nowej społeczności od samego początku."
+    },
+    "atmosphere": {
+      "title": "Poczuj atmosferę",
+      "photoAlt": "Atmosfera wydarzenia"
+    },
+    "program": {
+      "title": "Program dnia",
+      "hours": "wydarzenie trwa od 9:00 do 15:00",
+      "timeline": {
+        "registration": {
+          "time": "09:00",
+          "title": "Rejestracja i wydawanie numerów",
+          "body": "Odbierasz numer startowy i chip pomiaru czasu. Poznajesz drużynę i sprawdzasz sprzęt."
+        },
+        "briefing": {
+          "time": "10:00",
+          "title": "Briefing",
+          "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów."
+        },
+        "startGames": {
+          "time": "11:00",
+          "title": "Start biegów grupowych",
+          "body": "Drużyny ruszają na trasę zgodnie z protokołem startowym i wykonują zadania."
+        },
+        "main": {
+          "time": "13:00",
+          "title": "Część główna",
+          "body": "Kluczowe biegi i walka o prowadzenie w klasyfikacji generalnej."
+        },
+        "finish": {
+          "time": "14:30",
+          "title": "Meta i podsumowania",
+          "body": "Wszystkie drużyny kończą trasę, a wyniki są zapisywane w systemie."
+        },
+        "awards": {
+          "time": "15:00",
+          "title": "Nagrody",
+          "body": "Ogłoszenie zwycięzców, wręczenie nagród i zdjęcia z drużyną na pamiątkę."
+        }
+      },
+      "alsoLabel": "a także",
+      "also": {
+        "photo": {
+          "icon": "📸",
+          "title": "Fotograf",
+          "body": "Nasz fotograf uchwyci najlepsze momenty — start, metę, emocje i dekorację. Po wydarzeniu wszystkie zdjęcia będą dostępne dla uczestników."
+        },
+        "gifts": {
+          "icon": "🎁",
+          "title": "Nagrody i bonusy",
+          "body": "Ktoś dostanie nagrodę pieniężną, ktoś — merch, akcesoria lub bonusy od partnerów; bez upominku na pewno nikt nie wyjdzie."
+        },
+        "people": {
+          "icon": "🤝",
+          "title": "Nowe znajomości",
+          "body": "Tu spotykają się swoi — ludzie, którzy kochają sport, ruch i silną społeczność. Nowe znajomości i dobry wajb gwarantowane."
+        }
+      }
     },
     "faq": {
-      "eyebrow": "FAQ",
-      "titleA": "Najczęstsze",
-      "titleB": "pytania.",
-      "description": "Pytania? Napisz: "
-    }
-  },
-  "paths": {
-    "start": {
-      "title": "Załóż drużynę",
-      "desc": "Utwórz drużynę i zaproś biegaczy.",
-      "meta": "7–12 osób"
+      "title": "Masz pytania?",
+      "sub": "nasz manager skontaktuje się z Tobą i odpowie na wszystko",
+      "items": {
+        "noTeam": {
+          "q": "Czy można bez drużyny?",
+          "a": "Tak! Rejestruj się bez wahania — dobierzemy Ci drużynę wewnątrz społeczności ACE BATTLE. Możesz też wybrać format Solo do indywidualnego biegu z osobistym rankingiem. Drużyna nie jest wymagana."
+        },
+        "kids": {
+          "q": "Czy można z dziećmi?",
+          "a": "Tak, dzieci są mile widziane jako kibice razem z dorosłymi. Udział w biegu zależy od limitów wiekowych formatu."
+        },
+        "prep": {
+          "q": "Czy potrzebne jest specjalne przygotowanie?",
+          "a": "Nie. Format jest dla różnych poziomów — od początkujących po doświadczonych biegaczy. Liczy się duch drużynowy i chęć gry."
+        },
+        "bring": {
+          "q": "Co zabrać ze sobą?",
+          "a": "Wygodny strój sportowy i buty, dobry humor i trochę wody. Numer startowy i chip dostaniesz na miejscu."
+        },
+        "spectator": {
+          "q": "Czy można przyjść jako kibic?",
+          "a": "Oczywiście! Dla kibiców są trybuny, kawiarnia na terenie i całodniowy show."
+        }
+      }
     },
-    "join": {
-      "title": "Dołącz do drużyny",
-      "desc": "Użyj kodu od kapitana.",
-      "meta": "Kod zaproszenia"
-    },
-    "free": {
-      "title": "Znajdź mi drużynę",
-      "desc": "Zarejestruj się. Dobierzemy drużynę później.",
-      "meta": "Wolny zawodnik"
-    },
-    "solo": {
-      "title": "Biegnij solo",
-      "desc": "Indywidualna mila rankingowa.",
-      "meta": "Indywidualnie"
-    }
-  },
-  "comparison": {
-    "normalTag": "Zwykła mila",
-    "normalTitleA": "Jeden biegacz.",
-    "normalTitleB": "Jedna mila.",
-    "teamsTag": "TEAMS MILE",
-    "teamsTitleA": "Siedmiu zawodników.",
-    "teamsTitleB": "Mila dla każdego.",
-    "rows": {
-      "runners": "Biegacze",
-      "distance": "Dystans",
-      "tactics": "Taktyka",
-      "result": "Wynik",
-      "normalRunners": "1 biegacz",
-      "normalDistance": "1 mila",
-      "normalTactics": "Tempo",
-      "normalResult": "Czas na mecie",
-      "teamsRunners": "7 osób",
-      "teamsDistance": "Mila z rolami",
-      "teamsTactics": "Zmiana w Joker Zone",
-      "teamsResult": "Czas drużyny + ranking"
-    }
-  },
-  "roles": {
-    "racer": {
-      "name": "Racer",
-      "line": "Biegnie pełną milę.",
-      "detail": "3 w drużynie"
-    },
-    "ace": {
-      "name": "Ace",
-      "line": "Startuje i przekazuje pałeczkę.",
-      "detail": "Para z Jokerem"
-    },
-    "joker": {
-      "name": "Joker",
-      "line": "Czeka w strefie i kończy milę.",
-      "detail": "Para z Ace"
-    }
-  },
-  "schedule": {
-    "pickup": "Rejestracja i odbiór chipów",
-    "pickupMeta": "Wszyscy zawodnicy",
-    "opening": "Otwarcie",
-    "openingMeta": "Środek bieżni",
-    "individual": "Mile indywidualne",
-    "individualMeta": "Według kategorii",
-    "break": "Przerwa dla drużyn",
-    "breakMeta": "Rozgrzewka",
-    "team": "Wyścigi drużynowe",
-    "teamMeta": "Główny blok",
-    "awards": "Dekoracja",
-    "awardsMeta": "Podium",
-    "closing": "Zakończenie",
-    "closingMeta": "—"
-  },
-  "venue": {
-    "eyebrow": "Miejsce",
-    "description": "400-metrowa bieżnia outdoor w Warszawie.",
-    "imageAlt": "Schemat bieżni {venue}",
-    "address": "Adres",
-    "track": "Bieżnia",
-    "surface": "Nawierzchnia"
-  },
-  "documents": {
-    "pdfSoon": "PDF · wkrótce"
-  },
-  "faqItems": {
-    "one": {
-      "q": "Czym jest TEAMS MILE?",
-      "a": "Milą drużynową ze zmianą ról i przekazaniem pałeczki."
-    },
-    "two": {
-      "q": "Co obejmuje 50 PLN?",
-      "a": "Start, numer, pomiar czasu, medal, nawodnienie i ranking."
-    },
-    "three": {
-      "q": "Jak działa darmowa pula?",
-      "a": "Pierwsze 300 zarejestrowanych osób płaci 0 PLN. Potem każdy płaci 50 PLN."
-    },
-    "four": {
-      "q": "Nie mam drużyny. Czy mogę wystartować?",
-      "a": "Tak. Wybierz „Znajdź mi drużynę” albo zapisz się na milę solo."
-    },
-    "five": {
-      "q": "Czy potrzebuję badań lekarskich?",
-      "a": "Nie. Wypełniasz oświadczenie medyczne podczas rejestracji."
-    },
-    "six": {
-      "q": "Jaki sprzęt jest dozwolony?",
-      "a": "Buty biegowe. Bez metalowych kolców i słuchawek podczas wyścigu."
-    },
-    "seven": {
-      "q": "Kiedy kończy się rejestracja?",
-      "a": "20 czerwca 2026."
+    "finalCta": {
+      "title": "Zarejestruj się, dopóki są wolne miejsca",
+      "cta": "Zarejestruj się jednym kliknięciem →"
     }
   },
   "footer": {
     "event": "Wydarzenie",
     "legal": "Formalności",
-    "text": "Polska premiera ACE BATTLE MILE.",
+    "text": "ACE BATTLE RUN — warszawski qualifier międzynarodowej ligi biegów drużynowych.",
     "links": {
       "sport": "Sport",
       "schedule": "Harmonogram",
       "venue": "Miejsce",
       "documents": "Dokumenty",
       "start": "Załóż drużynę",
-      "join": "Dołącz do drużyny",
       "free": "Znajdź mi drużynę",
-      "solo": "Biegnij solo",
+      "contactUs": "Kontakt",
       "rules": "Regulamin",
       "refund": "Zwroty",
       "privacy": "Prywatność",
@@ -248,149 +332,48 @@
     "button": "Rozpocznij rejestrację"
   },
   "registration": {
-    "page": {
-      "eyebrow": "Rejestracja",
-      "title": "Wybierz ścieżkę.",
-      "description": "{price} PLN od osoby. Pierwsze {total} osób startuje za darmo."
-    },
-    "start": {
-      "title": "Załóż drużynę.",
-      "intro": "Utwórz drużynę i otrzymaj kod.",
-      "block": "Mila drużynowa",
-      "note": "Popołudniowy blok drużyn."
-    },
-    "free": {
-      "title": "Znajdź mi drużynę.",
-      "intro": "Zarejestruj się. Dobierzemy Ci drużynę później.",
-      "block": "Oczekiwanie na drużynę",
-      "note": "Napiszemy po dopasowaniu."
-    },
-    "solo": {
-      "title": "Biegnij solo.",
-      "intro": "Poranna mila rankingowa.",
-      "block": "10:30–12:00 mila indywidualna",
-      "note": "Oficjalny czas rankingowy."
-    },
-    "join": {
-      "title": "Dołącz do {team}.",
-      "intro": "Potwierdź dane, aby dołączyć.",
-      "block": "Mila drużynowa",
-      "note": "Kapitan dostanie powiadomienie.",
-      "problem": "Problem z kodem",
-      "cannotJoin": "Nie możesz jeszcze dołączyć.",
-      "tryAnother": "Wpisz inny kod",
-      "pickAnother": "Wybierz inną ścieżkę",
-      "manualEyebrow": "Dołącz do drużyny",
-      "manualTitle": "Wpisz kod.",
-      "manualDescription": "Pokażemy drużynę przed rejestracją.",
-      "code": "Kod drużyny",
-      "preview": "Pokaż drużynę"
-    },
-    "shell": {
-      "eyebrow": "Rejestracja",
-      "raceDay": "Dzień startu",
-      "date": "Data",
-      "venue": "Miejsce",
-      "block": "Blok",
-      "joining": "Dołączasz do",
-      "captain": "Kapitan",
-      "captainPending": "Kapitan wkrótce",
-      "category": "Kategoria",
-      "runners": "Biegacze"
-    },
-    "form": {
-      "steps": {
-        "team": "Drużyna",
-        "captain": "Kapitan",
-        "medical": "Medyczne",
-        "review": "Podsumowanie",
-        "runner": "Biegacz",
-        "preferences": "Preferencje",
-        "optional": "Opcjonalne"
-      },
-      "buttons": {
-        "back": "Wstecz",
-        "continue": "Dalej",
-        "submitting": "Wysyłanie...",
-        "start": "Utwórz drużynę",
-        "join": "Dołącz do drużyny",
-        "free": "Zarejestruj jako wolny zawodnik",
-        "solo": "Zarejestruj solo"
-      },
-      "sections": {
-        "team": "Dane drużyny",
-        "runner": "Dane biegacza",
-        "preferences": "Preferencje",
-        "solo": "Solo",
-        "medical": "Medyczne + zgody",
-        "review": "Podsumowanie"
-      },
-      "fields": {
-        "teamName": "Nazwa drużyny",
-        "category": "Kategoria",
-        "region": "Region",
-        "firstName": "Imię",
-        "lastName": "Nazwisko",
+    "modals": {
+      "shared": {
+        "fullName": "Imię i nazwisko",
         "email": "Email",
         "phone": "Telefon",
-        "dob": "Data urodzenia",
-        "gender": "Płeć",
-        "nationality": "Narodowość",
-        "ageCategory": "Kategoria wiekowa",
-        "club": "Klub",
-        "coach": "Trener",
-        "personalBest": "Rekord na milę",
-        "preferredRegion": "Preferowany region",
-        "teammates": "Osoby, z którymi chcesz być w drużynie"
+        "terms": "Akceptuję <privacy>Politykę prywatności</privacy> i <terms>Regulamin</terms>",
+        "submitting": "Wysyłanie…",
+        "participantRegistration": "Rejestracja zawodnika"
       },
-      "hints": {
-        "magic": "Tu wyślemy magic link",
-        "personalBest": "Format m:ss albo sekundy",
-        "optional": "Opcjonalnie"
+      "chooser": {
+        "title": "Rejestracja",
+        "sub": "Masz drużynę (7–12 osób) czy<br></br>rejestrujesz się indywidualnie?",
+        "quickTitle": "Nie mam drużyny",
+        "quickDesc": "Pomóżcie mi dołączyć do innych zawodników.",
+        "createTitle": "Mam drużynę",
+        "createDesc": "Mam drużynę (7–12 osób) i ją zarejestruję."
       },
-      "placeholders": {
-        "team": "Warsaw Wolves",
-        "firstName": "Anna",
-        "lastName": "Kowalska",
-        "nationality": "Polska",
-        "club": "AZS Warszawa",
-        "coach": "Imię trenera"
+      "quick": {
+        "title": "Rejestracja zawodnika",
+        "cta": "Znajdź mi drużynę"
       },
-      "options": {
-        "choose": "Wybierz...",
-        "mens": "Męska",
-        "womens": "Kobieca",
-        "mixed": "Mieszana",
-        "female": "Kobieta",
-        "male": "Mężczyzna",
-        "noPreference": "Bez preferencji"
+      "create": {
+        "title": "Rejestracja drużyny",
+        "teamName": "Nazwa drużyny",
+        "teamSize": "Liczba osób w drużynie",
+        "cta": "Zarejestruj drużynę"
       },
-      "optionalSummary": "Opcjonalnie: klub, trener, rekord",
-      "consents": {
-        "medical": "Oświadczam, że nie mam przeciwwskazań medycznych do biegu na milę.",
-        "gdpr": "Wyrażam zgodę na przetwarzanie danych do obsługi zawodów, rankingu i kontaktu.",
-        "rules": "Akceptuję regulamin TEAMS MILE Warsaw i zasady rankingu ABA.",
-        "image": "Wyrażam zgodę na zdjęcia z wydarzenia i publikacje po biegu.",
-        "liability": "Akceptuję zrzeczenie odpowiedzialności i startuję na własne ryzyko."
+      "join": {
+        "subTag": "do drużyny {team}",
+        "cta": "Zarejestruj",
+        "loading": "ładowanie…",
+        "invalid": "Nieprawidłowy link zaproszenia",
+        "close": "Zamknij"
       },
-      "pricingTitle": "Pierwsze 300 osób płaci 0 PLN",
-      "pricingLine": "Potem {price} PLN",
-      "review": {
-        "team": "Drużyna",
-        "teamCode": "Kod drużyny",
-        "runner": "Biegacz",
-        "email": "Email",
-        "flow": "Ścieżka",
-        "price": "Cena",
-        "priceValue": "0 PLN, jeśli są miejsca; potem {price} PLN",
-        "empty": "Brak danych",
-        "start": "Kapitan",
-        "join": "Dołącza do drużyny",
-        "free": "Wolny zawodnik",
-        "solo": "Mila solo"
-      },
-      "validation": {
-        "field": "Sprawdź to pole."
+      "success": {
+        "title": "Zgłoszenie przyjęte",
+        "subTag": "Potwierdzenie trafi na Twój email.",
+        "whatsapp": "Dołącz do grupy WhatsApp",
+        "telegram": "Zapytaj managera",
+        "help": "Jeszcze pytania?",
+        "copy": "Kopiuj",
+        "copied": "Skopiowano"
       }
     },
     "success": {
@@ -399,8 +382,8 @@
       "youAreIn": "Jesteś na liście.",
       "checkout": "Płatność potwierdzona. Email jest w drodze.",
       "start": "Drużyna jest aktywna.",
-      "free": "Jesteś zarejestrowany jako wolny zawodnik.",
-      "solo": "Start solo potwierdzony.",
+      "free": "Jesteś zarejestrowany.",
+      "solo": "Twój start jest potwierdzony.",
       "join": "Dołączono do drużyny.",
       "fallback": "Rejestracja przyjęta.",
       "teamCode": "Kod drużyny",
@@ -417,6 +400,94 @@
         "paid": "Opłacone",
         "pending": "Oczekuje"
       }
+    }
+  },
+  "contact": {
+    "title": "Skontaktuj się z nami",
+    "sub": "nasz manager skontaktuje się z Tobą i odpowie na wszystkie pytania",
+    "name": "Imię",
+    "email": "Email",
+    "phone": "Telefon",
+    "message": "Twoja wiadomość",
+    "methodLabel": "Preferowany kanał kontaktu:",
+    "methods": {
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "viber": "Viber",
+      "call": "Telefon",
+      "email": "Email"
+    },
+    "terms": "Akceptuję <privacy>Politykę prywatności</privacy> i <terms>Regulamin</terms>",
+    "send": "Wyślij",
+    "sending": "Wysyłanie…",
+    "sent": "Wiadomość wysłana. Odezwiemy się."
+  },
+  "team": {
+    "access": {
+      "eyebrow": "Panel drużyny",
+      "title": "Zaloguj się do drużyny.",
+      "description": "Wpisz email, którego użyłeś przy rejestracji {code}. Wyślemy ci jednorazowy link logowania.",
+      "emailLabel": "Email",
+      "submit": "Wyślij link logowania",
+      "sentTitle": "Sprawdź skrzynkę",
+      "sentBody": "Jeśli ten email jest na liście drużyny, link logowania właśnie poleciał. Działa raz i wygasa po 15 minutach.",
+      "rotatedNotice": "Kod drużyny został wygenerowany ponownie. Zaloguj się z nowym kodem.",
+      "errors": {
+        "email": "Wpisz prawidłowy adres email.",
+        "invalid": "Ten link logowania nie jest już ważny. Poproś o nowy.",
+        "expired": "Link logowania wygasł. Poproś o nowy.",
+        "used": "Ten link logowania został już użyty. Poproś o nowy."
+      }
+    },
+    "dashboard": {
+      "eyebrow": "Panel drużyny",
+      "signOut": "Wyloguj",
+      "roster": "Skład",
+      "paid": "Opłaceni / darmowi",
+      "captainLabel": "Kapitan",
+      "captainPending": "Kapitan oczekuje",
+      "yourRole": "Twoja rola",
+      "rosterTitle": "Skład drużyny",
+      "emptySlot": "Wolne miejsce",
+      "shareEyebrow": "Kod do udostępnienia",
+      "shareHint": "Wyślij ten kod zawodnikom, żeby zarejestrowali się na /join/{code}.",
+      "status": {
+        "open": "Otwarta",
+        "locked": "Zamknięta",
+        "final": "Finalna",
+        "cancelled": "Anulowana"
+      },
+      "roles": {
+        "captain": "Kapitan",
+        "member": "Zawodnik"
+      },
+      "captain": {
+        "eyebrow": "Panel kapitana",
+        "title": "Zarządzaj drużyną.",
+        "renameLabel": "Nazwa drużyny",
+        "renameSubmit": "Zaktualizuj nazwę",
+        "removeTitle": "Usuń zawodnika",
+        "removeEmpty": "Brak zawodników do usunięcia. Pojawią się tu po dołączeniu do drużyny.",
+        "removeButton": "Usuń",
+        "regenerateCode": "Wygeneruj nowy kod",
+        "regenerateNote": "Unieważnia aktualny link logowania. Zostaniesz wylogowany.",
+        "markFinal": "Zatwierdź skład",
+        "markFinalNote": "Blokuje zmiany w składzie do dnia zawodów.",
+        "lockedAlready": "Skład zatwierdzony",
+        "nameLabel": "Imię i nazwisko",
+        "emailLabel": "Email",
+        "save": "Zapisz",
+        "captainTag": "Kapitan",
+        "removeConfirmTitle": "Usunąć zawodnika?",
+        "removeConfirmMessage": "Usunąć {name} z drużyny? Tej operacji nie można cofnąć.",
+        "edit": "Edytuj",
+        "editMemberTitle": "Edytuj zawodnika",
+        "cancel": "Anuluj"
+      },
+      "inviteEyebrow": "Zaproś drużynę",
+      "copyLink": "Kopiuj link",
+      "copied": "Skopiowano",
+      "orShareCode": "Albo udostępnij kod:"
     }
   }
 }

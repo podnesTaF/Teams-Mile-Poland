@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { usePathname, useRouter } from "@/i18n/navigation";
 
-const LOCALES = ["en", "pl"] as const;
+const LOCALES = ["en", "pl", "ua"] as const;
 
 export function LanguageSwitcher() {
   const locale = useLocale();

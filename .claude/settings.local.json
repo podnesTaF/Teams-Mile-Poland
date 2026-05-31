@@ -15,7 +15,15 @@
       "Bash(pnpm dev *)",
       "Bash(tasklist)",
       "Bash(curl -s -o /tmp/landing.html -w \"STATUS:%{http_code} SIZE:%{size_download}\\\\n\" http://localhost:3001/)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(pnpm db:generate)",
+      "Bash(rm -f register/page.tsx register/start/page.tsx register/free/page.tsx register/solo/page.tsx join/page.tsx)",
+      "Bash(rmdir register/start register/free register/solo join)",
+      "Bash(find join *)",
+      "Bash(echo \"TC=$?\")",
+      "Bash(pnpm lint *)",
+      "Bash(git mv *)",
+      "Bash(mv src/messages/uk.json src/messages/ua.json)"
     ]
   }
 }

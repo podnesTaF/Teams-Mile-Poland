@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 
 import { Chip } from "@/components/ui/chip";
 import { Container } from "@/components/ui/container";
+import { Link } from "@/i18n/navigation";
 import { EVENT } from "@/lib/marketing/event";
 
 import { ScarcityPanel } from "./scarcity-panel";
@@ -40,13 +41,13 @@ export function Hero({ remaining, total, teamsFormed }: HeroProps) {
             </p>
 
             <div className="mt-9 flex flex-wrap gap-2.5">
-              <a
-                href="#register"
+              <Link
+                href="/register"
                 className="inline-flex h-14 items-center justify-center gap-2 bg-accent px-7 font-display-alt text-[15px] font-semibold uppercase tracking-[0.06em] text-white transition-colors hover:bg-[#b8302a] active:translate-y-px"
               >
                 {t("ctaPrimary")}
                 <span aria-hidden>→</span>
-              </a>
+              </Link>
               <a
                 href="#sport"
                 className="inline-flex h-14 items-center justify-center gap-2 border border-ink bg-transparent px-7 font-display-alt text-[15px] font-semibold uppercase tracking-[0.06em] text-ink transition-colors hover:bg-ink hover:text-bg"

@@ -1,43 +1,47 @@
 import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
-import { REGISTRATION_PATHS } from "@/lib/marketing/event";
 import { cn } from "@/lib/utils";
 
-const pathHref: Record<string, string> = {
-  start: "/register/start",
-  join: "/join",
-  free: "/register/free",
-  solo: "/register/solo",
-};
+const CARDS = [
+  {
+    id: "create" as const,
+    href: "/register/team",
+    primary: true,
+    num: "01",
+  },
+  {
+    id: "quick" as const,
+    href: "/register/solo",
+    primary: false,
+    num: "02",
+  },
+];
 
+/**
+ * Landing-page entry to the modal flow. Two cards mirror the chooser
+ * modal so the section reads the same whether the visitor opens via
+ * the Register button or scrolls to the #register anchor.
+ */
 export function PathPicker() {
   const t = useTranslations("paths");
 
   return (
-    <div className="grid grid-cols-1 border border-ink sm:grid-cols-2 xl:grid-cols-4">
-      {REGISTRATION_PATHS.map((card, idx) => {
-        const isPrimary = Boolean(card.primary);
-        const isLastCol = (idx + 1) % 4 === 0;
-        const isLastRowSm = idx >= REGISTRATION_PATHS.length - 2;
-
+    <div className="grid grid-cols-1 border border-ink sm:grid-cols-2">
+      {CARDS.map((card) => {
+        const isPrimary = card.primary;
         return (
           <Link
             key={card.id}
-            href={pathHref[card.id] ?? "#"}
+            href={card.href}
             className={cn(
-              "group relative flex min-h-[320px] flex-col gap-[18px] border-b border-ink p-7 text-left transition-colors duration-150",
-              "sm:nth-of-type-2n:border-r-0",
-              isLastCol && "xl:border-r-0",
+              "group relative flex min-h-[320px] flex-col gap-[18px] border-ink p-7 text-left transition-colors duration-150 sm:[&:first-child]:border-r",
               isPrimary
                 ? "bg-accent text-white"
                 : "bg-bg text-ink hover:bg-ink hover:text-white",
-              !isLastRowSm && "sm:border-b",
-              "border-r border-ink xl:border-b-0 sm:[&:nth-of-type(2n)]:border-r-0 xl:[&:nth-of-type(2n)]:border-r xl:[&:last-child]:border-r-0",
             )}
           >
             <div className="flex items-center gap-2">
-              
               <span
                 className={cn(
                   "font-mono text-[11px] uppercase tracking-[0.1em]",

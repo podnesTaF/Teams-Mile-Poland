@@ -21,6 +21,12 @@ export const EVENT = {
     total: 300,
     pricePln: 50,
   },
+  contact: {
+    phone: "+48 123 456 789",
+    phoneTel: "+48123456789",
+    whatsappUrl: "https://wa.me/48123456789",
+    telegramUrl: "https://t.me/teamsmilewarsaw",
+  },
 } as const;
 
 export type AgeCategory = {

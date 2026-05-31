@@ -1,6 +1,15 @@
+import { RegistrationTicketEmail, subjectForFlow } from "@/emails/registration-ticket";
 import { FROM_EMAIL, resend } from "@/lib/email";
+import { EVENT } from "@/lib/marketing/event";
+import {
+  generateTicketQrPng,
+  makeTicketUrl,
+  type TicketView,
+} from "@/features/ticket";
 
-import { createMagicLink, type StoredRegistration } from "./data";
+import { createMagicLink, makeInviteUrl, type StoredRegistration } from "./data";
+
+const QR_CID = "ticket-qr";
 
 type EmailInput = {
   stored: StoredRegistration;
@@ -19,11 +28,24 @@ export async function sendRegistrationEmails({ stored, dashboardPath }: EmailInp
     return { magicUrl };
   }
 
+  const ticket = buildTicketView(stored);
+  const ticketUrl = makeTicketUrl(stored.runnerId, { locale: "en" });
+  const qrBuffer = await generateTicketQrPng(ticketUrl);
+  const inviteUrl =
+    stored.flow === "start" && stored.teamCode ? makeInviteUrl(stored.teamCode) : undefined;
+
   await resend.emails.send({
     from: FROM_EMAIL,
     to: stored.runnerEmail,
-    subject: subjectForFlow(stored),
-    text: runnerEmailText(stored, magicUrl),
+    subject: subjectForFlow(ticket),
+    react: RegistrationTicketEmail({ ticket, magicUrl, ticketUrl, inviteUrl, qrCid: QR_CID }),
+    attachments: [
+      {
+        filename: "ticket-qr.png",
+        content: qrBuffer,
+        contentId: QR_CID,
+      },
+    ],
   });
 
   if (stored.flow === "join" && stored.captainEmail) {
@@ -38,30 +60,18 @@ export async function sendRegistrationEmails({ stored, dashboardPath }: EmailInp
   return { magicUrl };
 }
 
-function subjectForFlow(stored: StoredRegistration) {
-  if (stored.flow === "start") return "Your TEAMS MILE team code";
-  if (stored.flow === "free") return "You are registered as a free runner";
-  if (stored.flow === "solo") return "Your solo rating mile registration";
-  return "Your TEAMS MILE registration is confirmed";
-}
-
-function runnerEmailText(stored: StoredRegistration, magicUrl: string) {
-  const paymentLine =
-    stored.paymentStatus === "free"
-      ? "You claimed one of the first 300 free runner slots."
-      : "Your 50 PLN registration payment is confirmed.";
-
-  if (stored.flow === "start") {
-    return `Your team is live.\n\nTeam code: ${stored.teamCode}\nInvite link: ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/join/${stored.teamCode}\n\n${paymentLine}\n\nDashboard: ${magicUrl}`;
-  }
-
-  if (stored.flow === "free") {
-    return `You are registered as a free runner and pending assignment.\n\n${paymentLine}\n\nWe will email you when the organizer proposes a team.\nDashboard: ${magicUrl}`;
-  }
-
-  if (stored.flow === "solo") {
-    return `Your solo rating mile registration is confirmed.\n\n${paymentLine}\n\nYour individual start block is 10:30-12:00.\nDashboard: ${magicUrl}`;
-  }
-
-  return `You are confirmed for ${stored.teamCode ?? "your team"}.\n\n${paymentLine}\n\nDashboard: ${magicUrl}`;
+function buildTicketView(stored: StoredRegistration): TicketView {
+  return {
+    runnerId: stored.runnerId,
+    fullName: stored.fullName,
+    email: stored.runnerEmail,
+    phone: stored.phone,
+    teamCode: stored.teamCode,
+    teamName: stored.teamName,
+    flow: stored.flow,
+    paymentStatus: stored.paymentStatus,
+    eventName: EVENT.name,
+    eventDateLabel: EVENT.dateLabel.en,
+    eventVenue: `${EVENT.venue.name}, ${EVENT.venue.city}`,
+  };
 }

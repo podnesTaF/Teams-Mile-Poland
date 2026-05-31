@@ -1,0 +1,58 @@
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+
+import { CheckIcon } from "./icons";
+
+const ITEMS = ["cafe", "medical", "fans", "timing"] as const;
+
+const MAPS_URL =
+  "https://www.google.com/maps/search/?api=1&query=Stadion%20Podskarbi%C5%84ska%2C%20Warsaw";
+
+/** Venue section: side-by-side image + 4-item checklist, with the small left-edge triangle decoration. */
+export function Location() {
+  const t = useTranslations("landing.location");
+
+  return (
+    <section className="section location" data-screen-label="Location">
+      <div className="tri-left">
+        <div className="w" />
+        <div className="r" />
+      </div>
+      <div className="wrap">
+        <div className="center stack" style={{ gap: 8 }}>
+          <h2 className="head t-40">{t("title")}</h2>
+          <p className="head t-32">{t("address")}</p>
+        </div>
+        <div className="loc-grid">
+          <Image
+            className="loc-img"
+            src="/landing/location.png"
+            alt={t("imageAlt")}
+            width={587}
+            height={503}
+          />
+          <div>
+            <div className="checklist">
+              {ITEMS.map((id) => (
+                <div key={id} className="check">
+                  <span className="check__box">
+                    <CheckIcon />
+                  </span>
+                  <div>
+                    <h3 className="check__t">{t(`checklist.${id}.title`)}</h3>
+                    <p className="sm">{t(`checklist.${id}.body`)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="loc-btn">
+              <a className="btn btn-stroke" href={MAPS_URL} target="_blank" rel="noopener noreferrer">
+                {t("mapCta")}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

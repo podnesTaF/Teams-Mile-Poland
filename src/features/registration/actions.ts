@@ -5,7 +5,7 @@ import {
   createFreeRegistration,
   createPaidRegistration,
   getAppUrl,
-  makeSuccessPath,
+  makeInviteUrl,
   validateJoinCode,
 } from "./data";
 import { sendRegistrationEmails } from "./email";
@@ -25,7 +25,7 @@ export async function submitRegistration(payload: RegistrationPayload): Promise<
 
   try {
     if (parsed.data.flow === "join") {
-      const validation = await validateJoinCode(parsed.data.teamCode, parsed.data.runner.gender);
+      const validation = await validateJoinCode(parsed.data.teamCode);
       if (!validation.ok) {
         return { ok: false, message: validation.message };
       }
@@ -38,7 +38,10 @@ export async function submitRegistration(payload: RegistrationPayload): Promise<
       return {
         ok: true,
         status: "free",
-        redirectTo: makeSuccessPath(freeStored),
+        flow: freeStored.flow,
+        runnerEmail: freeStored.runnerEmail,
+        teamCode: freeStored.teamCode,
+        inviteUrl: freeStored.teamCode ? makeInviteUrl(freeStored.teamCode) : undefined,
       };
     }
 
@@ -67,7 +70,7 @@ async function createCheckout(payload: RegistrationPayload) {
     mode: "payment",
     success_url: `${appUrl}/register/success?checkout={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}${cancelPath(payload)}`,
-    customer_email: payload.runner.email,
+    customer_email: payload.person.email,
     metadata: {
       flow: payload.flow,
     },
@@ -96,7 +99,6 @@ async function createCheckout(payload: RegistrationPayload) {
 
 function cancelPath(payload: RegistrationPayload) {
   if (payload.flow === "join") return `/join/${encodeURIComponent(payload.teamCode)}`;
-  if (payload.flow === "free") return "/register/free";
-  if (payload.flow === "solo") return "/register/solo";
-  return "/register/start";
+  if (payload.flow === "free") return "/register/solo";
+  return "/register/team";
 }

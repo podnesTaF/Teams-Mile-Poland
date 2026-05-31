@@ -8,6 +8,27 @@
       "when": 1779167176249,
       "tag": "0000_hard_natasha_romanoff",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779948000000,
+      "tag": "0001_simplify_registration",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779983116123,
+      "tag": "0002_woozy_stature",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780220432163,
+      "tag": "0003_adorable_young_avengers",
+      "breakpoints": true
     }
   ]
 }
