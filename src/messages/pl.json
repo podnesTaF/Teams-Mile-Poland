@@ -54,65 +54,93 @@
   "landing": {
     "hero": {
       "lang": "PL",
-      "title": "To nie jest zwykły bieg.<br></br>Drużynowa battle-gra.",
-      "sub": "ACE BATTLE RUN — nowa taktyczna gra w formacie drużynowego biegu. Każdy uczestnik ma swoją rolę, a zwycięstwo zależy od zgranych działań całej drużyny.",
-      "ctaPrimary": "Zarejestruj się jednym kliknięciem →",
+      "title": "Indywidualno-drużynowe <red>zawody rankingowe</red> na jedną milę.",
+      "sub": "Walcz o własny wynik. Wygrywaj razem z drużyną.",
+      "ctaPrimary": "ZAREJESTRUJ SIĘ ZA DARMO →",
       "ctaSecondary": "Skontaktuj się z nami",
       "venue": "Stadion Podskarbińska",
       "stats": {
         "dateLabel": "Data",
         "dateValue": "27 czerwca 2026",
         "freeLabel": "Udział",
-        "freeValue": "FREE",
+        "freeValue": "BEZPŁATNY",
         "prizeLabel": "Pula nagród",
-        "prizeValue": "🔥 3000 EUR",
+        "prizeValue": "🔥 300",
         "timeLabel": "Godziny",
         "timeValue": "09:00 – 15:30"
       }
     },
     "formatBand": {
-      "title": "Format, którego jeszcze nie było w Polsce",
-      "body": "Z okazji pierwszego ACE BATTLE udział dla drużyn i solo-uczestników jest darmowy, a zwycięzcy otrzymają nagrody pieniężne.",
-      "playLabel": "Jak to było"
+      "title": "Nowy format zawodów po raz pierwszy w Warszawie.",
+      "body": "Z okazji debiutu ACE BATTLE MILE udział dla drużyn i uczestników solo będzie bezpłatny, a na zwycięzców czekają nagrody.",
+      "playLabel": "ZOBACZ ATMOSFERĘ"
     },
     "whatIs": {
       "title": "Czym jest ACE BATTLE RUN?",
       "cards": {
         "roles": {
-          "title": "Różne role w drużynie",
-          "body": "Drużyna z góry wybiera role i planuje, jak pokonać dystans. Intryga zaczyna się jeszcze przed pierwszym sygnałem.",
-          "alt": "Różne role w drużynie"
+          "title": "Role w drużynie",
+          "body": "Każdy uczestnik dostaje swoją rolę, a wynik zależy od zgranej pracy całej drużyny.",
+          "alt": "Role w drużynie"
         },
         "team": {
-          "title": "Gra drużynowa",
-          "body": "ACE BATTLE RUN to gra drużynowa: przed startem zawodnicy wybierają role, planują taktykę i razem pokonują dystans.",
-          "alt": "Gra drużynowa"
+          "title": "Klasyczny bieg drużynowy ACE BATTLE MILE",
+          "body": "To bieg drużynowy na 1 milę, w którym liczy się nie tylko szybkość, ale i współpraca drużynowa.",
+          "alt": "Klasyczny bieg drużynowy"
         },
         "rating": {
-          "title": "Ranking po grze",
-          "body": "",
-          "alt": "Ranking po grze"
+          "title": "Ranking sezonowy",
+          "body": "Po biegu uczestnicy otrzymują punkty rankingowe, a wyniki drużyn wpływają na ich pozycję w sezonowym rankingu ACE BATTLE RATING.",
+          "alt": "Ranking sezonowy"
         }
       }
     },
     "howItGoes": {
-      "title": "Jak przebiega gra",
+      "title": "Jak przebiegają zawody rankingowe",
       "steps": {
         "one": {
           "title": "Briefing",
-          "body": "Krótko wyjaśniamy zasady i to, jak będzie wyglądał cały dzień."
+          "body": "Krótko wyjaśniamy zasady biegu i system ról."
         },
         "two": {
-          "title": "Zbiórka drużyny",
-          "body": "Możesz przyjść z własną drużyną albo zbierzemy ją na miejscu."
+          "title": "Role w drużynie",
+          "body": "Uczestnicy rozdzielają role i przygotowują się do startu."
         },
         "three": {
-          "title": "Gra",
-          "body": "Pokonujesz grę razem z drużyną i wykonujesz zadania."
+          "title": "Bieg",
+          "body": "Drużyna pokonuje dystans i zapisuje swój wynik."
         },
         "four": {
-          "title": "Meta",
-          "body": "Po mecie każda drużyna dostaje wyniki i upominki, a najlepsze drużyny — nagrody pieniężne."
+          "title": "Ranking + nagrody",
+          "body": "Każdy wynik wpływa na ranking drużynowy i indywidualny + wszyscy uczestnicy otrzymują nagrody."
+        }
+      }
+    },
+    "roles": {
+      "title": "role w drużynie",
+      "lead": "trzy ROLE. JEDNA DRUŻYNA.",
+      "intro": "<red>Każdy uczestnik ma swoją rolę</red>,<br></br>a końcowy wynik zależy od wkładu całej drużyny.",
+      "compTitle": "role w drużynie",
+      "comp": {
+        "runner": "3 RUNNER",
+        "ace": "2 ACE",
+        "joker": "2 JOKER"
+      },
+      "cards": {
+        "runner": {
+          "name": "RUNNER",
+          "desc": "Biegnie pełny dystans i pomaga drużynie zdobyć maksymalną liczbę punktów rankingowych.",
+          "tag": "# PEŁNY DYSTANS"
+        },
+        "ace": {
+          "name": "ACE",
+          "desc": "Pełni kluczową rolę w strategii drużyny i wpływa na końcowy wynik drużyny.",
+          "tag": "# TAKTYKA + WSPÓŁPRACA"
+        },
+        "joker": {
+          "name": "JOKER",
+          "desc": "Kończy etap drużynowy i pomaga drużynie osiągnąć najlepszy wynik na mecie.",
+          "tag": "# ETAP FINISZOWY"
         }
       }
     },
@@ -129,29 +157,26 @@
       "title": "Dla kogo to jest",
       "items": {
         "runners": {
-          "icon": "🏃",
           "label": "miłośnicy biegania"
         },
         "fitness": {
-          "icon": "🏋️",
           "label": "Fitness / CrossFit"
         },
         "corporate": {
-          "icon": "🏢",
           "label": "drużyny firmowe"
         },
         "clubs": {
-          "icon": "👟",
           "label": "kluby biegowe"
         },
-        "curious": {
-          "icon": "✨",
-          "label": "Dla tych, którzy chcą spróbować czegoś nowego"
+        "athletes": {
+          "label": "zawodowi atleci"
         }
       },
-      "extraFaint": "i oczywiście",
-      "extraIcon": "🔥",
-      "extraText": "Grupy wsparcia i kibice"
+      "support": {
+        "kicker": "i oczywiście",
+        "title": "Grupy wsparcia i kibice",
+        "sub": "Bo każde wielkie zwycięstwo zaczyna się od wsparcia! <hot>JESTEŚ CZĘŚCIĄ DRUŻYNY</hot>"
+      }
     },
     "location": {
       "title": "Lokalizacja — Stadion Podskarbińska",
@@ -167,11 +192,11 @@
         },
         "fans": {
           "title": "Strefa kibica",
-          "body": "Miejsca na trybunach dla kibiców — to show dla wszystkich."
+          "body": "Miejsce dla przyjaciół, rodziny i kibiców, którzy chcą wesprzeć uczestników."
         },
         "timing": {
           "title": "Chip-pomiar czasu",
-          "body": "Elektroniczny system, fotofinisz — wyniki dokładne co do sekundy."
+          "body": "Elektroniczny system rejestracji wyników dla dokładnego ustalenia rezultatów biegu."
         }
       },
       "mapCta": "Zobacz na mapie",
@@ -179,6 +204,7 @@
     },
     "formats": {
       "title": "Formy udziału",
+      "subtitle": "Wybierz swoją drogę.",
       "noTeam": {
         "title": "Nie mam drużyny",
         "body": "Po rejestracji dobierzemy Ci drużynę, z którą zagrasz.",
@@ -196,24 +222,28 @@
       "title": "Twoja dalsza droga",
       "steps": {
         "one": {
-          "title": "Pokonujesz dystans",
-          "body": "Drużyna kończy bieg, a wynik jest oficjalnie zapisywany w systemie pomiaru czasu."
+          "title": "Przebiegasz ACE BATTLE MILE",
+          "body": "Drużyna kończy bieg rankingowy, a wynik jest oficjalnie zapisywany w systemie ACE BATTLE RUN."
         },
         "two": {
-          "title": "Otrzymujesz profil",
-          "body": "Tworzymy Ci Player Profile na platformie ACE BATTLE — tam jest Twój ranking, statystyki i wyniki."
+          "title": "Wchodzisz do rankingu",
+          "body": "Ty i Twoja drużyna trafiacie do rankingu rywalizacji ACE BATTLE RUN."
         },
         "three": {
-          "title": "Wchodzisz w sezon",
-          "body": "Warszawa to pierwszy etap National Regular Season — serii turniejów w całej Polsce."
+          "title": "Otrzymujesz swój profil",
+          "body": "Na platformie ACE BATTLE RUN pojawia się Twój profil z indywidualnym rankingiem, wynikami i statystykami drużyny."
         },
         "four": {
-          "title": "Wychodzisz na arenę światową",
-          "body": "Najlepsze drużyny dostają zaproszenia na International ACE BATTLE Season w innych miastach Europy."
+          "title": "Idziesz w stronę ligi krajowej",
+          "body": "Warszawski Qualifier to pierwszy krok do udziału w lidze krajowej ACE BATTLE MILE w Polsce."
+        },
+        "five": {
+          "title": "Możesz wyjść na poziom międzynarodowy",
+          "body": "Najlepsze drużyny dostają zaproszenia do International ACE BATTLE League w innych miastach Europy."
         }
       },
       "flag": "🏁",
-      "foot": "Warszawski qualifier to start całego systemu ACE BATTLE RUN w Polsce. Pierwsi uczestnicy dostają pierwszy ranking i stają się częścią nowej społeczności od samego początku."
+      "foot": "Warszawski Qualifier to Twój start w systemie ACE BATTLE RUN w Polsce. <red>Stań się częścią nowego formatu zawodów od samego początku.</red>"
     },
     "atmosphere": {
       "title": "Poczuj atmosferę",
@@ -257,19 +287,16 @@
       "alsoLabel": "a także",
       "also": {
         "photo": {
-          "icon": "📸",
           "title": "Fotograf",
           "body": "Nasz fotograf uchwyci najlepsze momenty — start, metę, emocje i dekorację. Po wydarzeniu wszystkie zdjęcia będą dostępne dla uczestników."
         },
         "gifts": {
-          "icon": "🎁",
           "title": "Nagrody i bonusy",
-          "body": "Ktoś dostanie nagrodę pieniężną, ktoś — merch, akcesoria lub bonusy od partnerów; bez upominku na pewno nikt nie wyjdzie."
+          "body": "Na wszystkich uczestników czekają upominki, bonusy i miłe niespodzianki od partnerów wydarzenia."
         },
         "people": {
-          "icon": "🤝",
           "title": "Nowe znajomości",
-          "body": "Tu spotykają się swoi — ludzie, którzy kochają sport, ruch i silną społeczność. Nowe znajomości i dobry wajb gwarantowane."
+          "body": "Poznawaj osoby o podobnych zainteresowaniach i dołącz do społeczności ACE BATTLE MILE."
         }
       }
     },
@@ -301,7 +328,13 @@
     },
     "finalCta": {
       "title": "Zarejestruj się, dopóki są wolne miejsca",
-      "cta": "Zarejestruj się jednym kliknięciem →"
+      "cta": "ZAREJESTRUJ SIĘ ZA DARMO →"
+    },
+    "footer": {
+      "sub": "WARSZAWA",
+      "phone": "+48 576 696 078",
+      "email": "info@aba.run",
+      "share": "udostępnij stronę znajomemu →"
     }
   },
   "footer": {

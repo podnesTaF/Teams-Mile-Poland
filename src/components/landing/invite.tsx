@@ -7,7 +7,7 @@ export function Invite() {
   const t = useTranslations("landing.invite");
 
   return (
-    <section className="section light" style={{ paddingTop: 0 }} data-screen-label="Invite">
+    <section className="section" data-screen-label="Invite">
       <div className="wrap invite">
         <div className="chips">
           <span className="chip">{t("chips.one")}</span>

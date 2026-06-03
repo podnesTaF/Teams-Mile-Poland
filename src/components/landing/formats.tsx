@@ -17,6 +17,7 @@ export function Formats() {
     <section className="section" data-screen-label="Formats">
       <div className="wrap center">
         <h2 className="head t-sec">{t("title")}</h2>
+        <p className="sub-lead">{t("subtitle")}</p>
         <div className="formats">
           <article className="fcard">
             <div className="fcard__head fcard__head--red">

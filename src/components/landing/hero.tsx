@@ -33,7 +33,10 @@ export function Hero() {
 
           <div className="hero__content">
             <h1 className="head t-hero hero__title">
-              {t.rich("title", { br: () => <br /> })}
+              {t.rich("title", {
+                br: () => <br />,
+                red: (chunks) => <span className="red">{chunks}</span>,
+              })}
             </h1>
             <p className="lead hero__sub">{t("sub")}</p>
             <div className="hero__actions">

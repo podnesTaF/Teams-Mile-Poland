@@ -1,8 +1,20 @@
 import { useTranslations } from "next-intl";
 
-const ITEMS = ["runners", "fitness", "corporate", "clubs", "curious"] as const;
+/** Audience items → masked SVG icon file (recoloured white via CSS mask). */
+const ITEMS = [
+  { id: "runners", icon: "ic-run" },
+  { id: "fitness", icon: "ic-fitness" },
+  { id: "corporate", icon: "ic-corporate" },
+  { id: "clubs", icon: "ic-clubs" },
+  { id: "athletes", icon: "ic-athlete" },
+] as const;
 
-/** Red bleed-edge box with the 5 audience icons, plus the "and of course" row underneath on the dark background. */
+function maskStyle(icon: string) {
+  const url = `url(/landing/icons/${icon}.svg)`;
+  return { WebkitMaskImage: url, maskImage: url } as React.CSSProperties;
+}
+
+/** Red bleed-edge box with the 5 audience icons, plus the "and of course" support band underneath on the dark background. */
 export function Audience() {
   const t = useTranslations("landing.audience");
 
@@ -12,9 +24,9 @@ export function Audience() {
         <div className="wrap center">
           <h2 className="head t-sec">{t("title")}</h2>
           <div className="aud-grid">
-            {ITEMS.map((id) => (
+            {ITEMS.map(({ id, icon }) => (
               <div key={id} className="aud">
-                <span className="aud__ic">{t(`items.${id}.icon`)}</span>
+                <span className="aud__ic" style={maskStyle(icon)} aria-hidden />
                 <span className="aud__t">{t(`items.${id}.label`)}</span>
               </div>
             ))}
@@ -22,10 +34,17 @@ export function Audience() {
         </div>
       </div>
       <div className="wrap">
-        <div className="aud-extra">
-          <span className="faint">{t("extraFaint")}</span>
-          <span>{t("extraIcon")}</span>
-          <span>{t("extraText")}</span>
+        <div className="support-band">
+          <span className="support-band__ic" style={maskStyle("ic-corporate")} aria-hidden />
+          <div className="support-band__txt">
+            <span className="support-band__kicker">{t("support.kicker")}</span>
+            <span className="support-band__title">{t("support.title")}</span>
+            <span className="support-band__sub">
+              {t.rich("support.sub", {
+                hot: (chunks) => <span className="red">{chunks}</span>,
+              })}
+            </span>
+          </div>
         </div>
       </div>
     </section>

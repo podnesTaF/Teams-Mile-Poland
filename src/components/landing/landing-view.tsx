@@ -12,6 +12,7 @@ import { Invite } from "@/components/landing/invite";
 import { Location } from "@/components/landing/location";
 import { PathForward } from "@/components/landing/path";
 import { Program } from "@/components/landing/program";
+import { Roles } from "@/components/landing/roles";
 import { WhatIs } from "@/components/landing/what-is";
 
 /**
@@ -27,6 +28,7 @@ export function LandingView() {
       <Hero />
       <WhatIs />
       <HowItGoes />
+      <Roles />
       <Invite />
       <Audience />
       <Location />

@@ -23,7 +23,13 @@
       "Bash(echo \"TC=$?\")",
       "Bash(pnpm lint *)",
       "Bash(git mv *)",
-      "Bash(mv src/messages/uk.json src/messages/ua.json)"
+      "Bash(mv src/messages/uk.json src/messages/ua.json)",
+      "Bash(rm design.html)",
+      "Bash(file design.html)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const b=fs.readFileSync\\('public/landing/fig/final-team.png'\\);const w=b.readUInt32BE\\(16\\),h=b.readUInt32BE\\(20\\);console.log\\('final-team.png',w+'x'+h,'ratio',\\(h/w\\).toFixed\\(3\\)\\);\")",
+      "Bash(mkdir -p d3)",
+      "Bash(tar -xf d3.tar.gz -C d3)",
+      "Bash(xxd)"
     ]
   }
 }

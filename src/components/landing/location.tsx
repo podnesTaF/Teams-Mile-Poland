@@ -1,43 +1,54 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
-import { CheckIcon } from "./icons";
-
-const ITEMS = ["cafe", "medical", "fans", "timing"] as const;
+/** Checklist item → masked SVG icon file. */
+const ITEMS = [
+  { id: "cafe", icon: "ic-coffee" },
+  { id: "medical", icon: "ic-medbag" },
+  { id: "fans", icon: "ic-corporate" },
+  { id: "timing", icon: "ic-chip" },
+] as const;
 
 const MAPS_URL =
   "https://www.google.com/maps/search/?api=1&query=Stadion%20Podskarbi%C5%84ska%2C%20Warsaw";
 
-/** Venue section: side-by-side image + 4-item checklist, with the small left-edge triangle decoration. */
+function maskStyle(icon: string) {
+  const url = `url(/landing/icons/${icon}.svg)`;
+  return { WebkitMaskImage: url, maskImage: url } as React.CSSProperties;
+}
+
+/** Venue section: side-by-side image + 4-item checklist, with the left-edge wedge vector behind. */
 export function Location() {
   const t = useTranslations("landing.location");
 
   return (
-    <section className="section location" data-screen-label="Location">
-      <div className="tri-left">
-        <div className="w" />
-        <div className="r" />
-      </div>
+    <section className="section location" id="location" data-screen-label="Location">
+      <Image
+        className="loc-wedge"
+        src="/landing/icons/loc-wedge.svg"
+        alt=""
+        width={478}
+        height={749}
+        aria-hidden
+      />
       <div className="wrap">
         <div className="center stack" style={{ gap: 8 }}>
           <h2 className="head t-40">{t("title")}</h2>
-          <p className="head t-32">{t("address")}</p>
+          <p className="head t-20 loc-addr">{t("address")}</p>
         </div>
         <div className="loc-grid">
           <Image
             className="loc-img"
-            src="/landing/location.png"
+            src="/landing/fig/location.png"
             alt={t("imageAlt")}
             width={587}
             height={503}
           />
           <div>
             <div className="checklist">
-              {ITEMS.map((id) => (
+              {ITEMS.map(({ id, icon }) => (
                 <div key={id} className="check">
-                  <span className="check__box">
-                    <CheckIcon />
-                  </span>
+                  <span className="check__ic" style={maskStyle(icon)} aria-hidden />
                   <div>
                     <h3 className="check__t">{t(`checklist.${id}.title`)}</h3>
                     <p className="sm">{t(`checklist.${id}.body`)}</p>

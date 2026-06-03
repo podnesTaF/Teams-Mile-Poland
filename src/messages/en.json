@@ -54,9 +54,9 @@
   "landing": {
     "hero": {
       "lang": "EN",
-      "title": "Not just a run.<br></br>A team battle game.",
-      "sub": "ACE BATTLE RUN — a new tactical game in the format of a team run. Every participant has a role, and victory depends on the coordinated actions of the whole team.",
-      "ctaPrimary": "Register in one click →",
+      "title": "Individual and team <red>rating races</red> over one mile.",
+      "sub": "Fight for your own result. Win together with your team.",
+      "ctaPrimary": "REGISTER FOR FREE →",
       "ctaSecondary": "Contact us",
       "venue": "Stadion Podskarbińska",
       "stats": {
@@ -65,54 +65,82 @@
         "freeLabel": "Entry",
         "freeValue": "FREE",
         "prizeLabel": "Prize pool",
-        "prizeValue": "🔥 3000 EUR",
+        "prizeValue": "🔥 300",
         "timeLabel": "Time",
         "timeValue": "09:00 – 15:30"
       }
     },
     "formatBand": {
-      "title": "A format Poland has never seen",
-      "body": "To celebrate the first ACE BATTLE, entry is free for teams and solo runners, and winners take home cash prizes.",
-      "playLabel": "How it was"
+      "title": "A new competition format, in Warsaw for the first time.",
+      "body": "To mark the debut of ACE BATTLE MILE, entry is free for teams and solo participants, and prizes await the winners.",
+      "playLabel": "WATCH THE ATMOSPHERE"
     },
     "whatIs": {
       "title": "What is ACE BATTLE RUN?",
       "cards": {
         "roles": {
-          "title": "Different roles on the team",
-          "body": "Each team chooses roles up front and plans how to cover the distance. The intrigue starts long before the first whistle.",
-          "alt": "Different roles on the team"
+          "title": "Roles on the team",
+          "body": "Every participant gets their own role, and the result depends on the whole team working in sync.",
+          "alt": "Roles on the team"
         },
         "team": {
-          "title": "A team game",
-          "body": "ACE BATTLE RUN is a team game: before the start, players pick roles, build tactics, and run the course together.",
-          "alt": "Team game"
+          "title": "The classic ACE BATTLE MILE team run",
+          "body": "It's a one-mile team run where speed isn't the only thing that matters — team play does too.",
+          "alt": "Classic team run"
         },
         "rating": {
-          "title": "Rating after the game",
-          "body": "",
-          "alt": "Rating after the game"
+          "title": "Seasonal rating",
+          "body": "After the run, participants earn rating points, and team results shape their position in the seasonal ACE BATTLE RATING.",
+          "alt": "Seasonal rating"
         }
       }
     },
     "howItGoes": {
-      "title": "How the game runs",
+      "title": "How the rating competition runs",
       "steps": {
         "one": {
           "title": "Briefing",
-          "body": "We explain the rules briefly and walk you through how the day works."
+          "body": "We briefly explain the rules of the run and the role system."
         },
         "two": {
-          "title": "Team assembly",
-          "body": "Come with your own team, or we'll match you with one at the event."
+          "title": "Roles on the team",
+          "body": "Participants assign roles and get ready for the start."
         },
         "three": {
-          "title": "The game",
-          "body": "You play the game together with your team and complete the tasks."
+          "title": "The run",
+          "body": "The team covers the distance and records its result."
         },
         "four": {
-          "title": "Finish",
-          "body": "After the finish every team gets results and gifts; the top teams take cash prizes."
+          "title": "Rating + rewards",
+          "body": "Every result counts toward team and individual ratings + all participants get rewards."
+        }
+      }
+    },
+    "roles": {
+      "title": "roles on the team",
+      "lead": "three ROLES. ONE TEAM.",
+      "intro": "<red>Every participant has their own role</red>,<br></br>and the final result depends on the whole team's contribution.",
+      "compTitle": "roles on the team",
+      "comp": {
+        "runner": "3 RUNNER",
+        "ace": "2 ACE",
+        "joker": "2 JOKER"
+      },
+      "cards": {
+        "runner": {
+          "name": "RUNNER",
+          "desc": "Runs the full distance and helps the team score the maximum number of rating points.",
+          "tag": "# FULL DISTANCE"
+        },
+        "ace": {
+          "name": "ACE",
+          "desc": "Plays a key role in the team's strategy and shapes the team's final result.",
+          "tag": "# TACTICS + TEAMWORK"
+        },
+        "joker": {
+          "name": "JOKER",
+          "desc": "Closes out the team stage and helps the team post its best result at the finish.",
+          "tag": "# FINISH STAGE"
         }
       }
     },
@@ -129,29 +157,26 @@
       "title": "Who it's for",
       "items": {
         "runners": {
-          "icon": "🏃",
           "label": "running enthusiasts"
         },
         "fitness": {
-          "icon": "🏋️",
           "label": "Fitness / CrossFit"
         },
         "corporate": {
-          "icon": "🏢",
           "label": "corporate teams"
         },
         "clubs": {
-          "icon": "👟",
           "label": "running clubs"
         },
-        "curious": {
-          "icon": "✨",
-          "label": "Anyone who wants to try something new"
+        "athletes": {
+          "label": "professional athletes"
         }
       },
-      "extraFaint": "and of course",
-      "extraIcon": "🔥",
-      "extraText": "Support crews & fans"
+      "support": {
+        "kicker": "and of course",
+        "title": "Support crews & fans",
+        "sub": "Because every great win starts with support! <hot>YOU ARE PART OF THE TEAM</hot>"
+      }
     },
     "location": {
       "title": "Venue — Stadion Podskarbińska",
@@ -167,11 +192,11 @@
         },
         "fans": {
           "title": "Support zone",
-          "body": "Stands for fans — this is a show for everyone."
+          "body": "A place for friends, family, and fans who want to cheer the participants on."
         },
         "timing": {
           "title": "Chip timing",
-          "body": "Electronic timing and photo finish — results accurate to the second."
+          "body": "An electronic results-capture system for pinpoint-accurate race standings."
         }
       },
       "mapCta": "View on map",
@@ -179,6 +204,7 @@
     },
     "formats": {
       "title": "Ways to enter",
+      "subtitle": "Choose your path.",
       "noTeam": {
         "title": "I don't have a team",
         "body": "After registering, we'll match you with a team to play with.",
@@ -196,24 +222,28 @@
       "title": "Your path forward",
       "steps": {
         "one": {
-          "title": "You run the course",
-          "body": "The team finishes the game run and the result is officially logged in the timing system."
+          "title": "You run ACE BATTLE MILE",
+          "body": "The team finishes the rating run, and the result is officially logged in the ACE BATTLE RUN system."
         },
         "two": {
-          "title": "You get a profile",
-          "body": "We create a Player Profile for you on the ACE BATTLE platform — your rating, stats, and results live there."
+          "title": "You enter the rating",
+          "body": "You and your team join the ACE BATTLE RUN competition rating."
         },
         "three": {
-          "title": "You enter the season",
-          "body": "Warsaw is stage one of the National Regular Season, a series of tournaments across Poland."
+          "title": "You get your profile",
+          "body": "A profile appears for you on the ACE BATTLE RUN platform — with your personal rating, results, and team stats."
         },
         "four": {
-          "title": "You reach the world stage",
-          "body": "Top teams earn invitations to the International ACE BATTLE Season in other European cities."
+          "title": "You move toward the national league",
+          "body": "The Warsaw Qualifier is the first step toward joining the national ACE BATTLE MILE league in Poland."
+        },
+        "five": {
+          "title": "You can reach the international level",
+          "body": "Top teams earn invitations to the International ACE BATTLE League in other European cities."
         }
       },
       "flag": "🏁",
-      "foot": "The Warsaw qualifier is the start of the entire ACE BATTLE RUN system in Poland. The first participants get their first rating and become part of a brand-new community from the very beginning."
+      "foot": "The Warsaw Qualifier is your start in the ACE BATTLE RUN system in Poland. <red>Become part of a brand-new competition format from the very beginning.</red>"
     },
     "atmosphere": {
       "title": "Feel the atmosphere",
@@ -257,19 +287,16 @@
       "alsoLabel": "and also",
       "also": {
         "photo": {
-          "icon": "📸",
           "title": "Photographer",
           "body": "Our photographer captures the best moments — start, finish, emotions, and awards. All photos are available to participants after the event."
         },
         "gifts": {
-          "icon": "🎁",
           "title": "Gifts and bonuses",
-          "body": "Some win cash prizes, others walk away with merch, accessories, or partner bonuses — no one leaves without a gift."
+          "body": "Gifts, bonuses, and pleasant surprises from the event's partners await all participants."
         },
         "people": {
-          "icon": "🤝",
           "title": "New connections",
-          "body": "This is where like-minded people gather — people who love sport, movement, and a strong community. New friends and the right vibe guaranteed."
+          "body": "Meet like-minded people and become part of the ACE BATTLE MILE community."
         }
       }
     },
@@ -301,7 +328,13 @@
     },
     "finalCta": {
       "title": "Register while there are still spots",
-      "cta": "Register in one click →"
+      "cta": "REGISTER FOR FREE →"
+    },
+    "footer": {
+      "sub": "WARSZAWA",
+      "phone": "+48 576 696 078",
+      "email": "info@aba.run",
+      "share": "share the site with a friend →"
     }
   },
   "footer": {

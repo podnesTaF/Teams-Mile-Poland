@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import { ContactForm } from "@/features/contact/components/contact-form";
@@ -14,8 +15,16 @@ export function Contact() {
 
   return (
     <section className="section contact" id="contact" data-screen-label="Contact">
-      <div className="tri-deco tl" />
-      <div className="tri-deco br" />
+      <Image className="beam beam--l" src="/landing/icons/beam-left.svg" alt="" width={478} height={749} aria-hidden />
+      <Image className="beam beam--r" src="/landing/icons/beam-right.svg" alt="" width={478} height={749} aria-hidden />
+      <Image
+        className="sect-glow sect-glow--bottom"
+        src="/landing/icons/roles-glow.svg"
+        alt=""
+        width={1352}
+        height={1096}
+        aria-hidden
+      />
       <div className="wrap center">
         <h2 className="head t-sec">{tc("title")}</h2>
         <p className="head t-20" style={{ marginTop: 6 }}>

@@ -2,9 +2,9 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 const CARDS = [
-  { id: "roles",  src: "/landing/card-roles.png"  },
-  { id: "team",   src: "/landing/card-team.png"   },
-  { id: "rating", src: "/landing/card-rating.png" },
+  { id: "roles",  src: "/landing/fig/whatis-roles.png"   },
+  { id: "team",   src: "/landing/fig/whatis-classic.png" },
+  { id: "rating", src: "/landing/fig/whatis-rating.jpg"  },
 ] as const;
 
 /** "What is ACE BATTLE RUN?" — three image cards with red→ink triangle behind. */

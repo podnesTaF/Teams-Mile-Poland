@@ -9,7 +9,11 @@ const TIMELINE = [
   "awards",
 ] as const;
 
-const ALSO = ["photo", "gifts", "people"] as const;
+const ALSO = [
+  { id: "photo", tile: "tile-camera" },
+  { id: "gifts", tile: "tile-gift" },
+  { id: "people", tile: "tile-friend" },
+] as const;
 
 /** "Program of the day" — left timeline column, right "and also" sidebar. */
 export function Program() {
@@ -38,9 +42,13 @@ export function Program() {
           </div>
           <div className="also">
             <span className="also__h">{t("alsoLabel")}</span>
-            {ALSO.map((id) => (
+            {ALSO.map(({ id, tile }) => (
               <div key={id} className="arow">
-                <span className="em">{t(`also.${id}.icon`)}</span>
+                <span
+                  className="em"
+                  style={{ backgroundImage: `url(/landing/icons/${tile}.svg)` }}
+                  aria-hidden
+                />
                 <div>
                   <h3 className="a-t">{t(`also.${id}.title`)}</h3>
                   <p className="body">{t(`also.${id}.body`)}</p>
