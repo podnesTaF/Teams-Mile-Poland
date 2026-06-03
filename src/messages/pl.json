@@ -334,7 +334,8 @@
       "sub": "WARSZAWA",
       "phone": "+48 576 696 078",
       "email": "info@aba.run",
-      "share": "udostępnij stronę znajomemu →"
+      "share": "udostępnij stronę znajomemu →",
+      "shareCopied": "skopiowano link ✓"
     }
   },
   "footer": {
@@ -522,5 +523,137 @@
       "copied": "Skopiowano",
       "orShareCode": "Albo udostępnij kod:"
     }
+  },
+  "terms": {
+    "metaTitle": "Regulamin i warunki — TEAMS MILE Warszawa",
+    "eyebrow": "Informacje prawne",
+    "title": "Regulamin i warunki",
+    "updated": "Ostatnia aktualizacja: 3 czerwca 2026",
+    "intro": "Niniejszy Regulamin reguluje rejestrację i udział w wydarzeniu TEAMS MILE Warszawa, organizowanym przez ACE BATTLE POLAND, które odbędzie się 27 czerwca 2026 r. na Stadionie Podskarbińska w Warszawie. Rejestrując się, kontaktując się z nami lub biorąc udział w wydarzeniu, akceptujesz niniejszy regulamin. Prosimy o zapoznanie się z nim wraz z oficjalnym Regulaminem zawodów.",
+    "sections": [
+      {
+        "h": "1. Wydarzenie",
+        "p": [
+          "TEAMS MILE Warszawa to drużynowy bieg na milę rozgrywany w systemie oceniania ACE BATTLE. Organizatorem jest ACE BATTLE POLAND Sp. z o.o., licencjonowane wydarzenie ACE BATTLE Association.",
+          "Pełne zasady sportowe — role, dywizje, korekty czasów, rangi i kary — określa Regulamin zawodów oraz Przepisy o systemie oceniania ACE BATTLE, które stanowią część niniejszego regulaminu."
+        ]
+      },
+      {
+        "h": "2. Rejestracja i uprawnienia",
+        "p": [
+          "Możesz zarejestrować się jako kapitan drużyny (tworząc drużynę liczącą 7–12 zawodników), jako zawodnik dołączający do istniejącej drużyny za pomocą kodu zaproszenia kapitana lub jako wolny zawodnik, którego dopasujemy do drużyny później.",
+          "Potwierdzasz, że podane informacje są prawdziwe oraz że masz prawo zarejestrować dodawanych zawodników. Rejestracja zostaje potwierdzona po zapisaniu zgłoszenia oraz — jeśli obowiązuje opłata startowa — po dokonaniu płatności."
+        ]
+      },
+      {
+        "h": "3. Opłata startowa i płatności",
+        "p": [
+          "Pierwszych 300 zarejestrowanych zawodników nie wnosi opłaty startowej. Po wykorzystaniu darmowej puli opłata startowa wynosi 50 PLN za zawodnika.",
+          "Płatności są obsługiwane w bezpieczny sposób przez naszego dostawcę płatności, Stripe. Nigdy nie otrzymujemy ani nie przechowujemy pełnego numeru karty; Stripe przetwarza dane karty zgodnie z własnym regulaminem i standardami bezpieczeństwa. Przechowujemy informację o statusie płatności oraz identyfikator sesji płatności, aby potwierdzić zgłoszenie."
+        ]
+      },
+      {
+        "h": "4. Dane, które zbieramy",
+        "p": [
+          "Zbieramy wyłącznie to, co jest potrzebne do zarejestrowania Cię, przeprowadzenia wydarzenia i utrzymania kontaktu. W zależności od sposobu zapisu obejmuje to:"
+        ],
+        "items": [
+          {
+            "t": "Imię i nazwisko",
+            "d": "identyfikuje Cię na liście startowej, numerze startowym i w wynikach."
+          },
+          {
+            "t": "Adres e-mail",
+            "d": "służy do wysłania potwierdzenia oraz bezpiecznego, jednorazowego linku dostępu do zgłoszenia lub strony drużyny."
+          },
+          {
+            "t": "Numer telefonu",
+            "d": "umożliwia nam i kapitanowi drużyny kontakt w sprawach wydarzenia."
+          },
+          {
+            "t": "Nazwa drużyny",
+            "d": "dla kapitanów tworzących drużynę; widoczna dla dołączających zawodników."
+          },
+          {
+            "t": "Liczebność drużyny",
+            "d": "rozmiar składu deklarowany przez kapitana przy rejestracji (7–12 zawodników)."
+          },
+          {
+            "t": "Kod zaproszenia do drużyny",
+            "d": "używany przy dołączaniu do istniejącej drużyny, aby przypisać Cię do właściwego składu."
+          },
+          {
+            "t": "Typ rejestracji",
+            "d": "czy zapisujesz się jako kapitan, członek drużyny czy wolny zawodnik."
+          },
+          {
+            "t": "Zgoda",
+            "d": "zapis potwierdzający akceptację niniejszego Regulaminu przy rejestracji."
+          },
+          {
+            "t": "Status płatności",
+            "d": "czy zgłoszenie jest darmowe, opłacone czy oczekujące, wraz z identyfikatorem sesji płatności Stripe (nigdy nie widzimy numeru karty)."
+          },
+          {
+            "t": "Czas odprawy",
+            "d": "rejestrowany w dniu wydarzenia podczas odprawy na obiekcie."
+          },
+          {
+            "t": "Dane z formularza kontaktowego",
+            "d": "jeśli napiszesz do nas, przechowujemy Twoje imię, e-mail, telefon, treść wiadomości oraz preferowaną formę odpowiedzi (WhatsApp, Telegram, Viber, telefon lub e-mail)."
+          }
+        ]
+      },
+      {
+        "h": "5. Jak wykorzystujemy Twoje dane",
+        "p": [
+          "Wykorzystujemy Twoje dane do obsługi rejestracji, zarządzania drużynami i składami, pobrania należnej opłaty, wysyłania komunikatów o wydarzeniu i linków dostępu, odprawy w dniu biegu, publikacji list startowych i wyników oraz odpowiedzi na Twoje zapytania.",
+          "Nie sprzedajemy Twoich danych osobowych."
+        ]
+      },
+      {
+        "h": "6. Udostępnianie i przetwarzanie",
+        "p": [
+          "Udostępniamy dane wyłącznie dostawcom usług, którzy pomagają nam w organizacji wydarzenia: Stripe (obsługa płatności) oraz naszemu dostawcy poczty e-mail (dostarczanie potwierdzeń i linków dostępu). Przetwarzają oni dane w naszym imieniu zgodnie z własnymi zobowiązaniami w zakresie bezpieczeństwa i prywatności."
+        ]
+      },
+      {
+        "h": "7. Komunikacja",
+        "p": [
+          "Wysyłamy wiadomości transakcyjne — potwierdzenie rejestracji, bezpieczne jednorazowe linki dostępu do strony drużyny lub zawodnika oraz ważne aktualizacje dotyczące wydarzenia. Jeśli się z nami skontaktujesz, odpowiadamy wybraną przez Ciebie metodą."
+        ]
+      },
+      {
+        "h": "8. Twoje prawa",
+        "p": [
+          "Możesz zażądać dostępu do swoich danych osobowych, ich poprawienia lub usunięcia, a także wycofać zgodę na przetwarzanie, które nie jest niezbędne. Aby skorzystać z tych praw, użyj danych kontaktowych poniżej."
+        ]
+      },
+      {
+        "h": "9. Udział, bezpieczeństwo i materiały medialne",
+        "p": [
+          "Bierzesz udział na własną odpowiedzialność i potwierdzasz, że Twój stan zdrowia pozwala na bieganie. Stosuj się do poleceń organizatora i sędziów oraz zasad bezpieczeństwa zawartych w Regulaminie zawodów.",
+          "Podczas wydarzenia prowadzone są zdjęcia i nagrania, a materiały mogą być wykorzystywane do promocji wydarzeń ACE BATTLE. Poinformuj organizatora na miejscu, jeśli nie chcesz być pokazywany."
+        ]
+      },
+      {
+        "h": "10. Odwołanie i zwroty",
+        "p": [
+          "Jeśli wydarzenie zostanie odwołane przez organizatora, opłacone wpisowe jest rozliczane zgodnie z naszą polityką zwrotów. Sprawy dotyczące płatności prosimy kierować na kontakt poniżej."
+        ]
+      },
+      {
+        "h": "11. Zmiany regulaminu",
+        "p": [
+          "Możemy aktualizować niniejszy regulamin, aby odzwierciedlić zmiany w wydarzeniu lub wymogi prawne. Aktualna wersja zawsze znajduje się na tej stronie wraz z datą ostatniej aktualizacji."
+        ]
+      },
+      {
+        "h": "12. Kontakt",
+        "p": [
+          "Masz pytania dotyczące regulaminu lub swoich danych? Skontaktuj się z ACE BATTLE POLAND: info@aba.run lub +48 576 696 078."
+        ]
+      }
+    ]
   }
 }

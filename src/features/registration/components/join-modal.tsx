@@ -6,6 +6,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Cbx } from "@/components/ui/cbx";
 import { FloatField } from "@/components/ui/float-field";
 import { Modal, ModalBody, ModalFoot, ModalHead } from "@/components/ui/modal";
+import { Link } from "@/i18n/navigation";
 
 import { trackFormSubmit } from "@/lib/analytics";
 
@@ -138,8 +139,16 @@ export function JoinModal({ code }: { code: string }) {
           onChange={(event) => setData((d) => ({ ...d, terms: event.target.checked }))}
         >
           {tCommon.rich("terms", {
-            privacy: (chunks) => <a href="#privacy">{chunks}</a>,
-            terms: (chunks) => <a href="#terms">{chunks}</a>,
+            privacy: (chunks) => (
+              <Link href="/terms" target="_blank" rel="noopener noreferrer">
+                {chunks}
+              </Link>
+            ),
+            terms: (chunks) => (
+              <Link href="/terms" target="_blank" rel="noopener noreferrer">
+                {chunks}
+              </Link>
+            ),
           })}
         </Cbx>
         <button

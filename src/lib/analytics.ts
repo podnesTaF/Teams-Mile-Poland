@@ -26,3 +26,16 @@ export function pushDataLayer(payload: Record<string, unknown> & { event: string
 export function trackFormSubmit(formName: string, extra?: Record<string, unknown>) {
   pushDataLayer({ event: "form_submit", form_name: formName, ...extra });
 }
+
+/**
+ * Click event for the action links/buttons marketing cares about — the
+ * group (WhatsApp/Telegram) joins, phone/email links, and link-copy buttons
+ * that sit after a form or in the footer. `linkName` identifies which one
+ * fired (e.g. "footer_whatsapp", "success_copy_link"); `extra` adds context.
+ *
+ * Uses GTM's `gtm.linkClick` event name so marketing can hook these the same
+ * way they hook GTM's built-in click triggers.
+ */
+export function trackLinkClick(linkName: string, extra?: Record<string, unknown>) {
+  pushDataLayer({ event: "gtm.linkClick", link_name: linkName, ...extra });
+}

@@ -334,7 +334,8 @@
       "sub": "WARSZAWA",
       "phone": "+48 576 696 078",
       "email": "info@aba.run",
-      "share": "share the site with a friend →"
+      "share": "share the site with a friend →",
+      "shareCopied": "link copied ✓"
     }
   },
   "footer": {
@@ -522,5 +523,125 @@
       "copied": "Copied",
       "orShareCode": "Or share the code:"
     }
+  },
+  "terms": {
+    "metaTitle": "Terms & Conditions — TEAMS MILE Warsaw",
+    "eyebrow": "Legal",
+    "title": "Terms & Conditions",
+    "updated": "Last updated 3 June 2026",
+    "intro": "These Terms & Conditions govern your registration for and participation in TEAMS MILE Warsaw, organised by ACE BATTLE POLAND and held on 27 June 2026 at Stadion Podskarbińska, Warsaw. By registering, contacting us, or taking part in the event you accept these terms. Please read them together with the official Tournament Regulations.",
+    "sections": [
+      {
+        "h": "1. The event",
+        "p": [
+          "TEAMS MILE Warsaw is a team mile race run under the ACE BATTLE rating system. The organiser is ACE BATTLE POLAND Ltd, a licensed event of the ACE BATTLE Association.",
+          "The full sporting rules — roles, divisions, time corrections, ranks and penalties — are set out in the Tournament Regulations and the ACE BATTLE Rating System Regulations, which form part of these terms."
+        ]
+      },
+      {
+        "h": "2. Registration & eligibility",
+        "p": [
+          "You can register as a team captain (starting a team of 7–12 runners), as a runner joining an existing team with the captain's invite code, or as a free agent to be matched with a team later.",
+          "You confirm that the information you provide is accurate and that you are entitled to register the runners you add. Registration is confirmed once your entry is recorded and, where an entry fee applies, payment is completed."
+        ]
+      },
+      {
+        "h": "3. Entry fee & payments",
+        "p": [
+          "The first 300 registered runners pay no entry fee. After the free allocation is used, the entry fee is 50 PLN per runner.",
+          "Payments are processed securely by our payment provider, Stripe. We never receive or store your full card number; Stripe handles card data under its own terms and security standards. We keep a record of your payment status and the payment-session reference so we can confirm your entry."
+        ]
+      },
+      {
+        "h": "4. The data we collect",
+        "p": [
+          "We only collect what we need to register you, run the event, and stay in touch. Depending on how you sign up, this includes:"
+        ],
+        "items": [
+          { "t": "Full name", "d": "identifies you on the start list, your bib and the results." },
+          {
+            "t": "Email address",
+            "d": "sends your confirmation and a secure single-use link to access your registration or team page."
+          },
+          { "t": "Phone number", "d": "lets us and your team captain reach you about the event." },
+          { "t": "Team name", "d": "for captains creating a team; shown to runners who join it." },
+          {
+            "t": "Team size",
+            "d": "the roster size a captain declares at registration (7–12 runners)."
+          },
+          {
+            "t": "Team invite code",
+            "d": "used when you join an existing team so we place you on the right roster."
+          },
+          {
+            "t": "Registration type",
+            "d": "whether you sign up as a captain, team member or free agent."
+          },
+          {
+            "t": "Consent",
+            "d": "a record that you accepted these Terms & Conditions at registration."
+          },
+          {
+            "t": "Payment status",
+            "d": "whether your entry is free, paid or pending, plus the Stripe payment-session reference (we never see your card number)."
+          },
+          { "t": "Check-in time", "d": "recorded on event day when you check in at the venue." },
+          {
+            "t": "Contact-form details",
+            "d": "if you message us we keep your name, email, phone, your message and your preferred reply method (WhatsApp, Telegram, Viber, phone call or email)."
+          }
+        ]
+      },
+      {
+        "h": "5. How we use your data",
+        "p": [
+          "We use your data to process your registration, manage teams and rosters, take payment where due, send event communications and your access links, check you in on race day, publish start lists and results, and respond to your enquiries.",
+          "We do not sell your personal data."
+        ]
+      },
+      {
+        "h": "6. Sharing & processing",
+        "p": [
+          "We share data only with the service providers who help us run the event: Stripe (payment processing) and our email provider (delivery of confirmations and access links). They process data on our behalf under their own security and privacy commitments."
+        ]
+      },
+      {
+        "h": "7. Communications",
+        "p": [
+          "We send transactional messages — registration confirmation, secure single-use links to access your team or runner page, and important event updates. If you contact us, we reply using the method you chose."
+        ]
+      },
+      {
+        "h": "8. Your rights",
+        "p": [
+          "You may ask us to access, correct or delete your personal data, and you may withdraw consent for non-essential processing. To exercise these rights, use the contact details below."
+        ]
+      },
+      {
+        "h": "9. Participation, safety & media",
+        "p": [
+          "You take part at your own responsibility and confirm that you are in adequate health to run. Please follow the organiser's and officials' instructions and the safety rules in the Tournament Regulations.",
+          "Photography and filming take place at the event and images may be used to promote ACE BATTLE events. Let the organiser know on site if you do not wish to be featured."
+        ]
+      },
+      {
+        "h": "10. Cancellation & refunds",
+        "p": [
+          "If the event is cancelled by the organiser, paid entry fees are handled according to our refund policy. Requests relating to payments should be sent to the contact below."
+        ]
+      },
+      {
+        "h": "11. Changes to these terms",
+        "p": [
+          "We may update these terms to reflect changes to the event or legal requirements. The current version always appears on this page with its last-updated date."
+        ]
+      },
+      {
+        "h": "12. Contact",
+        "p": [
+          "Questions about these terms or your data? Contact ACE BATTLE POLAND at info@aba.run or +48 576 696 078."
+        ]
+      }
+    ]
   }
 }
