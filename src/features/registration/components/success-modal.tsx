@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { IconWhatsApp, IconTelegram } from "@/components/ui/icons";
 import { Modal, ModalHead } from "@/components/ui/modal";
+import { trackLinkClick } from "@/lib/analytics";
 import { EVENT } from "@/lib/marketing/event";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ export function SuccessModal() {
 
   function copyInvite() {
     if (!inviteUrl) return;
+    trackLinkClick("success_copy_invite_link", { url: inviteUrl });
     try {
       navigator.clipboard.writeText(inviteUrl);
       setCopied(true);
@@ -66,13 +68,25 @@ export function SuccessModal() {
       ) : null}
 
       <div className="success-shares">
-        <a className="success-share" href={EVENT.contact.whatsappUrl} target="_blank" rel="noopener noreferrer">
+        <a
+          className="success-share"
+          href={EVENT.contact.whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackLinkClick("success_whatsapp_group", { url: EVENT.contact.whatsappUrl })}
+        >
           <span className="success-share-icon wa">
             <IconWhatsApp />
           </span>
           <span className="success-share-label">{t("whatsapp")}</span>
         </a>
-        <a className="success-share" href={EVENT.contact.telegramUrl} target="_blank" rel="noopener noreferrer">
+        <a
+          className="success-share"
+          href={EVENT.contact.telegramUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackLinkClick("success_telegram_group", { url: EVENT.contact.telegramUrl })}
+        >
           <span className="success-share-icon tg">
             <IconTelegram />
           </span>
@@ -82,7 +96,11 @@ export function SuccessModal() {
 
       <div className="success-help">
         <span>{t("help")}</span>
-        <a className="success-help-phone" href={`tel:${EVENT.contact.phoneTel}`}>
+        <a
+          className="success-help-phone"
+          href={`tel:${EVENT.contact.phoneTel}`}
+          onClick={() => trackLinkClick("success_phone", { phone: EVENT.contact.phoneTel })}
+        >
           {EVENT.contact.phone}
         </a>
       </div>

@@ -68,7 +68,7 @@ export function Modal({
       {showLogo ? (
         <div className="modal-overlay-logo">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/ace-battle.svg" alt="ACE BATTLE" />
+          <img src="/brand/ace-battle-poland.svg" alt="ACE BATTLE POLAND" />
         </div>
       ) : null}
       <button className="modal-close" onClick={onClose} aria-label="Close">

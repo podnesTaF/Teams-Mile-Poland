@@ -3,12 +3,11 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
- * ACE BATTLE wordmark — renders the shipped `/brand/ace-battle.svg`.
- * All sizing lives in landing.css (`.logo-wm--{nav,foot,mark}`) so the
- * format-stage watermark override can win without inline-style conflicts.
+ * ACE BATTLE wordmark. Sizing lives in landing.css (`.logo-wm--{nav,foot,mark}`)
+ * so the format-stage watermark override can win without inline-style conflicts.
  *
- *  - "nav"  — hero top-nav
- *  - "foot" — large footer mark
+ *  - "nav"  — hero top-nav, uses the ACE BATTLE POLAND lockup
+ *  - "foot" — large footer mark, uses the ACE BATTLE POLAND lockup
  *  - "mark" — translucent watermark behind the athlete on the format-band
  */
 type WordmarkProps = {
@@ -16,11 +15,17 @@ type WordmarkProps = {
   className?: string;
 };
 
-// Real source dimensions of /brand/ace-battle.svg.
-const SRC_W = 630;
-const SRC_H = 70;
+// Per-variant artwork + its real source dimensions (Image needs the intrinsic
+// ratio; CSS then scales by height/width). nav + foot show the Poland lockup;
+// the format-band watermark keeps the plain ACE BATTLE mark.
+const ART = {
+  nav: { src: "/brand/ace-battle-poland.svg", w: 451, h: 61, alt: "ACE BATTLE POLAND" },
+  foot: { src: "/brand/ace-battle-poland.svg", w: 451, h: 61, alt: "ACE BATTLE POLAND" },
+  mark: { src: "/brand/ace-battle.svg", w: 630, h: 70, alt: "ACE BATTLE" },
+} as const;
 
 export function Wordmark({ variant = "nav", className }: WordmarkProps) {
+  const art = ART[variant];
   return (
     <span
       className={cn(
@@ -32,10 +37,10 @@ export function Wordmark({ variant = "nav", className }: WordmarkProps) {
       )}
     >
       <Image
-        src="/brand/ace-battle.svg"
-        alt="ACE BATTLE"
-        width={SRC_W}
-        height={SRC_H}
+        src={art.src}
+        alt={art.alt}
+        width={art.w}
+        height={art.h}
         priority={variant === "nav"}
       />
     </span>

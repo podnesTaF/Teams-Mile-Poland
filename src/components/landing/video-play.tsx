@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { PlayIcon } from "./icons";
 
@@ -16,6 +17,13 @@ type VideoPlayProps = {
  */
 export function VideoPlay({ label, videoId }: VideoPlayProps) {
   const [open, setOpen] = useState(false);
+  // Mount-gate the portal so the server render and the first client render
+  // agree (document is unavailable during SSR).
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -39,31 +47,42 @@ export function VideoPlay({ label, videoId }: VideoPlayProps) {
         <span>{label}</span>
       </button>
 
-      {open ? (
-        <div
-          className="video-lightbox"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setOpen(false);
-          }}
-        >
-          <button
-            type="button"
-            className="video-lightbox__close"
-            onClick={() => setOpen(false)}
-            aria-label="Close"
-          >
-            ×
-          </button>
-          <div className="video-frame">
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
-              title={label}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      ) : null}
+      {open && mounted
+        ? createPortal(
+            // Portalled to <body> so the fixed overlay escapes the hero's
+            // `z-index` / `overflow:hidden` stacking context — otherwise the
+            // section cards below paint over it. The `.ace-landing` wrapper
+            // is required because every lightbox rule is scoped under it
+            // (`.ace-landing .video-lightbox`), and the portal lands outside
+            // the page's own `.ace-landing` root.
+            <div className="ace-landing">
+              <div
+                className="video-lightbox"
+                onMouseDown={(e) => {
+                  if (e.target === e.currentTarget) setOpen(false);
+                }}
+              >
+                <button
+                  type="button"
+                  className="video-lightbox__close"
+                  onClick={() => setOpen(false)}
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+                <div className="video-frame">
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
+                    title={label}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

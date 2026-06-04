@@ -8,6 +8,8 @@ import { FloatField } from "@/components/ui/float-field";
 import { Loader } from "@/components/ui/loader";
 import { PhoneField } from "@/components/ui/phone-field";
 
+import { Link } from "@/i18n/navigation";
+
 import { trackFormSubmit } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
@@ -115,8 +117,16 @@ export function ContactForm({ onSent }: Props) {
           onChange={(event) => setData((d) => ({ ...d, terms: event.target.checked }))}
         >
           {t.rich("terms", {
-            privacy: (chunks) => <a href="#privacy">{chunks}</a>,
-            terms: (chunks) => <a href="#terms">{chunks}</a>,
+            privacy: (chunks) => (
+              <Link href="/terms" target="_blank" rel="noopener noreferrer">
+                {chunks}
+              </Link>
+            ),
+            terms: (chunks) => (
+              <Link href="/terms" target="_blank" rel="noopener noreferrer">
+                {chunks}
+              </Link>
+            ),
           })}
         </Cbx>
       </div>

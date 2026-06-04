@@ -10,6 +10,8 @@ import { Loader } from "@/components/ui/loader";
 import { Modal, ModalBody, ModalFoot, ModalHead } from "@/components/ui/modal";
 import { PhoneField } from "@/components/ui/phone-field";
 
+import { Link } from "@/i18n/navigation";
+
 import { trackFormSubmit } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
@@ -96,8 +98,16 @@ export function QuickModal() {
           onChange={(event) => setData((d) => ({ ...d, terms: event.target.checked }))}
         >
           {tCommon.rich("terms", {
-            privacy: (chunks) => <a href="#privacy">{chunks}</a>,
-            terms: (chunks) => <a href="#terms">{chunks}</a>,
+            privacy: (chunks) => (
+              <Link href="/terms" target="_blank" rel="noopener noreferrer">
+                {chunks}
+              </Link>
+            ),
+            terms: (chunks) => (
+              <Link href="/terms" target="_blank" rel="noopener noreferrer">
+                {chunks}
+              </Link>
+            ),
           })}
         </Cbx>
         <button

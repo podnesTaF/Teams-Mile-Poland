@@ -30,7 +30,7 @@ const SECTIONS = [
     links: [
       { label: "rules", href: "/#documents" },
       { label: "refund", href: "/#documents" },
-      { label: "privacy", href: "/#documents" },
+      { label: "privacy", href: "/terms" },
       { label: "contact", href: "mailto:warsaw@acebattle.run" },
     ],
   },
@@ -107,15 +107,19 @@ export function Footer() {
 
         <div
           aria-hidden
-          className="mt-12 select-none flex justify-center items-center font-display text-[18vw] font-black italic uppercase leading-[0.85] tracking-[-0.04em] text-white/[0.04]"
+          className="mt-12 flex select-none items-center justify-center font-display text-[18vw] font-black uppercase italic leading-[0.85] tracking-[-0.04em] text-white/[0.04]"
         >
-          <Image src="/brand/logo-white.svg" alt="TEAMS MILE" className="w-auto h-30 lg:h-72" width={1300} height={220} />
+          <Image
+            src="/brand/logo-white.svg"
+            alt="TEAMS MILE"
+            className="h-30 w-auto lg:h-72"
+            width={1300}
+            height={220}
+          />
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-7 font-mono text-[11px] uppercase tracking-[0.08em] text-white/60">
-          <div>
-            {t("legalLine")}
-          </div>
+          <div>{t("legalLine")}</div>
           <div>{t("version")}</div>
         </div>
       </Container>
