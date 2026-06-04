@@ -33,24 +33,53 @@ export function ScrollReveal() {
     }
 
     const observer = new IntersectionObserver(
-      (entries, obs) => {
+      (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
           entry.target.classList.add("is-in");
-          obs.unobserve(entry.target);
         }
       },
       // Trigger a touch before the element is fully on-screen.
       { rootMargin: "0px 0px -12% 0px", threshold: 0.12 },
     );
 
-    targets.forEach((el) => {
-      // Anything already in view on load (e.g. the hero) reveals immediately
-      // on the next frame so it reads as an entrance rather than a flash.
-      observer.observe(el);
+    // (Re-)observe every .wrap. Re-observing forces the IO callback to fire
+    // with the current intersection state, so a wrap that is already on
+    // screen but lost its `is-in` class gets it back immediately.
+    const observeAll = () => {
+      observer.disconnect();
+      root
+        .querySelectorAll<HTMLElement>(".wrap")
+        .forEach((el) => observer.observe(el));
+    };
+    // Anything already in view on load (e.g. the hero) reveals immediately
+    // on the next frame so it reads as an entrance rather than a flash.
+    observeAll();
+
+    // React re-renders (HMR in dev, locale switches in prod) re-apply the
+    // server-rendered `className="wrap …"`, clobbering the imperatively
+    // added `is-in` — and can also mount brand-new wraps the observer has
+    // never seen. Watch for both and resync, debounced to one rAF.
+    let scheduled = 0;
+    const resync = () => {
+      scheduled = 0;
+      observeAll();
+    };
+    const mutations = new MutationObserver(() => {
+      if (!scheduled) scheduled = requestAnimationFrame(resync);
+    });
+    mutations.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"],
     });
 
-    return () => observer.disconnect();
+    return () => {
+      mutations.disconnect();
+      observer.disconnect();
+      if (scheduled) cancelAnimationFrame(scheduled);
+    };
   }, []);
 
   return null;

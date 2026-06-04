@@ -22,6 +22,26 @@
   --acl-white: #fff;
   --acl-wrap: 1280px;
 
+  /* ---- type scale (Figma tokens, mobile → desktop, fluid 480–1280px) ----
+   * H1 40/32 · H2 32/24 · H3 24/20 · H4 20/16 · H5 16/14   (lh 120%)
+   * Body L 20/16 · M 16/14 · S 14/12                        (lh 160%)
+   * Caption 12 (lh 140%) · Caps L 20/16 · M 16/14 (lh 120%)
+   * Button L 16/14 · M 14/12 (lh 140%) · Numbers 64/48 (lh 140%) */
+  --fs-numbers: clamp(48px, 38.4px + 2vw, 64px);
+  --fs-h1: clamp(32px, 27.2px + 1vw, 40px);
+  --fs-h2: clamp(24px, 19.2px + 1vw, 32px);
+  --fs-h3: clamp(20px, 17.6px + 0.5vw, 24px);
+  --fs-h4: clamp(16px, 13.6px + 0.5vw, 20px);
+  --fs-h5: clamp(14px, 12.8px + 0.25vw, 16px);
+  --fs-body-l: clamp(16px, 13.6px + 0.5vw, 20px);
+  --fs-body-m: clamp(14px, 12.8px + 0.25vw, 16px);
+  --fs-body-s: clamp(12px, 10.8px + 0.25vw, 14px);
+  --fs-caption: 12px;
+  --fs-caps-l: clamp(16px, 13.6px + 0.5vw, 20px);
+  --fs-caps-m: clamp(14px, 12.8px + 0.25vw, 16px);
+  --fs-btn-l: clamp(14px, 12.8px + 0.25vw, 16px);
+  --fs-btn-m: clamp(12px, 10.8px + 0.25vw, 14px);
+
   background: var(--acl-ink);
   color: var(--acl-white);
   font-family: var(--font-body), "Inter", system-ui, sans-serif;
@@ -52,49 +72,59 @@
   text-wrap: balance;
 }
 .ace-landing .t-hero {
-  font-size: clamp(2.4rem, 6.4vw, 4.5rem);
-  line-height: 1;
+  /* H1 */
+  font-size: var(--fs-h1);
+  line-height: 1.2;
   text-transform: uppercase;
 }
 .ace-landing .t-sec {
-  font-size: clamp(2.1rem, 5.4vw, 4rem);
-  line-height: 1.1;
+  /* H2 — section titles */
+  font-size: var(--fs-h2);
+  line-height: 1.2;
   text-transform: uppercase;
 }
 .ace-landing .t-40 {
-  font-size: clamp(1.7rem, 4vw, 2.5rem);
-  line-height: 1.15;
+  /* H2 */
+  font-size: var(--fs-h2);
+  line-height: 1.2;
   text-transform: uppercase;
 }
 .ace-landing .t-32 {
-  font-size: clamp(1.45rem, 3vw, 2rem);
+  /* H2 */
+  font-size: var(--fs-h2);
   line-height: 1.2;
   text-transform: uppercase;
 }
 .ace-landing .t-24 {
-  font-size: clamp(1.3rem, 2.4vw, 1.5rem);
+  /* H3 */
+  font-size: var(--fs-h3);
   line-height: 1.2;
   text-transform: uppercase;
 }
 .ace-landing .t-20 {
-  font-size: 1.25rem;
+  /* H4 */
+  font-size: var(--fs-h4);
   line-height: 1.2;
 }
 .ace-landing .t-cta {
-  font-size: clamp(2.6rem, 7vw, 6rem);
-  line-height: 1.1;
+  /* H1 — final CTA */
+  font-size: var(--fs-h1);
+  line-height: 1.2;
   text-transform: uppercase;
 }
 .ace-landing .lead {
-  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  /* Body L */
+  font-size: var(--fs-body-l);
   line-height: 1.6;
 }
 .ace-landing .body {
-  font-size: 1rem;
+  /* Body M */
+  font-size: var(--fs-body-m);
   line-height: 1.6;
 }
 .ace-landing .sm {
-  font-size: 0.875rem;
+  /* Body S */
+  font-size: var(--fs-body-s);
   line-height: 1.6;
 }
 .ace-landing .red {
@@ -134,8 +164,10 @@
   gap: 10px;
   font-family: var(--font-cta), "Exo 2", system-ui, sans-serif;
   font-weight: 700;
-  font-size: 1rem;
+  font-style: italic;
+  font-size: var(--fs-btn-l); /* Button L */
   line-height: 1.4;
+  text-transform: uppercase;
   border-radius: 4px;
   padding: 12px 24px;
   cursor: pointer;
@@ -231,7 +263,7 @@
   gap: 2px;
 }
 .ace-landing .stat .k {
-  font-size: 0.75rem;
+  font-size: var(--fs-caption); /* Caption */
   line-height: 1.4;
   opacity: 0.85;
 }
@@ -239,7 +271,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.25rem;
+  font-size: var(--fs-h4); /* H4 */
   line-height: 1.2;
 }
 .ace-landing .stat--solid {
@@ -261,7 +293,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.25rem;
+  font-size: var(--fs-h4); /* H4 */
   line-height: 1.2;
 }
 
@@ -280,7 +312,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1rem;
+  font-size: var(--fs-caps-m); /* Caps M */
 }
 
 /* ---- scroll arrow ---- */
@@ -327,6 +359,13 @@
   position: relative;
   z-index: 2;
 }
+/* First screen (nav + hero content) fills the full viewport so the
+ * format band below never peeks into the initial view. */
+.ace-landing .hero__inner > .wrap {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
 .ace-landing .nav {
   display: flex;
   align-items: center;
@@ -338,14 +377,16 @@
   position: absolute;
   right: 24px;
   top: 32px;
-  font-size: 0.85rem;
+  font-size: var(--fs-btn-m); /* Button M */
   padding: 6px 12px;
 }
 .ace-landing .hero__content {
-  padding: clamp(48px, 9vw, 110px) 0 0;
+  flex: 1;
+  padding: clamp(32px, 5vw, 56px) 0 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 32px;
   text-align: center;
 }
@@ -424,8 +465,9 @@
   top: 6%;
   transform: translateX(-50%);
   z-index: 0;
-  width: min(94%, 980px);
-  opacity: 0.85;
+  width: min(110%, 1180px);
+  max-width: none;
+  opacity: 0.45;
 }
 .ace-landing .format-stage .logo-wm--mark img {
   width: 100%;
@@ -451,6 +493,8 @@
 .ace-landing .format-card__text {
   position: relative;
   z-index: 4;
+  max-width: 460px;
+  margin-inline: auto;
 }
 .ace-landing .format-card__text .t-32 {
   margin-bottom: 14px;
@@ -497,7 +541,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1rem;
+  font-size: var(--fs-caps-m); /* Caps M */
   opacity: 0.85;
 }
 
@@ -585,7 +629,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: clamp(2.4rem, 5vw, 3.2rem);
+  font-size: var(--fs-numbers); /* Numbers */
   color: var(--acl-red);
   line-height: 1;
 }
@@ -593,7 +637,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.25rem;
+  font-size: var(--fs-h4); /* H4 */
   text-transform: uppercase;
 }
 .ace-landing .step p {
@@ -652,7 +696,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.5rem;
+  font-size: var(--fs-h3); /* H3 */
   text-wrap: balance;
   text-transform: uppercase;
 }
@@ -687,7 +731,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 0.85rem;
+  font-size: var(--fs-caption); /* Caption */
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--acl-red);
@@ -696,15 +740,15 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-size: var(--fs-h2); /* H2 */
   text-transform: uppercase;
-  line-height: 1.05;
+  line-height: 1.2;
 }
 .ace-landing .support-band__sub {
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 0.95rem;
+  font-size: var(--fs-h5); /* H5 */
   opacity: 0.85;
 }
 .ace-landing .support-band__sub .red {
@@ -776,7 +820,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.5rem;
+  font-size: var(--fs-h3); /* H3 */
   text-transform: uppercase;
   margin: 0 0 4px;
   color: var(--acl-red);
@@ -907,7 +951,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.3rem;
+  font-size: var(--fs-h4); /* H4 */
   text-transform: uppercase;
 }
 .ace-landing .pcard p {
@@ -916,7 +960,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1rem;
+  font-size: var(--fs-h5); /* H5 */
   line-height: 1.3;
 }
 .ace-landing .path-foot {
@@ -960,7 +1004,7 @@
   position: absolute;
   z-index: 1;
   left: max(16px, calc(50% - 640px));
-  top: 340px;
+  top: 420px;
   width: min(700px, 60%);
   height: auto;
   transform: translateY(-50%);
@@ -1045,13 +1089,13 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.5rem;
+  font-size: var(--fs-h3); /* H3 */
 }
 .ace-landing .comp__label {
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.5rem;
+  font-size: var(--fs-h3); /* H3 */
 }
 .ace-landing .role-cards {
   display: grid;
@@ -1082,15 +1126,18 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.5rem;
+  font-size: var(--fs-h3); /* H3 */
   flex: 0 0 auto;
 }
 .ace-landing .rcard__name {
   margin: 0;
 }
 .ace-landing .rcard__desc {
-  font-size: 1.05rem;
-  line-height: 1.25;
+  font-family: var(--font-body), "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: var(--fs-body-m); /* Body M */
+  line-height: 1.6;
   text-transform: none;
   margin: 0;
   opacity: 0.92;
@@ -1101,7 +1148,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 0.85rem;
+  font-size: var(--fs-body-s); /* Body S */
   letter-spacing: 0.02em;
   padding: 8px 12px;
 }
@@ -1177,7 +1224,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.5rem;
+  font-size: var(--fs-h3); /* H3 */
   color: var(--acl-red);
   flex: 0 0 auto;
   width: 88px;
@@ -1186,7 +1233,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.4rem;
+  font-size: var(--fs-h3); /* H3 */
   margin: 0 0 8px;
   text-transform: uppercase;
 }
@@ -1206,7 +1253,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.5rem;
+  font-size: var(--fs-h3); /* H3 */
   color: var(--acl-red);
 }
 .ace-landing .arow {
@@ -1227,7 +1274,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.4rem;
+  font-size: var(--fs-h3); /* H3 */
   text-transform: uppercase;
   margin: 0 0 6px;
 }
@@ -1262,7 +1309,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  font-size: var(--fs-h2); /* H2 */
   text-transform: uppercase;
 }
 .ace-landing .qa__ic {
@@ -1292,7 +1339,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+  font-size: var(--fs-h3); /* H3 */
   line-height: 1.3;
 }
 .ace-landing .qa.open .qa__a {
@@ -1377,7 +1424,7 @@
 }
 .ace-landing .contact-method .lbl {
   color: var(--acl-ink);
-  font-size: 0.875rem;
+  font-size: var(--fs-body-s); /* Body S */
 }
 .ace-landing .radios {
   display: flex;
@@ -1425,7 +1472,7 @@
   align-items: flex-start;
   margin-top: 24px;
   color: var(--acl-ink-soft);
-  font-size: 0.875rem;
+  font-size: var(--fs-body-s); /* Body S */
 }
 .ace-landing .agree input {
   appearance: none;
@@ -1461,7 +1508,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.25rem;
+  font-size: var(--fs-h4); /* H4 */
   margin-top: 8px;
 }
 
@@ -1612,7 +1659,7 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 1.1rem;
+  font-size: var(--fs-h5); /* H5 */
 }
 .ace-landing .footer-phone:hover {
   color: var(--acl-red);
@@ -1764,7 +1811,6 @@
   }
   .ace-landing .trow .time {
     width: 64px;
-    font-size: 1.25rem;
   }
   .ace-landing .hero__actions .btn {
     width: 100%;
@@ -2189,7 +2235,7 @@
 .ace-landing .btn-sm {
   height: 40px;
   padding: 0 16px;
-  font-size: 0.85rem;
+  font-size: var(--fs-btn-m); /* Button M */
 }
 
 /* admin tables */

@@ -441,6 +441,7 @@
     align-items: center;
     font-family: var(--f-form);
     font-weight: 700;
+    font-style: italic;
     font-size: 16px;
     letter-spacing: 0.02em;
     color: #fff;

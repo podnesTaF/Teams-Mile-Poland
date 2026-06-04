@@ -27,7 +27,7 @@ export function Roles() {
     <section className="section roles" id="roles" data-screen-label="Roles">
       <Image
         className="roles__glow"
-        src="/landing/icons/roles-glow.svg"
+        src="/vectors/ellipse.svg"
         alt=""
         width={1352}
         height={1096}
@@ -80,7 +80,7 @@ export function Roles() {
             <article key={c.id} className="rcard">
               <span className="rcard__badge">{c.badge}</span>
               <h3 className="head t-24 rcard__name">{t(`cards.${c.id}.name`)}</h3>
-              <p className="head rcard__desc">{t(`cards.${c.id}.desc`)}</p>
+              <p className="body rcard__desc">{t(`cards.${c.id}.desc`)}</p>
               <span className="rcard__tag">{t(`cards.${c.id}.tag`)}</span>
             </article>
           ))}
