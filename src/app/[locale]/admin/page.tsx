@@ -43,12 +43,20 @@ export default async function AdminPage({
               <span className="iv-eyebrow">Admin</span>
               <h1 className="iv-title">Dashboard</h1>
             </div>
-            <form action={adminLogout}>
-              <input type="hidden" name="locale" value={locale} />
-              <button type="submit" className="btn btn-stroke btn-sm">
-                Sign out
-              </button>
-            </form>
+            <div className="iv-inline">
+              <a
+                href={locale === defaultLocale ? "/admin/mailings" : `/${locale}/admin/mailings`}
+                className="btn btn-stroke btn-sm"
+              >
+                Mailings
+              </a>
+              <form action={adminLogout}>
+                <input type="hidden" name="locale" value={locale} />
+                <button type="submit" className="btn btn-stroke btn-sm">
+                  Sign out
+                </button>
+              </form>
+            </div>
           </div>
 
           {process.env.DATABASE_URL ? (

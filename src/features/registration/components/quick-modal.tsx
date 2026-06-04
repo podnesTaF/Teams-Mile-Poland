@@ -6,9 +6,12 @@ import { useState, useTransition } from "react";
 import { Cbx } from "@/components/ui/cbx";
 import { FloatField } from "@/components/ui/float-field";
 import { IconPerson } from "@/components/ui/icons";
+import { Loader } from "@/components/ui/loader";
 import { Modal, ModalBody, ModalFoot, ModalHead } from "@/components/ui/modal";
+import { PhoneField } from "@/components/ui/phone-field";
 
 import { trackFormSubmit } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
 
 import { submitRegistration } from "../actions";
 import { useRegistrationNav } from "./use-registration-nav";
@@ -79,11 +82,10 @@ export function QuickModal() {
           value={data.email}
           onChange={(event) => setData((d) => ({ ...d, email: event.target.value }))}
         />
-        <FloatField
+        <PhoneField
           label={tCommon("phone")}
-          type="tel"
           value={data.phone}
-          onChange={(event) => setData((d) => ({ ...d, phone: event.target.value }))}
+          onChange={(phone) => setData((d) => ({ ...d, phone }))}
         />
         {error ? <span className="ff-error-msg">{error}</span> : null}
       </ModalBody>
@@ -100,11 +102,11 @@ export function QuickModal() {
         </Cbx>
         <button
           type="button"
-          className="btn-fil-red"
+          className={cn("btn-fil-red", pending && "is-loading")}
           disabled={!ready || pending}
           onClick={onSubmit}
         >
-          {pending ? tCommon("submitting") : t("cta")}
+          {pending ? <Loader size={28} label={tCommon("submitting")} /> : t("cta")}
         </button>
       </ModalFoot>
     </Modal>

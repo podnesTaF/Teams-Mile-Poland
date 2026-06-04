@@ -365,6 +365,7 @@ function toRunnerValues(
     fullName: person.fullName,
     email: person.email,
     phone: person.phone,
+    locale: payload.locale,
     terms,
     freeSlot: meta.paymentStatus === "free",
     paymentStatus: meta.paymentStatus,

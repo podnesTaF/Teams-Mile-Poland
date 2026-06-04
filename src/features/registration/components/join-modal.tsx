@@ -5,9 +5,12 @@ import { useEffect, useState, useTransition } from "react";
 
 import { Cbx } from "@/components/ui/cbx";
 import { FloatField } from "@/components/ui/float-field";
+import { Loader } from "@/components/ui/loader";
 import { Modal, ModalBody, ModalFoot, ModalHead } from "@/components/ui/modal";
+import { PhoneField } from "@/components/ui/phone-field";
 
 import { trackFormSubmit } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
 
 import { getJoinPreview, submitRegistration } from "../actions";
 import type { TeamPreview } from "../data";
@@ -89,6 +92,25 @@ export function JoinModal({ code }: { code: string }) {
     });
   }
 
+  // Resolving the invite code → branded loader while the team loads.
+  if (preview.status === "loading") {
+    return (
+      <Modal open onClose={nav.close} labelledBy="jt-title">
+        <ModalHead
+          id="jt-title"
+          title={tCommon("participantRegistration")}
+          subTag={t("loading")}
+          titleSize="sm"
+        />
+        <ModalBody>
+          <div className="modal-loading">
+            <Loader size={96} />
+          </div>
+        </ModalBody>
+      </Modal>
+    );
+  }
+
   // Invalid invite link → minimal error modal.
   if (preview.status === "missing") {
     return (
@@ -123,11 +145,10 @@ export function JoinModal({ code }: { code: string }) {
           value={data.email}
           onChange={(event) => setData((d) => ({ ...d, email: event.target.value }))}
         />
-        <FloatField
+        <PhoneField
           label={tCommon("phone")}
-          type="tel"
           value={data.phone}
-          onChange={(event) => setData((d) => ({ ...d, phone: event.target.value }))}
+          onChange={(phone) => setData((d) => ({ ...d, phone }))}
         />
         {error ? <span className="ff-error-msg">{error}</span> : null}
       </ModalBody>
@@ -144,11 +165,11 @@ export function JoinModal({ code }: { code: string }) {
         </Cbx>
         <button
           type="button"
-          className="btn-fil-red"
+          className={cn("btn-fil-red", pending && "is-loading")}
           disabled={!ready || pending}
           onClick={onSubmit}
         >
-          {pending ? tCommon("submitting") : t("cta")}
+          {pending ? <Loader size={28} label={tCommon("submitting")} /> : t("cta")}
         </button>
       </ModalFoot>
     </Modal>

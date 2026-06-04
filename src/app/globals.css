@@ -450,6 +450,34 @@
   }
   .btn-fil-red:hover { filter: brightness(1.08); }
   .btn-fil-red:disabled { opacity: 0.4; pointer-events: none; }
+  /* Keep the in-button loader lively even though the button is disabled
+     (the disabled 0.4 opacity would otherwise dim the animation). */
+  .btn-fil-red.is-loading { opacity: 1; }
+  .btn-fil-red .loader-gif { height: 28px; width: 28px; border-radius: 6px; }
+
+  /* Brand loader (public/loading.gif) */
+  .loader-gif { display: block; border-radius: 10px; }
+
+  /* Full-screen route loading fallback */
+  .loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    background: #191a18;
+  }
+  .loading-screen .loader-gif {
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Inline loader inside a modal body (e.g. resolving a team invite) */
+  .modal-loading {
+    display: grid;
+    place-items: center;
+    padding: 24px 0;
+  }
 
   /* Choose-flow cards (chooser modal) */
   .choose-list { display: flex; flex-direction: column; gap: 12px; }

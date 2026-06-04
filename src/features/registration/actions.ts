@@ -1,6 +1,14 @@
 "use server";
 
-import { registrationPayloadSchema, type RegistrationPayload, type RegistrationResult } from "./schemas";
+import { getLocale } from "next-intl/server";
+
+import {
+  localeSchema,
+  registrationPayloadSchema,
+  type RegistrationInput,
+  type RegistrationPayload,
+  type RegistrationResult,
+} from "./schemas";
 import {
   createFreeRegistration,
   createPaidRegistration,
@@ -12,7 +20,7 @@ import { sendRegistrationEmails } from "./email";
 import { getStripe, REGISTRATION_PRICE_PLN } from "@/lib/stripe";
 import { EVENT } from "@/lib/marketing/event";
 
-export async function submitRegistration(payload: RegistrationPayload): Promise<RegistrationResult> {
+export async function submitRegistration(payload: RegistrationInput): Promise<RegistrationResult> {
   const parsed = registrationPayloadSchema.safeParse(payload);
 
   if (!parsed.success) {
@@ -23,15 +31,20 @@ export async function submitRegistration(payload: RegistrationPayload): Promise<
     };
   }
 
+  // Stamp the registrant's UI locale (drives lifecycle email language).
+  // Read server-side so it survives the Stripe pending-payload round-trip.
+  const locale = localeSchema.catch("ua").parse(await getLocale());
+  const data: RegistrationPayload = { ...parsed.data, locale };
+
   try {
-    if (parsed.data.flow === "join") {
-      const validation = await validateJoinCode(parsed.data.teamCode);
+    if (data.flow === "join") {
+      const validation = await validateJoinCode(data.teamCode);
       if (!validation.ok) {
         return { ok: false, message: validation.message };
       }
     }
 
-    const freeStored = await createFreeRegistration(parsed.data);
+    const freeStored = await createFreeRegistration(data);
 
     if (freeStored) {
       await sendRegistrationEmails({ stored: freeStored });
@@ -45,7 +58,7 @@ export async function submitRegistration(payload: RegistrationPayload): Promise<
       };
     }
 
-    const checkoutUrl = await createCheckout(parsed.data);
+    const checkoutUrl = await createCheckout(data);
     return {
       ok: true,
       status: "paid",

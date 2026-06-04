@@ -13,6 +13,7 @@ import { Location } from "@/components/landing/location";
 import { PathForward } from "@/components/landing/path";
 import { Program } from "@/components/landing/program";
 import { Roles } from "@/components/landing/roles";
+import { ScrollReveal } from "@/components/landing/scroll-reveal";
 import { WhatIs } from "@/components/landing/what-is";
 
 /**
@@ -24,7 +25,12 @@ import { WhatIs } from "@/components/landing/what-is";
  */
 export function LandingView() {
   return (
-    <div className="ace-landing">
+    <div className="ace-landing reveal-ready">
+      {/* Without JS, reveal everything so content is never stuck hidden. */}
+      <noscript>
+        <style>{".ace-landing .wrap > * { opacity: 1 !important; transform: none !important; }"}</style>
+      </noscript>
+      <ScrollReveal />
       <Hero />
       <WhatIs />
       <HowItGoes />

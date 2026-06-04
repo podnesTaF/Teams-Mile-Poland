@@ -29,6 +29,13 @@
       "when": 1780220432163,
       "tag": "0003_adorable_young_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780501041994,
+      "tag": "0004_wild_inhumans",
+      "breakpoints": true
     }
   ]
 }

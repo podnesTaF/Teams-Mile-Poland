@@ -22,11 +22,15 @@ export const EVENT = {
     pricePln: 50,
   },
   contact: {
-    phone: "+48 123 456 789",
-    phoneTel: "+48123456789",
-    whatsappUrl: "https://wa.me/48123456789",
-    telegramUrl: "https://t.me/teamsmilewarsaw",
+    phone: "+48 576 696 078",
+    phoneTel: "+48576696078",
+    email: "info@aba.run",
+    whatsappUrl: "https://chat.whatsapp.com/KynzdMczMoPE7Trr3CWGNH?mode=gi_t",
+    instagramUrl: "https://www.instagram.com/acebattle_run/",
+    telegramUrl: "https://t.me/acebattlerun",
   },
+  mapsUrl:
+    "https://www.google.com/maps/search/?api=1&query=Stadion%20Podskarbi%C5%84ska%2C%20Warsaw",
 } as const;
 
 export type AgeCategory = {

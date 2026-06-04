@@ -7,3 +7,5 @@ export * from "./counters";
 export * from "./magic-links";
 export * from "./pending-registrations";
 export * from "./contact-inquiries";
+export * from "./broadcasts";
+export * from "./email-log";

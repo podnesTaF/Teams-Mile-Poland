@@ -306,7 +306,15 @@
       "items": {
         "noTeam": {
           "q": "Can I come without a team?",
-          "a": "Yes! Register without hesitation — we'll match you with a team inside the ACE BATTLE community. Or choose the Solo format for an individual run with a personal rating. A team is not required."
+          "a": "Yes. If you don't have a team, just register solo. After the run we'll help form teams among participants based on their results."
+        },
+        "cost": {
+          "q": "How much does it cost to take part?",
+          "a": "As ACE BATTLE is entering the Polish market for the first time, the first Warsaw qualifier is open to all participants free of charge."
+        },
+        "deadline": {
+          "q": "When does registration close?",
+          "a": "Online registration is open until all spots are filled. On-site registration is available from 09:00 — but only while spots remain, with 300 available in total. We recommend registering in advance!"
         },
         "kids": {
           "q": "Can I bring kids?",

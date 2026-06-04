@@ -5,8 +5,11 @@ import { useState, useTransition } from "react";
 
 import { Cbx } from "@/components/ui/cbx";
 import { FloatField } from "@/components/ui/float-field";
+import { Loader } from "@/components/ui/loader";
+import { PhoneField } from "@/components/ui/phone-field";
 
 import { trackFormSubmit } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
 
 import { submitContact } from "../action";
 import { CONTACT_METHODS, type ContactMethod } from "../schema";
@@ -79,11 +82,10 @@ export function ContactForm({ onSent }: Props) {
           value={data.email}
           onChange={(event) => setData((d) => ({ ...d, email: event.target.value }))}
         />
-        <FloatField
+        <PhoneField
           label={t("phone")}
-          type="tel"
           value={data.phone}
-          onChange={(event) => setData((d) => ({ ...d, phone: event.target.value }))}
+          onChange={(phone) => setData((d) => ({ ...d, phone }))}
         />
       </div>
       <FloatField
@@ -130,11 +132,11 @@ export function ContactForm({ onSent }: Props) {
       ) : null}
       <button
         type="button"
-        className="btn-fil-red btn-fil-red-fixed"
+        className={cn("btn-fil-red btn-fil-red-fixed", pending && "is-loading")}
         disabled={!ready || pending}
         onClick={onSubmit}
       >
-        {pending ? t("sending") : t("send")}
+        {pending ? <Loader size={28} label={t("sending")} /> : t("send")}
       </button>
     </>
   );

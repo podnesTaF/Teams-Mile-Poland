@@ -21,6 +21,9 @@ export const runners = pgTable("runners", {
   fullName: text("full_name").notNull(),
   email: text("email").notNull(),
   phone: text("phone").notNull(),
+  // UI locale captured at registration, used to localise lifecycle emails.
+  // Defaults to "ua" (primary audience); legacy rows inherit the default.
+  locale: text("locale").default("ua").notNull(),
   terms: boolean("terms").default(false).notNull(),
   freeSlot: boolean("free_slot").default(false).notNull(),
   paymentStatus: paymentStatusEnum("payment_status").default("pending").notNull(),

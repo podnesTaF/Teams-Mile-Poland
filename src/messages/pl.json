@@ -306,7 +306,15 @@
       "items": {
         "noTeam": {
           "q": "Czy można bez drużyny?",
-          "a": "Tak! Rejestruj się bez wahania — dobierzemy Ci drużynę wewnątrz społeczności ACE BATTLE. Możesz też wybrać format Solo do indywidualnego biegu z osobistym rankingiem. Drużyna nie jest wymagana."
+          "a": "Tak. Jeśli nie masz drużyny, po prostu zarejestruj się solo. Po biegu pomożemy uformować drużyny spośród uczestników na podstawie ich wyników."
+        },
+        "cost": {
+          "q": "Ile kosztuje udział?",
+          "a": "Ponieważ ACE BATTLE po raz pierwszy wchodzi na rynek polski, pierwszy Warsaw qualifier jest otwarty dla wszystkich uczestników bezpłatnie."
+        },
+        "deadline": {
+          "q": "Kiedy zamyka się rejestracja?",
+          "a": "Rejestracja online jest otwarta do wyczerpania miejsc. Rejestracja na miejscu możliwa od 09:00 — ale tylko przy wolnych miejscach, łącznie dostępnych jest 300. Zalecamy rejestrację z wyprzedzeniem!"
         },
         "kids": {
           "q": "Czy można z dziećmi?",

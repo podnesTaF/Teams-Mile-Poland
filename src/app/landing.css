@@ -1248,6 +1248,15 @@
 }
 .ace-landing .iv-input::placeholder { color: rgba(255, 255, 255, 0.4); }
 .ace-landing .iv-input:focus { outline: none; border-color: var(--acl-red); }
+/* Native <select> dropdown: force a static dark popup so options aren't
+   white-on-white. The translucent .iv-input background resolves to near-white
+   for the option list, so options need an explicit opaque dark background. */
+.ace-landing select.iv-input { color-scheme: dark; }
+.ace-landing select.iv-input option,
+.ace-landing select.iv-input optgroup {
+  background: var(--acl-ink-soft);
+  color: #fff;
+}
 
 .ace-landing .iv-notice {
   border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;
@@ -1365,6 +1374,33 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 900; font-style: italic; text-transform: uppercase;
   font-size: clamp(1.8rem, 6vw, 2.4rem); line-height: 1; margin: 0; color: #191a18;
+}
+
+/* ===========================================================
+ * Scroll reveal — content inside every section `.wrap` fades and
+ * rises into place as it enters the viewport, with a gentle stagger
+ * across each wrap's direct children. Driven by <ScrollReveal/>, which
+ * toggles `.is-in`. Gated behind `.reveal-ready` so no-JS / SSR shows
+ * everything; disabled entirely under reduced-motion.
+ * =========================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  .ace-landing.reveal-ready .wrap > * {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .ace-landing.reveal-ready .wrap.is-in > * {
+    opacity: 1;
+    transform: none;
+  }
+  /* Stagger: each subsequent child trails the one above it. */
+  .ace-landing.reveal-ready .wrap.is-in > *:nth-child(1) { transition-delay: 0s; }
+  .ace-landing.reveal-ready .wrap.is-in > *:nth-child(2) { transition-delay: 0.08s; }
+  .ace-landing.reveal-ready .wrap.is-in > *:nth-child(3) { transition-delay: 0.16s; }
+  .ace-landing.reveal-ready .wrap.is-in > *:nth-child(4) { transition-delay: 0.24s; }
+  .ace-landing.reveal-ready .wrap.is-in > *:nth-child(n + 5) { transition-delay: 0.32s; }
 }
 .ace-landing .tk-meta { margin: 8px 0 0; color: #6b6b6b; font-size: 0.82rem; }
 .ace-landing .tk-grid {

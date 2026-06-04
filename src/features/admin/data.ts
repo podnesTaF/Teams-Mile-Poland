@@ -1,6 +1,6 @@
 import { desc, eq, inArray } from "drizzle-orm";
 
-import { contactInquiries, magicLinks, runners, teams } from "@/db/schema";
+import { contactInquiries, emailLog, magicLinks, runners, teams } from "@/db/schema";
 import { getDb } from "@/lib/db";
 
 export type InquiryRow = typeof contactInquiries.$inferSelect;
@@ -99,6 +99,7 @@ export async function deleteInquiryById(id: string) {
 export async function deleteRunnerCascade(runnerId: string) {
   const db = getDb();
   await db.transaction(async (tx) => {
+    await tx.delete(emailLog).where(eq(emailLog.runnerId, runnerId));
     await tx.delete(magicLinks).where(eq(magicLinks.runnerId, runnerId));
     await tx.delete(runners).where(eq(runners.id, runnerId));
   });
@@ -119,6 +120,7 @@ export async function deleteTeamCascade(teamId: string) {
 
     await tx.delete(magicLinks).where(eq(magicLinks.teamId, teamId));
     if (runnerIds.length > 0) {
+      await tx.delete(emailLog).where(inArray(emailLog.runnerId, runnerIds));
       await tx.delete(magicLinks).where(inArray(magicLinks.runnerId, runnerIds));
     }
     await tx.delete(runners).where(eq(runners.teamId, teamId));

@@ -20,18 +20,24 @@ export const personSchema = z.object({
 
 export const termsSchema = z.literal(true, { error: "You must accept the terms" });
 
+// UI locale the runner registered in — drives lifecycle email language.
+// Injected server-side from the request locale; defaults to "ua".
+export const localeSchema = z.enum(["ua", "pl", "en"]).default("ua");
+
 export const startTeamSchema = z.object({
   flow: z.literal("start"),
   teamName: z.string().trim().min(2, "Team name is required").max(80),
   teamSize: z.coerce.number().int().min(7, "At least 7 runners").max(12, "At most 12 runners"),
   person: personSchema,
   terms: termsSchema,
+  locale: localeSchema,
 });
 
 export const freeRunnerSchema = z.object({
   flow: z.literal("free"),
   person: personSchema,
   terms: termsSchema,
+  locale: localeSchema,
 });
 
 export const joinTeamSchema = z.object({
@@ -39,6 +45,7 @@ export const joinTeamSchema = z.object({
   teamCode: z.string().trim().min(3, "Team code is required").max(40),
   person: personSchema,
   terms: termsSchema,
+  locale: localeSchema,
 });
 
 export const registrationPayloadSchema = z.discriminatedUnion("flow", [
@@ -52,6 +59,9 @@ export type StartTeamPayload = z.infer<typeof startTeamSchema>;
 export type FreeRunnerPayload = z.infer<typeof freeRunnerSchema>;
 export type JoinTeamPayload = z.infer<typeof joinTeamSchema>;
 export type RegistrationPayload = z.infer<typeof registrationPayloadSchema>;
+// Input shape the client modals submit — `locale` is optional here and is
+// stamped server-side (see submitRegistration), so callers needn't pass it.
+export type RegistrationInput = z.input<typeof registrationPayloadSchema>;
 
 export type RegistrationResult =
   | {

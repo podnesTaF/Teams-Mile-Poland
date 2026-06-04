@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 import { FaqPlusIcon } from "./icons";
 
-const ITEMS = ["noTeam", "kids", "prep", "bring", "spectator"] as const;
+const ITEMS = ["noTeam", "cost", "deadline", "kids", "prep", "bring", "spectator"] as const;
 
 /** Accordion FAQ with the design's plus → x rotation animation. First item open by default. */
 export function Faq() {
