@@ -44,7 +44,7 @@ export function PathForward() {
         </div>
         <div className="path-foot">
           <span className="flag">{t("flag")}</span>
-          <p className="lead">
+          <p className="path-foot__text">
             {t.rich("foot", { red: (chunks) => <span className="red">{chunks}</span> })}
           </p>
         </div>

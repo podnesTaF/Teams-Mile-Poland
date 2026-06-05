@@ -7,16 +7,15 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const GALLERY = [
-  "/landing/atmosphere.png",
-  "/landing/card-roles.png",
-  "/landing/card-team.png",
-  "/landing/card-rating.png",
-  "/landing/location.png",
-  "/landing/team-cutout.png",
+  "/images/teams-start.jpg",
+  "/images/finish-girl.jpg",
+  "/images/stretch.jpg",
+  "/images/teams-photo.jpg",
+  "/images/teams-run.jpg",
 ] as const;
 
 /**
- * "Feel the atmosphere" — big photo + 6 thumbnails.
+ * "Feel the atmosphere" — big photo + thumbnails.
  * Clicking a thumbnail swaps the big photo above (client state).
  */
 export function Atmosphere() {

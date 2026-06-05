@@ -12,7 +12,7 @@ const TIMELINE = [
 const ALSO = [
   { id: "photo", tile: "tile-camera" },
   { id: "gifts", tile: "tile-gift" },
-  { id: "people", tile: "tile-friend" },
+  { id: "people", tile: "meet" },
 ] as const;
 
 /** "Program of the day" — left timeline column, right "and also" sidebar. */
@@ -20,7 +20,7 @@ export function Program() {
   const t = useTranslations("landing.program");
 
   return (
-    <section className="section" data-screen-label="Program">
+    <section className="section program" data-screen-label="Program">
       <div className="wrap">
         <div className="center stack" style={{ gap: 10 }}>
           <h2 className="head t-sec">{t("title")}</h2>

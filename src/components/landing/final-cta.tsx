@@ -26,7 +26,7 @@ export function FinalCta() {
             <Stat k={hero("stats.prizeLabel")} v={hero("stats.prizeValue")} />
             <Stat k={hero("stats.timeLabel")} v={hero("stats.timeValue")} />
           </div>
-          <Link href="/register" className="btn btn-white">
+          <Link href="/register" className="btn btn-white btn-white--ink">
             {t("cta")}
           </Link>
         </div>

@@ -3,8 +3,6 @@ import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 
-import { DuoIcon, SoloIcon } from "./icons";
-
 /**
  * Two big cards for the "Format of participation" section.
  * `noTeam` → /register/solo (quick-register modal).
@@ -22,9 +20,16 @@ export function Formats() {
           <article className="fcard">
             <div className="fcard__head fcard__head--red">
               <span className="fcard__ic">
-                <SoloIcon />
+                <Image src="/landing/icons/single.svg" alt="" width={24} height={24} />
               </span>
-              <Image src="/landing/solo-athlete.png" alt={t("noTeam.alt")} fill sizes="430px" />
+              <Image
+                className="fcard__photo"
+                src="/landing/solo-athlete.png"
+                alt={t("noTeam.alt")}
+                fill
+                sizes="430px"
+                style={{ objectPosition: "top" }}
+              />
             </div>
             <div className="fcard__body">
               <h3 className="head t-24">{t("noTeam.title")}</h3>
@@ -37,9 +42,9 @@ export function Formats() {
           <article className="fcard">
             <div className="fcard__head fcard__head--dark">
               <span className="fcard__ic">
-                <DuoIcon />
+                <Image src="/landing/icons/many-people.svg" alt="" width={24} height={24} />
               </span>
-              <Image src="/landing/team-cutout.png" alt={t("hasTeam.alt")} fill sizes="430px" />
+              <Image className="fcard__photo" src="/landing/team-cutout.png" alt={t("hasTeam.alt")} fill sizes="430px" />
             </div>
             <div className="fcard__body">
               <h3 className="head t-32">{t("hasTeam.title")}</h3>

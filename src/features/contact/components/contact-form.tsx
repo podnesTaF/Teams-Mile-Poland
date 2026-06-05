@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
-import { Cbx } from "@/components/ui/cbx";
 import { FloatField } from "@/components/ui/float-field";
 import { Loader } from "@/components/ui/loader";
 import { PhoneField } from "@/components/ui/phone-field";
@@ -96,40 +95,45 @@ export function ContactForm({ onSent }: Props) {
         value={data.message}
         onChange={(event) => setData((d) => ({ ...d, message: event.target.value }))}
       />
-      <div className="contact-methods-row">
-        <span className="contact-methods-label">{t("methodLabel")}</span>
-        {CONTACT_METHODS.map((method) => (
-          <Cbx
-            key={method}
-            id={`cu-m-${method}`}
-            inline
-            checked={data.method === method}
-            onChange={() => setData((d) => ({ ...d, method }))}
-          >
-            {t(`methods.${method}`)}
-          </Cbx>
-        ))}
+      <div className="contact-method">
+        <span className="lbl">{t("methodLabel")}</span>
+        <div className="radios">
+          {CONTACT_METHODS.map((method) => (
+            <label key={method} className="radio" htmlFor={`cu-m-${method}`}>
+              <input
+                id={`cu-m-${method}`}
+                type="radio"
+                name="contact-method"
+                checked={data.method === method}
+                onChange={() => setData((d) => ({ ...d, method }))}
+              />
+              {t(`methods.${method}`)}
+            </label>
+          ))}
+        </div>
       </div>
-      <div className="flex justify-center">
-        <Cbx
+      <label className="agree" htmlFor="cu-terms">
+        <input
           id="cu-terms"
+          type="checkbox"
           checked={data.terms}
           onChange={(event) => setData((d) => ({ ...d, terms: event.target.checked }))}
-        >
+        />
+        <span>
           {t.rich("terms", {
             privacy: (chunks) => (
-              <Link href="/terms" target="_blank" rel="noopener noreferrer">
+              <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline">
                 {chunks}
               </Link>
             ),
             terms: (chunks) => (
-              <Link href="/terms" target="_blank" rel="noopener noreferrer">
+              <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline">
                 {chunks}
               </Link>
             ),
           })}
-        </Cbx>
-      </div>
+        </span>
+      </label>
       {error ? (
         <div className="text-center">
           <span className="ff-error-msg">{error}</span>
