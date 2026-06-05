@@ -1,11 +1,12 @@
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 /** Audience items → masked SVG icon file (recoloured white via CSS mask). */
 const ITEMS = [
   { id: "runners", icon: "ic-run" },
   { id: "fitness", icon: "ic-fitness" },
-  { id: "corporate", icon: "ic-corporate" },
-  { id: "clubs", icon: "ic-clubs" },
+  { id: "corporate", icon: "group" },
+  { id: "clubs", icon: "running-clubs" },
   { id: "athletes", icon: "ic-athlete" },
 ] as const;
 
@@ -33,7 +34,15 @@ export function Audience() {
           </div>
         </div>
       </div>
-      <div className="wrap">
+      <div className="wrap support-wrap">
+        <Image
+          className="support-glow"
+          src="/vectors/ellipse.svg"
+          alt=""
+          width={1352}
+          height={1096}
+          aria-hidden
+        />
         <div className="support-band">
           <span className="support-band__ic" style={maskStyle("ic-corporate")} aria-hidden />
           <div className="support-band__txt">

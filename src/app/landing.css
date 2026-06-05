@@ -286,6 +286,9 @@
   justify-content: center;
 }
 .ace-landing .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: var(--acl-grey);
   color: var(--acl-ink);
   border-radius: 4px;
@@ -295,6 +298,11 @@
   font-style: italic;
   font-size: var(--fs-h4); /* H4 */
   line-height: 1.2;
+}
+.ace-landing .chip__ic {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
 }
 
 /* ---- location pin small ---- */
@@ -682,8 +690,8 @@
   text-align: center;
 }
 .ace-landing .aud__ic {
-  width: 64px;
-  height: 64px;
+  width: clamp(80px, 8vw, 96px);
+  height: clamp(80px, 8vw, 96px);
   background: #fff;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
@@ -740,20 +748,37 @@
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
-  font-size: var(--fs-h2); /* H2 */
+  font-size: var(--fs-h1); /* H1 */
   text-transform: uppercase;
   line-height: 1.2;
 }
 .ace-landing .support-band__sub {
-  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
-  font-weight: 700;
-  font-style: italic;
+  font-family: var(--font-body), "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  font-style: normal;
   font-size: var(--fs-h5); /* H5 */
   opacity: 0.85;
 }
 .ace-landing .support-band__sub .red {
   color: var(--acl-red);
   opacity: 1;
+}
+.ace-landing .support-wrap {
+  position: relative;
+}
+.ace-landing .support-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(900px, 110%);
+  height: auto;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+}
+.ace-landing .support-wrap .support-band {
+  position: relative;
+  z-index: 1;
 }
 
 /* ===== LOCATION ===== */
@@ -775,6 +800,16 @@
 .ace-landing .location .wrap {
   position: relative;
   z-index: 1;
+}
+.ace-landing .loc-pin {
+  width: 36px;
+  height: auto;
+  margin: 0 auto 4px;
+}
+.ace-landing .loc-title {
+  font-size: clamp(34px, 28px + 2vw, 52px);
+  line-height: 1.1;
+  text-transform: uppercase;
 }
 .ace-landing .loc-addr {
   text-transform: uppercase;

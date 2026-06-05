@@ -33,7 +33,15 @@ export function Location() {
       />
       <div className="wrap">
         <div className="center stack" style={{ gap: 8 }}>
-          <h2 className="head t-40">{t("title")}</h2>
+          <Image
+            className="loc-pin"
+            src="/landing/icons/pin.svg"
+            alt=""
+            width={36}
+            height={50}
+            aria-hidden
+          />
+          <h2 className="head loc-title">{t("title")}</h2>
           <p className="head t-20 loc-addr">{t("address")}</p>
         </div>
         <div className="loc-grid">
@@ -56,12 +64,12 @@ export function Location() {
                 </div>
               ))}
             </div>
-            <div className="loc-btn">
-              <a className="btn btn-stroke" href={MAPS_URL} target="_blank" rel="noopener noreferrer">
-                {t("mapCta")}
-              </a>
-            </div>
           </div>
+        </div>
+        <div className="loc-btn">
+          <a className="btn btn-stroke" href={MAPS_URL} target="_blank" rel="noopener noreferrer">
+            {t("mapCta")}
+          </a>
         </div>
       </div>
     </section>

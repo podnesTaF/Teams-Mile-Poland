@@ -146,9 +146,9 @@
     },
     "invite": {
       "chips": {
-        "one": "🎯 Taktyka",
-        "two": "🔥 Show",
-        "three": "🤝 Współpraca drużynowa"
+        "one": "Taktyka",
+        "two": "Show",
+        "three": "Współpraca drużynowa"
       },
       "title": "Przyjdź. Graj. Wygrywaj.",
       "cta": "Zarejestruj się jednym kliknięciem →"

@@ -146,9 +146,9 @@
     },
     "invite": {
       "chips": {
-        "one": "🎯 Tactics",
-        "two": "🔥 Show",
-        "three": "🤝 Team play"
+        "one": "Tactics",
+        "two": "Show",
+        "three": "Team play"
       },
       "title": "Come. Play. Win.",
       "cta": "Register in one click →"
