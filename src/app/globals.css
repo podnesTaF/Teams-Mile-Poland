@@ -630,6 +630,103 @@
     font-size: 14px;
     color: var(--form-ink);
   }
+  .contact-method {
+    min-height: 50px;
+    border: 1px solid var(--form-bg-soft);
+    border-radius: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    padding: 12px;
+    justify-content: center;
+    align-items: center;
+  }
+  .contact-method .lbl {
+    font-family: var(--f-form);
+    font-size: 14px;
+    color: var(--form-ink);
+  }
+  .radios {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    justify-content: center;
+  }
+  .radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    color: var(--form-ink);
+    font-family: var(--f-form);
+    font-size: 16px;
+  }
+  .radio input[type="radio"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--form-bg-soft);
+    border-radius: 50%;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    margin: 0;
+  }
+  .radio input[type="radio"]::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    transform: scale(0);
+    transition: transform 0.12s;
+  }
+  .radio input[type="radio"]:checked {
+    border-color: var(--color-accent);
+  }
+  .radio input[type="radio"]:checked::before {
+    transform: scale(1);
+  }
+  .agree {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: center;
+    color: var(--form-ink);
+    font-family: var(--f-form);
+    font-size: 14px;
+    line-height: 1.4;
+    cursor: pointer;
+  }
+  .agree input[type="checkbox"] {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border: 1.5px solid var(--form-bg-soft);
+    border-radius: 6px;
+    cursor: pointer;
+    flex: 0 0 auto;
+    display: grid;
+    place-content: center;
+    margin: 1px 0 0;
+  }
+  .agree input[type="checkbox"]:checked {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+  .agree input[type="checkbox"]:checked::before {
+    content: "";
+    width: 13px;
+    height: 9px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translate(1px, -1px);
+  }
+  .agree a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
   .modal-title-contact {
     font-size: 40px;
     color: #fff;
