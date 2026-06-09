@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { Invite } from "./invite";
 
 /** Team composition: 3 RUNNER · 2 ACE · 2 JOKER (badge letter × count). */
 const COMP = [
@@ -86,6 +87,7 @@ export function Roles() {
           ))}
         </div>
       </div>
+      <Invite />
     </section>
   );
 }

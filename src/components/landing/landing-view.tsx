@@ -10,8 +10,10 @@ import { Hero } from "@/components/landing/hero";
 import { HowItGoes } from "@/components/landing/how-it-goes";
 import { Invite } from "@/components/landing/invite";
 import { Location } from "@/components/landing/location";
+import { Parallax } from "@/components/landing/parallax";
 import { PathForward } from "@/components/landing/path";
 import { Program } from "@/components/landing/program";
+import { RatingPath } from "@/components/landing/rating-path";
 import { Roles } from "@/components/landing/roles";
 import { ScrollReveal } from "@/components/landing/scroll-reveal";
 import { WhatIs } from "@/components/landing/what-is";
@@ -31,19 +33,20 @@ export function LandingView() {
         <style>{".ace-landing .wrap > * { opacity: 1 !important; transform: none !important; }"}</style>
       </noscript>
       <ScrollReveal />
+      <Parallax />
       <Hero />
       <WhatIs />
+      <RatingPath />
       <HowItGoes />
       <Roles />
-      <Invite />
       <Audience />
       <Location />
       <Formats />
       <PathForward />
       <Atmosphere />
       <Program />
-      <Faq />
       <Contact />
+      <Faq />
       <FinalCta />
     </div>
   );

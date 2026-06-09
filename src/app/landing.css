@@ -72,20 +72,20 @@
   text-wrap: balance;
 }
 .ace-landing .t-hero {
-  /* H1 */
-  font-size: var(--fs-h1);
+  /* H1 — bumped up a touch from the --fs-h1 token for more presence. */
+  font-size: clamp(36px, 30px + 1.6vw, 48px);
   line-height: 1.2;
   text-transform: uppercase;
 }
 .ace-landing .t-sec {
-  /* H2 — section titles */
-  font-size: var(--fs-h2);
+  /* H2 — section titles, bumped up a touch from --fs-h2. */
+  font-size: clamp(28px, 23px + 1.4vw, 38px);
   line-height: 1.2;
   text-transform: uppercase;
 }
 .ace-landing .t-40 {
-  /* H2 */
-  font-size: var(--fs-h2);
+  /* H2 — matches the bumped section-title size. */
+  font-size: clamp(28px, 23px + 1.4vw, 38px);
   line-height: 1.2;
   text-transform: uppercase;
 }
@@ -289,8 +289,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--acl-grey);
-  color: var(--acl-ink);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--acl-white);
   border-radius: 4px;
   padding: 12px 16px;
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
@@ -471,11 +471,14 @@
   position: absolute;
   left: 50%;
   top: 6%;
-  transform: translateX(-50%);
+  /* `--py` is driven by <Parallax/> so the watermark drifts behind the
+     athlete at a different speed on scroll; falls back to 0 with no JS. */
+  transform: translateX(-50%) translateY(var(--py, 0px));
   z-index: 0;
   width: min(110%, 1180px);
   max-width: none;
   opacity: 0.45;
+  will-change: transform;
 }
 .ace-landing .format-stage .logo-wm--mark img {
   width: 100%;
@@ -572,12 +575,14 @@
   position: absolute;
   left: 50%;
   top: -30px;
-  transform: translateX(-50%);
+  /* `--py` is driven by <Parallax/>; falls back to 0 with no JS / reduced motion. */
+  transform: translateX(-50%) translateY(var(--py, 0px));
   width: 120%;
   max-width: 1500px;
   height: auto;
   z-index: 0;
   pointer-events: none;
+  will-change: transform;
 }
 .ace-landing .cards3 {
   display: grid;
@@ -805,6 +810,8 @@
   width: 36px;
   height: auto;
   margin: 0 auto 4px;
+  /* Force the pin artwork to render white. */
+  filter: brightness(0) invert(1);
 }
 .ace-landing .loc-title {
   font-size: clamp(34px, 28px + 2vw, 52px);
@@ -1372,7 +1379,7 @@
   padding: 0 0 24px;
   opacity: 0.8;
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
-  font-weight: 700;
+  font-weight: 500;
   font-style: italic;
   font-size: var(--fs-h3); /* H3 */
   line-height: 1.3;
@@ -2471,10 +2478,10 @@
 @media (prefers-reduced-motion: no-preference) {
   .ace-landing.reveal-ready .wrap > * {
     opacity: 0;
-    transform: translateY(28px);
+    transform: translateY(40px);
     transition:
-      opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
-      transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+      opacity 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
   .ace-landing.reveal-ready .wrap.is-in > * {
     opacity: 1;
@@ -2593,4 +2600,510 @@
   .ace-landing .tk-qr img {
     border-color: #ddd;
   }
+}
+
+/* =========================================================
+ * RATING → PRIZE FUND  (section + standard-table modal)
+ * Ported from the v3 design `landing.css`; --red/--ink mapped to the
+ * scoped --acl-* tokens and asset paths rebased onto /landing/.
+ * ========================================================= */
+.ace-landing .ratingpath {
+  padding: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 2;
+  background: var(--acl-ink);
+}
+.ace-landing .rp-red {
+  position: relative;
+  overflow: hidden;
+  /* Top fade blends the dark WhatIs section above into the red band, sitting
+   * over a dark-red → bright-red vertical gradient. */
+  background:
+    linear-gradient(180deg, var(--acl-ink) 0%, rgba(25, 26, 24, 0.55) 30%, rgba(25, 26, 24, 0) 58%),
+    linear-gradient(180deg, #6f0f18 0%, #b3192a 52%, var(--acl-red) 100%);
+  padding: clamp(48px, 7vw, 96px) 0 clamp(64px, 9vw, 120px);
+}
+/* ink chevron UP at the bottom of the red block (the dark CTA pokes up) */
+.ace-landing .rp-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 92px;
+  height: 46px;
+  z-index: 5;
+  background: var(--acl-ink);
+  clip-path: polygon(50% 0, 0 100%, 100% 100%);
+  pointer-events: none;
+}
+/* ink chevron DOWN overhanging the end of the section into the next block */
+.ace-landing .rp-arrow--bottom {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 72%);
+  width: 108px;
+  height: 54px;
+  z-index: 6;
+  background: var(--acl-ink);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  pointer-events: none;
+}
+.ace-landing .rp-top {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+.ace-landing .rp-photo {
+  position: relative;
+}
+.ace-landing .rp-photo img {
+  width: 100%;
+  aspect-ratio: 451 / 231;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+  position: relative;
+  z-index: 2;
+}
+.ace-landing .rp-photo__chev {
+  position: absolute;
+  left: -13%;
+  top: -22px;
+  width: 126%;
+  height: calc(100% + 44px);
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(242deg, rgba(255, 255, 255, 0.26) 0 22px, transparent 22px 74px);
+}
+.ace-landing .rp-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ace-landing .rp-copy .lead {
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  line-height: 1.6;
+}
+.ace-landing .rp-banner {
+  max-width: 960px;
+  margin: clamp(36px, 5vw, 56px) auto 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+.ace-landing .rp-banner__cal {
+  width: 40px;
+  height: 40px;
+  background: #fff;
+  -webkit-mask: url(/landing/icons/calendar.svg) center / contain no-repeat;
+  mask: url(/landing/icons/calendar.svg) center / contain no-repeat;
+}
+.ace-landing .rp-banner__h {
+  margin: 0;
+  line-height: 1.25;
+}
+.ace-landing .rp-banner__sub {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  opacity: 0.92;
+  max-width: 840px;
+}
+.ace-landing .rp-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: clamp(40px, 5vw, 56px) 0 clamp(64px, 8vw, 104px);
+  position: relative;
+  z-index: 2;
+}
+.ace-landing .rp-cta__kicker {
+  letter-spacing: 0.02em;
+}
+.ace-landing .rp-cta__btns {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ===== PRIZE MODAL ===== */
+/* The modal is a direct child of a `.wrap`, so exempt it from the scroll-
+ * reveal opacity/transform that targets `.wrap > *` (it must show in full
+ * the moment it is opened, regardless of the section's reveal state). */
+.ace-landing.reveal-ready .wrap > .prize-modal {
+  opacity: 1;
+  transform: none;
+}
+.ace-landing .prize-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 3vw, 40px);
+}
+.ace-landing .prize-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 8, 7, 0.8);
+  backdrop-filter: blur(4px);
+}
+.ace-landing .prize-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: #fff;
+  color: var(--acl-ink);
+  border-radius: 8px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+}
+.ace-landing .prize-modal__close {
+  position: absolute;
+  right: 14px;
+  top: 10px;
+  z-index: 5;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--acl-ink);
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+.ace-landing .prize-modal__close:hover {
+  opacity: 1;
+}
+.ace-landing .prize-head {
+  background: var(--acl-red);
+  padding: 18px 56px;
+}
+.ace-landing .prize-title {
+  margin: 0;
+  text-align: center;
+  color: #fff;
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(1.1rem, 2.4vw, 1.9rem);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+.ace-landing .pstd-scroll {
+  overflow-x: auto;
+  padding: 0;
+}
+.ace-landing .pstd {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 840px;
+  font-family: var(--font-body), "Inter", sans-serif;
+  color: var(--acl-ink);
+}
+.ace-landing .pstd th,
+.ace-landing .pstd td {
+  border: 1px solid #e2e4e8;
+  padding: 9px 10px;
+  text-align: center;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.ace-landing .pstd .lvl-h,
+.ace-landing .pstd .pos-h,
+.ace-landing .pstd .prize-h {
+  background: var(--acl-red);
+  color: #fff;
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+.ace-landing .pstd .lvl-h {
+  width: 118px;
+  line-height: 1.15;
+}
+.ace-landing .pstd .rating-h {
+  background: #fbe9eb;
+  color: var(--acl-ink);
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+.ace-landing .pstd .grp {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: 0.92rem;
+}
+.ace-landing .pstd .grp--men {
+  background: #e7ebf1;
+}
+.ace-landing .pstd .grp--women {
+  background: #e8f1e6;
+}
+.ace-landing .pstd .grp--mix {
+  background: #ece7f1;
+}
+.ace-landing .pstd .place-h {
+  background: #fff;
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: 0.92rem;
+  width: 96px;
+}
+.ace-landing .pstd thead .sub th {
+  background: #f4f5f7;
+  font-weight: 600;
+  font-size: 0.74rem;
+  color: #444;
+}
+.ace-landing .pstd tbody tr:nth-child(odd) {
+  background: #fff;
+}
+.ace-landing .pstd tbody tr:nth-child(even) {
+  background: #eef3f9;
+}
+.ace-landing .pstd .lvl {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--acl-ink);
+  position: relative;
+  border-left: 6px solid transparent;
+}
+.ace-landing .pstd tbody tr:nth-child(1) .lvl { border-left-color: #e23b2e; }
+.ace-landing .pstd tbody tr:nth-child(2) .lvl { border-left-color: #e8542b; }
+.ace-landing .pstd tbody tr:nth-child(3) .lvl { border-left-color: #ef6f27; }
+.ace-landing .pstd tbody tr:nth-child(4) .lvl { border-left-color: #f2882a; }
+.ace-landing .pstd tbody tr:nth-child(5) .lvl { border-left-color: #f4a02e; }
+.ace-landing .pstd tbody tr:nth-child(6) .lvl { border-left-color: #f1b833; }
+.ace-landing .pstd tbody tr:nth-child(7) .lvl { border-left-color: #e6cb37; }
+.ace-landing .pstd tbody tr:nth-child(8) .lvl { border-left-color: #c2d23b; }
+.ace-landing .pstd tbody tr:nth-child(9) .lvl { border-left-color: #90c83f; }
+.ace-landing .pstd tbody tr:nth-child(10) .lvl { border-left-color: #54b94f; }
+.ace-landing .pstd tbody tr:nth-child(11) .lvl { border-left-color: #2faf6e; }
+.ace-landing .pstd tbody tr:nth-child(12) .lvl { border-left-color: #2aa6a0; }
+.ace-landing .pstd tbody tr:nth-child(13) .lvl { border-left-color: #2f8ac9; }
+.ace-landing .pstd tbody tr:nth-child(14) .lvl { border-left-color: #3f6fd0; }
+.ace-landing .pstd tbody tr:nth-child(15) .lvl { border-left-color: #5a57c9; }
+.ace-landing .pstd tbody tr:nth-child(16) .lvl { border-left-color: #6b3fd0; }
+.ace-landing .pstd td {
+  color: #2a2b29;
+}
+.ace-landing .pstd td.pz {
+  font-weight: 600;
+}
+.ace-landing .pstd-notes {
+  padding: 18px clamp(16px, 3vw, 40px) 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ace-landing .pstd-notes p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #33342f;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.ace-landing .nt {
+  flex: 0 0 auto;
+  color: #fff;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  padding: 3px 7px;
+  border-radius: 3px;
+}
+.ace-landing .nt--1 { background: #2f5fd0; }
+.ace-landing .nt--2 { background: #1f8a4c; }
+.ace-landing .nt--3 { background: #6b3fd0; }
+
+@media (max-width: 720px) {
+  .ace-landing .rp-top {
+    grid-template-columns: 1fr;
+  }
+  .ace-landing .prize-head {
+    padding: 16px 44px;
+  }
+}
+
+/* ===========================================================
+ * Entrance / motion refinements (all gated under no-preference,
+ * so reduced-motion users keep the static, fully-visible layout).
+ *  - Hero: title → subtitle → buttons → badges → location, in sequence.
+ *  - HowItGoes: the 4 steps appear one-by-one (desktop only).
+ *  - Roles / Audience: cards reveal left-to-right.
+ *  - Roles chevrons: gentle looping left↔right float.
+ * The parallax drift on .tri-up and the format watermark is driven by
+ * <Parallax/> via the `--py` custom property (see those rules above).
+ * =========================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  /* ---- Hero: sequence the inner content rather than the wrap block ---- */
+  .ace-landing.reveal-ready .hero .wrap > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .ace-landing.reveal-ready .hero__content > .hero__title,
+  .ace-landing.reveal-ready .hero__content > .hero__sub,
+  .ace-landing.reveal-ready .hero__content > .hero__actions,
+  .ace-landing.reveal-ready .hero__content > .stats,
+  .ace-landing.reveal-ready .hero__content > .pin {
+    opacity: 0;
+    transform: translateY(40px);
+    transition:
+      opacity 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__title,
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__sub,
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__actions,
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .stats,
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .pin {
+    opacity: 1;
+    transform: none;
+  }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__title { transition-delay: 0.05s; }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__sub { transition-delay: 0.15s; }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__actions { transition-delay: 0.25s; }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .stats { transition-delay: 0.35s; }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .pin { transition-delay: 0.45s; }
+
+  /* ---- Roles / Audience: left-to-right card stagger ----
+   * Keep the grid container itself static (override the block reveal) and
+   * animate its children horizontally instead. */
+  .ace-landing.reveal-ready .wrap.is-in > .role-cards,
+  .ace-landing.reveal-ready .wrap.is-in > .aud-grid {
+    opacity: 1;
+    transform: none;
+  }
+  .ace-landing.reveal-ready .role-cards > .rcard,
+  .ace-landing.reveal-ready .aud-grid > .aud {
+    opacity: 0;
+    transform: translateX(-40px);
+    transition:
+      opacity 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .ace-landing.reveal-ready .wrap.is-in .role-cards > .rcard,
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud {
+    opacity: 1;
+    transform: none;
+  }
+  .ace-landing.reveal-ready .wrap.is-in .role-cards > .rcard:nth-child(1),
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(1) { transition-delay: 0.05s; }
+  .ace-landing.reveal-ready .wrap.is-in .role-cards > .rcard:nth-child(2),
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(2) { transition-delay: 0.15s; }
+  .ace-landing.reveal-ready .wrap.is-in .role-cards > .rcard:nth-child(3),
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(3) { transition-delay: 0.25s; }
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(4) { transition-delay: 0.35s; }
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(5) { transition-delay: 0.45s; }
+
+  /* ---- Roles chevrons: looping left↔right float ---- */
+  .ace-landing .roles__chev {
+    animation: acl-chev-float 7s ease-in-out infinite;
+  }
+}
+
+/* Steps appear one-by-one on desktop only; on mobile they keep the default
+ * block reveal from the generic `.wrap > *` rule. */
+@media (prefers-reduced-motion: no-preference) and (min-width: 721px) {
+  .ace-landing.reveal-ready .wrap.is-in > .steps {
+    opacity: 1;
+    transform: none;
+  }
+  .ace-landing.reveal-ready .steps > .step {
+    opacity: 0;
+    transform: translateY(40px);
+    transition:
+      opacity 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .ace-landing.reveal-ready .wrap.is-in .steps > .step {
+    opacity: 1;
+    transform: none;
+  }
+  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(1) { transition-delay: 0.05s; }
+  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(2) { transition-delay: 0.15s; }
+  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(3) { transition-delay: 0.25s; }
+  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(4) { transition-delay: 0.35s; }
+}
+
+@keyframes acl-chev-float {
+  0%,
+  100% {
+    transform: translateY(-50%) translateX(-18px);
+  }
+  50% {
+    transform: translateY(-50%) translateX(18px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---- Location: image + checklist converge from opposite sides ---- */
+  .ace-landing.reveal-ready .wrap.is-in > .loc-grid {
+    opacity: 1;
+    transform: none;
+  }
+  .ace-landing.reveal-ready .loc-grid > * {
+    opacity: 0;
+    transition:
+      opacity 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .ace-landing.reveal-ready .loc-grid > *:nth-child(1) {
+    transform: translateX(-60px);
+  }
+  .ace-landing.reveal-ready .loc-grid > *:nth-child(2) {
+    transform: translateX(60px);
+  }
+  .ace-landing.reveal-ready .wrap.is-in .loc-grid > * {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ---- Formats: the two cards reveal left-to-right ---- */
+  .ace-landing.reveal-ready .wrap.is-in > .formats {
+    opacity: 1;
+    transform: none;
+  }
+  .ace-landing.reveal-ready .formats > .fcard {
+    opacity: 0;
+    transform: translateX(-40px);
+    transition:
+      opacity 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .ace-landing.reveal-ready .wrap.is-in .formats > .fcard {
+    opacity: 1;
+    transform: none;
+  }
+  .ace-landing.reveal-ready .wrap.is-in .formats > .fcard:nth-child(1) { transition-delay: 0.05s; }
+  .ace-landing.reveal-ready .wrap.is-in .formats > .fcard:nth-child(2) { transition-delay: 0.15s; }
 }

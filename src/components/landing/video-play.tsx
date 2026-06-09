@@ -41,7 +41,7 @@ export function VideoPlay({ label, videoId }: VideoPlayProps) {
   return (
     <>
       <button type="button" className="play" onClick={() => setOpen(true)} aria-label={label}>
-        <span className="play__circle">
+        <span className="play__circle"> 
           <PlayIcon />
         </span>
         <span>{label}</span>

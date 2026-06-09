@@ -76,23 +76,56 @@
       "playLabel": "ZOBACZ ATMOSFERĘ"
     },
     "whatIs": {
-      "title": "Czym jest ACE BATTLE RUN?",
+      "title": "Czym jest ACE BATTLE RUN RATING?",
       "cards": {
         "roles": {
-          "title": "Role w drużynie",
-          "body": "Każdy uczestnik dostaje swoją rolę, a wynik zależy od zgranej pracy całej drużyny.",
-          "alt": "Role w drużynie"
+          "title": "Klasyfikacja indywidualna i drużynowa",
+          "body": "Służy do określenia indywidualnego i drużynowego poziomu biegacza w systemie rankingowym ACE BATTLE RUN oraz awansu do dywizji biegów drużynowych.",
+          "alt": "Klasyfikacja indywidualna i drużynowa"
         },
         "team": {
-          "title": "Klasyczny bieg drużynowy ACE BATTLE MILE",
-          "body": "To bieg drużynowy na 1 milę, w którym liczy się nie tylko szybkość, ale i współpraca drużynowa.",
-          "alt": "Klasyczny bieg drużynowy"
+          "title": "ACE BATTLE MILE GAME DIVISION’S",
+          "body": "To emocjonujące pojedynki biegowe między drużynami na jedną milę (1609 m), w których o zwycięstwie decyduje zarówno wynik indywidualny, jak i wynik drużyny.",
+          "alt": "ACE BATTLE MILE GAME DIVISION’S"
         },
         "rating": {
-          "title": "Ranking sezonowy",
-          "body": "Po biegu uczestnicy otrzymują punkty rankingowe, a wyniki drużyn wpływają na ich pozycję w sezonowym rankingu ACE BATTLE RATING.",
-          "alt": "Ranking sezonowy"
+          "title": "ACE BATTLE MILE LEAGUE’S",
+          "body": "Tu zaczyna się Twoja droga i droga Twojej drużyny do udziału w lidze krajowej i międzynarodowej.",
+          "alt": "ACE BATTLE MILE LEAGUE’S"
         }
+      }
+    },
+    "ratingPath": {
+      "photoAlt": "Zwycięska drużyna ACE BATTLE MILE",
+      "title": "RANKING TO TWOJA DROGA DO PULI NAGRÓD",
+      "lead": "Zdobywaj punkty rankingowe przez cały sezon i wprowadź swoją drużynę do grona najlepszych.",
+      "bannerHeading": "Jesienią najlepsze drużyny w swojej dywizji wezmą udział w pierwszej Krajowej Lidze Ace Battle Mile Game!",
+      "bannerSub": "W grze — tytuł najsilniejszej drużyny biegowej, nagrody pieniężne oraz prawo do reprezentowania swojego klubu i miasta w ACE BATTLE MILE Champions Leagues",
+      "kicker": "zobacz PULE NAGRÓD LIGI KRAJOWEJ",
+      "ctaIndividual": "Nagrody indywidualne",
+      "ctaTeam": "Drużynowe pule nagród"
+    },
+    "prizeModal": {
+      "title": "STANDARDOWA TABELA NAGRÓD DLA UCZESTNIKÓW",
+      "close": "Zamknij",
+      "levelHead": "POZIOM INDYWIDUALNY",
+      "positionHead": "POZYCJA",
+      "ratingHead": "Individual Rating: 7 (Three runners) & Pair Ace & Joker",
+      "prizeHead": "Nagroda na uczestnika (€)",
+      "men": "MĘŻCZYŹNI",
+      "women": "KOBIETY",
+      "mix": "MIX",
+      "place1": "1 miejsce",
+      "place2": "2 miejsce",
+      "place3": "3 miejsce",
+      "runners": "Runners",
+      "aceJoker": "Ace & Joker",
+      "runnersMen": "Runners MEN",
+      "aceJokerWomen": "Ace & Joker WOMEN",
+      "notes": {
+        "one": "Wysokość puli nagród ustala organizator w zależności od rangi wydarzenia i dostępnego budżetu.",
+        "two": "Łączna pula nagród jest dzielona według miejsc i poziomów zgodnie z Regulaminem zawodów i zatwierdzana przez Komitet Organizacyjny.",
+        "three": "Komitet Organizacyjny zastrzega sobie prawo do przyznania dodatkowych nagród, według własnego uznania, dowolnemu poziomowi, kategorii lub osiągnięciu."
       }
     },
     "howItGoes": {
@@ -145,6 +178,7 @@
       }
     },
     "invite": {
+      "videoLabel": "Zobacz wideo",
       "chips": {
         "one": "Taktyka",
         "two": "Show",
@@ -243,7 +277,8 @@
         }
       },
       "flag": "🏁",
-      "foot": "Warszawski Qualifier to Twój start w systemie ACE BATTLE RUN w Polsce. <red>Stań się częścią nowego formatu zawodów od samego początku.</red>"
+      "foot": "Warszawski Qualifier to początek Twojej kariery biegowej ACE BATTLE RUN w Polsce. <red>Stań się częścią nowego formatu zawodów od samego początku.</red>",
+      "videoLabel": "obejrzyj prezentację wideo"
     },
     "atmosphere": {
       "title": "Poczuj atmosferę",
