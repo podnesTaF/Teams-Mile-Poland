@@ -32,17 +32,33 @@ export function FinalCta() {
         </div>
       </div>
       <footer className="acl-footer" data-screen-label="Footer">
-        <div className="acl-footer__glow" aria-hidden />
         <Image
-          className="acl-footer__chev"
-          src="/landing/icons/footer-chevrons.svg"
+          className="acl-footer__glow"
+          src="/vectors/ellipse.svg"
           alt=""
-          width={1440}
-          height={403}
+          width={1352}
+          height={1096}
+          aria-hidden
+        />
+        <Image
+          className="acl-footer__chev acl-footer__chev--left"
+          src="/vectors/Arrows%20right.svg"
+          alt=""
+          width={1097}
+          height={643}
+          aria-hidden
+        />
+        <Image
+          className="acl-footer__chev acl-footer__chev--right"
+          src="/vectors/Arrows%20left.svg"
+          alt=""
+          width={1097}
+          height={643}
           aria-hidden
         />
         <div className="acl-footer__inner">
           <Wordmark variant="foot" />
+          <p className="footer__sub">{f("sub")}</p>
           <FooterActions
             phone={f("phone")}
             email={f("email")}

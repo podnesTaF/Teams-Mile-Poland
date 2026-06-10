@@ -3,22 +3,19 @@
 import { useEffect } from "react";
 
 /**
- * Scroll-driven parallax for a handful of decorative landing elements. Each
- * target's vertical position is nudged by `--py` (consumed by its CSS
- * `transform`) as it passes through the viewport, so it drifts at a different
- * speed than the foreground.
+ * Scroll-driven parallax for decorative landing elements. Offsets are written
+ * to `--px` / `--py` and consumed by each target's CSS `transform`.
  *
- *  - `.format-stage .logo-wm--mark` — the ACE BATTLE watermark behind the
- *    athlete on the format band.
- *  - `.tri-up` — the triangle graphic behind the "What is" cards.
- *
- * `range` is the peak drift in px (element travels roughly ±range/2 across a
- * full viewport pass). Disabled under reduced-motion; degrades to `--py: 0`
- * (the CSS fallback) when this component never runs.
+ * `range` is peak drift in px (roughly ±range/2 across a full viewport pass).
+ * `sign` flips drift direction; defaults to -1 for vertical targets.
+ * Disabled under reduced-motion; CSS fallbacks to 0 when this never runs.
  */
 const TARGETS = [
-  { selector: ".format-stage .logo-wm--mark", range: 80 },
-  { selector: ".tri-up", range: 64 },
+  { selector: ".format-stage .logo-wm--mark", prop: "--py", range: 80 },
+  { selector: ".tri-up", prop: "--py", range: 64 },
+  { selector: ".roles__chev", prop: "--px", range: 140, sign: 1 },
+  { selector: ".acl-footer__chev--left", prop: "--px", range: 80, sign: -1 },
+  { selector: ".acl-footer__chev--right", prop: "--px", range: 80, sign: 1 },
 ] as const;
 
 export function Parallax() {
@@ -35,14 +32,14 @@ export function Parallax() {
     const update = () => {
       raf = 0;
       const vh = window.innerHeight || 1;
-      for (const { selector, range } of TARGETS) {
+      for (const { selector, prop, range, sign = -1 } of TARGETS) {
         // Re-query each pass so locale switches / HMR re-mounts stay bound.
         root.querySelectorAll<HTMLElement>(selector).forEach((el) => {
           const rect = el.getBoundingClientRect();
           const center = rect.top + rect.height / 2;
           // -0.5 (above) → +0.5 (below) as the element crosses the viewport.
           const frac = (center - vh / 2) / vh;
-          el.style.setProperty("--py", `${(-frac * range).toFixed(1)}px`);
+          el.style.setProperty(prop, `${(frac * range * sign).toFixed(1)}px`);
         });
       }
     };
