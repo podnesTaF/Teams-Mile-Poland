@@ -11,8 +11,8 @@ import { useEffect } from "react";
  * Disabled under reduced-motion; CSS fallbacks to 0 when this never runs.
  */
 const TARGETS = [
-  { selector: ".format-stage .logo-wm--mark", prop: "--py", range: 80 },
-  { selector: ".tri-up", prop: "--py", range: 64 },
+  { selector: ".format-stage .logo-wm--mark", prop: "--py", range: 80, sign: -1 },
+  { selector: ".tri-up", prop: "--py", range: 64, sign: -1 },
   { selector: ".roles__chev", prop: "--px", range: 140, sign: 1 },
   { selector: ".acl-footer__chev--left", prop: "--px", range: 80, sign: -1 },
   { selector: ".acl-footer__chev--right", prop: "--px", range: 80, sign: 1 },
@@ -32,7 +32,7 @@ export function Parallax() {
     const update = () => {
       raf = 0;
       const vh = window.innerHeight || 1;
-      for (const { selector, prop, range, sign = -1 } of TARGETS) {
+      for (const { selector, prop, range, sign } of TARGETS) {
         // Re-query each pass so locale switches / HMR re-mounts stay bound.
         root.querySelectorAll<HTMLElement>(selector).forEach((el) => {
           const rect = el.getBoundingClientRect();

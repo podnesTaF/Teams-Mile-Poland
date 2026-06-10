@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -31,15 +31,6 @@ const GALLERY = [
 export function Atmosphere() {
   const t = useTranslations("landing.atmosphere");
   const [active, setActive] = useState<string>(GALLERY[0]);
-  const activeRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    activeRef.current?.scrollIntoView({
-      inline: "center",
-      block: "nearest",
-      behavior: "smooth",
-    });
-  }, [active]);
 
   return (
     <section className="section" style={{ paddingBottom: 0 }} data-screen-label="Atmosphere">
@@ -61,11 +52,17 @@ export function Atmosphere() {
           {GALLERY.map((src) => (
             <button
               key={src}
-              ref={src === active ? activeRef : undefined}
               type="button"
               aria-label={t("photoAlt")}
               aria-pressed={src === active}
-              onClick={() => setActive(src)}
+              onClick={(e) => {
+                setActive(src);
+                e.currentTarget.scrollIntoView({
+                  inline: "center",
+                  block: "nearest",
+                  behavior: "smooth",
+                });
+              }}
               className={cn("gallery-btn", src === active && "is-active")}
             >
               <Image src={src} alt="" width={100} height={56} />

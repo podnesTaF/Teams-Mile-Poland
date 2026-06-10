@@ -50,7 +50,7 @@ export function Hero() {
             <div className="stats">
               <Stat k={t("stats.dateLabel")}  v={t("stats.dateValue")} />
               <Stat k={t("stats.freeLabel")}  v={t("stats.freeValue")} />
-              <Stat k={t("stats.timeLabel")}  v={t("stats.timeValue")} />
+              <Stat k={t("stats.prizeLabel")} v={t("stats.prizeValue")} />
             </div>
             <div className="pin">
               <PinIcon />
