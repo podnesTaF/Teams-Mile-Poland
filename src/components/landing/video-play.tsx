@@ -8,6 +8,8 @@ import { PlayIcon } from "./icons";
 type VideoPlayProps = {
   label: string;
   videoId: string;
+  /** `row` — play circle + label side by side (invite section). */
+  variant?: "stacked" | "row";
 };
 
 /**
@@ -15,7 +17,7 @@ type VideoPlayProps = {
  * fullscreen lightbox with the YouTube embed (autoplay). Esc or an
  * overlay/close click dismisses it; body scroll is locked while open.
  */
-export function VideoPlay({ label, videoId }: VideoPlayProps) {
+export function VideoPlay({ label, videoId, variant = "stacked" }: VideoPlayProps) {
   const [open, setOpen] = useState(false);
   // Mount-gate the portal so the server render and the first client render
   // agree (document is unavailable during SSR).
@@ -40,7 +42,12 @@ export function VideoPlay({ label, videoId }: VideoPlayProps) {
 
   return (
     <>
-      <button type="button" className="play" onClick={() => setOpen(true)} aria-label={label}>
+      <button
+        type="button"
+        className={variant === "row" ? "play play--row" : "play"}
+        onClick={() => setOpen(true)}
+        aria-label={label}
+      >
         <span className="play__circle"> 
           <PlayIcon />
         </span>

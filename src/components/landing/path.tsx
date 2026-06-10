@@ -52,7 +52,7 @@ export function PathForward() {
           <p className="path-foot__text">
             {t.rich("foot", { red: (chunks) => <span className="red">{chunks}</span> })}
           </p>
-          <VideoPlay label={t("videoLabel")} videoId={PATH_VIDEO_ID} />
+          <VideoPlay label={t("videoLabel")} videoId={PATH_VIDEO_ID} variant="row" />
         </div>
       </div>
     </section>

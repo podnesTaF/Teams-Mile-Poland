@@ -20,8 +20,8 @@ export function Invite() {
   const t = useTranslations("landing.invite");
 
   return (
-      <div className="wrap invite">
-        <VideoPlay label={t("videoLabel")} videoId={INVITE_VIDEO_ID} />
+      <div className="wrap invite !pt-10">
+        <VideoPlay label={t("videoLabel")} videoId={INVITE_VIDEO_ID} variant="row" />
         <div className="chips">
           {CHIPS.map(({ id, icon }) => (
             <span key={id} className="chip">

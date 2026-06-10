@@ -21,6 +21,7 @@
   --acl-muted: #595568;
   --acl-white: #fff;
   --acl-wrap: 1280px;
+  --section-pad-y: clamp(45px, 6.3vw, 84px); /* 70% of the original section rhythm */
 
   /* ---- type scale (Figma tokens, mobile → desktop, fluid 480–1280px) ----
    * H1 40/32 · H2 32/24 · H3 24/20 · H4 20/16 · H5 16/14   (lh 120%)
@@ -148,12 +149,12 @@
 .ace-landing .wrap {
   max-width: var(--acl-wrap);
   margin: 0 auto;
-  padding: 0 24px;
+  padding-inline: 24px;
   width: 100%;
 }
 .ace-landing .section {
   position: relative;
-  padding: clamp(64px, 9vw, 120px) 0;
+  padding: var(--section-pad-y) 0;
 }
 
 /* ---- buttons ---- */
@@ -297,9 +298,10 @@
   border-radius: 4px;
   padding: 12px 16px;
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
-  font-weight: 700;
+  font-weight: 600;
+  text-transform: uppercase;
   font-style: italic;
-  font-size: var(--fs-h4); /* H4 */
+  font-size: 16px; /* H4 */
   line-height: 1.2;
 }
 .ace-landing .chip__ic {
@@ -513,6 +515,10 @@
   margin-inline: auto;
 }
 .ace-landing .format-card__text .t-32 {
+  margin-bottom: 10px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.ace-landing .format-card__text .t-24 {
   margin-bottom: 14px;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
@@ -559,6 +565,16 @@
   font-style: italic;
   font-size: var(--fs-caps-m); /* Caps M */
   opacity: 0.85;
+}
+.ace-landing .play--row {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  margin-top: 0;
+}
+.ace-landing .play--row > span:last-child {
+  text-transform: uppercase;
+  opacity: 1;
 }
 
 /* Section-seam triangle — a downward notch the colour of the section it
@@ -684,7 +700,7 @@
 .ace-landing .audience-box {
   background: var(--acl-red);
   color: #fff;
-  padding: clamp(56px, 8vw, 80px) 0;
+  padding: clamp(39px, 5.6vw, 56px) 0;
 }
 .ace-landing .aud-grid {
   display: grid;
@@ -2639,7 +2655,7 @@
   background:
     linear-gradient(180deg, var(--acl-ink) 0%, rgba(25, 26, 24, 0.55) 30%, rgba(25, 26, 24, 0) 58%),
     linear-gradient(180deg, #6f0f18 0%, #b3192a 52%, var(--acl-red) 100%);
-  padding: clamp(48px, 7vw, 96px) 0 clamp(64px, 9vw, 120px);
+  padding: clamp(34px, 4.9vw, 67px) 0 var(--section-pad-y);
 }
 /* ink chevron UP at the bottom of the red block (the dark CTA pokes up) */
 .ace-landing .rp-arrow {
@@ -2730,8 +2746,7 @@
 }
 .ace-landing .rp-banner__sub {
   margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.6;
+  line-height: 1.4;
   opacity: 0.92;
   max-width: 840px;
 }
@@ -2740,7 +2755,7 @@
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  padding: clamp(40px, 5vw, 56px) 0 clamp(64px, 8vw, 104px);
+  padding: clamp(28px, 3.5vw, 39px) 0 clamp(45px, 5.6vw, 73px);
   position: relative;
   z-index: 2;
 }

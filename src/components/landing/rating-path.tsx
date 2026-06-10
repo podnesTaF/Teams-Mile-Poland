@@ -33,8 +33,8 @@ export function RatingPath() {
           </div>
           <div className="rp-banner">
             <span className="rp-banner__cal" aria-hidden />
-            <p className="head t-20 rp-banner__h">{t("bannerHeading")}</p>
-            <p className="rp-banner__sub">{t("bannerSub")}</p>
+            <p className="head t-24 rp-banner__h">{t("bannerHeading")}</p>
+            <p className="t-16 rp-banner__sub">{t("bannerSub")}</p>
           </div>
         </div>
         {/* ink chevron pointing up into the red band from the dark CTA below */}
