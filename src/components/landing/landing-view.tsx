@@ -35,13 +35,13 @@ export function LandingView() {
       <ScrollReveal />
       <Parallax />
       <Hero />
+      <Formats />
       <WhatIs />
       <RatingPath />
       <HowItGoes />
       <Roles />
       <Audience />
       <Location />
-      <Formats />
       <PathForward />
       <Atmosphere />
       <Program />
