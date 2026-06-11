@@ -29,6 +29,14 @@ export function PlayIcon(props: SVGProps) {
   );
 }
 
+export function PauseIcon(props: SVGProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="#191A18" aria-hidden {...props}>
+      <path d="M4 2h3v12H4V2Zm5 0h3v12H9V2Z" />
+    </svg>
+  );
+}
+
 export function CheckIcon(props: SVGProps) {
   return (
     <svg viewBox="0 0 16 16" fill="none" aria-hidden {...props}>

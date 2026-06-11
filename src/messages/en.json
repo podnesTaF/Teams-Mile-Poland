@@ -247,6 +247,9 @@
     },
     "atmosphere": {
       "title": "Feel the atmosphere",
+      "playLabel": "Play the anthem of Ace Battle",
+      "playAriaLabel": "Play the anthem of Ace Battle",
+      "pauseAriaLabel": "Pause the anthem",
       "photoAlt": "Atmosphere of the event"
     },
     "program": {

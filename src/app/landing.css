@@ -1199,6 +1199,52 @@
 }
 
 /* ===== ATMOSPHERE ===== */
+.ace-landing .atmo-audio {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: clamp(20px, 3vw, 32px);
+  padding: 8px 22px 8px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  appearance: none;
+  color: inherit;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    transform 0.15s;
+}
+.ace-landing .atmo-audio:hover {
+  border-color: rgba(229, 31, 50, 0.55);
+  background: rgba(229, 31, 50, 0.08);
+  transform: translateY(-1px);
+}
+.ace-landing .atmo-audio__circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--acl-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  box-shadow: 0 6px 20px rgba(229, 31, 50, 0.35);
+}
+.ace-landing .atmo-audio__circle svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.ace-landing .atmo-audio__label {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: var(--fs-caps-m);
+  opacity: 0.9;
+  text-align: left;
+}
 .ace-landing .atmo-photo {
   width: 100%;
   height: clamp(360px, 52vw, 800px);

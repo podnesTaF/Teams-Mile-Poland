@@ -4,7 +4,10 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { AudioPlay } from "@/components/landing/audio-play";
 import { cn } from "@/lib/utils";
+
+const ANTHEM_SRC = "/audio/AUD-20260602-WA0000.mp3";
 
 const GALLERY = [
   "/images/teams-start.jpg",
@@ -26,6 +29,12 @@ export function Atmosphere() {
     <section className="section" style={{ paddingBottom: 0 }} data-screen-label="Atmosphere">
       <div className="wrap center">
         <h2 className="head t-sec">{t("title")}</h2>
+        <AudioPlay
+          src={ANTHEM_SRC}
+          label={t("playLabel")}
+          playAriaLabel={t("playAriaLabel")}
+          pauseAriaLabel={t("pauseAriaLabel")}
+        />
       </div>
       <Image
         key={active}

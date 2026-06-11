@@ -247,6 +247,9 @@
     },
     "atmosphere": {
       "title": "Відчуй атмосферу",
+      "playLabel": "Прослухай гімн Ace Battle",
+      "playAriaLabel": "Відтворити гімн Ace Battle",
+      "pauseAriaLabel": "Призупинити гімн",
       "photoAlt": "Атмосфера заходу"
     },
     "program": {

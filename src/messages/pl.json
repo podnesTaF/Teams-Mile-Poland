@@ -247,6 +247,9 @@
     },
     "atmosphere": {
       "title": "Poczuj atmosferę",
+      "playLabel": "Posłuchaj hymnu Ace Battle",
+      "playAriaLabel": "Odtwórz hymn Ace Battle",
+      "pauseAriaLabel": "Wstrzymaj hymn",
       "photoAlt": "Atmosfera wydarzenia"
     },
     "program": {
