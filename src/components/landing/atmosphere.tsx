@@ -15,6 +15,16 @@ const GALLERY = [
   "/images/stretch.jpg",
   "/images/teams-photo.jpg",
   "/images/teams-run.jpg",
+  "/images/DJI_0233.jpg",
+  "/images/DJI_0256.jpg",
+  "/images/_DSC2661.jpg",
+  "/images/_DSC2811.jpg",
+  "/images/_DSC2825.jpg",
+  "/images/_DSC3241.jpg",
+  "/images/_DSC3921.jpg",
+  "/images/_DSC3931.jpg",
+  "/images/_DSC4433.jpg",
+  "/images/_DSC4481.jpg",
 ] as const;
 
 /**
@@ -54,7 +64,14 @@ export function Atmosphere() {
               type="button"
               aria-label={t("photoAlt")}
               aria-pressed={src === active}
-              onClick={() => setActive(src)}
+              onClick={(e) => {
+                setActive(src);
+                e.currentTarget.scrollIntoView({
+                  inline: "center",
+                  block: "nearest",
+                  behavior: "smooth",
+                });
+              }}
               className={cn("gallery-btn", src === active && "is-active")}
             >
               <Image src={src} alt="" width={100} height={56} />

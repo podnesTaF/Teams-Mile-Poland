@@ -51,7 +51,6 @@ export function Hero() {
               <Stat k={t("stats.dateLabel")}  v={t("stats.dateValue")} />
               <Stat k={t("stats.freeLabel")}  v={t("stats.freeValue")} />
               <Stat k={t("stats.prizeLabel")} v={t("stats.prizeValue")} />
-              <Stat k={t("stats.timeLabel")}  v={t("stats.timeValue")} />
             </div>
             <div className="pin">
               <PinIcon />
@@ -73,6 +72,7 @@ export function Hero() {
             <div className="format-card">
               <div className="format-card__text">
                 <h2 className="head t-32">{fb("title")}</h2>
+                <h3 className="head t-24">{fb("subtitle")}</h3>
                 <p className="body">{fb("body")}</p>
               </div>
             </div>

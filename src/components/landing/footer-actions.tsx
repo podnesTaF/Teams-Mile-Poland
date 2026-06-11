@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 import { trackLinkClick } from "@/lib/analytics";
@@ -88,9 +89,19 @@ export function FooterActions({ phone, email, shareLabel, copiedLabel }: Props) 
           {email}
         </a>
       </div>
-      <button type="button" className="btn btn-stroke footer-share" onClick={copySiteLink}>
-        {copied ? copiedLabel : shareLabel}
-      </button>
+      <div className="footer-share-wrap">
+        <button type="button" className="btn btn-stroke footer-share" onClick={copySiteLink}>
+          {copied ? copiedLabel : shareLabel}
+        </button>
+        <Image
+          className="footer-mark"
+          src="/loading.png"
+          alt=""
+          width={100}
+          height={100}
+          aria-hidden
+        />
+      </div>
     </>
   );
 }

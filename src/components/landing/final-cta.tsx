@@ -24,7 +24,6 @@ export function FinalCta() {
             <Stat k={hero("stats.dateLabel")} v={hero("stats.dateValue")} />
             <Stat k={hero("stats.freeLabel")} v={hero("stats.freeValue")} />
             <Stat k={hero("stats.prizeLabel")} v={hero("stats.prizeValue")} />
-            <Stat k={hero("stats.timeLabel")} v={hero("stats.timeValue")} />
           </div>
           <Link href="/register" className="btn btn-white btn-white--ink">
             {t("cta")}
@@ -32,17 +31,33 @@ export function FinalCta() {
         </div>
       </div>
       <footer className="acl-footer" data-screen-label="Footer">
-        <div className="acl-footer__glow" aria-hidden />
         <Image
-          className="acl-footer__chev"
-          src="/landing/icons/footer-chevrons.svg"
+          className="acl-footer__glow"
+          src="/vectors/ellipse.svg"
           alt=""
-          width={1440}
-          height={403}
+          width={1352}
+          height={1096}
+          aria-hidden
+        />
+        <Image
+          className="acl-footer__chev acl-footer__chev--left"
+          src="/vectors/Arrows%20right.svg"
+          alt=""
+          width={1097}
+          height={643}
+          aria-hidden
+        />
+        <Image
+          className="acl-footer__chev acl-footer__chev--right"
+          src="/vectors/Arrows%20left.svg"
+          alt=""
+          width={1097}
+          height={643}
           aria-hidden
         />
         <div className="acl-footer__inner">
           <Wordmark variant="foot" />
+          <p className="footer__sub">{f("sub")}</p>
           <FooterActions
             phone={f("phone")}
             email={f("email")}

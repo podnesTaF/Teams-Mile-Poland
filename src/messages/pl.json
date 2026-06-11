@@ -65,34 +65,68 @@
         "freeLabel": "Udział",
         "freeValue": "BEZPŁATNY",
         "prizeLabel": "Pula nagród",
-        "prizeValue": "🔥 300",
+        "prizeValue": "5 000 zł",
         "timeLabel": "Godziny",
-        "timeValue": "09:00 – 15:30"
+        "timeValue": "17:00 – 22:00"
       }
     },
     "formatBand": {
-      "title": "Nowy format zawodów po raz pierwszy w Warszawie.",
-      "body": "Z okazji debiutu ACE BATTLE MILE udział dla drużyn i uczestników solo będzie bezpłatny, a na zwycięzców czekają nagrody.",
+      "title": "NOWY FORMAT BIEGÓW!",
+      "subtitle": "DEBIUT ACE BATTLE RUN WARSZAWA",
+      "body": "Uczestnicy z najlepszymi wynikami otrzymają nagrody w klasyfikacji indywidualnej i drużynowej od sponsorów projektu.",
       "playLabel": "ZOBACZ ATMOSFERĘ"
     },
     "whatIs": {
-      "title": "Czym jest ACE BATTLE RUN?",
+      "title": "Czym jest ACE BATTLE RUN RATING?",
       "cards": {
         "roles": {
-          "title": "Role w drużynie",
-          "body": "Każdy uczestnik dostaje swoją rolę, a wynik zależy od zgranej pracy całej drużyny.",
-          "alt": "Role w drużynie"
+          "title": "Klasyfikacja indywidualna i drużynowa",
+          "body": "Służy do określenia indywidualnego i drużynowego poziomu biegacza w systemie rankingowym ACE BATTLE RUN oraz awansu do dywizji biegów drużynowych.",
+          "alt": "Klasyfikacja indywidualna i drużynowa"
         },
         "team": {
-          "title": "Klasyczny bieg drużynowy ACE BATTLE MILE",
-          "body": "To bieg drużynowy na 1 milę, w którym liczy się nie tylko szybkość, ale i współpraca drużynowa.",
-          "alt": "Klasyczny bieg drużynowy"
+          "title": "ACE BATTLE MILE GAME DIVISION’S",
+          "body": "To emocjonujące pojedynki biegowe między drużynami na jedną milę (1609 m), w których o zwycięstwie decyduje zarówno wynik indywidualny, jak i wynik drużyny.",
+          "alt": "ACE BATTLE MILE GAME DIVISION’S"
         },
         "rating": {
-          "title": "Ranking sezonowy",
-          "body": "Po biegu uczestnicy otrzymują punkty rankingowe, a wyniki drużyn wpływają na ich pozycję w sezonowym rankingu ACE BATTLE RATING.",
-          "alt": "Ranking sezonowy"
+          "title": "ACE BATTLE MILE LEAGUE’S",
+          "body": "Tu zaczyna się Twoja droga i droga Twojej drużyny do udziału w lidze krajowej i międzynarodowej.",
+          "alt": "ACE BATTLE MILE LEAGUE’S"
         }
+      }
+    },
+    "ratingPath": {
+      "photoAlt": "Zwycięska drużyna ACE BATTLE MILE",
+      "title": "RANKING TO TWOJA DROGA DO PULI NAGRÓD",
+      "lead": "Zdobywaj punkty rankingowe przez cały sezon i wprowadź swoją drużynę do grona najlepszych.",
+      "bannerHeading": "Jesienią najlepsze drużyny w swojej dywizji wezmą udział w pierwszej Krajowej Lidze Ace Battle Mile Game!",
+      "bannerSub": "W grze — tytuł najsilniejszej drużyny biegowej, nagrody pieniężne oraz prawo do reprezentowania swojego klubu i miasta w ACE BATTLE MILE Champions Leagues",
+      "kicker": "DIWISZ PULE NAGRÓD LIGI KRAJOWEJ",
+      "ctaIndividual": "Nagrody indywidualne",
+      "ctaTeam": "Drużynowe pule nagród"
+    },
+    "prizeModal": {
+      "title": "STANDARDOWA TABELA NAGRÓD DLA UCZESTNIKÓW",
+      "close": "Zamknij",
+      "levelHead": "POZIOM INDYWIDUALNY",
+      "positionHead": "POZYCJA",
+      "ratingHead": "Individual Rating: 7 (Three runners) & Pair Ace & Joker",
+      "prizeHead": "Nagroda na uczestnika (€)",
+      "men": "MĘŻCZYŹNI",
+      "women": "KOBIETY",
+      "mix": "MIX",
+      "place1": "1 miejsce",
+      "place2": "2 miejsce",
+      "place3": "3 miejsce",
+      "runners": "Runners",
+      "aceJoker": "Ace & Joker",
+      "runnersMen": "Runners MEN",
+      "aceJokerWomen": "Ace & Joker WOMEN",
+      "notes": {
+        "one": "Wysokość puli nagród ustala organizator w zależności od rangi wydarzenia i dostępnego budżetu.",
+        "two": "Łączna pula nagród jest dzielona według miejsc i poziomów zgodnie z Regulaminem zawodów i zatwierdzana przez Komitet Organizacyjny.",
+        "three": "Komitet Organizacyjny zastrzega sobie prawo do przyznania dodatkowych nagród, według własnego uznania, dowolnemu poziomowi, kategorii lub osiągnięciu."
       }
     },
     "howItGoes": {
@@ -145,6 +179,7 @@
       }
     },
     "invite": {
+      "videoLabel": "Bieg rankingowy",
       "chips": {
         "one": "Taktyka",
         "two": "Show",
@@ -243,7 +278,8 @@
         }
       },
       "flag": "🏁",
-      "foot": "Warszawski Qualifier to Twój start w systemie ACE BATTLE RUN w Polsce. <red>Stań się częścią nowego formatu zawodów od samego początku.</red>"
+      "foot": "Warszawski Qualifier to początek Twojej kariery biegowej ACE BATTLE RUN w Polsce. <red>Stań się częścią nowego formatu zawodów od samego początku.</red>",
+      "videoLabel": "obejrzyj prezentację wideo"
     },
     "atmosphere": {
       "title": "Poczuj atmosferę",
@@ -254,37 +290,37 @@
     },
     "program": {
       "title": "Program dnia",
-      "hours": "wydarzenie trwa od 9:00 do 15:00",
+      "hours": "WYDARZENIE DLA UCZESTNIKÓW trwa od 17:00 do 22:00",
       "timeline": {
         "registration": {
-          "time": "09:00",
+          "time": "16:30–16:50",
           "title": "Rejestracja i wydawanie numerów",
           "body": "Odbierasz numer startowy i chip pomiaru czasu. Poznajesz drużynę i sprawdzasz sprzęt."
         },
         "briefing": {
-          "time": "10:00",
-          "title": "Briefing",
-          "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów."
+          "time": "17:00",
+          "title": "Oficjalne otwarcie",
+          "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów drużyn."
         },
         "startGames": {
-          "time": "11:00",
-          "title": "Start biegów grupowych",
-          "body": "Drużyny ruszają na trasę zgodnie z protokołem startowym i wykonują zadania."
+          "time": "17:15",
+          "title": "Start pierwszej drużyny",
+          "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów drużyn."
         },
         "main": {
-          "time": "13:00",
-          "title": "Część główna",
-          "body": "Kluczowe biegi i walka o prowadzenie w klasyfikacji generalnej."
+          "time": "19:30–20:00",
+          "title": "Przerwa",
+          "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów drużyn."
         },
         "finish": {
-          "time": "14:30",
-          "title": "Meta i podsumowania",
-          "body": "Wszystkie drużyny kończą trasę, a wyniki są zapisywane w systemie."
+          "time": "20:30–22:00",
+          "title": "Druga część biegów drużynowych",
+          "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów drużyn."
         },
         "awards": {
-          "time": "15:00",
-          "title": "Nagrody",
-          "body": "Ogłoszenie zwycięzców, wręczenie nagród i zdjęcia z drużyną na pamiątkę."
+          "time": "22:00",
+          "title": "Zamknięcie zawodów",
+          "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów drużyn."
         }
       },
       "alsoLabel": "a także",

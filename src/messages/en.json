@@ -65,34 +65,68 @@
         "freeLabel": "Entry",
         "freeValue": "FREE",
         "prizeLabel": "Prize pool",
-        "prizeValue": "🔥 300",
+        "prizeValue": "5,000 zł",
         "timeLabel": "Time",
-        "timeValue": "09:00 – 15:30"
+        "timeValue": "17:00 – 22:00"
       }
     },
     "formatBand": {
-      "title": "A new competition format, in Warsaw for the first time.",
-      "body": "To mark the debut of ACE BATTLE MILE, entry is free for teams and solo participants, and prizes await the winners.",
+      "title": "A NEW FORMAT OF RUNNING COMPETITIONS!",
+      "subtitle": "ACE BATTLE RUN WARSAW DEBUT",
+      "body": "Participants with the best results will receive prizes and awards in the individual-team standings from the project sponsors.",
       "playLabel": "WATCH THE ATMOSPHERE"
     },
     "whatIs": {
-      "title": "What is ACE BATTLE RUN?",
+      "title": "What is ACE BATTLE RUN RATING?",
       "cards": {
         "roles": {
-          "title": "Roles on the team",
-          "body": "Every participant gets their own role, and the result depends on the whole team working in sync.",
-          "alt": "Roles on the team"
+          "title": "Personal & team scoring",
+          "body": "Used to determine a runner’s individual and team level in the ACE BATTLE RUN rating system, and to qualify for a team-running division.",
+          "alt": "Personal and team scoring"
         },
         "team": {
-          "title": "The classic ACE BATTLE MILE team run",
-          "body": "It's a one-mile team run where speed isn't the only thing that matters — team play does too.",
-          "alt": "Classic team run"
+          "title": "ACE BATTLE MILE GAME DIVISION’S",
+          "body": "These are thrilling one-mile (1609 m) battles between teams, where both your personal result and your team’s result matter for the win.",
+          "alt": "ACE BATTLE MILE GAME DIVISION’S"
         },
         "rating": {
-          "title": "Seasonal rating",
-          "body": "After the run, participants earn rating points, and team results shape their position in the seasonal ACE BATTLE RATING.",
-          "alt": "Seasonal rating"
+          "title": "ACE BATTLE MILE LEAGUE’S",
+          "body": "This is where your path — and your team’s path — to the National and international league begins.",
+          "alt": "ACE BATTLE MILE LEAGUE’S"
         }
+      }
+    },
+    "ratingPath": {
+      "photoAlt": "Winning ACE BATTLE MILE team",
+      "title": "THE RATING IS YOUR PATH TO THE PRIZE FUND",
+      "lead": "Earn rating points throughout the season and lead your team into the top ranks.",
+      "bannerHeading": "In autumn, the best teams in their division will compete in the first National Ace Battle Mile Game League!",
+      "bannerSub": "At stake — the title of the strongest running team, cash prizes and the right to represent your club and your city in the ACE BATTLE MILE Champions Leagues",
+      "kicker": "WATCH THE NATIONAL LEAGUE PRIZE FUNDS",
+      "ctaIndividual": "Individual prizes",
+      "ctaTeam": "Team prize funds"
+    },
+    "prizeModal": {
+      "title": "STANDARD PRIZE TABLE FOR PARTICIPANTS",
+      "close": "Close",
+      "levelHead": "INDIVIDUAL LEVEL",
+      "positionHead": "POSITION",
+      "ratingHead": "Individual Rating: 7 (Three runners) & Pair Ace & Joker",
+      "prizeHead": "Prize per participant (€)",
+      "men": "MEN",
+      "women": "WOMEN",
+      "mix": "MIX",
+      "place1": "1st place",
+      "place2": "2nd place",
+      "place3": "3rd place",
+      "runners": "Runners",
+      "aceJoker": "Ace & Joker",
+      "runnersMen": "Runners MEN",
+      "aceJokerWomen": "Ace & Joker WOMEN",
+      "notes": {
+        "one": "The size of the prize fund is set by the organizer depending on the level of the event and the available budget.",
+        "two": "The total prize fund is distributed by place and level in accordance with the Competition Regulations and approved by the Organizing Committee.",
+        "three": "The Organizing Committee reserves the right to award additional prizes, at its own discretion, to any level, category or achievement."
       }
     },
     "howItGoes": {
@@ -145,6 +179,7 @@
       }
     },
     "invite": {
+      "videoLabel": "Rating run",
       "chips": {
         "one": "Tactics",
         "two": "Show",
@@ -243,7 +278,8 @@
         }
       },
       "flag": "🏁",
-      "foot": "The Warsaw Qualifier is your start in the ACE BATTLE RUN system in Poland. <red>Become part of a brand-new competition format from the very beginning.</red>"
+      "foot": "The Warsaw Qualifier is your start in your ACE BATTLE RUN running career in Poland. <red>Become part of a brand-new competition format from the very beginning.</red>",
+      "videoLabel": "watch the video presentation"
     },
     "atmosphere": {
       "title": "Feel the atmosphere",
@@ -254,37 +290,37 @@
     },
     "program": {
       "title": "Program of the day",
-      "hours": "the event runs from 9:00 to 15:00",
+      "hours": "THE PARTICIPANT EVENT runs from 17:00 to 22:00",
       "timeline": {
         "registration": {
-          "time": "09:00",
+          "time": "16:30–16:50",
           "title": "Registration & bib pickup",
           "body": "Pick up your bib and timing chip. Meet your team and check your gear."
         },
         "briefing": {
-          "time": "10:00",
-          "title": "Briefing",
+          "time": "17:00",
+          "title": "Official opening",
           "body": "Words from the organizers and the head judge. Captains' briefing."
         },
         "startGames": {
-          "time": "11:00",
-          "title": "Game runs start",
-          "body": "Teams take the course per the start protocol and run the game tasks."
+          "time": "17:15",
+          "title": "First team start",
+          "body": "Words from the organizers and the head judge. Captains' briefing."
         },
         "main": {
-          "time": "13:00",
-          "title": "Main block",
-          "body": "Headline runs and the battle for the overall tournament lead."
+          "time": "19:30–20:00",
+          "title": "Break",
+          "body": "Words from the organizers and the head judge. Captains' briefing."
         },
         "finish": {
-          "time": "14:30",
-          "title": "Finish & results",
-          "body": "All teams finish the distance; results are logged in the system."
+          "time": "20:30–22:00",
+          "title": "Second block of team runs",
+          "body": "Words from the organizers and the head judge. Captains' briefing."
         },
         "awards": {
-          "time": "15:00",
-          "title": "Awards",
-          "body": "Winners announced, prizes handed out, and team photos for the memory."
+          "time": "22:00",
+          "title": "Competition closing",
+          "body": "Words from the organizers and the head judge. Captains' briefing."
         }
       },
       "alsoLabel": "and also",
@@ -569,13 +605,22 @@
           "We only collect what we need to register you, run the event, and stay in touch. Depending on how you sign up, this includes:"
         ],
         "items": [
-          { "t": "Full name", "d": "identifies you on the start list, your bib and the results." },
+          {
+            "t": "Full name",
+            "d": "identifies you on the start list, your bib and the results."
+          },
           {
             "t": "Email address",
             "d": "sends your confirmation and a secure single-use link to access your registration or team page."
           },
-          { "t": "Phone number", "d": "lets us and your team captain reach you about the event." },
-          { "t": "Team name", "d": "for captains creating a team; shown to runners who join it." },
+          {
+            "t": "Phone number",
+            "d": "lets us and your team captain reach you about the event."
+          },
+          {
+            "t": "Team name",
+            "d": "for captains creating a team; shown to runners who join it."
+          },
           {
             "t": "Team size",
             "d": "the roster size a captain declares at registration (7–12 runners)."
@@ -596,7 +641,10 @@
             "t": "Payment status",
             "d": "whether your entry is free, paid or pending, plus the Stripe payment-session reference (we never see your card number)."
           },
-          { "t": "Check-in time", "d": "recorded on event day when you check in at the venue." },
+          {
+            "t": "Check-in time",
+            "d": "recorded on event day when you check in at the venue."
+          },
           {
             "t": "Contact-form details",
             "d": "if you message us we keep your name, email, phone, your message and your preferred reply method (WhatsApp, Telegram, Viber, phone call or email)."

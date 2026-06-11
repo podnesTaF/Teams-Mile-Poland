@@ -3,6 +3,8 @@ import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 
+import { VideoPlay } from "./video-play";
+
 /** Chip → vector icon file in /vectors/chips. */
 const CHIPS = [
   { id: "one", icon: "Icons" },
@@ -10,13 +12,16 @@ const CHIPS = [
   { id: "three", icon: "Icons-2" },
 ] as const;
 
-/** White interlude: chips + headline + CTA. */
+/** YouTube clip opened by the play button above the chips. */
+const INVITE_VIDEO_ID = "zKlnB1buY4E";
+
+/** White interlude: video play button + chips + headline + CTA. */
 export function Invite() {
   const t = useTranslations("landing.invite");
 
   return (
-    <section className="section" data-screen-label="Invite">
-      <div className="wrap invite">
+      <div className="wrap invite !pt-10">
+        <VideoPlay label={t("videoLabel")} videoId={INVITE_VIDEO_ID} variant="row" />
         <div className="chips">
           {CHIPS.map(({ id, icon }) => (
             <span key={id} className="chip">
@@ -32,11 +37,11 @@ export function Invite() {
             </span>
           ))}
         </div>
-        <h2 className="head t-sec">{t("title")}</h2>
+     
+       <h2 className="head t-sec">{t("title")}</h2>
         <Link href="/register" className="btn btn-red">
           {t("cta")}
         </Link>
       </div>
-    </section>
   );
 }

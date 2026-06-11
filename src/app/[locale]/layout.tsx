@@ -53,7 +53,7 @@ const mono = JetBrains_Mono({
 // Ukrainian copy renders correctly without falling back.
 const headDisplay = Fira_Sans_Condensed({
   subsets: ["latin", "cyrillic"],
-  weight: ["700"],
+  weight: ["500", "700"],
   style: ["italic"],
   variable: "--font-head",
   display: "swap",
