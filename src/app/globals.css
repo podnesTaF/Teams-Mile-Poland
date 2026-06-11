@@ -63,6 +63,8 @@
 
   html {
     scroll-behavior: smooth;
+    /* Keep layout width stable when modals hide the scrollbar. */
+    scrollbar-gutter: stable;
   }
 
   body {
