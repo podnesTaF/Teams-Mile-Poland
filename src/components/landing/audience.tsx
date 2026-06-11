@@ -8,6 +8,7 @@ const ITEMS = [
   { id: "corporate", icon: "group" },
   { id: "clubs", icon: "running-clubs" },
   { id: "athletes", icon: "ic-athlete" },
+  { id: "mix", icon: "ic-mix" },
 ] as const;
 
 function maskStyle(icon: string) {
@@ -15,7 +16,7 @@ function maskStyle(icon: string) {
   return { WebkitMaskImage: url, maskImage: url } as React.CSSProperties;
 }
 
-/** Red bleed-edge box with the 5 audience icons, plus the "and of course" support band underneath on the dark background. */
+/** Red bleed-edge box with the 6 audience icons, plus the "and of course" support band underneath on the dark background. */
 export function Audience() {
   const t = useTranslations("landing.audience");
 

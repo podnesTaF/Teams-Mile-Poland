@@ -151,18 +151,18 @@
       }
     },
     "roles": {
-      "title": "roles on the team",
-      "lead": "three ROLES. ONE TEAM.",
+      "title": "ROLES ON THE TEAM",
+      "lead": "THREE ROLES. ONE TEAM.",
       "intro": "<red>Every participant has their own role</red>,<br></br>and the final result depends on the whole team's contribution.",
-      "compTitle": "roles on the team",
+      "compTitle": "ROLES ON THE TEAM",
       "comp": {
-        "runner": "3 RUNNER",
+        "runner": "3 Racers",
         "ace": "2 ACE",
         "joker": "2 JOKER"
       },
       "cards": {
         "runner": {
-          "name": "RUNNER",
+          "name": "RACER",
           "desc": "Runs the full distance and helps the team score the maximum number of rating points.",
           "tag": "# FULL DISTANCE"
         },
@@ -205,6 +205,9 @@
         },
         "athletes": {
           "label": "professional athletes"
+        },
+        "mix": {
+          "label": "Mix Teams"
         }
       },
       "support": {

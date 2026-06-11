@@ -2,7 +2,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Invite } from "./invite";
 
-/** Team composition: 3 RUNNER · 2 ACE · 2 JOKER (badge letter × count). */
+/** Team composition: 3 Racers · 2 ACE · 2 JOKER (badge letter × count). */
 const COMP = [
   { id: "runner", badge: "R", count: 3 },
   { id: "ace", badge: "A", count: 2 },

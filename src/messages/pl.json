@@ -151,18 +151,18 @@
       }
     },
     "roles": {
-      "title": "role w drużynie",
-      "lead": "trzy ROLE. JEDNA DRUŻYNA.",
+      "title": "ROLE W DRUŻYNIE",
+      "lead": "TRZY ROLE. JEDNA DRUŻYNA.",
       "intro": "<red>Każdy uczestnik ma swoją rolę</red>,<br></br>a końcowy wynik zależy od wkładu całej drużyny.",
-      "compTitle": "role w drużynie",
+      "compTitle": "ROLE W DRUŻYNIE",
       "comp": {
-        "runner": "3 RUNNER",
+        "runner": "3 Racerów",
         "ace": "2 ACE",
         "joker": "2 JOKER"
       },
       "cards": {
         "runner": {
-          "name": "RUNNER",
+          "name": "RACER",
           "desc": "Biegnie pełny dystans i pomaga drużynie zdobyć maksymalną liczbę punktów rankingowych.",
           "tag": "# PEŁNY DYSTANS"
         },
@@ -205,6 +205,9 @@
         },
         "athletes": {
           "label": "zawodowi atleci"
+        },
+        "mix": {
+          "label": "Drużyny mix"
         }
       },
       "support": {
