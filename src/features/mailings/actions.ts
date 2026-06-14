@@ -9,6 +9,7 @@ import { broadcastSegmentEnum } from "@/db/schema";
 
 import { runDueMailings, sendKind } from "./dispatch";
 import { sendBroadcast } from "./broadcast";
+import { sendTestEmail, isTestKind, type TestKind } from "./test-send";
 import { SCHEDULED_KINDS } from "./schedule";
 import type { LifecycleKind } from "@/emails/lifecycle/copy";
 import type { Segment } from "./audience";
@@ -76,4 +77,25 @@ export async function sendBroadcastAction(formData: FormData) {
 
   const result = await sendBroadcast({ subject, bodyHtml, segment, teamId });
   back(locale, `Broadcast: ${result.sent} sent, ${result.failed} failed (of ${result.total}).`);
+}
+
+export async function sendTestEmailAction(formData: FormData) {
+  const locale = safeLocale(formData.get("locale"));
+  await requireAdmin(locale);
+
+  const kind = String(formData.get("kind") ?? "");
+  const runnerIds = formData
+    .getAll("runnerIds")
+    .map((v) => String(v).trim())
+    .filter(Boolean);
+
+  if (!isTestKind(kind)) {
+    back(locale, "Unknown email template.");
+  }
+  if (runnerIds.length === 0) {
+    back(locale, "Select at least one recipient.");
+  }
+
+  const result = await sendTestEmail(kind as TestKind, runnerIds);
+  back(locale, `Test "${kind}": ${result.sent} sent, ${result.failed} failed (of ${result.total}).`);
 }

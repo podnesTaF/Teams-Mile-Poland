@@ -64,7 +64,7 @@
         "dateValue": "27 czerwca 2026",
         "freeLabel": "Udział",
         "freeValue": "BEZPŁATNY",
-        "prizeLabel": "Pula nagród",
+        "prizeLabel": "💰 Pula nagród",
         "prizeValue": "5 000 zł",
         "timeLabel": "Godziny",
         "timeValue": "17:00 – 22:00"
@@ -241,8 +241,8 @@
       "imageAlt": "Stadion Podskarbińska"
     },
     "formats": {
-      "title": "Formy udziału",
-      "subtitle": "Wybierz swoją drogę.",
+      "title": "Wybierz swoją drogę",
+      "subtitle": "Wybierz format udziału, który najlepiej do Ciebie pasuje.",
       "noTeam": {
         "title": "Nie mam drużyny",
         "body": "Po rejestracji dobierzemy Ci drużynę, z którą zagrasz.",

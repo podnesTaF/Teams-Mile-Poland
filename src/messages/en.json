@@ -64,7 +64,7 @@
         "dateValue": "27 June 2026",
         "freeLabel": "Entry",
         "freeValue": "FREE",
-        "prizeLabel": "Prize pool",
+        "prizeLabel": "💰 Prize pool",
         "prizeValue": "5,000 zł",
         "timeLabel": "Time",
         "timeValue": "17:00 – 22:00"
@@ -85,14 +85,14 @@
           "alt": "Personal and team scoring"
         },
         "team": {
-          "title": "ACE BATTLE MILE GAME DIVISION’S",
-          "body": "These are thrilling one-mile (1609 m) battles between teams, where both your personal result and your team’s result matter for the win.",
-          "alt": "ACE BATTLE MILE GAME DIVISION’S"
+          "title": "ACE BATTLE MILE GAME DIVISIONS",
+          "body": "These are thrilling one-mile (1609 m) battles between teams, where both your personal result and your team's result matter for the win.",
+          "alt": "ACE BATTLE MILE GAME DIVISIONS"
         },
         "rating": {
-          "title": "ACE BATTLE MILE LEAGUE’S",
-          "body": "This is where your path — and your team’s path — to the National and international league begins.",
-          "alt": "ACE BATTLE MILE LEAGUE’S"
+          "title": "ACE BATTLE MILE LEAGUES",
+          "body": "This is where your path — and your team's path — to the National and international league begins.",
+          "alt": "ACE BATTLE MILE LEAGUES"
         }
       }
     },
@@ -185,7 +185,7 @@
         "two": "Show",
         "three": "Team play"
       },
-      "title": "Come. Play. Win.",
+      "title": "Show Up. Play. Win.",
       "cta": "Register in one click →"
     },
     "audience": {
@@ -211,7 +211,7 @@
         }
       },
       "support": {
-        "kicker": "and of course",
+        "kicker": "And of course",
         "title": "Support crews & fans",
         "sub": "Because every great win starts with support! <hot>YOU ARE PART OF THE TEAM</hot>"
       }
@@ -233,7 +233,7 @@
           "body": "A place for friends, family, and fans who want to cheer the participants on."
         },
         "timing": {
-          "title": "Chip timing",
+          "title": "Electronic chip timing",
           "body": "An electronic results-capture system for pinpoint-accurate race standings."
         }
       },
@@ -241,10 +241,10 @@
       "imageAlt": "Stadion Podskarbińska"
     },
     "formats": {
-      "title": "Ways to enter",
-      "subtitle": "Choose your path.",
+      "title": "Choose Your Path",
+      "subtitle": "Select the participation format that suits you best.",
       "noTeam": {
-        "title": "I don't have a team",
+        "title": "No team yet",
         "body": "After registering, we'll match you with a team to play with.",
         "cta": "Register",
         "alt": "Solo runner"
@@ -308,22 +308,22 @@
         "startGames": {
           "time": "17:15",
           "title": "First team start",
-          "body": "Words from the organizers and the head judge. Captains' briefing."
+          "body": "The first teams take the start line for their one-mile rating runs."
         },
         "main": {
           "time": "19:30–20:00",
           "title": "Break",
-          "body": "Words from the organizers and the head judge. Captains' briefing."
+          "body": "A scheduled pause — time to rest, refuel, and prepare for the second block of runs."
         },
         "finish": {
           "time": "20:30–22:00",
           "title": "Second block of team runs",
-          "body": "Words from the organizers and the head judge. Captains' briefing."
+          "body": "The remaining teams race in the second start wave. Results are recorded in real time."
         },
         "awards": {
           "time": "22:00",
           "title": "Competition closing",
-          "body": "Words from the organizers and the head judge. Captains' briefing."
+          "body": "Awards presentation, prize announcements, and the official closing of the competition."
         }
       },
       "alsoLabel": "and also",
@@ -428,7 +428,7 @@
       "chooser": {
         "title": "Registration",
         "sub": "Do you already have a team (7–12 people) or<br></br>are you registering on your own?",
-        "quickTitle": "I don't have a team",
+        "quickTitle": "No team yet",
         "quickDesc": "Help me join other participants.",
         "createTitle": "I have a team",
         "createDesc": "I have a team (7–12) people and I will register it."

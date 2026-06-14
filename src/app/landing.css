@@ -687,6 +687,10 @@
   text-align: center;
 }
 
+.ace-landing .register-cta {
+  padding: clamp(20px, 3.5vw, 36px) 0;
+}
+
 /* ===== RED audience =====
  * The .audience section drops its own top padding so the red box bleeds
  * directly into the bottom of the white "Invite" section above — the
@@ -856,6 +860,12 @@
   object-fit: cover;
   aspect-ratio: 587 / 503;
 }
+.ace-landing .checklist-panel {
+  padding: clamp(16px, 2.5vw, 24px);
+  border-radius: 4px;
+  background: rgba(25, 26, 24, 0.78);
+  backdrop-filter: blur(8px);
+}
 .ace-landing .checklist {
   display: flex;
   flex-direction: column;
@@ -890,6 +900,9 @@
 }
 .ace-landing .check p {
   margin: 0;
+  font-size: var(--fs-body-m);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
 }
 .ace-landing .loc-btn {
   margin-top: 40px;
@@ -1376,7 +1389,9 @@
 }
 .ace-landing .trow p {
   margin: 0;
-  opacity: 0.85;
+  font-size: var(--fs-body-m);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
 }
 .ace-landing .also {
   background: linear-gradient(90deg, var(--acl-ink) 0%, rgba(255, 255, 255, 0.05) 100%);

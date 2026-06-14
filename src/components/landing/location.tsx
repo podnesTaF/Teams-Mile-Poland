@@ -52,7 +52,7 @@ export function Location() {
             width={587}
             height={503}
           />
-          <div>
+          <div className="checklist-panel">
             <div className="checklist">
               {ITEMS.map(({ id, icon }) => (
                 <div key={id} className="check">

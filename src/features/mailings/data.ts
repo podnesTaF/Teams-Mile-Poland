@@ -1,8 +1,9 @@
 import { desc, eq, sql } from "drizzle-orm";
 
-import { broadcasts, emailLog, runners } from "@/db/schema";
+import { broadcasts, emailLog, runners, teams } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import type { LifecycleKind } from "@/emails/lifecycle/copy";
+import type { RegistrationOption } from "@/features/admin/components/recipient-multiselect";
 
 import { captainNudgeDue, scheduleRows } from "./schedule";
 import { incompleteCaptains } from "./audience";
@@ -69,4 +70,19 @@ export async function getMailingsOverview(now: Date): Promise<{
   const past = await db.select().from(broadcasts).orderBy(desc(broadcasts.createdAt)).limit(20);
 
   return { rows, past, totalRunners };
+}
+
+/** Every registered runner, shaped for the recipient picker. */
+export async function listRegistrations(): Promise<RegistrationOption[]> {
+  return getDb()
+    .select({
+      id: runners.id,
+      fullName: runners.fullName,
+      email: runners.email,
+      registrationType: runners.registrationType,
+      teamName: teams.name,
+    })
+    .from(runners)
+    .leftJoin(teams, eq(runners.teamId, teams.id))
+    .orderBy(desc(runners.createdAt));
 }

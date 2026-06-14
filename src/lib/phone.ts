@@ -1,46 +1,64 @@
+import { PARSE_DIAL_CODES } from "@/lib/country-calling-codes";
+
 /**
- * Lightweight phone masking. No dependency — the event audience is mostly
- * Polish (Warsaw), with some Ukrainian runners, so we default to the Polish
- * dial code and format the national part in 3-digit groups: "+48 512 345 678".
- *
- * The country code stays editable: if the user types a recognised code it is
- * kept, otherwise we assume Poland. This is a display mask only — the stored
- * value is the formatted string and is validated server-side by the schemas.
+ * Phone formatting helpers for the registration/contact forms.
+ * The stored value is a display string like "+48 512 345 678" (validated
+ * server-side by zod schemas).
  */
 
 export const DEFAULT_DIAL_CODE = "48"; // Poland
+export const DEFAULT_COUNTRY_ISO = "PL";
 export const DEFAULT_PHONE_PREFIX = `+${DEFAULT_DIAL_CODE} `;
 
-// Codes relevant to the event's audience, longest-first so e.g. "380" wins
-// over a hypothetical "38" before we ever fall back to Poland.
-const DIAL_CODES = ["380", "375", "370", "371", "372", "420", "421", "49", "48", "44", "1"].sort(
-  (a, b) => b.length - a.length,
-);
+export type ParsedPhone = {
+  dialCode: string;
+  national: string;
+};
 
-function splitDialCode(digits: string): { code: string; rest: string } {
-  for (const code of DIAL_CODES) {
-    if (digits.startsWith(code)) return { code, rest: digits.slice(code.length) };
+function splitDialCode(digits: string): ParsedPhone {
+  for (const code of PARSE_DIAL_CODES) {
+    if (digits.startsWith(code)) {
+      return { dialCode: code, national: digits.slice(code.length) };
+    }
   }
-  // No recognised code — treat the digits as a Polish national number.
-  return { code: DEFAULT_DIAL_CODE, rest: digits };
+  return { dialCode: DEFAULT_DIAL_CODE, national: digits };
+}
+
+/** Split a stored/display phone string into dial code + national digits. */
+export function parsePhone(value: string): ParsedPhone {
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return { dialCode: DEFAULT_DIAL_CODE, national: "" };
+  return splitDialCode(digits);
+}
+
+/** Group national digits in threes for the input mask. */
+export function formatNationalDigits(digits: string): string {
+  const clean = digits.replace(/\D/g, "").slice(0, 12);
+  const groups = clean.match(/.{1,3}/g) ?? [];
+  return groups.join(" ");
+}
+
+/** Build the stored phone string from dial code + raw national digits. */
+export function buildPhone(dialCode: string, nationalDigits: string): string {
+  const national = nationalDigits.replace(/\D/g, "").slice(0, 12);
+  if (!national) return "";
+  const groups = national.match(/.{1,3}/g) ?? [];
+  return `+${dialCode} ${groups.join(" ")}`;
 }
 
 /**
- * Format a raw input string into a masked phone number.
+ * Format free-form input (legacy single-field path).
  * Returns "" for empty input so the floating label/placeholder can show.
  */
 export function formatPhone(raw: string): string {
   const digits = raw.replace(/\D/g, "");
   if (!digits) return "";
 
-  const { code, rest } = splitDialCode(digits);
-  // Cap national digits so the field can't grow unbounded (schema max is 32).
-  const groups = rest.slice(0, 12).match(/.{1,3}/g) ?? [];
-  return groups.length ? `+${code} ${groups.join(" ")}` : `+${code} `;
+  const { dialCode, national } = splitDialCode(digits);
+  return buildPhone(dialCode, national) || `+${dialCode} `;
 }
 
 /** True when the value carries no national digits (only a dial-code prefix). */
 export function isPhoneEmpty(value: string): boolean {
-  const { rest } = splitDialCode(value.replace(/\D/g, ""));
-  return rest.length === 0;
+  return parsePhone(value).national.length === 0;
 }

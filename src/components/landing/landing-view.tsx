@@ -8,12 +8,12 @@ import { FinalCta } from "@/components/landing/final-cta";
 import { Formats } from "@/components/landing/formats";
 import { Hero } from "@/components/landing/hero";
 import { HowItGoes } from "@/components/landing/how-it-goes";
-import { Invite } from "@/components/landing/invite";
 import { Location } from "@/components/landing/location";
 import { Parallax } from "@/components/landing/parallax";
 import { PathForward } from "@/components/landing/path";
 import { Program } from "@/components/landing/program";
 import { RatingPath } from "@/components/landing/rating-path";
+import { RegisterCta } from "@/components/landing/register-cta";
 import { Roles } from "@/components/landing/roles";
 import { ScrollReveal } from "@/components/landing/scroll-reveal";
 import { WhatIs } from "@/components/landing/what-is";
@@ -38,12 +38,14 @@ export function LandingView() {
       <Formats />
       <WhatIs />
       <RatingPath />
+      <RegisterCta />
       <HowItGoes />
       <Roles />
       <Audience />
       <Location />
       <PathForward />
       <Atmosphere />
+      <RegisterCta />
       <Program />
       <Contact />
       <Faq />

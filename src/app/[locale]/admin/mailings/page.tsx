@@ -5,12 +5,15 @@ import "@/app/landing.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
+import { RecipientMultiselect } from "@/features/admin/components/recipient-multiselect";
 import {
   runDueMailingsAction,
   sendBroadcastAction,
   sendKindNowAction,
+  sendTestEmailAction,
 } from "@/features/mailings/actions";
-import { getMailingsOverview, type MailingRow } from "@/features/mailings/data";
+import { getMailingsOverview, listRegistrations, type MailingRow } from "@/features/mailings/data";
+import { TEST_EMAIL_OPTIONS } from "@/features/mailings/test-send";
 import { getAdminSession } from "@/lib/auth/admin-session";
 import { defaultLocale } from "@/lib/i18n/config";
 
@@ -75,6 +78,7 @@ export default async function MailingsPage({
 
 async function MailingsBody({ locale }: { locale: string }) {
   const { rows, past, totalRunners } = await getMailingsOverview(new Date());
+  const registrations = await listRegistrations();
 
   return (
     <>
@@ -161,6 +165,44 @@ async function MailingsBody({ locale }: { locale: string }) {
               title="Send broadcast?"
               message="This emails the selected audience immediately. Double-check the subject and message."
               confirmLabel="Send broadcast"
+              danger={false}
+            />
+          </div>
+        </form>
+      </section>
+
+      {/* ---- Test a template ---- */}
+      <section className="iv-card">
+        <h2 className="iv-section-title">Test an email template</h2>
+        <p className="iv-note" style={{ marginTop: 4 }}>
+          Pick a template and the registered people to send it to. Each recipient gets the real
+          template rendered with their own data, subject prefixed with <code>[TEST]</code>. Test
+          sends are never logged, so they don’t affect the real lifecycle schedule.
+        </p>
+        <form action={sendTestEmailAction} className="iv-editmodal__form" style={{ marginTop: 14 }}>
+          <input type="hidden" name="locale" value={locale} />
+          <div>
+            <label className="iv-fieldlabel" htmlFor="test-kind">
+              Template
+            </label>
+            <select id="test-kind" name="kind" className="iv-input" defaultValue={TEST_EMAIL_OPTIONS[0].value}>
+              {TEST_EMAIL_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="iv-fieldlabel">Recipients</label>
+            <RecipientMultiselect options={registrations} />
+          </div>
+          <div className="iv-actions">
+            <ConfirmSubmit
+              label="Send test"
+              title="Send test email?"
+              message="This sends the selected template to every selected recipient using their real registration data. Make sure these are addresses you can check."
+              confirmLabel="Send test"
               danger={false}
             />
           </div>

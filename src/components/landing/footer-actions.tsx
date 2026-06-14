@@ -20,6 +20,12 @@ const SOCIALS = [
     href: "https://www.instagram.com/acebattle_run/",
   },
   {
+    id: "youtube",
+    label: "YouTube",
+    icon: "social-youtube",
+    href: "https://www.youtube.com/@acebattlerun",
+  },
+  {
     id: "telegram",
     label: "Telegram",
     icon: "social-telegram",
