@@ -4,7 +4,7 @@ import { runners, teams } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { resend, FROM_EMAIL } from "@/lib/email";
 import { EVENT } from "@/lib/marketing/event";
-import { createMagicLink, getAppUrl, makeInviteUrl } from "@/features/registration/data";
+import { createMagicLink, makeInviteUrl } from "@/features/registration/data";
 import { generateTicketQrPng, makeTicketUrl, type TicketView } from "@/features/ticket";
 import { googleCalendarUrl } from "@/lib/calendar";
 import { LifecycleEmail, type LifecycleUrls } from "@/emails/lifecycle";
@@ -83,7 +83,6 @@ async function fetchRecipients(ids: string[]): Promise<TestRecipient[]> {
 function lifecycleUrls(r: TestRecipient): LifecycleUrls {
   return {
     calendar: googleCalendarUrl(),
-    ics: `${getAppUrl()}/api/calendar`,
     ticket: makeTicketUrl(r.id, { locale: r.locale }),
     map: EVENT.mapsUrl,
     invite: r.teamCode ? makeInviteUrl(r.teamCode) : undefined,

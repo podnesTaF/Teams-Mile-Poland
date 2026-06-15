@@ -4,7 +4,7 @@ import { emailLog } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { resend, FROM_EMAIL } from "@/lib/email";
 import { EVENT } from "@/lib/marketing/event";
-import { getAppUrl, makeInviteUrl } from "@/features/registration/data";
+import { makeInviteUrl } from "@/features/registration/data";
 import { makeTicketUrl } from "@/features/ticket";
 import { googleCalendarUrl } from "@/lib/calendar";
 import { LifecycleEmail, type LifecycleUrls } from "@/emails/lifecycle";
@@ -33,7 +33,6 @@ async function sentRunnerIds(kind: LifecycleKind): Promise<Set<string>> {
 function urlsFor(r: Recipient): LifecycleUrls {
   return {
     calendar: googleCalendarUrl(),
-    ics: `${getAppUrl()}/api/calendar`,
     ticket: makeTicketUrl(r.id, { locale: r.locale }),
     map: EVENT.mapsUrl,
     invite: r.teamCode ? makeInviteUrl(r.teamCode) : undefined,

@@ -10,7 +10,7 @@ export type LifecycleKind =
   | "morning"
   | "captain_incomplete";
 
-export type LifecycleAction = "calendar" | "ics" | "ticket" | "map" | "invite";
+export type LifecycleAction = "calendar" | "ticket" | "map" | "invite";
 
 export type LifecycleContent = {
   preview: string;
@@ -39,7 +39,6 @@ export const UI: Record<
   MailLocale,
   {
     calendar: string;
-    ics: string;
     ticket: string;
     map: string;
     invite: string;
@@ -55,7 +54,6 @@ export const UI: Record<
 > = {
   ua: {
     calendar: "Додати в Google Календар",
-    ics: "Завантажити .ics",
     ticket: "Відкрити мій квиток",
     map: "Відкрити маршрут",
     invite: "Запросити учасників команди",
@@ -70,7 +68,6 @@ export const UI: Record<
   },
   pl: {
     calendar: "Dodaj do Kalendarza Google",
-    ics: "Pobierz .ics",
     ticket: "Otwórz mój bilet",
     map: "Otwórz trasę",
     invite: "Zaproś członków drużyny",
@@ -85,7 +82,6 @@ export const UI: Record<
   },
   en: {
     calendar: "Add to Google Calendar",
-    ics: "Download .ics",
     ticket: "Open my ticket",
     map: "Open route",
     invite: "Invite team members",
@@ -123,7 +119,7 @@ const BUILDERS: Record<LifecycleKind, Builder> = {
           "До старту лишилося два тижні. Нагадуємо: це командний формат — збери свою команду або приходь, і ми допоможемо тобі приєднатися.",
         outro: "Додай подію в календар, щоб точно не пропустити.",
         showWhenWhere: false,
-        actions: ["calendar", "ics"] as LifecycleAction[],
+        actions: ["calendar"] as LifecycleAction[],
       },
       pl: {
         preview: "Do ACE BATTLE RUN zostały 2 tygodnie",
@@ -133,7 +129,7 @@ const BUILDERS: Record<LifecycleKind, Builder> = {
           "Do startu zostały dwa tygodnie. Przypominamy: to format drużynowy — zbierz drużynę albo przyjdź, a pomożemy Ci dołączyć.",
         outro: "Dodaj wydarzenie do kalendarza, żeby nie przegapić.",
         showWhenWhere: false,
-        actions: ["calendar", "ics"] as LifecycleAction[],
+        actions: ["calendar"] as LifecycleAction[],
       },
       en: {
         preview: "2 weeks until ACE BATTLE RUN",
@@ -143,7 +139,7 @@ const BUILDERS: Record<LifecycleKind, Builder> = {
           "Two weeks until the start. A reminder: this is a team format — bring your team, or just come and we'll help you join one.",
         outro: "Add the event to your calendar so you don't miss it.",
         showWhenWhere: false,
-        actions: ["calendar", "ics"] as LifecycleAction[],
+        actions: ["calendar"] as LifecycleAction[],
       },
     })[locale],
 
@@ -161,7 +157,7 @@ const BUILDERS: Record<LifecycleKind, Builder> = {
           "Телефон із QR-кодом квитка",
         ],
         showWhenWhere: true,
-        actions: ["calendar", "ics"] as LifecycleAction[],
+        actions: ["calendar"] as LifecycleAction[],
       },
       pl: {
         preview: "ACE BATTLE RUN — za tydzień",
@@ -175,7 +171,7 @@ const BUILDERS: Record<LifecycleKind, Builder> = {
           "Telefon z kodem QR biletu",
         ],
         showWhenWhere: true,
-        actions: ["calendar", "ics"] as LifecycleAction[],
+        actions: ["calendar"] as LifecycleAction[],
       },
       en: {
         preview: "ACE BATTLE RUN — one week to go",
@@ -189,7 +185,7 @@ const BUILDERS: Record<LifecycleKind, Builder> = {
           "Phone with your QR ticket",
         ],
         showWhenWhere: true,
-        actions: ["calendar", "ics"] as LifecycleAction[],
+        actions: ["calendar"] as LifecycleAction[],
       },
     })[locale],
 
@@ -207,7 +203,7 @@ const BUILDERS: Record<LifecycleKind, Builder> = {
           "Гарний настрій 🔥",
         ],
         showWhenWhere: true,
-        actions: ["calendar", "ics"] as LifecycleAction[],
+        actions: ["calendar"] as LifecycleAction[],
       },
       pl: {
         preview: "Za 3 dni — ACE BATTLE RUN",
@@ -221,7 +217,7 @@ const BUILDERS: Record<LifecycleKind, Builder> = {
           "Dobry nastrój 🔥",
         ],
         showWhenWhere: true,
-        actions: ["calendar", "ics"] as LifecycleAction[],
+        actions: ["calendar"] as LifecycleAction[],
       },
       en: {
         preview: "3 days until ACE BATTLE RUN",
@@ -235,7 +231,7 @@ const BUILDERS: Record<LifecycleKind, Builder> = {
           "Good vibes 🔥",
         ],
         showWhenWhere: true,
-        actions: ["calendar", "ics"] as LifecycleAction[],
+        actions: ["calendar"] as LifecycleAction[],
       },
     })[locale],
 

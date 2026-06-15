@@ -403,6 +403,24 @@
   gap: 32px;
   text-align: center;
 }
+.ace-landing .hero__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: #000;
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-size: var(--fs-body-s);
+  font-weight: 700;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--acl-white);
+}
+.ace-landing .hero__kicker img {
+  flex-shrink: 0;
+}
 .ace-landing .hero__title {
   max-width: 1078px;
   /* Hero h1 runs larger than the H1 token: 40px → 64px on lg screens. */
@@ -1281,10 +1299,44 @@
   opacity: 0.9;
   text-align: left;
 }
+.ace-landing .atmo-viewer {
+  position: relative;
+  margin-top: clamp(40px, 5vw, 64px);
+}
 .ace-landing .atmo-photo {
   width: 100%;
   height: clamp(360px, 52vw, 800px);
   object-fit: cover;
+}
+.ace-landing .atmo-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  cursor: pointer;
+  transform: translateY(-50%);
+  backdrop-filter: blur(4px);
+  transition:
+    background 0.15s,
+    transform 0.15s;
+}
+.ace-landing .atmo-nav:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+.ace-landing .atmo-nav--prev {
+  left: clamp(12px, 3vw, 24px);
+}
+.ace-landing .atmo-nav--next {
+  right: clamp(12px, 3vw, 24px);
 }
 .ace-landing .gallery {
   display: flex;
@@ -3094,7 +3146,7 @@
 /* ===========================================================
  * Entrance / motion refinements (all gated under no-preference,
  * so reduced-motion users keep the static, fully-visible layout).
- *  - Hero: title → subtitle → buttons → badges → location, in sequence.
+ *  - Hero: kicker → title → subtitle → buttons → badges → location, in sequence.
  *  - HowItGoes: the 4 steps appear one-by-one (desktop only).
  *  - Roles / Audience: cards reveal left-to-right.
  *  - Roles chevrons: gentle looping left↔right float.
@@ -3108,6 +3160,7 @@
     transform: none;
     transition: none;
   }
+  .ace-landing.reveal-ready .hero__content > .hero__kicker,
   .ace-landing.reveal-ready .hero__content > .hero__title,
   .ace-landing.reveal-ready .hero__content > .hero__sub,
   .ace-landing.reveal-ready .hero__content > .hero__actions,
@@ -3119,6 +3172,7 @@
       opacity 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
       transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__kicker,
   .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__title,
   .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__sub,
   .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__actions,
@@ -3127,6 +3181,7 @@
     opacity: 1;
     transform: none;
   }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__kicker { transition-delay: 0s; }
   .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__title { transition-delay: 0.05s; }
   .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__sub { transition-delay: 0.15s; }
   .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__actions { transition-delay: 0.25s; }

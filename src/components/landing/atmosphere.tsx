@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
 import { AudioPlay } from "@/components/landing/audio-play";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/components/landing/icons";
 import { cn } from "@/lib/utils";
 
 const ANTHEM_SRC = "/audio/AUD-20260602-WA0000.mp3";
@@ -22,7 +23,7 @@ const GALLERY = [
   "/images/finish-girl.jpg",
   "/images/DJI_0256.jpg",
   "/landing/_DSC5903.jpg",
-  "/images/_DSC3921.jpg", 
+  "/images/_DSC3921.jpg",
   "/landing/IMG_0561.jpg",
   "/images/teams-run.jpg",
   "/landing/brussels-podium2.jpg",
@@ -37,7 +38,7 @@ const GALLERY = [
 
 /**
  * "Feel the atmosphere" — big photo + thumbnails.
- * Clicking a thumbnail swaps the big photo above (client state).
+ * Clicking a thumbnail or the prev/next arrows swaps the big photo above.
  */
 function scrollGalleryThumb(gallery: HTMLElement, thumb: HTMLElement) {
   const left = thumb.offsetLeft - (gallery.clientWidth - thumb.clientWidth) / 2;
@@ -46,8 +47,18 @@ function scrollGalleryThumb(gallery: HTMLElement, thumb: HTMLElement) {
 
 export function Atmosphere() {
   const t = useTranslations("landing.atmosphere");
-  const [active, setActive] = useState<string>(GALLERY[0]);
+  const [activeIndex, setActiveIndex] = useState(0);
   const galleryRef = useRef<HTMLDivElement>(null);
+  const active = GALLERY[activeIndex];
+
+  function selectIndex(index: number) {
+    const next = (index + GALLERY.length) % GALLERY.length;
+    setActiveIndex(next);
+
+    const gallery = galleryRef.current;
+    const thumb = gallery?.children[next] as HTMLElement | undefined;
+    if (gallery && thumb) scrollGalleryThumb(gallery, thumb);
+  }
 
   return (
     <section className="section" style={{ paddingBottom: 0 }} data-screen-label="Atmosphere">
@@ -60,30 +71,43 @@ export function Atmosphere() {
           pauseAriaLabel={t("pauseAriaLabel")}
         />
       </div>
-      <Image
-        key={active}
-        className="atmo-photo"
-        src={active}
-        alt={t("photoAlt")}
-        width={1920}
-        height={1080}
-        style={{ marginTop: "clamp(40px,5vw,64px)" }}
-        priority={false}
-      />
+      <div className="atmo-viewer">
+        <button
+          type="button"
+          className="atmo-nav atmo-nav--prev"
+          aria-label={t("prevPhotoLabel")}
+          onClick={() => selectIndex(activeIndex - 1)}
+        >
+          <ChevronLeftIcon width={24} height={24} />
+        </button>
+        <Image
+          key={active}
+          className="atmo-photo"
+          src={active}
+          alt={t("photoAlt")}
+          width={1920}
+          height={1080}
+          priority={false}
+        />
+        <button
+          type="button"
+          className="atmo-nav atmo-nav--next"
+          aria-label={t("nextPhotoLabel")}
+          onClick={() => selectIndex(activeIndex + 1)}
+        >
+          <ChevronRightIcon width={24} height={24} />
+        </button>
+      </div>
       <div className="wrap">
         <div className="gallery" ref={galleryRef}>
-          {GALLERY.map((src) => (
+          {GALLERY.map((src, index) => (
             <button
               key={src}
               type="button"
               aria-label={t("photoAlt")}
-              aria-pressed={src === active}
-              onClick={(e) => {
-                setActive(src);
-                const gallery = galleryRef.current;
-                if (gallery) scrollGalleryThumb(gallery, e.currentTarget);
-              }}
-              className={cn("gallery-btn", src === active && "is-active")}
+              aria-pressed={index === activeIndex}
+              onClick={(e) => selectIndex(index)}
+              className={cn("gallery-btn", index === activeIndex && "is-active")}
             >
               <Image src={src} alt="" width={100} height={56} />
             </button>

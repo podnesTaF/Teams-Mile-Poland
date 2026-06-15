@@ -54,8 +54,9 @@
   "landing": {
     "hero": {
       "lang": "UA",
+      "kicker": "Для любителів бігу та професійних атлетів",
       "title": "Індивідуально-командні <red>рейтингові змагання</red> на одну милю.",
-      "sub": "Борись за власний результат. Перемагай разом із командою.",
+      "sub": "БІЖИ • ЗМАГАЙСЯ • ПОКАЖИ СВІЙ РІВЕНЬ",
       "ctaPrimary": "ЗАРЕЄСТРУВАТИСЬ БЕЗКОШТОВНО →",
       "ctaSecondary": "Зв’язатися з нами",
       "venue": "Stadion Podskarbińska",
@@ -66,6 +67,8 @@
         "freeValue": "БЕЗКОШТОВНА",
         "prizeLabel": "💰 Призовий фонд",
         "prizeValue": "5 000 zł",
+        "maxParticipantsLabel": "Доступні місця",
+        "maxParticipantsValue": "300",
         "timeLabel": "Час",
         "timeValue": "17:00 – 22:00"
       }
@@ -157,8 +160,8 @@
       "compTitle": "РОЛІ В КОМАНДІ",
       "comp": {
         "runner": "3 Рейсери",
-        "ace": "2 ACE",
-        "joker": "2 JOKER"
+        "ace": "2 ACES",
+        "joker": "2 JOKERS"
       },
       "cards": {
         "runner": {
@@ -289,7 +292,9 @@
       "playLabel": "Прослухай гімн Ace Battle",
       "playAriaLabel": "Відтворити гімн Ace Battle",
       "pauseAriaLabel": "Призупинити гімн",
-      "photoAlt": "Атмосфера заходу"
+      "photoAlt": "Атмосфера заходу",
+      "prevPhotoLabel": "Попереднє фото",
+      "nextPhotoLabel": "Наступне фото"
     },
     "program": {
       "title": "Програма дня",

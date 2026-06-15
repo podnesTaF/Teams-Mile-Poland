@@ -54,8 +54,9 @@
   "landing": {
     "hero": {
       "lang": "EN",
+      "kicker": "For running enthusiasts and professional athletes",
       "title": "Individual and team <red>rating races</red> over one mile.",
-      "sub": "Fight for your own result. Win together with your team.",
+      "sub": "RUN • COMPETE • SHOW YOUR LEVEL",
       "ctaPrimary": "REGISTER FOR FREE →",
       "ctaSecondary": "Contact us",
       "venue": "Stadion Podskarbińska",
@@ -66,6 +67,8 @@
         "freeValue": "FREE",
         "prizeLabel": "💰 Prize pool",
         "prizeValue": "5,000 zł",
+        "maxParticipantsLabel": "Available slots",
+        "maxParticipantsValue": "300",
         "timeLabel": "Time",
         "timeValue": "17:00 – 22:00"
       }
@@ -156,9 +159,9 @@
       "intro": "<red>Every participant has their own role</red>,<br></br>and the final result depends on the whole team's contribution.",
       "compTitle": "ROLES ON THE TEAM",
       "comp": {
-        "runner": "3 Racers",
-        "ace": "2 ACE",
-        "joker": "2 JOKER"
+        "runner": "3 RACERS",
+        "ace": "2 ACES",
+        "joker": "2 JOKERS"
       },
       "cards": {
         "runner": {
@@ -289,7 +292,9 @@
       "playLabel": "Play the anthem of Ace Battle",
       "playAriaLabel": "Play the anthem of Ace Battle",
       "pauseAriaLabel": "Pause the anthem",
-      "photoAlt": "Atmosphere of the event"
+      "photoAlt": "Atmosphere of the event",
+      "prevPhotoLabel": "Previous photo",
+      "nextPhotoLabel": "Next photo"
     },
     "program": {
       "title": "Program of the day",

@@ -32,6 +32,10 @@ export function Hero() {
           </nav>
 
           <div className="hero__content">
+            <p className="hero__kicker">
+              <Image src="/landing/icons/foot.svg" alt="" width={30} height={30} aria-hidden />
+              <span>{t("kicker")}</span>
+            </p>
             <h1 className="head t-hero hero__title">
               {t.rich("title", {
                 br: () => <br />,
@@ -51,6 +55,7 @@ export function Hero() {
               <Stat k={t("stats.dateLabel")}  v={t("stats.dateValue")} />
               <Stat k={t("stats.freeLabel")}  v={t("stats.freeValue")} />
               <Stat k={t("stats.prizeLabel")} v={t("stats.prizeValue")} />
+              <Stat k={t("stats.maxParticipantsLabel")} v={t("stats.maxParticipantsValue")} />
             </div>
             <div className="pin">
               <PinIcon />

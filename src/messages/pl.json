@@ -54,8 +54,9 @@
   "landing": {
     "hero": {
       "lang": "PL",
+      "kicker": "Dla miłośników biegania i profesjonalnych sportowców",
       "title": "Indywidualno-drużynowe <red>zawody rankingowe</red> na jedną milę.",
-      "sub": "Walcz o własny wynik. Wygrywaj razem z drużyną.",
+      "sub": "BIEC • RYWALIZUJ • POKAŻ SWÓJ POZIOM",
       "ctaPrimary": "ZAREJESTRUJ SIĘ ZA DARMO →",
       "ctaSecondary": "Skontaktuj się z nami",
       "venue": "Stadion Podskarbińska",
@@ -66,6 +67,8 @@
         "freeValue": "BEZPŁATNY",
         "prizeLabel": "💰 Pula nagród",
         "prizeValue": "5 000 zł",
+        "maxParticipantsLabel": "Dostępne miejsca",
+        "maxParticipantsValue": "300",
         "timeLabel": "Godziny",
         "timeValue": "17:00 – 22:00"
       }
@@ -157,8 +160,8 @@
       "compTitle": "ROLE W DRUŻYNIE",
       "comp": {
         "runner": "3 Racerów",
-        "ace": "2 ACE",
-        "joker": "2 JOKER"
+        "ace": "2 ACES",
+        "joker": "2 JOKERS"
       },
       "cards": {
         "runner": {
@@ -289,7 +292,9 @@
       "playLabel": "Posłuchaj hymnu Ace Battle",
       "playAriaLabel": "Odtwórz hymn Ace Battle",
       "pauseAriaLabel": "Wstrzymaj hymn",
-      "photoAlt": "Atmosfera wydarzenia"
+      "photoAlt": "Atmosfera wydarzenia",
+      "prevPhotoLabel": "Poprzednie zdjęcie",
+      "nextPhotoLabel": "Następne zdjęcie"
     },
     "program": {
       "title": "Program dnia",

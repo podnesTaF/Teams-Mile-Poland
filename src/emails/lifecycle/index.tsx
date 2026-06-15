@@ -14,7 +14,6 @@ import {
 
 export type LifecycleUrls = {
   calendar: string;
-  ics: string;
   ticket: string;
   map: string;
   invite?: string;
@@ -43,14 +42,12 @@ export function LifecycleEmail({
 
   const actionHref: Record<LifecycleAction, string | undefined> = {
     calendar: urls.calendar,
-    ics: urls.ics,
     ticket: urls.ticket,
     map: urls.map,
     invite: urls.invite,
   };
   const actionLabel: Record<LifecycleAction, string> = {
     calendar: ui.calendar,
-    ics: ui.ics,
     ticket: ui.ticket,
     map: ui.map,
     invite: ui.invite,
