@@ -3,11 +3,13 @@ import "@/app/landing.css";
 import { Atmosphere } from "@/components/landing/atmosphere";
 import { Audience } from "@/components/landing/audience";
 import { Contact } from "@/components/landing/contact";
+import { CookieConsent } from "@/components/landing/cookie-consent";
 import { Faq } from "@/components/landing/faq";
 import { FinalCta } from "@/components/landing/final-cta";
 import { Formats } from "@/components/landing/formats";
 import { Hero } from "@/components/landing/hero";
 import { HowItGoes } from "@/components/landing/how-it-goes";
+import { LandingHeader } from "@/components/landing/landing-header";
 import { Location } from "@/components/landing/location";
 import { Parallax } from "@/components/landing/parallax";
 import { PathForward } from "@/components/landing/path";
@@ -34,6 +36,7 @@ export function LandingView() {
       </noscript>
       <ScrollReveal />
       <Parallax />
+      <LandingHeader />
       <Hero />
       <Formats />
       <WhatIs />
@@ -50,6 +53,7 @@ export function LandingView() {
       <Contact />
       <Faq />
       <FinalCta />
+      <CookieConsent />
     </div>
   );
 }

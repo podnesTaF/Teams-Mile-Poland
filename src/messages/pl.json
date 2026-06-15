@@ -11,6 +11,13 @@
     "polish": "Polski",
     "ukrainian": "Українська"
   },
+  "cookies": {
+    "title": "Używamy plików cookie",
+    "text": "Używamy niezbędnych plików cookie do działania strony oraz — za Twoją zgodą — plików analitycznych, by lepiej rozumieć, jak ludzie trafiają na wydarzenie. Możesz zmienić swój wybór w dowolnej chwili.",
+    "policy": "Przeczytaj Politykę prywatności",
+    "accept": "Akceptuję wszystkie",
+    "reject": "Tylko niezbędne"
+  },
   "metadata": {
     "title": "ACE BATTLE RUN — Warszawa · 27 czerwca 2026",
     "description": "ACE BATTLE RUN — nowy format taktycznego biegu drużynowego. Role, taktyka i oficjalny ranking."
@@ -52,6 +59,20 @@
     }
   },
   "landing": {
+    "header": {
+      "navLabel": "Główna nawigacja",
+      "cta": "ZAREJESTRUJ SIĘ →",
+      "menuOpen": "Otwórz menu",
+      "menuClose": "Zamknij menu",
+      "nav": {
+        "whatIs": "CO TO",
+        "howItGoes": "JAK TO DZIAŁA",
+        "audience": "DLA KOGO",
+        "program": "PROGRAM",
+        "location": "LOKALIZACJA",
+        "faq": "FAQ"
+      }
+    },
     "hero": {
       "lang": "PL",
       "kicker": "Dla miłośników biegania i profesjonalnych sportowców",
@@ -390,7 +411,8 @@
       "phone": "+48 576 696 078",
       "email": "info@aba.run",
       "share": "udostępnij stronę znajomemu →",
-      "shareCopied": "skopiowano link ✓"
+      "shareCopied": "skopiowano link ✓",
+      "terms": "Regulamin i warunki"
     }
   },
   "footer": {

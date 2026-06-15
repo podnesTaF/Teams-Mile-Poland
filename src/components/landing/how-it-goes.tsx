@@ -7,7 +7,7 @@ export function HowItGoes() {
   const t = useTranslations("landing.howItGoes");
 
   return (
-    <section className="section light" data-screen-label="How it goes">
+    <section className="section light" id="how-it-goes" data-screen-label="How it goes">
       <div className="wrap center">
         <h2 className="head t-40 upper">{t("title")}</h2>
         <div className="steps">

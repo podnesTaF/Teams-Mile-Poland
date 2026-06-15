@@ -11,6 +11,13 @@
     "polish": "Polski",
     "ukrainian": "Українська"
   },
+  "cookies": {
+    "title": "We use cookies",
+    "text": "We use essential cookies to run the site and, with your consent, analytics cookies to understand how the event is found. You can change your choice anytime.",
+    "policy": "Read our Privacy Policy",
+    "accept": "Accept all",
+    "reject": "Essential only"
+  },
   "metadata": {
     "title": "ACE BATTLE RUN — Warsaw · 27 June 2026",
     "description": "ACE BATTLE RUN — a new tactical team race format. Roles, tactics, and an official ranking."
@@ -52,6 +59,20 @@
     }
   },
   "landing": {
+    "header": {
+      "navLabel": "Main navigation",
+      "cta": "REGISTER →",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "nav": {
+        "whatIs": "WHAT IS IT",
+        "howItGoes": "HOW IT WORKS",
+        "audience": "FOR WHOM",
+        "program": "PROGRAM",
+        "location": "LOCATION",
+        "faq": "FAQ"
+      }
+    },
     "hero": {
       "lang": "EN",
       "kicker": "For running enthusiasts and professional athletes",
@@ -390,7 +411,8 @@
       "phone": "+48 576 696 078",
       "email": "info@aba.run",
       "share": "share the site with a friend →",
-      "shareCopied": "link copied ✓"
+      "shareCopied": "link copied ✓",
+      "terms": "Terms & Conditions"
     }
   },
   "footer": {

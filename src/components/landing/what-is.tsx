@@ -12,7 +12,7 @@ export function WhatIs() {
   const t = useTranslations("landing.whatIs");
 
   return (
-    <section className="section whatis" data-screen-label="What is">
+    <section className="section whatis" id="what-is" data-screen-label="What is">
       <div className="wrap">
         <h2 className="head t-hero center">{t("title")}</h2>
         <div className="cards-wrap">

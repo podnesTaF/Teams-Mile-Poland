@@ -5,12 +5,17 @@ import { useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { locales } from "@/lib/i18n/config";
 
+type LangPillProps = {
+  /** `dark` = red stroke on white (landing header); default suits dark backgrounds. */
+  tone?: "light" | "dark";
+};
+
 /**
  * Small `.btn .btn-stroke` styled pill in the hero nav. Click cycles
  * locale → next of [pl, en, uk] → back to pl. Keeps the visual to the
  * single-button design while still letting visitors switch languages.
  */
-export function LangPill() {
+export function LangPill({ tone = "light" }: LangPillProps) {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
@@ -20,7 +25,7 @@ export function LangPill() {
   return (
     <button
       type="button"
-      className="btn btn-stroke lang"
+      className={tone === "dark" ? "btn btn-stroke btn-stroke-dark lang" : "btn btn-stroke lang"}
       onClick={() => router.replace(pathname, { locale: next })}
       aria-label={`Switch language to ${next.toUpperCase()}`}
     >

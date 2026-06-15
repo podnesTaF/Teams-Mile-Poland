@@ -15,7 +15,7 @@ export function Faq() {
   const [openIdx, setOpenIdx] = useState<number>(0);
 
   return (
-    <section className="section" data-screen-label="FAQ">
+    <section className="section" id="faq" data-screen-label="FAQ">
       <div className="wrap center">
         <h2 className="head t-sec">{t("title")}</h2>
         <p className="sub-lead">{t("sub")}</p>

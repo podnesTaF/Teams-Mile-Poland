@@ -65,6 +65,9 @@ export function FinalCta() {
             shareLabel={f("share")}
             copiedLabel={f("shareCopied")}
           />
+          <nav className="footer__legal" aria-label={f("terms")}>
+            <Link href="/terms">{f("terms")}</Link>
+          </nav>
         </div>
       </footer>
     </section>

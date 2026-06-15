@@ -21,7 +21,7 @@ export function Audience() {
   const t = useTranslations("landing.audience");
 
   return (
-    <section className="section audience" data-screen-label="Audience">
+    <section className="section audience" id="audience" data-screen-label="Audience">
       <div className="audience-box">
         <div className="wrap center">
           <h2 className="head t-sec">{t("title")}</h2>

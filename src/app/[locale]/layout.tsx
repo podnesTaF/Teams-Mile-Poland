@@ -17,6 +17,7 @@ import {
   GoogleTagManager,
   GoogleTagManagerNoScript,
 } from "@/components/analytics/gtm";
+import { GoogleConsentInit } from "@/components/analytics/consent-init";
 
 const display = Alumni_Sans({
   subsets: ["latin"],
@@ -112,6 +113,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={`${fontVars} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-bg text-ink">
+        <GoogleConsentInit />
         <GoogleTagManagerNoScript />
         <GoogleTagManager />
         <NextIntlClientProvider>
