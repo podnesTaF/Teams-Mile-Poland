@@ -13,7 +13,7 @@
   },
   "cookies": {
     "title": "Używamy plików cookie",
-    "text": "Używamy niezbędnych plików cookie do działania strony oraz — za Twoją zgodą — plików analitycznych, by lepiej rozumieć, jak ludzie trafiają na wydarzenie. Możesz zmienić swój wybór w dowolnej chwili.",
+    "text": "Używamy plików cookie oraz analityki podmiotów trzecich do zbierania statystyk i ulepszania działania strony. Możesz zaakceptować wszystkie pliki cookie lub pozostawić tylko niezbędne.",
     "policy": "Przeczytaj Politykę prywatności",
     "accept": "Akceptuję wszystkie",
     "reject": "Tylko niezbędne"
@@ -602,133 +602,131 @@
     }
   },
   "terms": {
-    "metaTitle": "Regulamin i warunki — TEAMS MILE Warszawa",
+    "metaTitle": "Polityka prywatności i Warunki korzystania — ACE BATTLE RUN Warszawa",
     "eyebrow": "Informacje prawne",
-    "title": "Regulamin i warunki",
-    "updated": "Ostatnia aktualizacja: 3 czerwca 2026",
-    "intro": "Niniejszy Regulamin reguluje rejestrację i udział w wydarzeniu TEAMS MILE Warszawa, organizowanym przez ACE BATTLE POLAND, które odbędzie się 27 czerwca 2026 r. na Stadionie Podskarbińska w Warszawie. Rejestrując się, kontaktując się z nami lub biorąc udział w wydarzeniu, akceptujesz niniejszy regulamin. Prosimy o zapoznanie się z nim wraz z oficjalnym Regulaminem zawodów.",
-    "sections": [
+    "title": "Polityka prywatności i Warunki korzystania",
+    "documents": [
       {
-        "h": "1. Wydarzenie",
-        "p": [
-          "TEAMS MILE Warszawa to drużynowy bieg na milę rozgrywany w systemie oceniania ACE BATTLE. Organizatorem jest ACE BATTLE POLAND Sp. z o.o., licencjonowane wydarzenie ACE BATTLE Association.",
-          "Pełne zasady sportowe — role, dywizje, korekty czasów, rangi i kary — określa Regulamin zawodów oraz Przepisy o systemie oceniania ACE BATTLE, które stanowią część niniejszego regulaminu."
-        ]
-      },
-      {
-        "h": "2. Rejestracja i uprawnienia",
-        "p": [
-          "Możesz zarejestrować się jako kapitan drużyny (tworząc drużynę liczącą 7–12 zawodników), jako zawodnik dołączający do istniejącej drużyny za pomocą kodu zaproszenia kapitana lub jako wolny zawodnik, którego dopasujemy do drużyny później.",
-          "Potwierdzasz, że podane informacje są prawdziwe oraz że masz prawo zarejestrować dodawanych zawodników. Rejestracja zostaje potwierdzona po zapisaniu zgłoszenia oraz — jeśli obowiązuje opłata startowa — po dokonaniu płatności."
-        ]
-      },
-      {
-        "h": "3. Opłata startowa i płatności",
-        "p": [
-          "Pierwszych 300 zarejestrowanych zawodników nie wnosi opłaty startowej. Po wykorzystaniu darmowej puli opłata startowa wynosi 50 PLN za zawodnika.",
-          "Płatności są obsługiwane w bezpieczny sposób przez naszego dostawcę płatności, Stripe. Nigdy nie otrzymujemy ani nie przechowujemy pełnego numeru karty; Stripe przetwarza dane karty zgodnie z własnym regulaminem i standardami bezpieczeństwa. Przechowujemy informację o statusie płatności oraz identyfikator sesji płatności, aby potwierdzić zgłoszenie."
-        ]
-      },
-      {
-        "h": "4. Dane, które zbieramy",
-        "p": [
-          "Zbieramy wyłącznie to, co jest potrzebne do zarejestrowania Cię, przeprowadzenia wydarzenia i utrzymania kontaktu. W zależności od sposobu zapisu obejmuje to:"
-        ],
-        "items": [
+        "title": "Polityka prywatności",
+        "updated": "Ostatnia aktualizacja: 2 czerwca 2026",
+        "intro": "Niniejsza Polityka Prywatności określa zasady gromadzenia, przetwarzania, wykorzystywania oraz ochrony danych osobowych użytkowników niniejszej strony internetowej. Administrator strony szanuje prawo każdego użytkownika do prywatności i zobowiązuje się do ochrony przekazanych informacji zgodnie z obowiązującymi przepisami prawa. Korzystając z tej strony internetowej, użytkownik potwierdza swoją zgodę na postanowienia niniejszej Polityki Prywatności oraz zasady przetwarzania danych osobowych opisane w tym dokumencie.",
+        "sections": [
           {
-            "t": "Imię i nazwisko",
-            "d": "identyfikuje Cię na liście startowej, numerze startowym i w wynikach."
+            "h": "Jakie informacje zbieramy",
+            "p": [
+              "Podczas korzystania ze strony mogą być gromadzone dane osobowe oraz informacje techniczne. Dane mogą być przekazywane dobrowolnie przez użytkownika lub zbierane automatycznie podczas odwiedzania strony.",
+              "Takie informacje mogą obejmować:"
+            ],
+            "list": [
+              "Imię i nazwisko;",
+              "Adres e-mail;",
+              "Numer telefonu;",
+              "Informacje przesyłane za pośrednictwem formularzy dostępnych na stronie."
+            ],
+            "outro": [
+              "Informacje te są wykorzystywane wyłącznie w zakresie niezbędnym do prawidłowego funkcjonowania strony internetowej."
+            ]
           },
           {
-            "t": "Adres e-mail",
-            "d": "służy do wysłania potwierdzenia oraz bezpiecznego, jednorazowego linku dostępu do zgłoszenia lub strony drużyny."
+            "h": "Cel przetwarzania danych osobowych",
+            "p": [
+              "Zebrane informacje są wykorzystywane w celu zapewnienia prawidłowego działania strony internetowej, świadczenia usług, utrzymywania kontaktu z użytkownikami oraz obsługi zapytań i zgłoszeń.",
+              "Dane osobowe mogą być również przetwarzane w celu poprawy jakości treści, optymalizacji struktury strony internetowej oraz analizy skuteczności jej działania.",
+              "Administrator strony nie przetwarza danych osobowych w celach ukrytych ani niezgodnych z prawem oraz nie wykorzystuje ich w sposób mogący naruszać prawa, wolności lub uzasadnione interesy użytkowników."
+            ]
           },
           {
-            "t": "Numer telefonu",
-            "d": "umożliwia nam i kapitanowi drużyny kontakt w sprawach wydarzenia."
+            "h": "Przechowywanie i ochrona informacji",
+            "p": [
+              "Administrator strony podejmuje odpowiednie środki w celu zapewnienia bezpieczeństwa danych osobowych oraz zapobiegania nieuprawnionemu dostępowi do nich.",
+              "Informacje są przechowywane wyłącznie przez okres niezbędny do realizacji celów, dla których zostały zebrane, lub przez okres wymagany obowiązującymi przepisami prawa.",
+              "Wdrożone środki techniczne i organizacyjne mają na celu minimalizację ryzyka utraty, modyfikacji, nieuprawnionego ujawnienia lub niewłaściwego wykorzystania danych osobowych."
+            ]
           },
           {
-            "t": "Nazwa drużyny",
-            "d": "dla kapitanów tworzących drużynę; widoczna dla dołączających zawodników."
+            "h": "Pliki cookies i usługi podmiotów trzecich",
+            "p": [
+              "Strona internetowa może wykorzystywać pliki cookies oraz usługi analityczne podmiotów trzecich w celu zbierania informacji statystycznych i ulepszania działania serwisu.",
+              "Pliki cookies pomagają zapisywać preferencje użytkowników oraz analizować sposób korzystania ze strony.",
+              "Użytkownicy mogą:"
+            ],
+            "list": [
+              "Wyrazić zgodę na korzystanie z plików cookies;",
+              "Ograniczyć lub wyłączyć pliki cookies w ustawieniach swojej przeglądarki."
+            ],
+            "outro": [
+              "Należy pamiętać, że wyłączenie plików cookies może wpłynąć na prawidłowe działanie niektórych funkcji strony internetowej."
+            ]
           },
           {
-            "t": "Liczebność drużyny",
-            "d": "rozmiar składu deklarowany przez kapitana przy rejestracji (7–12 zawodników)."
-          },
-          {
-            "t": "Kod zaproszenia do drużyny",
-            "d": "używany przy dołączaniu do istniejącej drużyny, aby przypisać Cię do właściwego składu."
-          },
-          {
-            "t": "Typ rejestracji",
-            "d": "czy zapisujesz się jako kapitan, członek drużyny czy wolny zawodnik."
-          },
-          {
-            "t": "Zgoda",
-            "d": "zapis potwierdzający akceptację niniejszego Regulaminu przy rejestracji."
-          },
-          {
-            "t": "Status płatności",
-            "d": "czy zgłoszenie jest darmowe, opłacone czy oczekujące, wraz z identyfikatorem sesji płatności Stripe (nigdy nie widzimy numeru karty)."
-          },
-          {
-            "t": "Czas odprawy",
-            "d": "rejestrowany w dniu wydarzenia podczas odprawy na obiekcie."
-          },
-          {
-            "t": "Dane z formularza kontaktowego",
-            "d": "jeśli napiszesz do nas, przechowujemy Twoje imię, e-mail, telefon, treść wiadomości oraz preferowaną formę odpowiedzi (WhatsApp, Telegram, Viber, telefon lub e-mail)."
+            "h": "Prawa użytkownika i zmiany Polityki",
+            "p": [
+              "Użytkownicy mają prawo do uzyskania informacji o przetwarzaniu swoich danych osobowych, żądania ich sprostowania lub usunięcia oraz cofnięcia zgody na przetwarzanie danych, jeśli ma ona zastosowanie.",
+              "Administrator strony zastrzega sobie prawo do zmiany niniejszej Polityki Prywatności w dowolnym czasie. Wszelkie zmiany wchodzą w życie z chwilą ich opublikowania na stronie internetowej. Użytkownikom zaleca się regularne zapoznawanie się z treścią tego dokumentu w celu śledzenia aktualizacji."
+            ]
           }
         ]
       },
       {
-        "h": "5. Jak wykorzystujemy Twoje dane",
-        "p": [
-          "Wykorzystujemy Twoje dane do obsługi rejestracji, zarządzania drużynami i składami, pobrania należnej opłaty, wysyłania komunikatów o wydarzeniu i linków dostępu, odprawy w dniu biegu, publikacji list startowych i wyników oraz odpowiedzi na Twoje zapytania.",
-          "Nie sprzedajemy Twoich danych osobowych."
-        ]
-      },
-      {
-        "h": "6. Udostępnianie i przetwarzanie",
-        "p": [
-          "Udostępniamy dane wyłącznie dostawcom usług, którzy pomagają nam w organizacji wydarzenia: Stripe (obsługa płatności) oraz naszemu dostawcy poczty e-mail (dostarczanie potwierdzeń i linków dostępu). Przetwarzają oni dane w naszym imieniu zgodnie z własnymi zobowiązaniami w zakresie bezpieczeństwa i prywatności."
-        ]
-      },
-      {
-        "h": "7. Komunikacja",
-        "p": [
-          "Wysyłamy wiadomości transakcyjne — potwierdzenie rejestracji, bezpieczne jednorazowe linki dostępu do strony drużyny lub zawodnika oraz ważne aktualizacje dotyczące wydarzenia. Jeśli się z nami skontaktujesz, odpowiadamy wybraną przez Ciebie metodą."
-        ]
-      },
-      {
-        "h": "8. Twoje prawa",
-        "p": [
-          "Możesz zażądać dostępu do swoich danych osobowych, ich poprawienia lub usunięcia, a także wycofać zgodę na przetwarzanie, które nie jest niezbędne. Aby skorzystać z tych praw, użyj danych kontaktowych poniżej."
-        ]
-      },
-      {
-        "h": "9. Udział, bezpieczeństwo i materiały medialne",
-        "p": [
-          "Bierzesz udział na własną odpowiedzialność i potwierdzasz, że Twój stan zdrowia pozwala na bieganie. Stosuj się do poleceń organizatora i sędziów oraz zasad bezpieczeństwa zawartych w Regulaminie zawodów.",
-          "Podczas wydarzenia prowadzone są zdjęcia i nagrania, a materiały mogą być wykorzystywane do promocji wydarzeń ACE BATTLE. Poinformuj organizatora na miejscu, jeśli nie chcesz być pokazywany."
-        ]
-      },
-      {
-        "h": "10. Odwołanie i zwroty",
-        "p": [
-          "Jeśli wydarzenie zostanie odwołane przez organizatora, opłacone wpisowe jest rozliczane zgodnie z naszą polityką zwrotów. Sprawy dotyczące płatności prosimy kierować na kontakt poniżej."
-        ]
-      },
-      {
-        "h": "11. Zmiany regulaminu",
-        "p": [
-          "Możemy aktualizować niniejszy regulamin, aby odzwierciedlić zmiany w wydarzeniu lub wymogi prawne. Aktualna wersja zawsze znajduje się na tej stronie wraz z datą ostatniej aktualizacji."
-        ]
-      },
-      {
-        "h": "12. Kontakt",
-        "p": [
-          "Masz pytania dotyczące regulaminu lub swoich danych? Skontaktuj się z ACE BATTLE POLAND: info@aba.run lub +48 576 696 078."
+        "title": "Warunki korzystania",
+        "updated": "Ostatnia aktualizacja: 2 czerwca 2026",
+        "intro": "Niniejsze Warunki Korzystania określają zasady dostępu do niniejszej strony internetowej oraz korzystania z niej. Korzystając ze strony, użytkownik potwierdza, że zapoznał się z niniejszymi Warunkami Korzystania, rozumie ich treść i akceptuje wszystkie zawarte w nich postanowienia. Jeżeli użytkownik nie zgadza się z niniejszymi Warunkami, powinien niezwłocznie zaprzestać korzystania ze strony internetowej.",
+        "sections": [
+          {
+            "h": "Korzystanie ze strony",
+            "p": [
+              "Użytkownik zobowiązuje się korzystać ze strony wyłącznie w celach zgodnych z prawem oraz w sposób nienaruszający praw, wolności i uzasadnionych interesów innych osób.",
+              "Zabrania się:"
+            ],
+            "list": [
+              "publikowania treści niezgodnych z prawem, szkodliwych lub wprowadzających w błąd;",
+              "zakłócania działania lub bezpieczeństwa strony internetowej;",
+              "podejmowania prób nieuprawnionego dostępu do danych, systemów lub usług;",
+              "wykonywania działań mogących spowodować szkody dla strony, jej administratora lub innych użytkowników."
+            ]
+          },
+          {
+            "h": "Treści dostępne na stronie",
+            "p": [
+              "Administrator dokłada wszelkich starań, aby informacje publikowane na stronie były aktualne, rzetelne i poprawne. Nie gwarantuje jednak kompletności, dokładności ani stałej dostępności wszystkich treści.",
+              "Wszelkie informacje zamieszczone na stronie mają charakter wyłącznie informacyjny i nie stanowią porady prawnej, finansowej, medycznej ani innej profesjonalnej porady, chyba że wyraźnie wskazano inaczej."
+            ]
+          },
+          {
+            "h": "Własność intelektualna",
+            "p": [
+              "Wszystkie materiały dostępne na stronie, w tym między innymi teksty, grafiki, obrazy, logotypy, elementy projektu oraz inne treści, mogą podlegać ochronie na podstawie przepisów prawa własności intelektualnej.",
+              "Kopiowanie, reprodukowanie, rozpowszechnianie, modyfikowanie lub wykorzystywanie treści strony bez uprzedniej pisemnej zgody właściciela jest zabronione, z wyjątkiem przypadków przewidzianych przez obowiązujące przepisy prawa."
+            ]
+          },
+          {
+            "h": "Linki do stron trzecich",
+            "p": [
+              "Strona może zawierać odnośniki do stron internetowych lub usług podmiotów trzecich. Administrator nie ponosi odpowiedzialności za treści, polityki prywatności, warunki korzystania ani działania takich podmiotów.",
+              "Korzystanie ze stron internetowych osób trzecich odbywa się na własne ryzyko użytkownika."
+            ]
+          },
+          {
+            "h": "Ograniczenie odpowiedzialności",
+            "p": [
+              "W maksymalnym zakresie dopuszczonym przez obowiązujące przepisy prawa administrator strony nie ponosi odpowiedzialności za jakiekolwiek szkody bezpośrednie, pośrednie, przypadkowe, następcze lub szczególne wynikające z korzystania lub niemożności korzystania ze strony internetowej.",
+              "Administrator nie odpowiada również za czasową niedostępność strony, błędy techniczne, przerwy w działaniu ani działania osób trzecich wpływające na funkcjonowanie serwisu."
+            ]
+          },
+          {
+            "h": "Zmiany Warunków Korzystania",
+            "p": [
+              "Administrator zastrzega sobie prawo do zmiany, aktualizacji lub zastąpienia niniejszych Warunków Korzystania w dowolnym czasie bez wcześniejszego powiadomienia.",
+              "Wszelkie zmiany wchodzą w życie z chwilą ich opublikowania na stronie internetowej. Użytkownikom zaleca się regularne zapoznawanie z aktualną wersją dokumentu."
+            ]
+          },
+          {
+            "h": "Postanowienia końcowe",
+            "p": [
+              "Dalsze korzystanie ze strony po opublikowaniu zmian oznacza akceptację zaktualizowanych Warunków Korzystania.",
+              "Wszelkie pytania dotyczące niniejszych Warunków Korzystania można kierować do administratora strony za pośrednictwem danych kontaktowych podanych na stronie internetowej."
+            ]
+          }
         ]
       }
     ]

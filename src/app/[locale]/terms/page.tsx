@@ -8,8 +8,19 @@ import { Link } from "@/i18n/navigation";
 
 type Section = {
   h: string;
+  /** Paragraphs shown before the optional bullet list. */
   p?: string[];
-  items?: { t: string; d: string }[];
+  /** Plain bullet points. */
+  list?: string[];
+  /** Paragraphs shown after the bullet list. */
+  outro?: string[];
+};
+
+type LegalDoc = {
+  title: string;
+  updated: string;
+  intro: string;
+  sections: Section[];
 };
 
 export async function generateMetadata({
@@ -28,7 +39,7 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
   const t = await getTranslations("terms");
   const common = await getTranslations("common");
 
-  const sections = t.raw("sections") as Section[];
+  const documents = t.raw("documents") as LegalDoc[];
 
   return (
     <div className="ace-landing iv">
@@ -37,31 +48,37 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
         <div className="iv-wrap">
           <span className="iv-eyebrow">{t("eyebrow")}</span>
           <h1 className="iv-title">{t("title")}</h1>
-          <p className="iv-meta">{t("updated")}</p>
-          <p className="iv-sub" style={{ maxWidth: "75ch" }}>
-            {t("intro")}
-          </p>
 
-          <div className="iv-legal">
-            {sections.map((section, i) => (
-              <section className="iv-legal__sec" key={i}>
-                <h2>{section.h}</h2>
-                {section.p?.map((para, j) => (
-                  <p key={j}>{para}</p>
-                ))}
-                {section.items ? (
-                  <ul className="iv-legal__data">
-                    {section.items.map((item, j) => (
-                      <li key={j}>
-                        <strong>{item.t}</strong>
-                        <span>{item.d}</span>
-                      </li>
+          {documents.map((doc, di) => (
+            <section className="iv-doc" key={di}>
+              <h2 className="iv-doc__title">{doc.title}</h2>
+              <p className="iv-meta">{doc.updated}</p>
+              <p className="iv-sub" style={{ maxWidth: "75ch" }}>
+                {doc.intro}
+              </p>
+
+              <div className="iv-legal">
+                {doc.sections.map((section, i) => (
+                  <section className="iv-legal__sec" key={i}>
+                    <h3>{section.h}</h3>
+                    {section.p?.map((para, j) => (
+                      <p key={j}>{para}</p>
                     ))}
-                  </ul>
-                ) : null}
-              </section>
-            ))}
-          </div>
+                    {section.list ? (
+                      <ul className="iv-legal__list">
+                        {section.list.map((item, j) => (
+                          <li key={j}>{item}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    {section.outro?.map((para, j) => (
+                      <p key={j}>{para}</p>
+                    ))}
+                  </section>
+                ))}
+              </div>
+            </section>
+          ))}
 
           <div className="iv-actions" style={{ marginTop: 40 }}>
             <Link href="/" className="btn btn-red">

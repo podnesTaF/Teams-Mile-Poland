@@ -2521,7 +2521,8 @@
 .ace-landing .iv-legal__sec {
   margin-top: 34px;
 }
-.ace-landing .iv-legal__sec h2 {
+.ace-landing .iv-legal__sec h2,
+.ace-landing .iv-legal__sec h3 {
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
@@ -2529,6 +2530,49 @@
   font-size: clamp(1.15rem, 2.2vw, 1.45rem);
   line-height: 1.15;
   margin: 0 0 12px;
+}
+
+/* Separate legal documents (Privacy Policy / Terms of Use) on one page. */
+.ace-landing .iv-doc + .iv-doc {
+  margin-top: 64px;
+  padding-top: 48px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.ace-landing .iv-doc__title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.1;
+  color: var(--acl-red);
+  margin: 0 0 8px;
+}
+
+/* Plain bullet list (vs. the term/definition `iv-legal__data`). */
+.ace-landing .iv-legal__list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.ace-landing .iv-legal__list li {
+  position: relative;
+  padding-left: 18px;
+  max-width: 80ch;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.6;
+}
+.ace-landing .iv-legal__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--acl-red);
 }
 .ace-landing .iv-legal p {
   margin: 0 0 12px;
