@@ -91,7 +91,7 @@
         "maxParticipantsLabel": "Dostępne miejsca",
         "maxParticipantsValue": "300",
         "timeLabel": "Godziny",
-        "timeValue": "17:00 – 22:00"
+        "timeValue": "09:00 – 15:30"
       }
     },
     "formatBand": {
@@ -319,37 +319,37 @@
     },
     "program": {
       "title": "Program dnia",
-      "hours": "WYDARZENIE DLA UCZESTNIKÓW trwa od 17:00 do 22:00",
+      "hours": "WYDARZENIE DLA UCZESTNIKÓW trwa od 09:00 do 15:30 — biegi 10:30–14:00",
       "timeline": {
         "registration": {
-          "time": "16:30–16:50",
+          "time": "09:00–10:00",
           "title": "Rejestracja i wydawanie numerów",
           "body": "Odbierasz numer startowy i chip pomiaru czasu. Poznajesz drużynę i sprawdzasz sprzęt."
         },
         "briefing": {
-          "time": "17:00",
+          "time": "10:00–10:15",
           "title": "Oficjalne otwarcie",
           "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów drużyn."
         },
         "startGames": {
-          "time": "17:15",
-          "title": "Start pierwszej drużyny",
-          "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów drużyn."
+          "time": "10:30–12:00",
+          "title": "Indywidualne biegi rankingowe",
+          "body": "Biegi rankingowe według kategorii wiekowych — pierwsza część biegów."
         },
         "main": {
-          "time": "19:30–20:00",
+          "time": "12:00–13:00",
           "title": "Przerwa",
-          "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów drużyn."
+          "body": "Planowana przerwa — czas na odpoczynek, regenerację i przygotowanie do drugiej części biegów."
         },
         "finish": {
-          "time": "20:30–22:00",
-          "title": "Druga część biegów drużynowych",
-          "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów drużyn."
+          "time": "13:00–14:00",
+          "title": "Biegi drużynowe",
+          "body": "Walki drużyn na jedną milę — druga część biegów. Wyniki rejestrowane na bieżąco."
         },
         "awards": {
-          "time": "22:00",
-          "title": "Zamknięcie zawodów",
-          "body": "Słowa od organizatorów i sędziego głównego. Briefing dla kapitanów drużyn."
+          "time": "14:30–15:30",
+          "title": "Nagrody i zakończenie",
+          "body": "Wręczenie nagród, ogłoszenie wyników i oficjalne zakończenie zawodów."
         }
       },
       "alsoLabel": "a także",

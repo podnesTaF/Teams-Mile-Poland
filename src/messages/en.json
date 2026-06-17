@@ -91,7 +91,7 @@
         "maxParticipantsLabel": "Available slots",
         "maxParticipantsValue": "300",
         "timeLabel": "Time",
-        "timeValue": "17:00 – 22:00"
+        "timeValue": "09:00 – 15:30"
       }
     },
     "formatBand": {
@@ -319,36 +319,36 @@
     },
     "program": {
       "title": "Program of the day",
-      "hours": "THE PARTICIPANT EVENT runs from 17:00 to 22:00",
+      "hours": "THE PARTICIPANT EVENT runs from 09:00 to 15:30 — heats 10:30–14:00",
       "timeline": {
         "registration": {
-          "time": "16:30–16:50",
+          "time": "09:00–10:00",
           "title": "Registration & bib pickup",
           "body": "Pick up your bib and timing chip. Meet your team and check your gear."
         },
         "briefing": {
-          "time": "17:00",
+          "time": "10:00–10:15",
           "title": "Official opening",
           "body": "Words from the organizers and the head judge. Captains' briefing."
         },
         "startGames": {
-          "time": "17:15",
-          "title": "First team start",
-          "body": "The first teams take the start line for their one-mile rating runs."
+          "time": "10:30–12:00",
+          "title": "Individual rating mile runs",
+          "body": "Rating miles by age category — the first block of heats."
         },
         "main": {
-          "time": "19:30–20:00",
+          "time": "12:00–13:00",
           "title": "Break",
           "body": "A scheduled pause — time to rest, refuel, and prepare for the second block of runs."
         },
         "finish": {
-          "time": "20:30–22:00",
-          "title": "Second block of team runs",
-          "body": "The remaining teams race in the second start wave. Results are recorded in real time."
+          "time": "13:00–14:00",
+          "title": "Team mile races",
+          "body": "Team one-mile battles — the second block of heats. Results are recorded in real time."
         },
         "awards": {
-          "time": "22:00",
-          "title": "Competition closing",
+          "time": "14:30–15:30",
+          "title": "Awards & closing",
           "body": "Awards presentation, prize announcements, and the official closing of the competition."
         }
       },
