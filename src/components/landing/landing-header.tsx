@@ -19,21 +19,51 @@ const NAV_LINKS = [
   { key: "faq", href: "#faq" },
 ] as const;
 
-/** Fixed white landing header — hidden at top; slides in after scroll. */
+/**
+ * Fixed white landing header — hidden at the very top, then reveals on scroll
+ * up and hides on scroll down. Force-hidden while a prize-table modal is open
+ * (the modal broadcasts an `ace:modal` event).
+ */
 export function LandingHeader() {
   const t = useTranslations("landing.header");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [shownByScroll, setShownByScroll] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
-  const visible = scrolled || menuOpen;
+  const visible = (shownByScroll || menuOpen) && !modalOpen;
 
   useEffect(() => {
     const threshold = 80;
-    const onScroll = () => setScrolled(window.scrollY > threshold);
-    onScroll();
+    const delta = 6;
+    let lastY = window.scrollY;
+    let ticking = false;
+    const update = () => {
+      const y = window.scrollY;
+      if (y <= threshold) {
+        setShownByScroll(false); // near the top, stay hidden over the hero
+      } else if (y > lastY + delta) {
+        setShownByScroll(false); // scrolling down → hide
+      } else if (y < lastY - delta) {
+        setShownByScroll(true); // scrolling up → reveal
+      }
+      lastY = y;
+      ticking = false;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        window.requestAnimationFrame(update);
+      }
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const onModal = (e: Event) => setModalOpen(Boolean((e as CustomEvent).detail));
+    window.addEventListener("ace:modal", onModal);
+    return () => window.removeEventListener("ace:modal", onModal);
   }, []);
 
   useEffect(() => {

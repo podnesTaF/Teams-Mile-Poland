@@ -153,6 +153,29 @@
         "three": "Komitet Organizacyjny zastrzega sobie prawo do przyznania dodatkowych nagród, według własnego uznania, dowolnemu poziomowi, kategorii lub osiągnięciu."
       }
     },
+    "teamModal": {
+      "title": "TABELA DYWIZJI DRUŻYNOWYCH",
+      "divisionsHead": "DYWIZJE",
+      "ratingHead": "RANKING DRUŻYNOWY AB MILE",
+      "prizeHead": "INDYWIDUALNA PULA NAGRÓD (€)",
+      "leagues": "Ligi",
+      "teamLevels": "Poziomy drużyny",
+      "prizeTotal": "Łączna pula nagród (€)",
+      "maleMin": "Czas drużyny męskiej 5+2 (min)",
+      "maleMax": "Czas drużyny męskiej 5+2 (maks)",
+      "female": "Czas drużyny kobiecej 5+2",
+      "mixed": "Czas drużyny mieszanej",
+      "mile": "1 mila mężczyźni (min-maks)",
+      "place1": "1 miejsce (€)",
+      "place2": "2 miejsce (€)",
+      "place3": "3 miejsce (€)",
+      "teamFund": "Drużynowa pula nagród (€)",
+      "notes": {
+        "one": "Wysokość puli nagród ustala organizator w zależności od rangi wydarzenia i dostępnego budżetu.",
+        "two": "Łączna pula nagród jest dzielona według miejsc i poziomów zgodnie z Regulaminem zawodów i zatwierdzana przez Komitet Organizacyjny.",
+        "three": "Komitet Organizacyjny zastrzega sobie prawo do przyznania dodatkowej puli nagród, według własnego uznania, dowolnemu poziomowi, kategorii lub osiągnięciu."
+      }
+    },
     "howItGoes": {
       "title": "Jak przebiegają zawody rankingowe",
       "steps": {

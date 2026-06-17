@@ -153,6 +153,29 @@
         "three": "The Organizing Committee reserves the right to award additional prizes, at its own discretion, to any level, category or achievement."
       }
     },
+    "teamModal": {
+      "title": "TEAM DIVISIONS TABLE",
+      "divisionsHead": "DIVISIONS",
+      "ratingHead": "AB MILE TEAM RATING",
+      "prizeHead": "INDIVIDUAL PRIZE FUND (€)",
+      "leagues": "Leagues",
+      "teamLevels": "Team Levels",
+      "prizeTotal": "Prize Fund Total (€)",
+      "maleMin": "Male Team Time 5+2 (min)",
+      "maleMax": "Male Team Time 5+2 (max)",
+      "female": "Female Team Time 5+2",
+      "mixed": "Mixed Team Time",
+      "mile": "1 Mile Male (min-max)",
+      "place1": "1st Place (€)",
+      "place2": "2nd Place (€)",
+      "place3": "3rd Place (€)",
+      "teamFund": "Team Prize Fund (€)",
+      "notes": {
+        "one": "Prize fund amounts are set by the organizer based on the level of the event and the available budget.",
+        "two": "The total prize fund is distributed according to places and levels as defined in the Competition Regulations and approved by the Organizing Committee.",
+        "three": "The Organizing Committee reserves the right to assign additional prize fund, at its sole discretion, to any level, category or achievement."
+      }
+    },
     "howItGoes": {
       "title": "How the rating competition runs",
       "steps": {
