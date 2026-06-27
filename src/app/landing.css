@@ -2513,6 +2513,14 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.ace-landing .iv-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
 
 /* ---- legal / long-form prose (terms page) ---- */
 .ace-landing .iv-legal {

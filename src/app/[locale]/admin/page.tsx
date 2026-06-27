@@ -114,7 +114,14 @@ async function AdminBody({ locale }: { locale: string }) {
 
       {/* ---- Teams ---- */}
       <section className="iv-card">
-        <h2 className="iv-section-title">Teams</h2>
+        <div className="iv-section-head">
+          <h2 className="iv-section-title">Teams</h2>
+          {data.teams.length > 0 ? (
+            <a href="/api/admin/runners/export?scope=teams" className="btn btn-stroke btn-sm">
+              Export Excel
+            </a>
+          ) : null}
+        </div>
         {data.teams.length === 0 ? (
           <p className="iv-note">No teams yet.</p>
         ) : (
@@ -165,7 +172,19 @@ async function AdminBody({ locale }: { locale: string }) {
 
       {/* ---- Runners ---- */}
       <section className="iv-card">
-        <h2 className="iv-section-title">Runners</h2>
+        <div className="iv-section-head">
+          <h2 className="iv-section-title">Runners</h2>
+          {data.runners.length > 0 ? (
+            <div className="iv-inline">
+              <a href="/api/admin/runners/export?scope=runners" className="btn btn-stroke btn-sm">
+                Export runners
+              </a>
+              <a href="/api/admin/runners/export?scope=all" className="btn btn-stroke btn-sm">
+                Export all sheets
+              </a>
+            </div>
+          ) : null}
+        </div>
         {data.runners.length === 0 ? (
           <p className="iv-note">No runners yet.</p>
         ) : (

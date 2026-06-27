@@ -25,6 +25,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.2.1",
     "drizzle-orm": "^0.45.2",
+    "exceljs": "^4.4.0",
     "lucide-react": "^1.16.0",
     "nanoid": "^5.1.11",
     "next": "16.2.6",
