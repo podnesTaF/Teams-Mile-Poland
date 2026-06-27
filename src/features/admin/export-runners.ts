@@ -80,10 +80,19 @@ function yesNo(value: boolean): string {
   return value ? "Yes" : "No";
 }
 
+/** Split full name on first space: [0] = first name, [1] = surname (if present). */
+function splitFullName(fullName: string): { firstName: string; lastName: string } {
+  const parts = fullName.trim().split(" ");
+  const firstName = parts[0] ?? "";
+  const lastName = parts[1] ?? "";
+  return { firstName, lastName: lastName.length > 0 ? lastName : "" };
+}
+
 function addRunnersSheet(workbook: ExcelJS.Workbook, rows: RunnerExportRow[]) {
   const sheet = workbook.addWorksheet("Runners");
   sheet.columns = [
-    { header: "Full name", key: "fullName", width: 28 },
+    { header: "First name", key: "firstName", width: 20 },
+    { header: "Surname", key: "lastName", width: 20 },
     { header: "Email", key: "email", width: 32 },
     { header: "Phone", key: "phone", width: 18 },
     { header: "Registration type", key: "registrationType", width: 18 },
@@ -100,8 +109,10 @@ function addRunnersSheet(workbook: ExcelJS.Workbook, rows: RunnerExportRow[]) {
   sheet.getRow(1).font = { bold: true };
 
   for (const row of rows) {
+    const { firstName, lastName } = splitFullName(row.fullName);
     sheet.addRow({
-      fullName: row.fullName,
+      firstName,
+      lastName,
       email: row.email,
       phone: row.phone,
       registrationType: row.registrationType.replaceAll("_", " "),
