@@ -71,7 +71,8 @@
         "program": "PROGRAM",
         "location": "LOKALIZACJA",
         "faq": "FAQ"
-      }
+      },
+      "ctaResults": "WYNIKI →"
     },
     "hero": {
       "lang": "PL",
@@ -92,6 +93,17 @@
         "maxParticipantsValue": "300",
         "timeLabel": "Godziny",
         "timeValue": "09:00 – 15:30"
+      },
+      "ctaResults": "Zobacz wyniki →",
+      "registrationClosed": "Rejestracja jest zamknięta.",
+      "registrationClosedLink": "Kolejne wydarzenie — wkrótce",
+      "quickNavLabel": "Szybkie linki",
+      "quickNav": {
+        "results": "Wyniki",
+        "whatIs": "Co to jest",
+        "program": "Program",
+        "location": "Lokalizacja",
+        "faq": "FAQ"
       }
     },
     "formatBand": {
@@ -436,6 +448,23 @@
       "share": "udostępnij stronę znajomemu →",
       "shareCopied": "skopiowano link ✓",
       "terms": "Regulamin i warunki"
+    },
+    "results": {
+      "eyebrow": "Wyniki biegu",
+      "title": "Wyniki",
+      "subtitle": "{date} · {count} zawodników · {heats} biegi",
+      "cols": {
+        "place": "Miejsce",
+        "name": "Zawodnik",
+        "category": "Kategoria",
+        "heat": "Bieg",
+        "time": "Czas"
+      },
+      "category": {
+        "M": "M",
+        "F": "K"
+      },
+      "heatShort": "B{n}"
     }
   },
   "footer": {

@@ -16,9 +16,11 @@ import { PathForward } from "@/components/landing/path";
 import { Program } from "@/components/landing/program";
 import { RatingPath } from "@/components/landing/rating-path";
 import { RegisterCta } from "@/components/landing/register-cta";
+import { Results } from "@/components/landing/results";
 import { Roles } from "@/components/landing/roles";
 import { ScrollReveal } from "@/components/landing/scroll-reveal";
 import { WhatIs } from "@/components/landing/what-is";
+import { getFeaturedEvent, getLatestResults, isRegistrationOpen } from "@/lib/events/registry";
 
 /**
  * The full landing section tree. Rendered both by the locale page
@@ -28,27 +30,34 @@ import { WhatIs } from "@/components/landing/what-is";
  * `@modal` parallel slot.
  */
 export function LandingView() {
+  const featuredEvent = getFeaturedEvent();
+  const resultsEvent = getLatestResults();
+  const registrationOpen = isRegistrationOpen(featuredEvent);
+
   return (
     <div className="ace-landing reveal-ready">
       {/* Without JS, reveal everything so content is never stuck hidden. */}
       <noscript>
-        <style>{".ace-landing .wrap > * { opacity: 1 !important; transform: none !important; }"}</style>
+        <style>
+          {".ace-landing .wrap > * { opacity: 1 !important; transform: none !important; }"}
+        </style>
       </noscript>
       <ScrollReveal />
       <Parallax />
-      <LandingHeader />
-      <Hero />
+      <LandingHeader registrationOpen={registrationOpen} />
+      <Hero registrationOpen={registrationOpen} hasResults={Boolean(resultsEvent)} />
+      {resultsEvent && <Results event={resultsEvent} />}
       <Formats />
       <WhatIs />
       <RatingPath />
-      <RegisterCta />
+      {registrationOpen && <RegisterCta />}
       <HowItGoes />
       <Roles />
       <Audience />
       <Location />
       <PathForward />
       <Atmosphere />
-      <RegisterCta />
+      {registrationOpen && <RegisterCta />}
       <Program />
       <Contact />
       <Faq />

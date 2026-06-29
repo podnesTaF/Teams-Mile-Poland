@@ -71,7 +71,8 @@
         "program": "ПРОГРАМА",
         "location": "ЛОКАЦІЯ",
         "faq": "FAQ"
-      }
+      },
+      "ctaResults": "РЕЗУЛЬТАТИ →"
     },
     "hero": {
       "lang": "UA",
@@ -92,6 +93,17 @@
         "maxParticipantsValue": "300",
         "timeLabel": "Час",
         "timeValue": "09:00 – 15:30"
+      },
+      "ctaResults": "Дивитись результати →",
+      "registrationClosed": "Реєстрацію закрито.",
+      "registrationClosedLink": "Наступна подія — скоро",
+      "quickNavLabel": "Швидкі посилання",
+      "quickNav": {
+        "results": "Результати",
+        "whatIs": "Що це",
+        "program": "Програма",
+        "location": "Локація",
+        "faq": "FAQ"
       }
     },
     "formatBand": {
@@ -436,6 +448,23 @@
       "share": "поділитися сайтом з другом →",
       "shareCopied": "посилання скопійовано ✓",
       "terms": "Умови та положення"
+    },
+    "results": {
+      "eyebrow": "Результати забігу",
+      "title": "Результати",
+      "subtitle": "{date} · {count} учасників · {heats} забіги",
+      "cols": {
+        "place": "Місце",
+        "name": "Атлет",
+        "category": "Категорія",
+        "heat": "Забіг",
+        "time": "Час"
+      },
+      "category": {
+        "M": "Ч",
+        "F": "Ж"
+      },
+      "heatShort": "З{n}"
     }
   },
   "footer": {

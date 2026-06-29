@@ -30,7 +30,8 @@
       "Bash(mkdir -p d3)",
       "Bash(tar -xf d3.tar.gz -C d3)",
       "Bash(xxd)",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(npx prettier *)"
     ]
   }
 }

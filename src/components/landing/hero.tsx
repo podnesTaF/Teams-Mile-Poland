@@ -10,16 +10,37 @@ import { Wordmark } from "./wordmark";
 
 const HOW_IT_WAS_VIDEO_ID = "CxTwKZNy5lE";
 
+/** Quick-nav chips shown in the hero. `results` is included only when results exist. */
+const QUICK_NAV = [
+  { key: "results", href: "#results", resultsOnly: true },
+  { key: "whatIs", href: "#what-is" },
+  { key: "program", href: "#program" },
+  { key: "location", href: "#location" },
+  { key: "faq", href: "#faq" },
+] as const;
+
 /**
  * Hero + format-band combined (the design's `<header class="hero">` element).
  *
  * The atmosphere background sits behind a black-→ink vertical gradient,
  * then the page transitions into the "Format Poland has never seen" red-blob
  * band with the athlete cutout.
+ *
+ * `registrationOpen` drives the primary CTA: when a featured event is taking
+ * registrations it links to `/register`; otherwise the primary action points
+ * at the results and registration is demoted to a quiet "closed" note.
  */
-export function Hero() {
+export function Hero({
+  registrationOpen,
+  hasResults,
+}: {
+  registrationOpen: boolean;
+  hasResults: boolean;
+}) {
   const t = useTranslations("landing.hero");
   const fb = useTranslations("landing.formatBand");
+
+  const quickNav = QUICK_NAV.filter((item) => !("resultsOnly" in item) || hasResults);
 
   return (
     <header className="hero" data-screen-label="Hero">
@@ -44,16 +65,39 @@ export function Hero() {
             </h1>
             <p className="lead hero__sub">{t("sub")}</p>
             <div className="hero__actions">
-              <Link href="/register" className="btn btn-red">
-                {t("ctaPrimary")}
-              </Link>
+              {registrationOpen ? (
+                <Link href="/register" className="btn btn-red">
+                  {t("ctaPrimary")}
+                </Link>
+              ) : (
+                <a href="#results" className="btn btn-red">
+                  {t("ctaResults")}
+                </a>
+              )}
               <a href="#contact" className="btn btn-stroke">
                 {t("ctaSecondary")}
               </a>
             </div>
+            {!registrationOpen && (
+              <p className="hero__reg-note">
+                {t("registrationClosed")}{" "}
+                <Link href="/register" className="hero__reg-link">
+                  {t("registrationClosedLink")}
+                </Link>
+              </p>
+            )}
+            {quickNav.length > 0 && (
+              <nav className="hero__quicknav" aria-label={t("quickNavLabel")}>
+                {quickNav.map(({ key, href }) => (
+                  <a key={key} href={href} className="hero__chip">
+                    {t(`quickNav.${key}`)}
+                  </a>
+                ))}
+              </nav>
+            )}
             <div className="stats">
-              <Stat k={t("stats.dateLabel")}  v={t("stats.dateValue")} />
-              <Stat k={t("stats.freeLabel")}  v={t("stats.freeValue")} />
+              <Stat k={t("stats.dateLabel")} v={t("stats.dateValue")} />
+              <Stat k={t("stats.freeLabel")} v={t("stats.freeValue")} />
               <Stat k={t("stats.prizeLabel")} v={t("stats.prizeValue")} />
               <Stat k={t("stats.maxParticipantsLabel")} v={t("stats.maxParticipantsValue")} />
             </div>

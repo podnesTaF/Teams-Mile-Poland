@@ -24,7 +24,7 @@ const NAV_LINKS = [
  * up and hides on scroll down. Force-hidden while a prize-table modal is open
  * (the modal broadcasts an `ace:modal` event).
  */
-export function LandingHeader() {
+export function LandingHeader({ registrationOpen = false }: { registrationOpen?: boolean }) {
   const t = useTranslations("landing.header");
   const [menuOpen, setMenuOpen] = useState(false);
   const [shownByScroll, setShownByScroll] = useState(false);
@@ -106,9 +106,15 @@ export function LandingHeader() {
 
           <div className="site-header__actions">
             <LangPill tone="dark" />
-            <Link href="/register" className="btn btn-red btn-sm site-header__cta">
-              {t("cta")}
-            </Link>
+            {registrationOpen ? (
+              <Link href="/register" className="btn btn-red btn-sm site-header__cta">
+                {t("cta")}
+              </Link>
+            ) : (
+              <a href="#results" className="btn btn-red btn-sm site-header__cta">
+                {t("ctaResults")}
+              </a>
+            )}
             <button
               type="button"
               className="site-header__menu-btn"
@@ -138,9 +144,15 @@ export function LandingHeader() {
         </nav>
         <div className="site-header__drawer-actions">
           <LangPill tone="dark" />
-          <Link href="/register" className="btn btn-red site-header__cta" onClick={closeMenu}>
-            {t("cta")}
-          </Link>
+          {registrationOpen ? (
+            <Link href="/register" className="btn btn-red site-header__cta" onClick={closeMenu}>
+              {t("cta")}
+            </Link>
+          ) : (
+            <a href="#results" className="btn btn-red site-header__cta" onClick={closeMenu}>
+              {t("ctaResults")}
+            </a>
+          )}
         </div>
       </div>
     </header>

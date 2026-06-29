@@ -3096,7 +3096,11 @@
   height: calc(100% + 44px);
   z-index: 1;
   pointer-events: none;
-  background: repeating-linear-gradient(242deg, rgba(255, 255, 255, 0.26) 0 22px, transparent 22px 74px);
+  background: repeating-linear-gradient(
+    242deg,
+    rgba(255, 255, 255, 0.26) 0 22px,
+    transparent 22px 74px
+  );
 }
 .ace-landing .rp-copy {
   display: flex;
@@ -3310,22 +3314,54 @@
   position: relative;
   border-left: 6px solid transparent;
 }
-.ace-landing .pstd tbody tr:nth-child(1) .lvl { border-left-color: #e23b2e; }
-.ace-landing .pstd tbody tr:nth-child(2) .lvl { border-left-color: #e8542b; }
-.ace-landing .pstd tbody tr:nth-child(3) .lvl { border-left-color: #ef6f27; }
-.ace-landing .pstd tbody tr:nth-child(4) .lvl { border-left-color: #f2882a; }
-.ace-landing .pstd tbody tr:nth-child(5) .lvl { border-left-color: #f4a02e; }
-.ace-landing .pstd tbody tr:nth-child(6) .lvl { border-left-color: #f1b833; }
-.ace-landing .pstd tbody tr:nth-child(7) .lvl { border-left-color: #e6cb37; }
-.ace-landing .pstd tbody tr:nth-child(8) .lvl { border-left-color: #c2d23b; }
-.ace-landing .pstd tbody tr:nth-child(9) .lvl { border-left-color: #90c83f; }
-.ace-landing .pstd tbody tr:nth-child(10) .lvl { border-left-color: #54b94f; }
-.ace-landing .pstd tbody tr:nth-child(11) .lvl { border-left-color: #2faf6e; }
-.ace-landing .pstd tbody tr:nth-child(12) .lvl { border-left-color: #2aa6a0; }
-.ace-landing .pstd tbody tr:nth-child(13) .lvl { border-left-color: #2f8ac9; }
-.ace-landing .pstd tbody tr:nth-child(14) .lvl { border-left-color: #3f6fd0; }
-.ace-landing .pstd tbody tr:nth-child(15) .lvl { border-left-color: #5a57c9; }
-.ace-landing .pstd tbody tr:nth-child(16) .lvl { border-left-color: #6b3fd0; }
+.ace-landing .pstd tbody tr:nth-child(1) .lvl {
+  border-left-color: #e23b2e;
+}
+.ace-landing .pstd tbody tr:nth-child(2) .lvl {
+  border-left-color: #e8542b;
+}
+.ace-landing .pstd tbody tr:nth-child(3) .lvl {
+  border-left-color: #ef6f27;
+}
+.ace-landing .pstd tbody tr:nth-child(4) .lvl {
+  border-left-color: #f2882a;
+}
+.ace-landing .pstd tbody tr:nth-child(5) .lvl {
+  border-left-color: #f4a02e;
+}
+.ace-landing .pstd tbody tr:nth-child(6) .lvl {
+  border-left-color: #f1b833;
+}
+.ace-landing .pstd tbody tr:nth-child(7) .lvl {
+  border-left-color: #e6cb37;
+}
+.ace-landing .pstd tbody tr:nth-child(8) .lvl {
+  border-left-color: #c2d23b;
+}
+.ace-landing .pstd tbody tr:nth-child(9) .lvl {
+  border-left-color: #90c83f;
+}
+.ace-landing .pstd tbody tr:nth-child(10) .lvl {
+  border-left-color: #54b94f;
+}
+.ace-landing .pstd tbody tr:nth-child(11) .lvl {
+  border-left-color: #2faf6e;
+}
+.ace-landing .pstd tbody tr:nth-child(12) .lvl {
+  border-left-color: #2aa6a0;
+}
+.ace-landing .pstd tbody tr:nth-child(13) .lvl {
+  border-left-color: #2f8ac9;
+}
+.ace-landing .pstd tbody tr:nth-child(14) .lvl {
+  border-left-color: #3f6fd0;
+}
+.ace-landing .pstd tbody tr:nth-child(15) .lvl {
+  border-left-color: #5a57c9;
+}
+.ace-landing .pstd tbody tr:nth-child(16) .lvl {
+  border-left-color: #6b3fd0;
+}
 .ace-landing .pstd td {
   color: #2a2b29;
 }
@@ -3357,9 +3393,15 @@
   padding: 3px 7px;
   border-radius: 3px;
 }
-.ace-landing .nt--1 { background: #2f5fd0; }
-.ace-landing .nt--2 { background: #1f8a4c; }
-.ace-landing .nt--3 { background: #6b3fd0; }
+.ace-landing .nt--1 {
+  background: #2f5fd0;
+}
+.ace-landing .nt--2 {
+  background: #1f8a4c;
+}
+.ace-landing .nt--3 {
+  background: #6b3fd0;
+}
 
 /* ---- Team divisions table (`.pstd--team`) -----------------------------
  * Reuses the `.pstd` chrome (borders, padding, stripes, notes) and adds the
@@ -3420,6 +3462,8 @@
   .ace-landing.reveal-ready .hero__content > .hero__title,
   .ace-landing.reveal-ready .hero__content > .hero__sub,
   .ace-landing.reveal-ready .hero__content > .hero__actions,
+  .ace-landing.reveal-ready .hero__content > .hero__reg-note,
+  .ace-landing.reveal-ready .hero__content > .hero__quicknav,
   .ace-landing.reveal-ready .hero__content > .stats,
   .ace-landing.reveal-ready .hero__content > .pin {
     opacity: 0;
@@ -3432,17 +3476,37 @@
   .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__title,
   .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__sub,
   .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__actions,
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__reg-note,
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__quicknav,
   .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .stats,
   .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .pin {
     opacity: 1;
     transform: none;
   }
-  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__kicker { transition-delay: 0s; }
-  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__title { transition-delay: 0.05s; }
-  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__sub { transition-delay: 0.15s; }
-  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__actions { transition-delay: 0.25s; }
-  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .stats { transition-delay: 0.35s; }
-  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .pin { transition-delay: 0.45s; }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__kicker {
+    transition-delay: 0s;
+  }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__title {
+    transition-delay: 0.05s;
+  }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__sub {
+    transition-delay: 0.15s;
+  }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__actions {
+    transition-delay: 0.25s;
+  }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__reg-note {
+    transition-delay: 0.3s;
+  }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .hero__quicknav {
+    transition-delay: 0.35s;
+  }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .stats {
+    transition-delay: 0.4s;
+  }
+  .ace-landing.reveal-ready .hero .wrap.is-in .hero__content > .pin {
+    transition-delay: 0.5s;
+  }
 
   /* ---- Roles / Audience: left-to-right card stagger ----
    * Keep the grid container itself static (override the block reveal) and
@@ -3466,15 +3530,26 @@
     transform: none;
   }
   .ace-landing.reveal-ready .wrap.is-in .role-cards > .rcard:nth-child(1),
-  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(1) { transition-delay: 0.05s; }
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(1) {
+    transition-delay: 0.05s;
+  }
   .ace-landing.reveal-ready .wrap.is-in .role-cards > .rcard:nth-child(2),
-  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(2) { transition-delay: 0.15s; }
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(2) {
+    transition-delay: 0.15s;
+  }
   .ace-landing.reveal-ready .wrap.is-in .role-cards > .rcard:nth-child(3),
-  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(3) { transition-delay: 0.25s; }
-  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(4) { transition-delay: 0.35s; }
-  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(5) { transition-delay: 0.45s; }
-  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(6) { transition-delay: 0.55s; }
-
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(3) {
+    transition-delay: 0.25s;
+  }
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(4) {
+    transition-delay: 0.35s;
+  }
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(5) {
+    transition-delay: 0.45s;
+  }
+  .ace-landing.reveal-ready .wrap.is-in .aud-grid > .aud:nth-child(6) {
+    transition-delay: 0.55s;
+  }
 }
 
 /* Steps appear one-by-one on desktop only; on mobile they keep the default
@@ -3495,10 +3570,18 @@
     opacity: 1;
     transform: none;
   }
-  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(1) { transition-delay: 0.05s; }
-  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(2) { transition-delay: 0.15s; }
-  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(3) { transition-delay: 0.25s; }
-  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(4) { transition-delay: 0.35s; }
+  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(1) {
+    transition-delay: 0.05s;
+  }
+  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(2) {
+    transition-delay: 0.15s;
+  }
+  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(3) {
+    transition-delay: 0.25s;
+  }
+  .ace-landing.reveal-ready .wrap.is-in .steps > .step:nth-child(4) {
+    transition-delay: 0.35s;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -3540,8 +3623,12 @@
     opacity: 1;
     transform: none;
   }
-  .ace-landing.reveal-ready .wrap.is-in .formats > .fcard:nth-child(1) { transition-delay: 0.05s; }
-  .ace-landing.reveal-ready .wrap.is-in .formats > .fcard:nth-child(2) { transition-delay: 0.15s; }
+  .ace-landing.reveal-ready .wrap.is-in .formats > .fcard:nth-child(1) {
+    transition-delay: 0.05s;
+  }
+  .ace-landing.reveal-ready .wrap.is-in .formats > .fcard:nth-child(2) {
+    transition-delay: 0.15s;
+  }
 }
 
 /* ---- cookie consent banner ---- */
@@ -3614,4 +3701,119 @@
   .ace-landing .cookie-consent__actions {
     width: 100%;
   }
+}
+
+/* =========================================================
+ * Hero — "registration closed" note + quick-nav chips
+ * ========================================================= */
+.ace-landing .hero__reg-note {
+  margin: -12px 0 0;
+  font-size: var(--fs-body-s);
+  color: rgba(255, 255, 255, 0.6);
+}
+.ace-landing .hero__reg-link {
+  color: var(--acl-white);
+  border-bottom: 1px solid var(--acl-red);
+  white-space: nowrap;
+}
+.ace-landing .hero__reg-link:hover {
+  color: var(--acl-red);
+}
+.ace-landing .hero__quicknav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.ace-landing .hero__chip {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-size: var(--fs-body-s);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+.ace-landing .hero__chip:hover {
+  background: var(--acl-red);
+  border-color: var(--acl-red);
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+ * Results — combined leaderboard table
+ * ========================================================= */
+.ace-landing .results__eyebrow {
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--acl-red);
+  font-size: var(--fs-body-m);
+}
+.ace-landing .results__scroll {
+  margin-top: clamp(28px, 4vw, 44px);
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ace-landing .results__table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 540px;
+  font-variant-numeric: tabular-nums;
+}
+.ace-landing .results__table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--acl-ink-soft);
+  text-align: left;
+  padding: 14px 18px;
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: var(--fs-body-s);
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+.ace-landing .results__table tbody td {
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: var(--fs-body-m);
+}
+.ace-landing .results__table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+.ace-landing .results__rank {
+  width: 1%;
+  white-space: nowrap;
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+}
+.ace-landing .results__cat {
+  width: 1%;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.65);
+}
+.ace-landing .results__name {
+  font-weight: 600;
+}
+.ace-landing .results__time {
+  text-align: right;
+  white-space: nowrap;
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-weight: 700;
+}
+.ace-landing .results__table tbody tr.is-podium .results__rank {
+  color: var(--acl-red);
 }

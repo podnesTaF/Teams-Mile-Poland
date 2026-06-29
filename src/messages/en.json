@@ -71,7 +71,8 @@
         "program": "PROGRAM",
         "location": "LOCATION",
         "faq": "FAQ"
-      }
+      },
+      "ctaResults": "RESULTS →"
     },
     "hero": {
       "lang": "EN",
@@ -92,6 +93,17 @@
         "maxParticipantsValue": "300",
         "timeLabel": "Time",
         "timeValue": "09:00 – 15:30"
+      },
+      "ctaResults": "View results →",
+      "registrationClosed": "Registration is closed.",
+      "registrationClosedLink": "Next event — stay tuned",
+      "quickNavLabel": "Quick links",
+      "quickNav": {
+        "results": "Results",
+        "whatIs": "What is it",
+        "program": "Program",
+        "location": "Location",
+        "faq": "FAQ"
       }
     },
     "formatBand": {
@@ -436,6 +448,23 @@
       "share": "share the site with a friend →",
       "shareCopied": "link copied ✓",
       "terms": "Terms & Conditions"
+    },
+    "results": {
+      "eyebrow": "Race results",
+      "title": "Results",
+      "subtitle": "{date} · {count} finishers · {heats} heats",
+      "cols": {
+        "place": "Place",
+        "name": "Athlete",
+        "category": "Category",
+        "heat": "Heat",
+        "time": "Time"
+      },
+      "category": {
+        "M": "M",
+        "F": "F"
+      },
+      "heatShort": "H{n}"
     }
   },
   "footer": {
