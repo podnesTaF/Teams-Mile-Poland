@@ -6,8 +6,13 @@ import { Link } from "@/i18n/navigation";
 import { FooterActions } from "./footer-actions";
 import { Wordmark } from "./wordmark";
 
-/** Closing CTA with a faded team photo, red prize-box, and the full ACE BATTLE footer. */
-export function FinalCta() {
+/**
+ * Closing CTA with a faded team photo, red prize-box, and the full ACE BATTLE
+ * footer. `registrationOpen` mirrors the hero: when no event is taking
+ * registrations the register button is demoted to a "registration is closed"
+ * note pointing at the results.
+ */
+export function FinalCta({ registrationOpen = false }: { registrationOpen?: boolean }) {
   const t = useTranslations("landing.finalCta");
   const f = useTranslations("landing.footer");
   const hero = useTranslations("landing.hero");
@@ -19,16 +24,24 @@ export function FinalCta() {
       </div>
       <div className="cta-box">
         <div className="cta-box__inner">
-          <h2 className="head t-cta">{t("title")}</h2>
+          <h2 className="head t-cta">
+            {registrationOpen ? t("title") : hero("registrationClosed")}
+          </h2>
           <div className="stats">
             <Stat k={hero("stats.dateLabel")} v={hero("stats.dateValue")} />
             <Stat k={hero("stats.freeLabel")} v={hero("stats.freeValue")} />
             <Stat k={hero("stats.prizeLabel")} v={hero("stats.prizeValue")} />
             <Stat k={hero("stats.maxParticipantsLabel")} v={hero("stats.maxParticipantsValue")} />
           </div>
-          <Link href="/register" className="btn btn-white btn-white--ink">
-            {t("cta")}
-          </Link>
+          {registrationOpen ? (
+            <Link href="/register" className="btn btn-white btn-white--ink">
+              {t("cta")}
+            </Link>
+          ) : (
+            <a href="#results" className="btn btn-white btn-white--ink">
+              {hero("ctaResults")}
+            </a>
+          )}
         </div>
       </div>
       <footer className="acl-footer" data-screen-label="Footer">
