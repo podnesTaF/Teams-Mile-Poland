@@ -664,6 +664,19 @@
         "intro": "Niniejsza Polityka Prywatności określa zasady gromadzenia, przetwarzania, wykorzystywania oraz ochrony danych osobowych użytkowników niniejszej strony internetowej. Administrator strony szanuje prawo każdego użytkownika do prywatności i zobowiązuje się do ochrony przekazanych informacji zgodnie z obowiązującymi przepisami prawa. Korzystając z tej strony internetowej, użytkownik potwierdza swoją zgodę na postanowienia niniejszej Polityki Prywatności oraz zasady przetwarzania danych osobowych opisane w tym dokumencie.",
         "sections": [
           {
+            "h": "Administrator danych osobowych (ADO)",
+            "p": [
+              "Administratorem danych osobowych w rozumieniu RODO jest:"
+            ],
+            "list": [
+              "Nazwa: ACE BATTLE POLAND Sp. z o.o.",
+              "Adres: ul. Pańska 96/80, 00-837 Warszawa",
+              "NIP: 5273210377",
+              "KRS: 0001229475",
+              "E-mail do zapytań dotyczących danych osobowych: info@poland.acebattle.run"
+            ]
+          },
+          {
             "h": "Jakie informacje zbieramy",
             "p": [
               "Podczas korzystania ze strony mogą być gromadzone dane osobowe oraz informacje techniczne. Dane mogą być przekazywane dobrowolnie przez użytkownika lub zbierane automatycznie podczas odwiedzania strony.",

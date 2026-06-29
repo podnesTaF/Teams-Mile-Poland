@@ -664,6 +664,19 @@
         "intro": "This Privacy Policy outlines the rules for the collection, processing, use, and protection of personal data of users of this website. The website administration respects every user's right to privacy and is committed to protecting the information provided in accordance with applicable laws. By using this website, the user confirms their agreement with this Privacy Policy and the terms of personal data processing described herein.",
         "sections": [
           {
+            "h": "Data Controller",
+            "p": [
+              "The data controller within the meaning of GDPR is:"
+            ],
+            "list": [
+              "Company name: ACE BATTLE POLAND Sp. z o.o.",
+              "Address: ul. Pańska 96/80, 00-837 Warszawa",
+              "Tax ID (NIP): 5273210377",
+              "National Court Register number (KRS): 0001229475",
+              "Email for data protection enquiries: info@poland.acebattle.run"
+            ]
+          },
+          {
             "h": "Information we collect",
             "p": [
               "While using the website, personal and technical information may be collected. Data may be provided voluntarily by the user or collected automatically during website visits.",
