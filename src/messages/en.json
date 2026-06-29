@@ -455,10 +455,13 @@
       "cols": {
         "place": "Place",
         "name": "Athlete",
+        "level": "Level",
         "category": "Category",
         "heat": "Heat",
         "time": "Time"
       },
+      "level": "Lvl {n}",
+      "detailsLabel": "Details",
       "category": {
         "M": "M",
         "F": "F"

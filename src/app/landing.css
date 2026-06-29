@@ -3817,3 +3817,109 @@
 .ace-landing .results__table tbody tr.is-podium .results__rank {
   color: var(--acl-red);
 }
+.ace-landing .results__lvl {
+  width: 1%;
+  white-space: nowrap;
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* Per-row expand control — hidden on desktop, shown when columns collapse. */
+.ace-landing .results__toggle-col,
+.ace-landing .results__toggle-cell {
+  display: none;
+}
+.ace-landing .results__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+}
+.ace-landing .results__toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.ace-landing .results__toggle svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.18s ease;
+}
+.ace-landing .results__toggle svg.is-open {
+  transform: rotate(180deg);
+}
+
+/* Stacked detail panel — an enhancement for the collapsed (mobile) layout. */
+.ace-landing .results__detail-row {
+  display: none;
+}
+.ace-landing .results__detail-row > td {
+  padding: 0;
+  border-top: 0;
+}
+.ace-landing .results__detail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 16px;
+  margin: 0;
+  padding: 2px 12px 16px;
+}
+.ace-landing .results__detail > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ace-landing .results__detail dt {
+  font-size: var(--fs-body-s);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.5);
+}
+.ace-landing .results__detail dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .ace-landing .results__scroll {
+    overflow-x: visible;
+  }
+  .ace-landing .results__table {
+    min-width: 0;
+  }
+  .ace-landing .results__detail-col {
+    display: none;
+  }
+  .ace-landing .results__toggle-col,
+  .ace-landing .results__toggle-cell {
+    display: table-cell;
+    width: 1%;
+    text-align: right;
+  }
+  .ace-landing .results__detail-row.is-open {
+    display: table-row;
+  }
+  .ace-landing .results__table thead th,
+  .ace-landing .results__table tbody td {
+    padding: 12px 12px;
+  }
+}
+
+.ace-landing .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

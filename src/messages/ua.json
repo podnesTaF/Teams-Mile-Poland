@@ -455,10 +455,13 @@
       "cols": {
         "place": "Місце",
         "name": "Атлет",
+        "level": "Рівень",
         "category": "Категорія",
         "heat": "Забіг",
         "time": "Час"
       },
+      "level": "Рів. {n}",
+      "detailsLabel": "Деталі",
       "category": {
         "M": "Ч",
         "F": "Ж"

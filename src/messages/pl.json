@@ -455,10 +455,13 @@
       "cols": {
         "place": "Miejsce",
         "name": "Zawodnik",
+        "level": "Poziom",
         "category": "Kategoria",
         "heat": "Bieg",
         "time": "Czas"
       },
+      "level": "Poz. {n}",
+      "detailsLabel": "Szczegóły",
       "category": {
         "M": "M",
         "F": "K"
