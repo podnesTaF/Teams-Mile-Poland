@@ -78,14 +78,7 @@ export function Hero({
                 {t("ctaSecondary")}
               </a>
             </div>
-            {!registrationOpen && (
-              <p className="hero__reg-note">
-                {t("registrationClosed")}{" "}
-                <Link href="/register" className="hero__reg-link">
-                  {t("registrationClosedLink")}
-                </Link>
-              </p>
-            )}
+            {!registrationOpen && <p className="hero__reg-note">{t("registrationClosed")}</p>}
             {quickNav.length > 0 && (
               <nav className="hero__quicknav" aria-label={t("quickNavLabel")}>
                 {quickNav.map(({ key, href }) => (

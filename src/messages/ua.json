@@ -96,7 +96,6 @@
       },
       "ctaResults": "Дивитись результати →",
       "registrationClosed": "Реєстрацію закрито.",
-      "registrationClosedLink": "Наступна подія — скоро",
       "quickNavLabel": "Швидкі посилання",
       "quickNav": {
         "results": "Результати",
@@ -452,19 +451,20 @@
     "results": {
       "eyebrow": "Результати забігу",
       "title": "Результати",
-      "subtitle": "{date} · {count} учасників · {heats} забіги",
+      "subtitle": "{date} · {count} учасників",
       "cols": {
         "place": "Місце",
         "name": "Атлет",
+        "level": "Рівень",
         "category": "Категорія",
-        "heat": "Забіг",
         "time": "Час"
       },
+      "level": "Рів. {n}",
+      "detailsLabel": "Деталі",
       "category": {
         "M": "Ч",
         "F": "Ж"
-      },
-      "heatShort": "З{n}"
+      }
     }
   },
   "footer": {

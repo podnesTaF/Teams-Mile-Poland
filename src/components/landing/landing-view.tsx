@@ -47,7 +47,7 @@ export function LandingView() {
       <LandingHeader registrationOpen={registrationOpen} />
       <Hero registrationOpen={registrationOpen} hasResults={Boolean(resultsEvent)} />
       {resultsEvent && <Results event={resultsEvent} />}
-      <Formats />
+      {registrationOpen && <Formats />}
       <WhatIs />
       <RatingPath />
       {registrationOpen && <RegisterCta />}
@@ -61,7 +61,7 @@ export function LandingView() {
       <Program />
       <Contact />
       <Faq />
-      <FinalCta />
+      <FinalCta registrationOpen={registrationOpen} />
       <CookieConsent />
     </div>
   );

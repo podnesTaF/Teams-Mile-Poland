@@ -96,7 +96,6 @@
       },
       "ctaResults": "View results →",
       "registrationClosed": "Registration is closed.",
-      "registrationClosedLink": "Next event — stay tuned",
       "quickNavLabel": "Quick links",
       "quickNav": {
         "results": "Results",
@@ -452,19 +451,20 @@
     "results": {
       "eyebrow": "Race results",
       "title": "Results",
-      "subtitle": "{date} · {count} finishers · {heats} heats",
+      "subtitle": "{date} · {count} finishers",
       "cols": {
         "place": "Place",
         "name": "Athlete",
+        "level": "Level",
         "category": "Category",
-        "heat": "Heat",
         "time": "Time"
       },
+      "level": "Lvl {n}",
+      "detailsLabel": "Details",
       "category": {
         "M": "M",
         "F": "F"
-      },
-      "heatShort": "H{n}"
+      }
     }
   },
   "footer": {
