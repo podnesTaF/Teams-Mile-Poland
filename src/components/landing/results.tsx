@@ -15,8 +15,8 @@ import { ChevronIcon } from "./icons";
  * completed event has results.
  *
  * Layout adapts to width without duplicating the data: it stays a single
- * `<table>`, but on narrow screens the detail columns (level / category /
- * heat) collapse and each row gains an expand button that reveals them in a
+ * `<table>`, but on narrow screens the detail columns (level / category)
+ * collapse and each row gains an expand button that reveals them in a
  * stacked panel — so place, athlete, and time are always visible at a glance.
  */
 export function Results({ event }: { event: EventSummary }) {
@@ -26,7 +26,7 @@ export function Results({ event }: { event: EventSummary }) {
   if (!results) return null;
 
   const rows = results.heats
-    .flatMap((heat) => heat.entries.map((entry) => ({ ...entry, heat: heat.number })))
+    .flatMap((heat) => heat.entries)
     .sort((a, b) => a.timeCs - b.timeCs)
     .map((entry, i) => ({
       ...entry,
@@ -44,7 +44,6 @@ export function Results({ event }: { event: EventSummary }) {
             {t("subtitle", {
               date: event.shortDate,
               count: rows.length,
-              heats: results.heats.length,
             })}
           </p>
         </div>
@@ -63,9 +62,6 @@ export function Results({ event }: { event: EventSummary }) {
                 <th className="results__cat results__detail-col" scope="col">
                   {t("cols.category")}
                 </th>
-                <th className="results__cat results__detail-col" scope="col">
-                  {t("cols.heat")}
-                </th>
                 <th className="results__time" scope="col">
                   {t("cols.time")}
                 </th>
@@ -76,7 +72,7 @@ export function Results({ event }: { event: EventSummary }) {
             </thead>
             <tbody>
               {rows.map((row) => {
-                const id = `${row.heat}-${row.bib}`;
+                const id = String(row.bib);
                 const isOpen = open === id;
                 const podium = row.rank <= 3;
                 return (
@@ -89,9 +85,6 @@ export function Results({ event }: { event: EventSummary }) {
                       </td>
                       <td className="results__cat results__detail-col">
                         {t(`category.${row.gender}`)}
-                      </td>
-                      <td className="results__cat results__detail-col">
-                        {t("heatShort", { n: row.heat })}
                       </td>
                       <td className="results__time">{formatTime(row.timeCs)}</td>
                       <td className="results__toggle-cell">
@@ -111,7 +104,7 @@ export function Results({ event }: { event: EventSummary }) {
                       id={`results-detail-${id}`}
                       className={`results__detail-row${isOpen ? " is-open" : ""}`}
                     >
-                      <td colSpan={7}>
+                      <td colSpan={6}>
                         <dl className="results__detail">
                           <div>
                             <dt>{t("cols.level")}</dt>
@@ -120,10 +113,6 @@ export function Results({ event }: { event: EventSummary }) {
                           <div>
                             <dt>{t("cols.category")}</dt>
                             <dd>{t(`category.${row.gender}`)}</dd>
-                          </div>
-                          <div>
-                            <dt>{t("cols.heat")}</dt>
-                            <dd>{t("heatShort", { n: row.heat })}</dd>
                           </div>
                         </dl>
                       </td>

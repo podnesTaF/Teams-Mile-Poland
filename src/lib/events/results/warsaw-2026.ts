@@ -37,5 +37,18 @@ export const warsaw2026Results: EventResults = {
         { place: 7, bib: 65, gender: "F", name: "Szymkiwiak Milena", timeCs: cs(10, 52, 0) },
       ],
     },
+    {
+      number: 3,
+      entries: [
+        { place: 1, bib: 101, gender: "M", name: "Naiko Vitalii", timeCs: cs(6, 19, 20) },
+        { place: 2, bib: 102, gender: "M", name: "Shepotinnik Denys", timeCs: cs(6, 28, 0) },
+        { place: 3, bib: 103, gender: "M", name: "Kovalenko Alex", timeCs: cs(6, 42, 0) },
+        { place: 4, bib: 104, gender: "M", name: "Poltavtsev Ihor", timeCs: cs(6, 53, 0) },
+        { place: 5, bib: 105, gender: "M", name: "Bikhunov Vitalii", timeCs: cs(7, 32, 0) },
+        { place: 6, bib: 106, gender: "M", name: "Dmytruk Mykola", timeCs: cs(7, 35, 0) },
+        { place: 7, bib: 107, gender: "M", name: "Kovalenko Kostyantyn", timeCs: cs(8, 11, 0) },
+        { place: 8, bib: 108, gender: "F", name: "Islientieva Uliana", timeCs: cs(8, 40, 0) },
+      ],
+    },
   ],
 };

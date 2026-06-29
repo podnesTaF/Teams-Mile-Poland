@@ -451,13 +451,12 @@
     "results": {
       "eyebrow": "Результати забігу",
       "title": "Результати",
-      "subtitle": "{date} · {count} учасників · {heats} забіги",
+      "subtitle": "{date} · {count} учасників",
       "cols": {
         "place": "Місце",
         "name": "Атлет",
         "level": "Рівень",
         "category": "Категорія",
-        "heat": "Забіг",
         "time": "Час"
       },
       "level": "Рів. {n}",
@@ -465,8 +464,7 @@
       "category": {
         "M": "Ч",
         "F": "Ж"
-      },
-      "heatShort": "З{n}"
+      }
     }
   },
   "footer": {
