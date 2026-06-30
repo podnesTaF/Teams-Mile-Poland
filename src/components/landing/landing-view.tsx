@@ -9,11 +9,12 @@ import { FinalCta } from "@/components/landing/final-cta";
 import { Formats } from "@/components/landing/formats";
 import { Hero } from "@/components/landing/hero";
 import { HowItGoes } from "@/components/landing/how-it-goes";
+import { InternationalAssociation } from "@/components/landing/international-association";
 import { LandingHeader } from "@/components/landing/landing-header";
 import { Location } from "@/components/landing/location";
 import { Parallax } from "@/components/landing/parallax";
 import { PathForward } from "@/components/landing/path";
-import { Program } from "@/components/landing/program";
+// import { Program } from "@/components/landing/program";
 import { RatingPath } from "@/components/landing/rating-path";
 import { RegisterCta } from "@/components/landing/register-cta";
 import { Results } from "@/components/landing/results";
@@ -58,7 +59,8 @@ export function LandingView() {
       <PathForward />
       <Atmosphere />
       {registrationOpen && <RegisterCta />}
-      <Program />
+      {/* <Program /> */}
+      <InternationalAssociation />
       <Contact />
       <Faq />
       <FinalCta registrationOpen={registrationOpen} />

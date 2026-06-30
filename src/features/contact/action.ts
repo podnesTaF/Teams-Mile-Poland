@@ -2,11 +2,12 @@
 
 import { contactInquiries } from "@/db/schema";
 import { getDb } from "@/lib/db";
+import { EVENT } from "@/lib/marketing/event";
 import { FROM_EMAIL, resend } from "@/lib/email";
 
 import { contactPayloadSchema, type ContactPayload, type ContactResult } from "./schema";
 
-const INBOX_EMAIL = process.env.CONTACT_INBOX_EMAIL ?? FROM_EMAIL;
+const INBOX_EMAIL = process.env.CONTACT_INBOX_EMAIL ?? EVENT.contact.email;
 
 export async function submitContact(payload: ContactPayload): Promise<ContactResult> {
   const parsed = contactPayloadSchema.safeParse(payload);

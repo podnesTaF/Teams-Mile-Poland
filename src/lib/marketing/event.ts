@@ -24,7 +24,7 @@ export const EVENT = {
   contact: {
     phone: "+48 576 696 078",
     phoneTel: "+48576696078",
-    email: "info@aba.run",
+    email: "info@poland.acebattle.run",
     whatsappUrl: "https://chat.whatsapp.com/KynzdMczMoPE7Trr3CWGNH?mode=gi_t",
     instagramUrl: "https://www.instagram.com/acebattle_run/",
     telegramUrl: "https://t.me/acebattlerun",

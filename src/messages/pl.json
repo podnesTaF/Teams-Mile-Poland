@@ -402,6 +402,14 @@
         }
       }
     },
+    "internationalAssociation": {
+      "eyebrow": "Organ władający",
+      "title": "Międzynarodowe Stowarzyszenie",
+      "body": "ABA ustala standardy zawodów, rozwija globalny system rankingowy i łączy wydarzenia krajowe w jedną międzynarodową ligę.",
+      "cta": "Odwiedź aba.run →",
+      "logoAlt": "Ace Battle Association",
+      "logoAriaLabel": "Ace Battle Association — odwiedź aba.run"
+    },
     "faq": {
       "title": "Masz pytania?",
       "sub": "nasz manager skontaktuje się z Tobą i odpowie na wszystko",
@@ -443,7 +451,7 @@
     "footer": {
       "sub": "WARSZAWA",
       "phone": "+48 576 696 078",
-      "email": "info@aba.run",
+      "email": "info@poland.acebattle.run",
       "share": "udostępnij stronę znajomemu →",
       "shareCopied": "skopiowano link ✓",
       "terms": "Regulamin i warunki"

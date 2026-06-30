@@ -402,6 +402,14 @@
         }
       }
     },
+    "internationalAssociation": {
+      "eyebrow": "Governing body",
+      "title": "International Association",
+      "body": "ABA sets competition standards, develops the global rating system, and connects national events into a single international league.",
+      "cta": "Visit aba.run →",
+      "logoAlt": "Ace Battle Association",
+      "logoAriaLabel": "Ace Battle Association — visit aba.run"
+    },
     "faq": {
       "title": "Got questions?",
       "sub": "our manager will reach out and answer everything",
@@ -443,7 +451,7 @@
     "footer": {
       "sub": "WARSZAWA",
       "phone": "+48 576 696 078",
-      "email": "info@aba.run",
+      "email": "info@poland.acebattle.run",
       "share": "share the site with a friend →",
       "shareCopied": "link copied ✓",
       "terms": "Terms & Conditions"

@@ -31,7 +31,7 @@ const SECTIONS = [
       { label: "rules", href: "/#documents" },
       { label: "refund", href: "/#documents" },
       { label: "privacy", href: "/terms" },
-      { label: "contact", href: "mailto:warsaw@acebattle.run" },
+      { label: "contact", href: "mailto:info@poland.acebattle.run" },
     ],
   },
 ];

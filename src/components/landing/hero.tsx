@@ -14,7 +14,7 @@ const HOW_IT_WAS_VIDEO_ID = "CxTwKZNy5lE";
 const QUICK_NAV = [
   { key: "results", href: "#results", resultsOnly: true },
   { key: "whatIs", href: "#what-is" },
-  { key: "program", href: "#program" },
+  // { key: "program", href: "#program" },
   { key: "location", href: "#location" },
   { key: "faq", href: "#faq" },
 ] as const;
