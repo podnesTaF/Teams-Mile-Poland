@@ -34,7 +34,7 @@ export const warsaw2026Results: EventResults = {
         { place: 4, bib: 60, gender: "M", name: "Kuźnicki Patryk", timeCs: cs(5, 59, 45) },
         { place: 5, bib: 80, gender: "F", name: "Uhera Grzegorz", timeCs: cs(6, 41, 72) },
         { place: 6, bib: 91, gender: "F", name: "Shokalo Marta", timeCs: cs(9, 15, 63) },
-        { place: 7, bib: 65, gender: "F", name: "Szymkiwiak Milena", timeCs: cs(10, 52, 0) },
+        { place: 7, bib: 65, gender: "F", name: "Szymkowiak Milena", timeCs: cs(10, 52, 0) },
       ],
     },
     {
