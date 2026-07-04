@@ -91,7 +91,6 @@ export function Hero({
             <div className="stats">
               <Stat k={t("stats.dateLabel")} v={t("stats.dateValue")} />
               <Stat k={t("stats.freeLabel")} v={t("stats.freeValue")} />
-              <Stat k={t("stats.prizeLabel")} v={t("stats.prizeValue")} />
               <Stat k={t("stats.maxParticipantsLabel")} v={t("stats.maxParticipantsValue")} />
             </div>
             <div className="pin">

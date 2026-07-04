@@ -20,6 +20,17 @@ export const EVENTS: EventSummary[] = [
     city: EVENT.venue.city,
     results: warsaw2026Results,
   },
+  // Aug-2026 individual mile. Registration open — this becomes the featured
+  // event and re-enables the register CTA. (The full series lives on `dev`.)
+  {
+    slug: "mile-2026-08-01",
+    status: "registration_open",
+    name: "Individual Mile",
+    date: "2026-08-01",
+    shortDate: "01 · 08 · 2026",
+    venue: EVENT.venue.name,
+    city: EVENT.venue.city,
+  },
 ];
 
 /**
