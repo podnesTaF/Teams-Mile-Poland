@@ -14,6 +14,7 @@ import {
 import { CopyLinkButton } from "@/features/admin/components/copy-link-button";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { getAdminOverview, type InquiryRow } from "@/features/admin/data";
+import { getSeriesEvents } from "@/lib/events/registry";
 import { getAdminSession } from "@/lib/auth/admin-session";
 import { defaultLocale } from "@/lib/i18n/config";
 
@@ -74,6 +75,8 @@ export default async function AdminPage({
 
 async function AdminBody({ locale }: { locale: string }) {
   const data = await getAdminOverview();
+  const seriesEvents = getSeriesEvents();
+  const p = (suffix: string) => (locale === defaultLocale ? suffix : `/${locale}${suffix}`);
 
   return (
     <>
@@ -83,6 +86,44 @@ async function AdminBody({ locale }: { locale: string }) {
         <Stat label="Teams" value={`${data.totals.teams}`} />
         <Stat label="New inquiries" value={`${data.newInquiryCount}`} />
       </div>
+
+      {/* ---- Individual mile series ---- */}
+      {seriesEvents.length > 0 ? (
+        <section className="iv-card" style={{ marginTop: 20 }}>
+          <h2 className="iv-section-title">Mile series — check-in &amp; roster</h2>
+          <div className="iv-tablewrap">
+            <table className="iv-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {seriesEvents.map((e) => (
+                  <tr key={e.slug}>
+                    <td>{e.shortDate}</td>
+                    <td>{e.timeRange ? `${e.timeRange.start}–${e.timeRange.end}` : "—"}</td>
+                    <td>{e.status.replaceAll("_", " ")}</td>
+                    <td>
+                      <div className="iv-inline">
+                        <a href={p(`/admin/events/${e.slug}`)} className="btn btn-stroke btn-sm">
+                          Roster
+                        </a>
+                        <a href={p(`/admin/events/${e.slug}/checkin`)} className="btn btn-red btn-sm">
+                          Check-in
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
 
       {/* ---- Inquiries ---- */}
       <section className="iv-card" style={{ marginTop: 20 }}>

@@ -4013,3 +4013,363 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* =========================================================
+ * Event series — landing cards + event detail page.
+ * The landing root is dark (var(--acl-ink)); both surfaces
+ * live on it, so one dark card style serves both.
+ * ========================================================= */
+.ace-landing .ev-eyebrow {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--acl-red);
+  margin-bottom: 10px;
+}
+
+.ace-landing .ev-series__head {
+  max-width: 640px;
+  margin: 0 auto clamp(28px, 4vw, 44px);
+}
+.ace-landing .ev-series__head .sub-lead {
+  margin-top: 12px;
+}
+
+.ace-landing .ev-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+}
+
+.ace-landing .ev-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+  color: var(--acl-white);
+  transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+.ace-landing .ev-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-2px);
+}
+.ace-landing .ev-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ace-landing .ev-card__time {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+.ace-landing .ev-card__date {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-h3);
+  margin-top: 4px;
+  letter-spacing: 0.01em;
+}
+.ace-landing .ev-card__venue {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+.ace-landing .ev-card__slots {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+.ace-landing .ev-card__cta {
+  margin-top: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--acl-red);
+}
+
+/* status pills — shared by cards + detail header */
+.ace-landing .ev-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.ace-landing .ev-pill--registration_open {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.3);
+}
+.ace-landing .ev-pill--upcoming {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.72);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.ace-landing .ev-pill--registration_closed {
+  background: rgba(229, 31, 50, 0.14);
+  color: #ff7784;
+  border-color: rgba(229, 31, 50, 0.32);
+}
+.ace-landing .ev-pill--completed {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ---- event detail page ---- */
+.ace-landing .ev-detail__back {
+  margin-bottom: 20px;
+}
+.ace-landing .ev-detail__head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: clamp(24px, 4vw, 40px);
+}
+.ace-landing .ev-detail__head .ev-eyebrow {
+  margin-bottom: 0;
+}
+.ace-landing .ev-detail__date {
+  font-size: var(--fs-h1);
+  margin: 0;
+}
+.ace-landing .ev-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+}
+.ace-landing .ev-block {
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 16px;
+}
+.ace-landing .ev-detail__grid .ev-block {
+  margin-top: 0;
+}
+.ace-landing .ev-block__title {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 12px;
+}
+.ace-landing .ev-block__lead {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.ace-landing .ev-block__meta {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 6px;
+}
+.ace-landing .ev-block__meta + .iv-linkbtn,
+.ace-landing .ev-block .iv-linkbtn {
+  margin-top: 12px;
+}
+.ace-landing .ev-stats {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.ace-landing .ev-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ace-landing .ev-stat__num {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: var(--fs-numbers);
+  line-height: 1;
+  color: var(--acl-white);
+}
+.ace-landing .ev-stat__label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+  max-width: 180px;
+}
+.ace-landing .ev-timetable {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ace-landing .ev-timetable__row {
+  display: flex;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ace-landing .ev-timetable__row:last-child {
+  border-bottom: 0;
+}
+.ace-landing .ev-timetable__time {
+  flex: 0 0 auto;
+  min-width: 118px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+}
+.ace-landing .ev-timetable__label {
+  color: rgba(255, 255, 255, 0.7);
+}
+.ace-landing .ev-detail__cta {
+  margin-top: clamp(24px, 4vw, 36px);
+}
+.ace-landing .ev-detail__cta .btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+ * Auth + profile (interior pages)
+ * ========================================================= */
+.ace-landing .iv-header__right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.ace-landing .iv-header__auth {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.ace-landing .iv-header__auth:hover {
+  color: var(--acl-white);
+}
+
+/* "or" divider between password + Google */
+.ace-landing .auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.ace-landing .auth-divider::before,
+.ace-landing .auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ace-landing .iv-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* terms checkbox on the register-confirm card */
+.ace-landing .auth-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.5;
+}
+.ace-landing .auth-check input {
+  margin-top: 3px;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--acl-red);
+}
+.ace-landing .auth-check a {
+  color: var(--acl-white);
+  text-decoration: underline;
+}
+
+/* live capacity meter on the event detail page */
+.ace-landing .ev-meter {
+  margin-top: 18px;
+}
+.ace-landing .ev-meter__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.ace-landing .ev-meter__label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+.ace-landing .ev-meter__count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--acl-white);
+}
+.ace-landing .ev-meter__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.ace-landing .ev-meter__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--acl-red);
+  transition: width 0.4s ease;
+}
+.ace-landing .ev-meter__sub {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* "My registrations" list on the profile page */
+.ace-landing .ev-reglist {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.ace-landing .ev-reglist__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ace-landing .ev-reglist__row:last-child {
+  border-bottom: 0;
+}
+.ace-landing .ev-reglist__date {
+  font-weight: 700;
+  color: var(--acl-white);
+}
+.ace-landing .ev-reglist__meta {
+  margin-top: 2px;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.6);
+}

@@ -33,9 +33,11 @@ const QUICK_NAV = [
 export function Hero({
   registrationOpen,
   hasResults,
+  registerHref = "/register",
 }: {
   registrationOpen: boolean;
   hasResults: boolean;
+  registerHref?: string;
 }) {
   const t = useTranslations("landing.hero");
   const fb = useTranslations("landing.formatBand");
@@ -66,7 +68,7 @@ export function Hero({
             <p className="lead hero__sub">{t("sub")}</p>
             <div className="hero__actions">
               {registrationOpen ? (
-                <Link href="/register" className="btn btn-red">
+                <Link href={registerHref} className="btn btn-red">
                   {t("ctaPrimary")}
                 </Link>
               ) : (

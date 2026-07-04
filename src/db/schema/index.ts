@@ -9,3 +9,6 @@ export * from "./pending-registrations";
 export * from "./contact-inquiries";
 export * from "./broadcasts";
 export * from "./email-log";
+export * from "./auth";
+export * from "./event-registrations";
+export * from "./event-email-log";
