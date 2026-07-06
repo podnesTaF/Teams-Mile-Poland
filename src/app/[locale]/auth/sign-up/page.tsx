@@ -8,15 +8,17 @@ import { SignUpForm } from "@/features/auth/components/sign-up-form";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ redirectTo?: string }>;
 };
 
-export default async function SignUpPage({ params }: PageProps) {
+export default async function SignUpPage({ params, searchParams }: PageProps) {
   const { locale } = await params;
+  const { redirectTo } = await searchParams;
   setRequestLocale(locale);
 
   return (
     <AuthPageShell>
-      <SignUpForm locale={locale} />
+      <SignUpForm locale={locale} redirectTo={redirectTo || "/profile"} />
     </AuthPageShell>
   );
 }

@@ -116,7 +116,7 @@ export function SignInForm({ redirectTo = "/profile" }: { redirectTo?: string })
 
       <p className="auth-foot">
         {t("signIn.noAccount")}{" "}
-        <Link href="/auth/sign-up" className="link">
+        <Link href={`/auth/sign-up?redirectTo=${encodeURIComponent(redirectTo)}`} className="link">
           {t("signUp.submit")}
         </Link>
       </p>

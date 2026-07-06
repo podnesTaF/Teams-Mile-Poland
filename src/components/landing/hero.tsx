@@ -13,6 +13,7 @@ const HOW_IT_WAS_VIDEO_ID = "CxTwKZNy5lE";
 /** Quick-nav chips shown in the hero. `results` is included only when results exist. */
 const QUICK_NAV = [
   { key: "results", href: "#results", resultsOnly: true },
+  { key: "events", href: "#events" },
   { key: "whatIs", href: "#what-is" },
   // { key: "program", href: "#program" },
   { key: "location", href: "#location" },
@@ -94,7 +95,6 @@ export function Hero({
               <Stat k={t("stats.dateLabel")} v={t("stats.dateValue")} />
               <Stat k={t("stats.freeLabel")} v={t("stats.freeValue")} />
               <Stat k={t("stats.prizeLabel")} v={t("stats.prizeValue")} />
-              <Stat k={t("stats.maxParticipantsLabel")} v={t("stats.maxParticipantsValue")} />
             </div>
             <div className="pin">
               <PinIcon />

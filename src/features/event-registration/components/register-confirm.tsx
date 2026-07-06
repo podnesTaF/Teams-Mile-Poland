@@ -9,17 +9,28 @@ import { registerForEvent } from "../actions";
 
 type Props = {
   eventSlug: string;
+  eventName: string;
   eventDate: string;
   eventTime: string | null;
   venue: string;
+  runnerName: string;
+  runnerEmail: string;
 };
 
 /**
- * Auth-gated confirm step: shows the summary + terms, then calls the server
- * action. Registration is free, so success routes straight to the ticket.
- * Guard failures (verify/profile) route to the right fix.
+ * Auth-gated confirm step (design `f-register`): a white commit-list summary +
+ * a terms/confirm aside. Registration is free, so success routes straight to
+ * the ticket. Guard failures (verify/profile) route to the right fix.
  */
-export function RegisterConfirm({ eventSlug, eventDate, eventTime, venue }: Props) {
+export function RegisterConfirm({
+  eventSlug,
+  eventName,
+  eventDate,
+  eventTime,
+  venue,
+  runnerName,
+  runnerEmail,
+}: Props) {
   const t = useTranslations("register");
   const router = useRouter();
   const [terms, setTerms] = useState(false);
@@ -49,46 +60,72 @@ export function RegisterConfirm({ eventSlug, eventDate, eventTime, venue }: Prop
     });
   }
 
-  return (
-    <form onSubmit={onSubmit} className="iv-card">
-      <span className="iv-eyebrow">{t("eyebrow")}</span>
-      <h1 className="iv-title">{t("title")}</h1>
+  const dateTime = eventTime ? `${eventDate} · ${eventTime}` : eventDate;
 
-      <div className="iv-grid" style={{ marginTop: 18 }}>
-        <Summary label={t("summary.date")} value={eventTime ? `${eventDate} · ${eventTime}` : eventDate} />
-        <Summary label={t("summary.venue")} value={venue} />
-        <Summary label={t("summary.price")} value={t("summary.free")} />
+  return (
+    <form onSubmit={onSubmit}>
+      <div className="page-head" style={{ marginBottom: 22 }}>
+        <span className="iv-eyebrow">{t("confirm.eyebrow")}</span>
+        <h1 className="iv-title">{t("confirm.title")}</h1>
+        <p className="iv-sub">{t("confirm.subtitle")}</p>
       </div>
 
-      {error ? <div className="iv-notice iv-notice--error" style={{ marginTop: 16 }}>{error}</div> : null}
+      <div className="detail-grid">
+        <div className="card-white" style={{ padding: "clamp(24px, 3vw, 36px)" }}>
+          <div className="commit-list">
+            <Row k={t("confirm.race")} v={eventName} />
+            <Row k={t("confirm.dateTime")} v={dateTime} />
+            <Row k={t("confirm.venue")} v={venue} />
+            <Row k={t("confirm.distance")} v={t("confirm.distanceValue")} sub={t("confirm.distanceSub")} />
+            <Row k={t("confirm.runner")} v={runnerName} sub={runnerEmail} />
+            <Row k={t("confirm.cost")} v={t("summary.free")} priceTag />
+          </div>
+        </div>
 
-      <label className="auth-check" style={{ marginTop: 18 }}>
-        <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
-        <span>
-          {t.rich("terms", {
-            link: (chunks) => (
-              <Link href="/terms" target="_blank" rel="noopener noreferrer">
-                {chunks}
-              </Link>
-            ),
-          })}
-        </span>
-      </label>
-
-      <div className="iv-actions">
-        <button type="submit" className="btn btn-red btn-block" disabled={!terms || pending}>
-          {pending ? t("submitting") : t("submitFree")}
-        </button>
+        <aside>
+          <div className="slots-card">
+            {error ? <div className="banner banner--red">{error}</div> : null}
+            <label className="auth-check" style={{ color: "var(--ink)" }}>
+              <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
+              <span>
+                {t.rich("terms", {
+                  link: (chunks) => (
+                    <Link href="/terms" target="_blank" rel="noopener noreferrer">
+                      {chunks}
+                    </Link>
+                  ),
+                })}
+              </span>
+            </label>
+            <button type="submit" className="btn btn-red btn-block" disabled={!terms || pending}>
+              {pending ? t("submitting") : t("confirm.submit")}
+            </button>
+            <p className="slots-note">{t("confirm.note")}</p>
+          </div>
+        </aside>
       </div>
     </form>
   );
 }
 
-function Summary({ label, value }: { label: string; value: string }) {
+function Row({
+  k,
+  v,
+  sub,
+  priceTag,
+}: {
+  k: string;
+  v: string;
+  sub?: string;
+  priceTag?: boolean;
+}) {
   return (
-    <div className="tk-field">
-      <div className="tk-field__label">{label}</div>
-      <div className="tk-field__value">{value}</div>
+    <div className="commit-row">
+      <span className="commit-k">{k}</span>
+      <span className={priceTag ? "commit-v price-tag" : "commit-v"}>
+        {v}
+        {sub ? <small>{sub}</small> : null}
+      </span>
     </div>
   );
 }

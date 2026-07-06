@@ -45,7 +45,6 @@ export async function EventSeries() {
           <div className="page-head">
             <p className="ev-eyebrow">{t("series.kicker")}</p>
             <h2 className="head t-sec">{t("series.title")}</h2>
-            <p className="sub-lead">{t("series.sub")}</p>
           </div>
           <div className="series-legend">
             {legend.map((l) => (

@@ -8,7 +8,13 @@ import { authClient } from "@/lib/auth/auth-client";
 
 const RESEND_SECONDS = 30;
 
-export function VerifyEmailView({ email }: { email?: string }) {
+export function VerifyEmailView({
+  email,
+  redirectTo = "/profile",
+}: {
+  email?: string;
+  redirectTo?: string;
+}) {
   const t = useTranslations("auth");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +41,7 @@ export function VerifyEmailView({ email }: { email?: string }) {
     startTransition(async () => {
       const { error: err } = await authClient.sendVerificationEmail({
         email,
-        callbackURL: "/profile",
+        callbackURL: redirectTo,
       });
       if (err) {
         setError(err.message ?? t("errors.generic"));
@@ -76,7 +82,7 @@ export function VerifyEmailView({ email }: { email?: string }) {
         type="button"
         className="btn btn-red btn-full"
         onClick={() => {
-          router.push("/profile");
+          router.push(redirectTo);
           router.refresh();
         }}
       >
@@ -102,11 +108,11 @@ export function VerifyEmailView({ email }: { email?: string }) {
       ) : null}
 
       <p className="auth-foot">
-        <Link href="/auth/sign-up" className="link">
+        <Link href={`/auth/sign-up?redirectTo=${encodeURIComponent(redirectTo)}`} className="link">
           {t("verify.wrongAddress")}
         </Link>{" "}
         ·{" "}
-        <Link href="/auth/sign-in" className="link">
+        <Link href={`/auth/sign-in?redirectTo=${encodeURIComponent(redirectTo)}`} className="link">
           {t("signIn.submit")}
         </Link>
       </p>

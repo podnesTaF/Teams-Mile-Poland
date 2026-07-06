@@ -31,7 +31,6 @@ export function FinalCta({ registrationOpen = false }: { registrationOpen?: bool
             <Stat k={hero("stats.dateLabel")} v={hero("stats.dateValue")} />
             <Stat k={hero("stats.freeLabel")} v={hero("stats.freeValue")} />
             <Stat k={hero("stats.prizeLabel")} v={hero("stats.prizeValue")} />
-            <Stat k={hero("stats.maxParticipantsLabel")} v={hero("stats.maxParticipantsValue")} />
           </div>
           {registrationOpen ? (
             <Link href="/register" className="btn btn-white btn-white--ink">

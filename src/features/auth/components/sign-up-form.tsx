@@ -14,7 +14,13 @@ function splitName(full: string): { firstName: string; lastName: string } {
   return { firstName: parts[0] ?? "", lastName: parts.slice(1).join(" ") };
 }
 
-export function SignUpForm({ locale }: { locale: string }) {
+export function SignUpForm({
+  locale,
+  redirectTo = "/profile",
+}: {
+  locale: string;
+  redirectTo?: string;
+}) {
   const t = useTranslations("auth");
   const router = useRouter();
   const [name, setName] = useState("");
@@ -40,13 +46,15 @@ export function SignUpForm({ locale }: { locale: string }) {
         firstName,
         lastName,
         locale,
-        callbackURL: "/profile",
+        // Email-link lands back in the registration flow (or profile).
+        callbackURL: redirectTo,
       });
       if (err) {
         setError(err.message ?? t("errors.generic"));
         return;
       }
-      router.push(`/auth/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
+      const params = new URLSearchParams({ email: email.trim().toLowerCase(), redirectTo });
+      router.push(`/auth/verify-email?${params.toString()}`);
     });
   }
 
@@ -119,7 +127,7 @@ export function SignUpForm({ locale }: { locale: string }) {
 
       <p className="auth-foot">
         {t("signUp.haveAccount")}{" "}
-        <Link href="/auth/sign-in" className="link">
+        <Link href={`/auth/sign-in?redirectTo=${encodeURIComponent(redirectTo)}`} className="link">
           {t("signIn.submit")}
         </Link>
       </p>

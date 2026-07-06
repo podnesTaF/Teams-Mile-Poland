@@ -10,11 +10,17 @@ import type { ProfileInput } from "../schemas";
 
 type Props = {
   initial: ProfileInput;
-  /** When true, show the "complete your profile to register" prompt. */
-  incomplete?: boolean;
+  /** Where to continue after saving (e.g. back to the registration flow). */
+  redirectTo?: string;
 };
 
-export function ProfileForm({ initial, incomplete }: Props) {
+/**
+ * The editable profile card — the design's sectioned dark `.profile-form`
+ * (identity aside + registrations live in the page). Fields are unchanged:
+ * name, date of birth, sex, club, phone. When reached via `redirectTo` (the
+ * finish-profile round-trip) Save returns straight to registration.
+ */
+export function ProfileForm({ initial, redirectTo }: Props) {
   const t = useTranslations("profile");
   const router = useRouter();
   const [data, setData] = useState<ProfileInput>(initial);
@@ -40,92 +46,101 @@ export function ProfileForm({ initial, incomplete }: Props) {
         setFieldErrors(result.fieldErrors ?? {});
         return;
       }
+      // Continue the registration round-trip when we came from it.
+      if (redirectTo) {
+        router.push(redirectTo);
+        router.refresh();
+        return;
+      }
       setSaved(true);
       router.refresh();
     });
   }
 
   return (
-    <form onSubmit={onSubmit} className="iv-card">
-      <span className="iv-eyebrow">{t("eyebrow")}</span>
-      <h1 className="iv-title">{t("title")}</h1>
-      <p className="iv-sub">{t("subtitle")}</p>
+    <form onSubmit={onSubmit} className="profile-form">
+      {error ? <div className="banner banner--red">{error}</div> : null}
+      {saved ? <div className="banner banner--ok">{t("saved")}</div> : null}
 
-      {incomplete ? <div className="iv-notice iv-notice--info">{t("completePrompt")}</div> : null}
-      {error ? <div className="iv-notice iv-notice--error">{error}</div> : null}
-      {saved ? <div className="iv-notice iv-notice--info">{t("saved")}</div> : null}
-
-      <div className="iv-grid" style={{ marginTop: 20 }}>
-        <Field label={t("fields.firstName")} error={fieldErrors.firstName?.[0]}>
-          <input
-            className="iv-input"
-            autoComplete="given-name"
-            value={data.firstName}
-            onChange={(e) => set("firstName", e.target.value)}
-            required
-          />
-        </Field>
-        <Field label={t("fields.lastName")} error={fieldErrors.lastName?.[0]}>
-          <input
-            className="iv-input"
-            autoComplete="family-name"
-            value={data.lastName}
-            onChange={(e) => set("lastName", e.target.value)}
-            required
-          />
-        </Field>
+      <div className="form-section">
+        <div className="form-section__h">{t("sections.detailsTitle")}</div>
+        <p className="form-section__sub">{t("sections.detailsSub")}</p>
+        <div className="fgrid">
+          <Field label={t("fields.firstName")} error={fieldErrors.firstName?.[0]}>
+            <input
+              className="finput on-dark"
+              autoComplete="given-name"
+              value={data.firstName}
+              onChange={(e) => set("firstName", e.target.value)}
+              required
+            />
+          </Field>
+          <Field label={t("fields.lastName")} error={fieldErrors.lastName?.[0]}>
+            <input
+              className="finput on-dark"
+              autoComplete="family-name"
+              value={data.lastName}
+              onChange={(e) => set("lastName", e.target.value)}
+              required
+            />
+          </Field>
+        </div>
       </div>
 
-      <div className="iv-grid" style={{ marginTop: 14 }}>
-        <Field label={t("fields.dateOfBirth")} error={fieldErrors.dateOfBirth?.[0]}>
-          <input
-            className="iv-input"
-            type="date"
-            value={data.dateOfBirth}
-            onChange={(e) => set("dateOfBirth", e.target.value)}
-            required
-          />
-        </Field>
-        <Field label={t("fields.sex")} error={fieldErrors.sex?.[0]}>
-          <select
-            className="iv-input"
-            value={data.sex}
-            onChange={(e) => set("sex", e.target.value as ProfileInput["sex"])}
-            required
-          >
-            <option value="" disabled>
-              {t("fields.sexPlaceholder")}
-            </option>
-            <option value="M">{t("fields.sexM")}</option>
-            <option value="F">{t("fields.sexF")}</option>
-          </select>
-        </Field>
+      <div className="form-section">
+        <div className="form-section__h">{t("sections.runnerTitle")}</div>
+        <p className="form-section__sub">{t("sections.runnerSub")}</p>
+        <div className="fgrid">
+          <Field label={t("fields.dateOfBirth")} error={fieldErrors.dateOfBirth?.[0]}>
+            <input
+              className="finput on-dark"
+              type="date"
+              value={data.dateOfBirth}
+              onChange={(e) => set("dateOfBirth", e.target.value)}
+              required
+            />
+          </Field>
+          <Field label={t("fields.sex")} error={fieldErrors.sex?.[0]}>
+            <select
+              className="fselect on-dark"
+              value={data.sex}
+              onChange={(e) => set("sex", e.target.value as ProfileInput["sex"])}
+              required
+            >
+              <option value="" disabled>
+                {t("fields.sexPlaceholder")}
+              </option>
+              <option value="M">{t("fields.sexM")}</option>
+              <option value="F">{t("fields.sexF")}</option>
+            </select>
+          </Field>
+          <Field label={t("fields.club")} error={fieldErrors.club?.[0]}>
+            <input
+              className="finput on-dark"
+              value={data.club ?? ""}
+              onChange={(e) => set("club", e.target.value)}
+              placeholder={t("fields.clubPlaceholder")}
+            />
+          </Field>
+          <Field label={t("fields.phone")} error={fieldErrors.phone?.[0]}>
+            <input
+              className="finput on-dark"
+              type="tel"
+              autoComplete="tel"
+              value={data.phone}
+              onChange={(e) => set("phone", e.target.value)}
+              required
+            />
+          </Field>
+        </div>
       </div>
 
-      <div className="iv-grid" style={{ marginTop: 14 }}>
-        <Field label={t("fields.club")} error={fieldErrors.club?.[0]}>
-          <input
-            className="iv-input"
-            value={data.club ?? ""}
-            onChange={(e) => set("club", e.target.value)}
-            placeholder={t("fields.clubPlaceholder")}
-          />
-        </Field>
-        <Field label={t("fields.phone")} error={fieldErrors.phone?.[0]}>
-          <input
-            className="iv-input"
-            type="tel"
-            autoComplete="tel"
-            value={data.phone}
-            onChange={(e) => set("phone", e.target.value)}
-            required
-          />
-        </Field>
-      </div>
-
-      <div className="iv-actions">
+      <div className="form-actions">
+        <span className="form-actions__note">
+          {redirectTo ? t("continueNote") : t("editNote")}
+        </span>
         <button type="submit" className="btn btn-red" disabled={pending}>
-          {pending ? t("saving") : t("save")}
+          {pending ? t("saving") : redirectTo ? t("saveContinue") : t("save")}
         </button>
       </div>
     </form>
@@ -143,9 +158,9 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="iv-fieldlabel">{label}</span>
+      <span className="flabel on-dark">{label}</span>
       {children}
-      {error ? <span className="ff-error-msg">{error}</span> : null}
+      {error ? <span className="field-msg">{error}</span> : null}
     </label>
   );
 }

@@ -83,8 +83,8 @@
       "ctaSecondary": "Contact us",
       "venue": "Stadion Podskarbińska",
       "stats": {
-        "dateLabel": "Date",
-        "dateValue": "27 June 2026",
+        "dateLabel": "Next event",
+        "dateValue": "1 August",
         "freeLabel": "Entry",
         "freeValue": "FREE",
         "prizeLabel": "💰 Prize pool",
@@ -99,6 +99,7 @@
       "quickNavLabel": "Quick links",
       "quickNav": {
         "results": "Results",
+        "events": "Events",
         "whatIs": "What is it",
         "program": "Program",
         "location": "Location",
@@ -830,6 +831,11 @@
     },
     "detail": {
       "back": "← All events",
+    "cta": {
+      "create": "Create account to register →",
+      "signInPrompt": "Already have an account?",
+      "signIn": "Sign in"
+    },
       "whenTitle": "When",
       "whereTitle": "Where",
       "capacityTitle": "Capacity",
@@ -907,7 +913,9 @@
     "backToSignIn": "Back to sign in",
     "nav": {
       "profile": "Profile",
-      "signIn": "Sign in"
+      "signIn": "Sign in",
+      "logOut": "Log out",
+      "loggingOut": "Logging out…"
     },
     "errors": {
       "generic": "Something went wrong. Please try again.",
@@ -984,6 +992,15 @@
     "title": "Profile",
     "subtitle": "Keep your details up to date for race day.",
     "completePrompt": "Complete your profile to register for events.",
+    "sections": {
+      "detailsTitle": "Your details",
+      "detailsSub": "Your name as it appears on results.",
+      "runnerTitle": "Runner details",
+      "runnerSub": "Used for your race category and results ranking."
+    },
+    "editNote": "You can edit these anytime.",
+    "continueNote": "We'll take you straight back to registration.",
+    "saveContinue": "Save & continue →",
     "saved": "Profile saved.",
     "save": "Save profile",
     "saving": "Saving…",
@@ -1001,6 +1018,9 @@
     },
     "registrations": {
       "title": "My registrations",
+      "heading": "Your race nights",
+      "bib": "Bib",
+      "bibPending": "Bib assigned at check-in",
       "empty": "You haven't registered for any events yet.",
       "ticket": "View ticket →",
       "free": "Free",
@@ -1016,6 +1036,32 @@
   "register": {
     "eyebrow": "Confirm registration",
     "title": "You're almost in",
+    "confirm": {
+      "back": "Back",
+      "eyebrow": "Confirm",
+      "title": "Confirm your spot",
+      "subtitle": "Check the details before we lock in your slot for this race night.",
+      "race": "Race",
+      "dateTime": "Date & time",
+      "venue": "Venue",
+      "distance": "Distance",
+      "distanceValue": "1 Mile",
+      "distanceSub": "1609 m · chip timed",
+      "runner": "Runner",
+      "cost": "Cost",
+      "submit": "Confirm registration",
+      "note": "No payment needed — the individual mile is free."
+    },
+    "guest": {
+      "title": "Register for {event}",
+      "detailsTitle": "Your details",
+      "detailsSub": "We'll create your runner profile and email your ticket.",
+      "email": "Email",
+      "passwordNote": "We'll email a link to set a password and access your profile.",
+      "submit": "Register & get ticket",
+      "signInPrompt": "Already have an account?",
+      "signIn": "Sign in"
+    },
     "summary": {
       "date": "Date",
       "venue": "Venue",

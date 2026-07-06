@@ -10,6 +10,7 @@ import type { EventSummary, TimeRange } from "./types";
  * registry entries below stay one line of intent each.
  */
 const MORNING: TimeRange = { start: "09:15", end: "12:15" };
+// Evening window for the alternating race nights.
 const EVENING: TimeRange = { start: "17:30", end: "20:30" };
 
 /** Build one individual mile-series entry from its date + time window. */
@@ -51,10 +52,10 @@ export const EVENTS: EventSummary[] = [
     city: EVENT.venue.city,
     results: warsaw2026Results,
   },
-  // Aug-2026 individual mile series. The first two events are live; the rest
-  // open closer to their dates (flip `upcoming` → `registration_open` here).
+  // Aug-2026 individual mile series. The first night is open; the rest are
+  // announced ("opens soon") until their registration windows open.
   mileEvent("2026-08-01", MORNING, "registration_open"),
-  mileEvent("2026-08-08", EVENING, "registration_open"),
+  mileEvent("2026-08-08", EVENING),
   mileEvent("2026-08-15", MORNING),
   mileEvent("2026-08-22", EVENING),
   mileEvent("2026-08-29", MORNING),

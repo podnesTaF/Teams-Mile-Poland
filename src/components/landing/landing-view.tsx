@@ -39,9 +39,10 @@ export function LandingView() {
   // Individual events register on their own detail page; the legacy team event
   // keeps the /register modal flow. Drives the hero + mid-page CTAs.
   const featuredIsIndividual = featuredEvent?.eventType === "individual";
-  const registerHref = featuredIsIndividual
-    ? `/events/${featuredEvent!.slug}`
-    : "/register";
+  // Main-page "Register" leads to the events list so the visitor picks a race
+  // night first, then registers from its detail page. (The legacy team event
+  // keeps its own /register modal flow.)
+  const registerHref = featuredIsIndividual ? "/#events" : "/register";
   // The "start a team / join a team" cards belong to the legacy team flow only.
   // For an individual featured event the EventSeries cards are the entry point.
   const showTeamFormats = registrationOpen && !featuredIsIndividual;
@@ -56,7 +57,7 @@ export function LandingView() {
       </noscript>
       <ScrollReveal />
       <Parallax />
-      <LandingHeader registrationOpen={registrationOpen} />
+      <LandingHeader registrationOpen={registrationOpen} registerHref={registerHref} />
       <Hero
         registrationOpen={registrationOpen}
         hasResults={Boolean(resultsEvent)}

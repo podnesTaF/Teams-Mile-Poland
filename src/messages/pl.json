@@ -83,8 +83,8 @@
       "ctaSecondary": "Skontaktuj się z nami",
       "venue": "Stadion Podskarbińska",
       "stats": {
-        "dateLabel": "Data",
-        "dateValue": "27 czerwca 2026",
+        "dateLabel": "Najbliższe wydarzenie",
+        "dateValue": "1 sierpnia",
         "freeLabel": "Udział",
         "freeValue": "BEZPŁATNY",
         "prizeLabel": "💰 Pula nagród",
@@ -99,6 +99,7 @@
       "quickNavLabel": "Szybkie linki",
       "quickNav": {
         "results": "Wyniki",
+        "events": "Wydarzenia",
         "whatIs": "Co to jest",
         "program": "Program",
         "location": "Lokalizacja",
@@ -830,6 +831,11 @@
     },
     "detail": {
       "back": "← Wszystkie wydarzenia",
+    "cta": {
+      "create": "Załóż konto, aby się zapisać →",
+      "signInPrompt": "Masz już konto?",
+      "signIn": "Zaloguj się"
+    },
       "whenTitle": "Kiedy",
       "whereTitle": "Gdzie",
       "capacityTitle": "Miejsca",
@@ -907,7 +913,9 @@
     "backToSignIn": "Powrót do logowania",
     "nav": {
       "profile": "Profil",
-      "signIn": "Zaloguj się"
+      "signIn": "Zaloguj się",
+      "logOut": "Wyloguj się",
+      "loggingOut": "Wylogowywanie…"
     },
     "errors": {
       "generic": "Coś poszło nie tak. Spróbuj ponownie.",
@@ -984,6 +992,15 @@
     "title": "Profil",
     "subtitle": "Aktualizuj dane przed dniem zawodów.",
     "completePrompt": "Uzupełnij profil, aby zapisać się na wydarzenia.",
+    "sections": {
+      "detailsTitle": "Twoje dane",
+      "detailsSub": "Twoje imię i nazwisko widoczne w wynikach.",
+      "runnerTitle": "Dane zawodnika",
+      "runnerSub": "Używane do Twojej kategorii i klasyfikacji wyników."
+    },
+    "editNote": "Możesz je edytować w każdej chwili.",
+    "continueNote": "Wrócimy Cię prosto do rejestracji.",
+    "saveContinue": "Zapisz i kontynuuj →",
     "saved": "Profil zapisany.",
     "save": "Zapisz profil",
     "saving": "Zapisywanie…",
@@ -1001,6 +1018,9 @@
     },
     "registrations": {
       "title": "Moje zapisy",
+      "heading": "Twoje starty",
+      "bib": "Numer",
+      "bibPending": "Numer nadawany przy odprawie",
       "empty": "Nie masz jeszcze żadnych zapisów.",
       "ticket": "Zobacz bilet →",
       "free": "Za darmo",
@@ -1016,6 +1036,32 @@
   "register": {
     "eyebrow": "Potwierdź zapis",
     "title": "Już prawie",
+    "confirm": {
+      "back": "Wstecz",
+      "eyebrow": "Potwierdzenie",
+      "title": "Potwierdź swój udział",
+      "subtitle": "Sprawdź szczegóły, zanim zarezerwujemy Twoje miejsce na tę noc biegową.",
+      "race": "Bieg",
+      "dateTime": "Data i godzina",
+      "venue": "Miejsce",
+      "distance": "Dystans",
+      "distanceValue": "1 mila",
+      "distanceSub": "1609 m · pomiar chipowy",
+      "runner": "Zawodnik",
+      "cost": "Koszt",
+      "submit": "Potwierdź rejestrację",
+      "note": "Bez opłat — bieg na milę jest darmowy."
+    },
+    "guest": {
+      "title": "Zapisz się na {event}",
+      "detailsTitle": "Twoje dane",
+      "detailsSub": "Utworzymy Twój profil zawodnika i wyślemy bilet e-mailem.",
+      "email": "E-mail",
+      "passwordNote": "Wyślemy link do ustawienia hasła i dostępu do profilu.",
+      "submit": "Zapisz się i odbierz bilet",
+      "signInPrompt": "Masz już konto?",
+      "signIn": "Zaloguj się"
+    },
     "summary": {
       "date": "Data",
       "venue": "Miejsce",

@@ -1,56 +1,10 @@
-"use client";
-
-import { useEffect, type ReactNode } from "react";
-
-import { useRouter } from "@/i18n/navigation";
-import { IconClose } from "@/components/ui/icons";
+import { type ReactNode } from "react";
 
 /**
- * Modal presentation for the auth cards. Rendered by the `@modal` intercepting
- * routes over the landing, mirroring how the registration modal works. Esc and
- * overlay-click close it back to the landing; body scroll is locked.
- */
-export function AuthModalShell({ children }: { children: ReactNode }) {
-  const router = useRouter();
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") router.push("/");
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.classList.add("modal-open");
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.classList.remove("modal-open");
-    };
-  }, [router]);
-
-  return (
-    <div
-      className="auth-overlay"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) router.push("/");
-      }}
-    >
-      <div className="ace-landing" style={{ position: "relative", width: "min(560px, 100%)", display: "flex", justifyContent: "center" }}>
-        <div className="auth-glow" />
-        <button
-          type="button"
-          className="modal-close"
-          onClick={() => router.push("/")}
-          aria-label="Close"
-        >
-          <IconClose />
-        </button>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/**
- * Full-page presentation for the auth cards — the hard-load fallback served by
- * the real `/auth/*` routes when there's no landing to intercept over.
+ * Full-page presentation for the auth cards — served by the real `/auth/*`
+ * routes. The individual-mile flow is full-page throughout for logged-out
+ * users (auth requires leaving the site: email verification link / Google
+ * OAuth), so there is no modal auth shell.
  */
 export function AuthPageShell({ children }: { children: ReactNode }) {
   return (

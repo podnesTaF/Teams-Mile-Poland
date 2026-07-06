@@ -5,6 +5,7 @@ import "@/app/landing.css";
 import "@/app/series-flows.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
+import { EventRegisterCta } from "@/features/event-registration/components/event-register-cta";
 import { Link } from "@/i18n/navigation";
 import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
 import type { EventStatus } from "@/lib/events/types";
@@ -117,9 +118,13 @@ export default async function EventDetailPage({ params }: PageProps) {
                 </div>
 
                 {state === "open" ? (
-                  <Link href={`/events/${slug}/register`} className="btn btn-red btn-block">
-                    {t("detail.states.open.cta")}
-                  </Link>
+                  <EventRegisterCta
+                    slug={slug}
+                    registerLabel={t("detail.states.open.cta")}
+                    createLabel={t("detail.cta.create")}
+                    signInPrompt={t("detail.cta.signInPrompt")}
+                    signInLabel={t("detail.cta.signIn")}
+                  />
                 ) : state === "closed" || state === "completed" ? (
                   <Link href="/#events" className="btn btn-stroke-dark btn-block">
                     {t(`detail.states.${state}.cta`)}
@@ -134,20 +139,6 @@ export default async function EventDetailPage({ params }: PageProps) {
               </div>
             </aside>
           </div>
-
-          {event.timetable && event.timetable.length > 0 ? (
-            <section className="ev-block" style={{ marginTop: "clamp(28px,4vw,44px)", maxWidth: 720 }}>
-              <h2 className="ev-block__title">{t("detail.scheduleTitle")}</h2>
-              <ul className="ev-timetable">
-                {event.timetable.map((block) => (
-                  <li key={block.labelKey} className="ev-timetable__row">
-                    <span className="ev-timetable__time">{block.time}</span>
-                    <span className="ev-timetable__label">{t(`timetable.${block.labelKey}`)}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
         </div>
       </main>
     </div>
