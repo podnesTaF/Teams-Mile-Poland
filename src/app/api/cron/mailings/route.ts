@@ -1,3 +1,4 @@
+import { runDueEventMailings } from "@/features/event-mailings/dispatch";
 import { runDueMailings } from "@/features/mailings/dispatch";
 
 // Secured cron endpoint. Wire to Vercel Cron (see vercel.json) — Vercel adds
@@ -16,6 +17,15 @@ export async function GET(req: Request) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const summaries = await runDueMailings(new Date());
-  return Response.json({ ok: true, ranAt: new Date().toISOString(), summaries });
+  const now = new Date();
+  // Legacy team lifecycle (runners) and the individual-event lifecycle
+  // (event_registrations) run independently — separate audiences + logs.
+  const summaries = await runDueMailings(now);
+  const eventSummaries = await runDueEventMailings(now);
+  return Response.json({
+    ok: true,
+    ranAt: now.toISOString(),
+    summaries,
+    eventSummaries,
+  });
 }

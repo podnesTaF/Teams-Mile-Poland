@@ -31,7 +31,12 @@
       "Bash(tar -xf d3.tar.gz -C d3)",
       "Bash(xxd)",
       "Bash(echo \"exit: $?\")",
-      "Bash(npx prettier *)"
+      "Bash(npx prettier *)",
+      "Bash(grep -rnE \"IntlMessages|declare \\(module|global\\)|AppConfig|Messages:\" src --include=*.ts --include=*.d.ts -l)",
+      "Bash(ls src/*.d.ts global.d.ts *.d.ts)",
+      "Bash(npm run *)",
+      "Bash(cat drizzle.config.ts)",
+      "Bash(cat drizzle.config.*)"
     ]
   }
 }

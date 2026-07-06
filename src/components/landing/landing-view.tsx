@@ -1,9 +1,11 @@
 import "@/app/landing.css";
+import "@/app/series-flows.css";
 
 import { Atmosphere } from "@/components/landing/atmosphere";
 import { Audience } from "@/components/landing/audience";
 import { Contact } from "@/components/landing/contact";
 import { CookieConsent } from "@/components/landing/cookie-consent";
+import { EventSeries } from "@/components/landing/event-series";
 import { Faq } from "@/components/landing/faq";
 import { FinalCta } from "@/components/landing/final-cta";
 import { Formats } from "@/components/landing/formats";
@@ -34,6 +36,16 @@ export function LandingView() {
   const featuredEvent = getFeaturedEvent();
   const resultsEvent = getLatestResults();
   const registrationOpen = isRegistrationOpen(featuredEvent);
+  // Individual events register on their own detail page; the legacy team event
+  // keeps the /register modal flow. Drives the hero + mid-page CTAs.
+  const featuredIsIndividual = featuredEvent?.eventType === "individual";
+  // Main-page "Register" leads to the events list so the visitor picks a race
+  // night first, then registers from its detail page. (The legacy team event
+  // keeps its own /register modal flow.)
+  const registerHref = featuredIsIndividual ? "/#events" : "/register";
+  // The "start a team / join a team" cards belong to the legacy team flow only.
+  // For an individual featured event the EventSeries cards are the entry point.
+  const showTeamFormats = registrationOpen && !featuredIsIndividual;
 
   return (
     <div className="ace-landing reveal-ready">
@@ -45,20 +57,25 @@ export function LandingView() {
       </noscript>
       <ScrollReveal />
       <Parallax />
-      <LandingHeader registrationOpen={registrationOpen} />
-      <Hero registrationOpen={registrationOpen} hasResults={Boolean(resultsEvent)} />
+      <LandingHeader registrationOpen={registrationOpen} registerHref={registerHref} />
+      <Hero
+        registrationOpen={registrationOpen}
+        hasResults={Boolean(resultsEvent)}
+        registerHref={registerHref}
+      />
+      <EventSeries />
       {resultsEvent && <Results event={resultsEvent} />}
-      {registrationOpen && <Formats />}
+      {showTeamFormats && <Formats />}
       <WhatIs />
       <RatingPath />
-      {registrationOpen && <RegisterCta />}
+      {registrationOpen && <RegisterCta href={registerHref} />}
       <HowItGoes />
       <Roles />
       <Audience />
       <Location />
       <PathForward />
       <Atmosphere />
-      {registrationOpen && <RegisterCta />}
+      {registrationOpen && <RegisterCta href={registerHref} />}
       {/* <Program /> */}
       <InternationalAssociation />
       <Contact />

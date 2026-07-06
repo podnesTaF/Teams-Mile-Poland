@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     );
   }
 
+  // Legacy team registration flow (individual events are free — no checkout).
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 

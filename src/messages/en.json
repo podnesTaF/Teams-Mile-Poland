@@ -83,8 +83,8 @@
       "ctaSecondary": "Contact us",
       "venue": "Stadion Podskarbińska",
       "stats": {
-        "dateLabel": "Date",
-        "dateValue": "1 August 2026",
+        "dateLabel": "Next event",
+        "dateValue": "1 August",
         "freeLabel": "Entry",
         "freeValue": "FREE",
         "prizeLabel": "💰 Prize pool",
@@ -99,6 +99,7 @@
       "quickNavLabel": "Quick links",
       "quickNav": {
         "results": "Results",
+        "events": "Events",
         "whatIs": "What is it",
         "program": "Program",
         "location": "Location",
@@ -803,5 +804,289 @@
         ]
       }
     ]
+  },
+  "events": {
+    "series": {
+      "kicker": "Warsaw · August 2026",
+      "title": "The Individual Mile series",
+      "sub": "Five race nights at Stadion Podskarbińska. One mile, chip-timed, your level."
+    },
+    "status": {
+      "upcoming": "Opens soon",
+      "registration_open": "Registration open",
+      "registration_closed": "Registration closed",
+      "completed": "Completed",
+      "full": "Full"
+    },
+    "card": {
+      "viewDetails": "View details →",
+      "slots": "{free} free · {paid} paid",
+      "register": "Register →",
+      "opensSoon": "Opens soon",
+      "full": "Full",
+      "viewResults": "View results →",
+      "gun": "gun",
+      "freeLeft": "free left",
+      "paidLeft": "paid left"
+    },
+    "detail": {
+      "back": "← All events",
+    "cta": {
+      "create": "Create account to register →",
+      "signInPrompt": "Already have an account?",
+      "signIn": "Sign in"
+    },
+      "whenTitle": "When",
+      "whereTitle": "Where",
+      "capacityTitle": "Capacity",
+      "scheduleTitle": "Schedule",
+      "freeSlots": "{count} free entries",
+      "paidSlots": "{count} paid entries · {price} zł each",
+      "priceNote": "Free entry for the first {free} runners, then {paid} paid slots at {price} zł.",
+      "register": "Register",
+      "opensSoon": "Registration opens soon",
+      "closed": "Registration closed",
+      "freeRemaining": "{count} free spots left",
+      "paidRemaining": "{count} paid spots left",
+      "soldOut": "Sold out",
+      "facts": {
+        "date": "Date",
+        "gun": "Gun time",
+        "venue": "Venue",
+        "distance": "Distance"
+      },
+      "distanceValue": "1 Mile · 1609m",
+      "slots": {
+        "entry": "Entry",
+        "entrySub": "Every runner",
+        "free": "Free"
+      },
+      "states": {
+        "open": {
+          "kicker": "Now open · free tier",
+          "bannerTitle": "Registration open",
+          "bannerTxt": "Registration is free and open — claim your place. Terms of entry apply.",
+          "note": "You'll confirm date, time, venue and terms before anything is final.",
+          "cta": "Register free →"
+        },
+        "full": {
+          "kicker": "Sold out",
+          "bannerTitle": "This race night is full",
+          "bannerTxt": "All free and paid slots are gone. Try another night in the series.",
+          "note": "Already registered? Your ticket is in your account and inbox.",
+          "cta": "Pick another night"
+        },
+        "soon": {
+          "kicker": "Opens soon",
+          "bannerTitle": "Registration opens soon",
+          "bannerTxt": "This race night isn't open yet. Check back — free slots go fast.",
+          "note": "No slot is reserved yet.",
+          "cta": "Opens soon"
+        },
+        "closed": {
+          "kicker": "Registration closed",
+          "bannerTitle": "Registration has closed",
+          "bannerTxt": "Sign-ups are closed for this night. See you trackside — or pick another night.",
+          "note": "Already registered? Your ticket is in your account and inbox.",
+          "cta": "Pick another night"
+        },
+        "completed": {
+          "kicker": "Completed",
+          "bannerTitle": "Race complete",
+          "bannerTxt": "This race night has finished. Results are available.",
+          "note": "Check your profile for your placement.",
+          "cta": "View results →"
+        }
+      }
+    },
+    "timetable": {
+      "checkin": "Check-in & bib pickup",
+      "briefing": "Briefing & warm-up",
+      "heats": "Mile heats",
+      "cooldown": "Cool-down",
+      "awards": "Awards & photos"
+    }
+  },
+  "auth": {
+    "google": "Continue with Google",
+    "or": "or",
+    "backToSignIn": "Back to sign in",
+    "nav": {
+      "profile": "Profile",
+      "signIn": "Sign in",
+      "logOut": "Log out",
+      "loggingOut": "Logging out…"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "badCredentials": "Incorrect email or password.",
+      "notVerified": "Verify your email before signing in.",
+      "passwordMismatch": "Passwords don't match."
+    },
+    "fields": {
+      "firstName": "First name",
+      "lastName": "Surname",
+      "email": "Email",
+      "password": "Password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "fullName": "Full name"
+    },
+    "signUp": {
+      "eyebrow": "Create account",
+      "title": "Join the mile series",
+      "subtitle": "One account for every event.",
+      "submit": "Create account",
+      "submitting": "Creating…",
+      "passwordHint": "At least 8 characters.",
+      "haveAccount": "Already have an account?",
+      "terms": "I agree with the <link>Privacy Policy and Terms of Use</link>."
+    },
+    "signIn": {
+      "eyebrow": "Welcome back",
+      "title": "Sign in",
+      "subtitle": "Access your profile and registrations.",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "forgot": "Forgot password?",
+      "noAccount": "No account yet?",
+      "remember": "Remember me"
+    },
+    "forgot": {
+      "eyebrow": "Password reset",
+      "title": "Forgot your password?",
+      "subtitle": "We'll email you a reset link.",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "sentTitle": "Check your email",
+      "sentBody": "If that email exists, a reset link is on its way.",
+      "sentIntro": "If an account exists for"
+    },
+    "reset": {
+      "eyebrow": "Password reset",
+      "title": "Set a new password",
+      "subtitle": "Choose a new password for your account.",
+      "submit": "Save password",
+      "submitting": "Saving…",
+      "invalid": "This reset link is invalid or has expired.",
+      "requestNew": "Request a new link"
+    },
+    "verify": {
+      "eyebrow": "Verify email",
+      "title": "Check your email",
+      "body": "We've sent you a verification link. Open it to activate your account.",
+      "bodyWithEmail": "We've sent a verification link to {email}. Open it to activate your account.",
+      "resend": "Resend verification email",
+      "resending": "Sending…",
+      "resent": "Sent — check your inbox.",
+      "sentTo": "We sent a confirmation link to",
+      "confirmed": "I've confirmed — continue",
+      "resendIn": "Didn't get it? Check spam, or resend in",
+      "wrongAddress": "Wrong address? Go back"
+    },
+    "show": "Show",
+    "hide": "Hide"
+  },
+  "profile": {
+    "eyebrow": "Your profile",
+    "title": "Profile",
+    "subtitle": "Keep your details up to date for race day.",
+    "completePrompt": "Complete your profile to register for events.",
+    "sections": {
+      "detailsTitle": "Your details",
+      "detailsSub": "Your name as it appears on results.",
+      "runnerTitle": "Runner details",
+      "runnerSub": "Used for your race category and results ranking."
+    },
+    "editNote": "You can edit these anytime.",
+    "continueNote": "We'll take you straight back to registration.",
+    "saveContinue": "Save & continue →",
+    "saved": "Profile saved.",
+    "save": "Save profile",
+    "saving": "Saving…",
+    "fields": {
+      "firstName": "First name",
+      "lastName": "Surname",
+      "dateOfBirth": "Date of birth",
+      "sex": "Sex",
+      "sexPlaceholder": "Select",
+      "sexM": "Male",
+      "sexF": "Female",
+      "club": "Running club",
+      "clubPlaceholder": "Optional",
+      "phone": "Phone"
+    },
+    "registrations": {
+      "title": "My registrations",
+      "heading": "Your race nights",
+      "bib": "Bib",
+      "bibPending": "Bib assigned at check-in",
+      "empty": "You haven't registered for any events yet.",
+      "ticket": "View ticket →",
+      "free": "Free",
+      "paid": "Paid",
+      "status": {
+        "registered": "Registered",
+        "checked_in": "Checked in",
+        "no_show": "No-show",
+        "cancelled": "Cancelled"
+      }
+    }
+  },
+  "register": {
+    "eyebrow": "Confirm registration",
+    "title": "You're almost in",
+    "confirm": {
+      "back": "Back",
+      "eyebrow": "Confirm",
+      "title": "Confirm your spot",
+      "subtitle": "Check the details before we lock in your slot for this race night.",
+      "race": "Race",
+      "dateTime": "Date & time",
+      "venue": "Venue",
+      "distance": "Distance",
+      "distanceValue": "1 Mile",
+      "distanceSub": "1609 m · chip timed",
+      "runner": "Runner",
+      "cost": "Cost",
+      "submit": "Confirm registration",
+      "note": "No payment needed — the individual mile is free."
+    },
+    "guest": {
+      "title": "Register for {event}",
+      "detailsTitle": "Your details",
+      "detailsSub": "We'll create your runner profile and email your ticket.",
+      "email": "Email",
+      "passwordNote": "We'll email a link to set a password and access your profile.",
+      "submit": "Register & get ticket",
+      "signInPrompt": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "summary": {
+      "date": "Date",
+      "venue": "Venue",
+      "price": "Entry",
+      "free": "Free",
+      "paid": "{price} zł"
+    },
+    "terms": "I accept the <link>terms and privacy policy</link>.",
+    "submitFree": "Register for free",
+    "submitPaid": "Pay {price} zł & register",
+    "submitting": "Processing…",
+    "cancelled": "Payment cancelled. You can try again.",
+    "processingTitle": "Payment received",
+    "processingBody": "We're preparing your ticket. It'll appear in your profile shortly.",
+    "goToProfile": "Go to profile",
+    "alreadyTitle": "Already registered",
+    "alreadyBody": "You're on the list for this event.",
+    "viewTicket": "View ticket",
+    "closedTitle": "Registration closed",
+    "closedBody": "Registration isn't open for this event.",
+    "verifyTitle": "Verify your email",
+    "verifyBody": "Confirm your email address before registering.",
+    "verifyCta": "Verify email",
+    "profileTitle": "Complete your profile",
+    "profileBody": "Add your details before registering for events.",
+    "profileCta": "Complete profile"
   }
 }

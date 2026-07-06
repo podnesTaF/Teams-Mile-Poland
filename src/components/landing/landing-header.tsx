@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 
 import { Link } from "@/i18n/navigation";
+import { authClient } from "@/lib/auth/auth-client";
+import { LogOutButton } from "@/features/auth/components/log-out-button";
 import { cn } from "@/lib/utils";
 
 import { MenuIcon } from "./icons";
@@ -24,8 +26,18 @@ const NAV_LINKS = [
  * up and hides on scroll down. Force-hidden while a prize-table modal is open
  * (the modal broadcasts an `ace:modal` event).
  */
-export function LandingHeader({ registrationOpen = false }: { registrationOpen?: boolean }) {
+export function LandingHeader({
+  registrationOpen = false,
+  registerHref = "/register",
+}: {
+  registrationOpen?: boolean;
+  registerHref?: string;
+}) {
   const t = useTranslations("landing.header");
+  const tAuth = useTranslations("auth");
+  const { data: session, isPending: authPending } = authClient.useSession();
+  const authHref = session ? "/profile" : "/auth/sign-in";
+  const authLabel = session ? tAuth("nav.profile") : tAuth("nav.signIn");
   const [menuOpen, setMenuOpen] = useState(false);
   const [shownByScroll, setShownByScroll] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -105,9 +117,17 @@ export function LandingHeader({ registrationOpen = false }: { registrationOpen?:
           </nav>
 
           <div className="site-header__actions">
+            {!authPending ? (
+              <>
+                <Link href={authHref} className="site-header__link site-header__auth">
+                  {authLabel}
+                </Link>
+                {session ? <LogOutButton className="site-header__link" /> : null}
+              </>
+            ) : null}
             <LangPill tone="dark" />
             {registrationOpen ? (
-              <Link href="/register" className="btn btn-red btn-sm site-header__cta">
+              <Link href={registerHref} className="btn btn-red btn-sm site-header__cta">
                 {t("cta")}
               </Link>
             ) : (
@@ -143,9 +163,17 @@ export function LandingHeader({ registrationOpen = false }: { registrationOpen?:
           ))}
         </nav>
         <div className="site-header__drawer-actions">
+          {!authPending ? (
+            <>
+              <Link href={authHref} className="site-header__drawer-link" onClick={closeMenu}>
+                {authLabel}
+              </Link>
+              {session ? <LogOutButton className="site-header__drawer-link" /> : null}
+            </>
+          ) : null}
           <LangPill tone="dark" />
           {registrationOpen ? (
-            <Link href="/register" className="btn btn-red site-header__cta" onClick={closeMenu}>
+            <Link href={registerHref} className="btn btn-red site-header__cta" onClick={closeMenu}>
               {t("cta")}
             </Link>
           ) : (

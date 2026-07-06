@@ -83,8 +83,8 @@
       "ctaSecondary": "Skontaktuj się z nami",
       "venue": "Stadion Podskarbińska",
       "stats": {
-        "dateLabel": "Data",
-        "dateValue": "1 sierpnia 2026",
+        "dateLabel": "Najbliższe wydarzenie",
+        "dateValue": "1 sierpnia",
         "freeLabel": "Udział",
         "freeValue": "BEZPŁATNY",
         "prizeLabel": "💰 Pula nagród",
@@ -99,6 +99,7 @@
       "quickNavLabel": "Szybkie linki",
       "quickNav": {
         "results": "Wyniki",
+        "events": "Wydarzenia",
         "whatIs": "Co to jest",
         "program": "Program",
         "location": "Lokalizacja",
@@ -803,5 +804,289 @@
         ]
       }
     ]
+  },
+  "events": {
+    "series": {
+      "kicker": "Warszawa · sierpień 2026",
+      "title": "Cykl biegów na milę indywidualnie",
+      "sub": "Pięć wieczorów biegowych na Stadionie Podskarbińska. Jedna mila, pomiar czasu, Twój poziom."
+    },
+    "status": {
+      "upcoming": "Wkrótce",
+      "registration_open": "Zapisy otwarte",
+      "registration_closed": "Zapisy zamknięte",
+      "completed": "Zakończony",
+      "full": "Brak miejsc"
+    },
+    "card": {
+      "viewDetails": "Zobacz szczegóły →",
+      "slots": "{free} darmowych · {paid} płatnych",
+      "register": "Zapisz się →",
+      "opensSoon": "Wkrótce",
+      "full": "Brak miejsc",
+      "viewResults": "Wyniki →",
+      "gun": "start",
+      "freeLeft": "darmowych",
+      "paidLeft": "płatnych"
+    },
+    "detail": {
+      "back": "← Wszystkie wydarzenia",
+    "cta": {
+      "create": "Załóż konto, aby się zapisać →",
+      "signInPrompt": "Masz już konto?",
+      "signIn": "Zaloguj się"
+    },
+      "whenTitle": "Kiedy",
+      "whereTitle": "Gdzie",
+      "capacityTitle": "Miejsca",
+      "scheduleTitle": "Harmonogram",
+      "freeSlots": "{count} darmowych miejsc",
+      "paidSlots": "{count} płatnych miejsc · {price} zł każde",
+      "priceNote": "Bezpłatny udział dla pierwszych {free} biegaczy, potem {paid} miejsc płatnych po {price} zł.",
+      "register": "Zapisz się",
+      "opensSoon": "Zapisy wkrótce",
+      "closed": "Zapisy zamknięte",
+      "freeRemaining": "Wolnych miejsc: {count}",
+      "paidRemaining": "Płatnych miejsc: {count}",
+      "soldOut": "Brak miejsc",
+      "facts": {
+        "date": "Data",
+        "gun": "Start",
+        "venue": "Miejsce",
+        "distance": "Dystans"
+      },
+      "distanceValue": "1 mila · 1609 m",
+      "slots": {
+        "entry": "Wpisowe",
+        "entrySub": "Każdy biegacz",
+        "free": "Za darmo"
+      },
+      "states": {
+        "open": {
+          "kicker": "Otwarte · pula darmowa",
+          "bannerTitle": "Zapisy otwarte",
+          "bannerTxt": "Zapisy są bezpłatne i otwarte — zajmij miejsce. Obowiązuje regulamin.",
+          "note": "Przed finalizacją potwierdzisz datę, godzinę, miejsce i regulamin.",
+          "cta": "Zapisz się za darmo →"
+        },
+        "full": {
+          "kicker": "Brak miejsc",
+          "bannerTitle": "Ten wieczór jest pełny",
+          "bannerTxt": "Wszystkie miejsca darmowe i płatne są zajęte. Wybierz inny wieczór.",
+          "note": "Już zapisany? Bilet jest na koncie i w mailu.",
+          "cta": "Wybierz inny wieczór"
+        },
+        "soon": {
+          "kicker": "Wkrótce",
+          "bannerTitle": "Zapisy wkrótce",
+          "bannerTxt": "Ten wieczór nie jest jeszcze otwarty. Zajrzyj wkrótce — darmowe miejsca znikają szybko.",
+          "note": "Żadne miejsce nie jest jeszcze zarezerwowane.",
+          "cta": "Wkrótce"
+        },
+        "closed": {
+          "kicker": "Zapisy zamknięte",
+          "bannerTitle": "Zapisy zostały zamknięte",
+          "bannerTxt": "Zapisy na ten wieczór są zamknięte. Do zobaczenia — lub wybierz inny wieczór.",
+          "note": "Już zapisany? Bilet jest na koncie i w mailu.",
+          "cta": "Wybierz inny wieczór"
+        },
+        "completed": {
+          "kicker": "Zakończony",
+          "bannerTitle": "Bieg zakończony",
+          "bannerTxt": "Ten wieczór biegowy się zakończył. Wyniki są dostępne.",
+          "note": "Sprawdź swoją pozycję w profilu.",
+          "cta": "Zobacz wyniki →"
+        }
+      }
+    },
+    "timetable": {
+      "checkin": "Rejestracja i odbiór numerów",
+      "briefing": "Odprawa i rozgrzewka",
+      "heats": "Biegi na milę",
+      "cooldown": "Schłodzenie",
+      "awards": "Dekoracja i zdjęcia"
+    }
+  },
+  "auth": {
+    "google": "Kontynuuj z Google",
+    "or": "lub",
+    "backToSignIn": "Powrót do logowania",
+    "nav": {
+      "profile": "Profil",
+      "signIn": "Zaloguj się",
+      "logOut": "Wyloguj się",
+      "loggingOut": "Wylogowywanie…"
+    },
+    "errors": {
+      "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+      "badCredentials": "Nieprawidłowy e-mail lub hasło.",
+      "notVerified": "Potwierdź adres e-mail przed zalogowaniem.",
+      "passwordMismatch": "Hasła nie są takie same."
+    },
+    "fields": {
+      "firstName": "Imię",
+      "lastName": "Nazwisko",
+      "email": "E-mail",
+      "password": "Hasło",
+      "newPassword": "Nowe hasło",
+      "confirmPassword": "Potwierdź hasło",
+      "fullName": "Imię i nazwisko"
+    },
+    "signUp": {
+      "eyebrow": "Załóż konto",
+      "title": "Dołącz do cyklu",
+      "subtitle": "Jedno konto do wszystkich wydarzeń.",
+      "submit": "Załóż konto",
+      "submitting": "Tworzenie…",
+      "passwordHint": "Minimum 8 znaków.",
+      "haveAccount": "Masz już konto?",
+      "terms": "Akceptuję <link>Politykę prywatności i Regulamin</link>."
+    },
+    "signIn": {
+      "eyebrow": "Witaj ponownie",
+      "title": "Zaloguj się",
+      "subtitle": "Dostęp do profilu i zapisów.",
+      "submit": "Zaloguj się",
+      "submitting": "Logowanie…",
+      "forgot": "Nie pamiętasz hasła?",
+      "noAccount": "Nie masz konta?",
+      "remember": "Zapamiętaj mnie"
+    },
+    "forgot": {
+      "eyebrow": "Reset hasła",
+      "title": "Nie pamiętasz hasła?",
+      "subtitle": "Wyślemy Ci link do resetu.",
+      "submit": "Wyślij link",
+      "submitting": "Wysyłanie…",
+      "sentTitle": "Sprawdź e-mail",
+      "sentBody": "Jeśli konto istnieje, link do resetu jest w drodze.",
+      "sentIntro": "Jeśli konto istnieje dla"
+    },
+    "reset": {
+      "eyebrow": "Reset hasła",
+      "title": "Ustaw nowe hasło",
+      "subtitle": "Wybierz nowe hasło do konta.",
+      "submit": "Zapisz hasło",
+      "submitting": "Zapisywanie…",
+      "invalid": "Ten link jest nieprawidłowy lub wygasł.",
+      "requestNew": "Poproś o nowy link"
+    },
+    "verify": {
+      "eyebrow": "Weryfikacja e-mail",
+      "title": "Sprawdź e-mail",
+      "body": "Wysłaliśmy link weryfikacyjny. Otwórz go, aby aktywować konto.",
+      "bodyWithEmail": "Wysłaliśmy link weryfikacyjny na {email}. Otwórz go, aby aktywować konto.",
+      "resend": "Wyślij ponownie",
+      "resending": "Wysyłanie…",
+      "resent": "Wysłano — sprawdź skrzynkę.",
+      "sentTo": "Wysłaliśmy link potwierdzający na",
+      "confirmed": "Potwierdziłem — kontynuuj",
+      "resendIn": "Nie dotarł? Sprawdź spam lub wyślij ponownie za",
+      "wrongAddress": "Zły adres? Wróć"
+    },
+    "show": "Pokaż",
+    "hide": "Ukryj"
+  },
+  "profile": {
+    "eyebrow": "Twój profil",
+    "title": "Profil",
+    "subtitle": "Aktualizuj dane przed dniem zawodów.",
+    "completePrompt": "Uzupełnij profil, aby zapisać się na wydarzenia.",
+    "sections": {
+      "detailsTitle": "Twoje dane",
+      "detailsSub": "Twoje imię i nazwisko widoczne w wynikach.",
+      "runnerTitle": "Dane zawodnika",
+      "runnerSub": "Używane do Twojej kategorii i klasyfikacji wyników."
+    },
+    "editNote": "Możesz je edytować w każdej chwili.",
+    "continueNote": "Wrócimy Cię prosto do rejestracji.",
+    "saveContinue": "Zapisz i kontynuuj →",
+    "saved": "Profil zapisany.",
+    "save": "Zapisz profil",
+    "saving": "Zapisywanie…",
+    "fields": {
+      "firstName": "Imię",
+      "lastName": "Nazwisko",
+      "dateOfBirth": "Data urodzenia",
+      "sex": "Płeć",
+      "sexPlaceholder": "Wybierz",
+      "sexM": "Mężczyzna",
+      "sexF": "Kobieta",
+      "club": "Klub biegowy",
+      "clubPlaceholder": "Opcjonalnie",
+      "phone": "Telefon"
+    },
+    "registrations": {
+      "title": "Moje zapisy",
+      "heading": "Twoje starty",
+      "bib": "Numer",
+      "bibPending": "Numer nadawany przy odprawie",
+      "empty": "Nie masz jeszcze żadnych zapisów.",
+      "ticket": "Zobacz bilet →",
+      "free": "Za darmo",
+      "paid": "Opłacone",
+      "status": {
+        "registered": "Zapisany",
+        "checked_in": "Zameldowany",
+        "no_show": "Nieobecny",
+        "cancelled": "Anulowano"
+      }
+    }
+  },
+  "register": {
+    "eyebrow": "Potwierdź zapis",
+    "title": "Już prawie",
+    "confirm": {
+      "back": "Wstecz",
+      "eyebrow": "Potwierdzenie",
+      "title": "Potwierdź swój udział",
+      "subtitle": "Sprawdź szczegóły, zanim zarezerwujemy Twoje miejsce na tę noc biegową.",
+      "race": "Bieg",
+      "dateTime": "Data i godzina",
+      "venue": "Miejsce",
+      "distance": "Dystans",
+      "distanceValue": "1 mila",
+      "distanceSub": "1609 m · pomiar chipowy",
+      "runner": "Zawodnik",
+      "cost": "Koszt",
+      "submit": "Potwierdź rejestrację",
+      "note": "Bez opłat — bieg na milę jest darmowy."
+    },
+    "guest": {
+      "title": "Zapisz się na {event}",
+      "detailsTitle": "Twoje dane",
+      "detailsSub": "Utworzymy Twój profil zawodnika i wyślemy bilet e-mailem.",
+      "email": "E-mail",
+      "passwordNote": "Wyślemy link do ustawienia hasła i dostępu do profilu.",
+      "submit": "Zapisz się i odbierz bilet",
+      "signInPrompt": "Masz już konto?",
+      "signIn": "Zaloguj się"
+    },
+    "summary": {
+      "date": "Data",
+      "venue": "Miejsce",
+      "price": "Wpisowe",
+      "free": "Za darmo",
+      "paid": "{price} zł"
+    },
+    "terms": "Akceptuję <link>regulamin i politykę prywatności</link>.",
+    "submitFree": "Zapisz się za darmo",
+    "submitPaid": "Zapłać {price} zł i zapisz się",
+    "submitting": "Przetwarzanie…",
+    "cancelled": "Płatność anulowana. Możesz spróbować ponownie.",
+    "processingTitle": "Płatność otrzymana",
+    "processingBody": "Przygotowujemy Twój bilet. Wkrótce pojawi się w profilu.",
+    "goToProfile": "Przejdź do profilu",
+    "alreadyTitle": "Już zapisany",
+    "alreadyBody": "Jesteś na liście na to wydarzenie.",
+    "viewTicket": "Zobacz bilet",
+    "closedTitle": "Zapisy zamknięte",
+    "closedBody": "Zapisy na to wydarzenie nie są otwarte.",
+    "verifyTitle": "Potwierdź e-mail",
+    "verifyBody": "Potwierdź adres e-mail przed zapisem.",
+    "verifyCta": "Potwierdź e-mail",
+    "profileTitle": "Uzupełnij profil",
+    "profileBody": "Dodaj swoje dane przed zapisem na wydarzenia.",
+    "profileCta": "Uzupełnij profil"
   }
 }

@@ -1,0 +1,998 @@
+/* ===================================================================
+ * Mile Series — new flows (series overview + auth modals).
+ * Imported from the Claude Design project "Mile Series - New Flows".
+ * Everything is scoped under `.ace-landing` so it inherits the site's
+ * dark theme + button system; a token bridge maps the mockup's token
+ * names onto the site's `--acl-*` tokens so the design CSS is verbatim.
+ * ================================================================= */
+
+.ace-landing {
+  /* bridge: mockup token names → site tokens */
+  --red: var(--acl-red);
+  --ink: var(--acl-ink);
+  --ink-soft: var(--acl-ink-soft);
+  --muted: var(--acl-muted);
+  --grey: var(--acl-grey);
+  --grey-line: var(--acl-grey-line);
+  --white: var(--acl-white);
+  /* new semantic tokens (brand red + greys + one green + one amber) */
+  --ok: #30b755;
+  --ok-soft: rgba(48, 183, 85, 0.14);
+  --amber: #e0a800;
+  --amber-soft: rgba(224, 168, 0, 0.14);
+  --red-soft: rgba(229, 31, 50, 0.14);
+  --card: #202220;
+  --card-2: #262825;
+  --line-d: rgba(255, 255, 255, 0.12);
+  --line-d2: rgba(255, 255, 255, 0.2);
+}
+
+.ace-landing .btn-full {
+  width: 100%;
+}
+.ace-landing .btn-sm {
+  padding: 9px 16px;
+  font-size: 0.82rem;
+}
+
+/* ================================================================
+ * FLOW 1 — DISCOVER & PICK A RACE (series overview section)
+ * ================================================================ */
+.ace-landing .series-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+.ace-landing .series-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+.ace-landing .legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.ace-landing .legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+.ace-landing .ld-open { background: var(--ok); }
+.ace-landing .ld-soon { background: var(--amber); }
+.ace-landing .ld-full { background: var(--red); }
+.ace-landing .ld-closed { background: var(--muted); }
+.ace-landing .ld-done { background: var(--line-d2); }
+
+.ace-landing .series-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: clamp(32px, 4vw, 44px);
+}
+.ace-landing .race-row {
+  display: grid;
+  grid-template-columns: 104px 1fr auto;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line-d);
+  border-left: 4px solid var(--muted);
+  border-radius: 6px;
+  padding: 22px clamp(20px, 2.6vw, 32px);
+  transition: border-color 0.15s, transform 0.15s, background 0.15s;
+  text-decoration: none;
+  color: inherit;
+}
+.ace-landing .race-row[data-state="open"] { border-left-color: var(--ok); }
+.ace-landing .race-row[data-state="soon"] { border-left-color: var(--amber); }
+.ace-landing .race-row[data-state="full"] { border-left-color: var(--red); }
+.ace-landing .race-row[data-state="closed"] { border-left-color: var(--muted); opacity: 0.72; }
+.ace-landing .race-row[data-state="completed"] { border-left-color: var(--line-d2); opacity: 0.62; }
+.ace-landing .race-row.is-actionable { cursor: pointer; }
+.ace-landing .race-row.is-actionable:hover {
+  background: var(--card-2);
+  border-color: var(--line-d2);
+  transform: translateX(2px);
+}
+
+.ace-landing .race-date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1;
+}
+.ace-landing .race-date__d {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 2.6rem;
+  color: #fff;
+}
+.ace-landing .race-date__m {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-top: 4px;
+}
+.ace-landing .race-date__y {
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.ace-landing .race-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.ace-landing .race-info__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+.ace-landing .race-title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+  text-transform: uppercase;
+  line-height: 1;
+}
+.ace-landing .race-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.ace-landing .race-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ace-landing .race-meta b { color: #d8d8d6; font-weight: 500; }
+
+/* fullness bar */
+.ace-landing .fill {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 210px;
+}
+.ace-landing .fill__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  display: flex;
+}
+.ace-landing .fill__free { height: 100%; background: var(--ok); }
+.ace-landing .fill__paid { height: 100%; background: var(--red); }
+.ace-landing .fill__legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.ace-landing .fill__legend b { color: #e9e9e7; }
+
+.ace-landing .race-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  text-align: right;
+  min-width: 150px;
+}
+
+/* status badge */
+.ace-landing .status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.ace-landing .status__dot { width: 7px; height: 7px; border-radius: 50%; }
+.ace-landing .status--open { background: var(--ok-soft); color: #7fe39c; border-color: rgba(48, 183, 85, 0.4); }
+.ace-landing .status--open .status__dot { background: var(--ok); }
+.ace-landing .status--soon { background: var(--amber-soft); color: #f0cd66; border-color: rgba(224, 168, 0, 0.4); }
+.ace-landing .status--soon .status__dot { background: var(--amber); }
+.ace-landing .status--full { background: var(--red-soft); color: #f6899a; border-color: rgba(229, 31, 50, 0.45); }
+.ace-landing .status--full .status__dot { background: var(--red); }
+.ace-landing .status--closed { background: rgba(255, 255, 255, 0.06); color: var(--muted); border-color: var(--line-d); }
+.ace-landing .status--closed .status__dot { background: var(--muted); }
+.ace-landing .status--completed { background: rgba(255, 255, 255, 0.06); color: #b8b8b6; border-color: var(--line-d); }
+.ace-landing .status--completed .status__dot { background: var(--line-d2); }
+
+.ace-landing .race-tag {
+  background: rgba(229, 31, 50, 0.14);
+  color: #f6899a;
+  border-color: rgba(229, 31, 50, 0.45);
+}
+.ace-landing .race-tag .status__dot { background: var(--red); }
+
+/* ================================================================
+ * Mobile refinements for the series list
+ * ================================================================ */
+@media (max-width: 680px) {
+  .ace-landing .race-row { grid-template-columns: 64px 1fr; gap: 16px 18px; }
+  .ace-landing .race-cta {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .ace-landing .race-date__d { font-size: 2rem; }
+  .ace-landing .fill { min-width: 0; flex: 1; }
+}
+@media (max-width: 560px) {
+  .ace-landing .series-head { gap: 16px; }
+  .ace-landing .series-legend { gap: 6px 12px; }
+  .ace-landing .legend-item { font-size: 0.72rem; }
+}
+
+/* ================================================================
+ * FLOW 1 — RACE DETAIL
+ * ================================================================ */
+.ace-landing .detail-back {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--acl-white);
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+.ace-landing .detail-back:hover { opacity: 1; }
+.ace-landing .detail-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.9fr;
+  gap: clamp(24px, 3.5vw, 48px);
+  align-items: start;
+}
+.ace-landing .detail-card {
+  background: var(--card);
+  border: 1px solid var(--line-d);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.ace-landing .detail-hero {
+  position: relative;
+  padding: clamp(28px, 4vw, 44px);
+  border-bottom: 1px solid var(--line-d);
+  background: linear-gradient(135deg, #2a1113 0%, var(--card) 62%);
+}
+.ace-landing .detail-hero__badge {
+  position: absolute;
+  right: clamp(20px, 3vw, 32px);
+  top: clamp(20px, 3vw, 32px);
+}
+.ace-landing .detail-title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  text-transform: uppercase;
+  line-height: 0.95;
+}
+.ace-landing .detail-sub { color: var(--muted); margin-top: 10px; }
+.ace-landing .detail-facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; }
+.ace-landing .fact {
+  padding: clamp(18px, 2.4vw, 24px);
+  border-right: 1px solid var(--line-d);
+  border-bottom: 1px solid var(--line-d);
+}
+.ace-landing .fact:nth-child(2n) { border-right: 0; }
+.ace-landing .fact__k {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ace-landing .fact__v {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+.ace-landing .detail-terms {
+  padding: clamp(18px, 2.4vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* slot summary aside (white card) */
+.ace-landing .slots-card {
+  background: #fff;
+  color: var(--ink);
+  border-radius: 6px;
+  padding: clamp(24px, 3vw, 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 104px;
+}
+.ace-landing .slots-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ececec;
+}
+.ace-landing .slots-row:last-of-type { border-bottom: 0; padding-bottom: 0; }
+.ace-landing .slots-lbl { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ace-landing .slots-lbl b {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  line-height: 1.1;
+  display: block;
+  margin-bottom: 3px;
+}
+.ace-landing .slots-lbl small { font-size: 0.78rem; color: var(--muted); display: block; }
+.ace-landing .slots-val {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.6rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.ace-landing .slots-val--free { color: var(--ok); }
+.ace-landing .slots-val--paid { color: var(--red); }
+.ace-landing .slots-val--muted { color: var(--muted); }
+.ace-landing .slots-note { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+@media (max-width: 860px) {
+  .ace-landing .detail-grid { grid-template-columns: 1fr; }
+  .ace-landing .slots-card { position: static; }
+}
+@media (max-width: 680px) {
+  .ace-landing .detail-facts { grid-template-columns: 1fr; }
+  .ace-landing .fact { border-right: 0; }
+  .ace-landing .detail-hero__badge { position: static; margin-bottom: 12px; }
+  .ace-landing .detail-title { font-size: 2rem; }
+}
+
+/* ================================================================
+ * FLOW 2 — AUTH (centered full-page card)
+ * ================================================================ */
+/* The individual-mile flow is full-page throughout for logged-out users, so
+ * there is no modal auth shell — only the page-shell `.auth-wrap` below. */
+.ace-landing .auth-wrap {
+  /* Full viewport — the page shell renders no header, so the old `- 74px`
+   * left a gap that showed the light body background as a white stripe. */
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(32px, 6vw, 72px) 24px;
+  position: relative;
+  overflow: hidden;
+}
+.ace-landing .auth-glow {
+  position: absolute;
+  left: 50%;
+  bottom: -40%;
+  width: min(900px, 120%);
+  height: 100%;
+  transform: translateX(-50%);
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 50% 60% at 50% 100%,
+    rgba(229, 31, 50, 0.5) 0%,
+    rgba(229, 31, 50, 0.14) 40%,
+    rgba(229, 31, 50, 0) 70%
+  );
+}
+.ace-landing .auth-card {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  color: var(--ink);
+  border-radius: 8px;
+  width: min(460px, 100%);
+  margin: 0 auto;
+  padding: clamp(30px, 4vw, 44px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+.ace-landing .auth-card--wide { width: min(560px, 100%); }
+.ace-landing .auth-head {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 26px;
+}
+.ace-landing .auth-title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--ink);
+}
+.ace-landing .auth-sub { font-size: 0.92rem; color: var(--muted); line-height: 1.5; }
+.ace-landing .auth-form { display: flex; flex-direction: column; gap: 14px; }
+.ace-landing .flabel {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  display: block;
+  margin-bottom: 6px;
+}
+.ace-landing .finput {
+  width: 100%;
+  border: 1px solid var(--grey-line);
+  border-radius: 4px;
+  padding: 14px 12px;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 1rem;
+  color: var(--ink);
+  background: #fff;
+}
+.ace-landing .finput::placeholder { color: var(--muted); }
+.ace-landing .finput:focus {
+  outline: none;
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-soft);
+}
+.ace-landing .finput--err { border-color: var(--red); }
+.ace-landing .field-msg {
+  font-size: 0.78rem;
+  margin-top: 6px;
+  color: var(--red);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ace-landing .pw-wrap { position: relative; }
+.ace-landing .pw-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ace-landing .auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.85rem;
+}
+.ace-landing .link { color: var(--red); font-weight: 600; cursor: pointer; background: none; border: 0; padding: 0; font: inherit; }
+.ace-landing .link:hover { text-decoration: underline; }
+.ace-landing .auth-alt {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  margin: 6px 0;
+}
+.ace-landing .auth-alt::before,
+.ace-landing .auth-alt::after { content: ""; height: 1px; background: #e6e6e6; flex: 1; }
+.ace-landing .btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid var(--grey-line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 4px;
+  padding: 13px;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.ace-landing .btn-google:hover { background: #f6f6f4; }
+.ace-landing .btn-google:disabled { opacity: 0.6; cursor: not-allowed; }
+.ace-landing .btn-google svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.ace-landing .auth-foot { text-align: center; font-size: 0.88rem; color: var(--muted); margin-top: 20px; }
+.ace-landing .auth-check {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+.ace-landing .auth-check input {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--grey-line);
+  border-radius: 5px;
+  cursor: pointer;
+  flex: 0 0 auto;
+  display: grid;
+  place-content: center;
+  margin: 0;
+}
+.ace-landing .auth-check input:checked { background: var(--red); border-color: var(--red); }
+.ace-landing .auth-check input:checked::before {
+  content: "";
+  width: 12px;
+  height: 8px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+.ace-landing .auth-check a { color: var(--red); }
+
+/* verify / status state icons */
+.ace-landing .state-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+.ace-landing .state-icon svg { width: 34px; height: 34px; }
+.ace-landing .state-icon--mail { background: var(--red-soft); color: var(--red); }
+.ace-landing .state-icon--ok { background: var(--ok-soft); color: var(--ok); }
+.ace-landing .state-icon--warn { background: var(--amber-soft); color: var(--amber); }
+.ace-landing .email-pill {
+  display: inline-block;
+  background: var(--grey);
+  color: var(--ink);
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 0.92rem;
+  margin: 4px 0 2px;
+}
+.ace-landing .resend-note { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+.ace-landing .countdown {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-style: italic;
+  color: var(--ink);
+}
+
+/* inline banner (used inside light auth cards + dark pages) */
+.ace-landing .banner {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  border-radius: 6px;
+  padding: 16px 18px;
+  border: 1px solid;
+}
+.ace-landing .banner__ic {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ace-landing .banner__ic svg { width: 18px; height: 18px; }
+.ace-landing .banner__body { display: flex; flex-direction: column; gap: 8px; }
+.ace-landing .banner__title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+.ace-landing .banner__txt { font-size: 0.9rem; line-height: 1.5; }
+.ace-landing .banner--warn { background: var(--amber-soft); border-color: rgba(224, 168, 0, 0.4); color: #8a6d00; }
+.ace-landing .banner--warn .banner__ic { background: rgba(224, 168, 0, 0.2); color: var(--amber); }
+.ace-landing .banner--red { background: var(--red-soft); border-color: rgba(229, 31, 50, 0.45); color: #a01120; }
+.ace-landing .banner--red .banner__ic { background: rgba(229, 31, 50, 0.2); color: var(--red); }
+.ace-landing .banner--info { background: rgba(255, 255, 255, 0.05); border-color: var(--line-d); color: #cfcfcd; }
+.ace-landing .banner--info .banner__ic { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.ace-landing .banner--ok { background: var(--ok-soft); border-color: rgba(48, 183, 85, 0.4); color: #1e7a3a; }
+.ace-landing .banner--ok .banner__ic { background: rgba(48, 183, 85, 0.2); color: var(--ok); }
+
+@media (max-width: 560px) {
+  .ace-landing .auth-card { padding: 26px 20px; }
+}
+
+/* ================================================================
+ * FLOW 3 — PROFILE (imported from design "Mile Series - New Flows").
+ * Minimal variant: identity aside (no completion bar / checklist),
+ * sectioned dark form, and the "my registrations" reg-card list.
+ * The date block reuses `.race-date` from FLOW 1.
+ * ================================================================ */
+.ace-landing .profile-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: clamp(28px, 4vw, 56px);
+  margin-top: clamp(28px, 3.5vw, 40px);
+  align-items: start;
+}
+.ace-landing .profile-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: sticky;
+  top: 104px;
+}
+.ace-landing .profile-id {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-start;
+}
+.ace-landing .profile-id > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.ace-landing .avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 6px;
+  background: var(--card-2);
+  border: 1px solid var(--line-d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 2.4rem;
+  color: var(--red);
+}
+.ace-landing .profile-name {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+.ace-landing .profile-email {
+  font-size: 0.86rem;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.ace-landing .profile-form {
+  background: var(--card);
+  border: 1px solid var(--line-d);
+  border-radius: 6px;
+  padding: clamp(24px, 3vw, 36px);
+}
+.ace-landing .form-section {
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line-d);
+}
+.ace-landing .form-section:last-of-type {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.ace-landing .form-section__h {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.ace-landing .form-section__sub {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+.ace-landing .fgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.ace-landing .fgrid .col-2 {
+  grid-column: span 2;
+}
+.ace-landing .fselect {
+  width: 100%;
+  border: 1px solid var(--grey-line);
+  border-radius: 4px;
+  padding: 14px 12px;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 1rem;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+.ace-landing .finput.on-dark,
+.ace-landing .fselect.on-dark {
+  background: #1a1c1a;
+  border-color: var(--line-d2);
+  color: #fff;
+  /* Render native controls (date picker + its calendar icon) in dark mode so
+   * the icon isn't a black-on-black glyph. */
+  color-scheme: dark;
+}
+.ace-landing .finput.on-dark::placeholder {
+  color: var(--muted);
+}
+.ace-landing .flabel.on-dark {
+  color: #c4c4c2;
+}
+.ace-landing .form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28px;
+}
+.ace-landing .form-actions__note {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* My registrations — reg-card list (reuses .race-date + .status) */
+.ace-landing .regs-section {
+  margin-top: clamp(40px, 6vw, 64px);
+}
+.ace-landing .section-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.ace-landing .section-label::after {
+  content: "";
+  height: 1px;
+  background: var(--line-d);
+  flex: 1;
+}
+.ace-landing .reg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+.ace-landing .reg-card {
+  display: grid;
+  grid-template-columns: 88px 1fr auto;
+  gap: 20px;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line-d);
+  border-left: 4px solid var(--ok);
+  border-radius: 6px;
+  padding: 18px clamp(18px, 2.4vw, 28px);
+}
+.ace-landing .reg-card[data-state="completed"] {
+  border-left-color: var(--line-d2);
+}
+.ace-landing .reg-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.ace-landing .reg-card__title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.ace-landing .reg-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.ace-landing .reg-card__meta b {
+  color: #d8d8d6;
+  font-weight: 500;
+}
+.ace-landing .reg-card__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.ace-landing .status--registered {
+  background: var(--ok-soft);
+  color: #7fe39c;
+  border-color: rgba(48, 183, 85, 0.4);
+}
+.ace-landing .status--registered .status__dot {
+  background: var(--ok);
+}
+.ace-landing .regs-empty {
+  background: var(--card);
+  border: 1px dashed var(--line-d2);
+  border-radius: 6px;
+  padding: 32px;
+  text-align: center;
+  color: var(--muted);
+  margin-top: 20px;
+}
+
+@media (max-width: 860px) {
+  .ace-landing .profile-layout {
+    grid-template-columns: 1fr;
+  }
+  .ace-landing .profile-aside {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+}
+@media (max-width: 680px) {
+  .ace-landing .fgrid {
+    grid-template-columns: 1fr;
+  }
+  .ace-landing .fgrid .col-2 {
+    grid-column: auto;
+  }
+}
+@media (max-width: 560px) {
+  .ace-landing .reg-card {
+    grid-template-columns: 60px 1fr;
+    gap: 12px 14px;
+  }
+  .ace-landing .reg-card__actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+/* ================================================================
+ * REGISTER — confirm summary (design f-register): white commit-list
+ * card + terms/confirm aside, reusing FLOW 1 .detail-grid / .slots-card.
+ * ================================================================ */
+.ace-landing .card-white {
+  background: #fff;
+  color: var(--ink);
+  border-radius: 6px;
+}
+.ace-landing .commit-list {
+  display: flex;
+  flex-direction: column;
+}
+.ace-landing .commit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #ececec;
+}
+.ace-landing .commit-row:last-child {
+  border-bottom: 0;
+}
+.ace-landing .commit-k {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ace-landing .commit-v {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  text-align: right;
+}
+.ace-landing .commit-v small {
+  display: block;
+  font-family: var(--font-body), "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.78rem;
+  text-transform: none;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.ace-landing .price-tag {
+  color: var(--ok);
+}
+.ace-landing .center-narrow {
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+/* Logout rendered as a nav link needs the default <button> chrome reset. */
+.ace-landing button.iv-header__auth,
+.ace-landing button.site-header__link,
+.ace-landing button.site-header__drawer-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Event-detail logged-out CTA (create account / sign in) inside the slots-card */
+.ace-landing .ev-auth-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ace-landing .ev-auth-cta .slots-note {
+  margin: 0;
+  text-align: center;
+}
+@media (max-width: 560px) {
+  .ace-landing .commit-v {
+    font-size: 1.1rem;
+  }
+}

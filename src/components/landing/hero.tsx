@@ -13,6 +13,7 @@ const HOW_IT_WAS_VIDEO_ID = "CxTwKZNy5lE";
 /** Quick-nav chips shown in the hero. `results` is included only when results exist. */
 const QUICK_NAV = [
   { key: "results", href: "#results", resultsOnly: true },
+  { key: "events", href: "#events" },
   { key: "whatIs", href: "#what-is" },
   // { key: "program", href: "#program" },
   { key: "location", href: "#location" },
@@ -33,9 +34,11 @@ const QUICK_NAV = [
 export function Hero({
   registrationOpen,
   hasResults,
+  registerHref = "/register",
 }: {
   registrationOpen: boolean;
   hasResults: boolean;
+  registerHref?: string;
 }) {
   const t = useTranslations("landing.hero");
   const fb = useTranslations("landing.formatBand");
@@ -66,7 +69,7 @@ export function Hero({
             <p className="lead hero__sub">{t("sub")}</p>
             <div className="hero__actions">
               {registrationOpen ? (
-                <Link href="/register" className="btn btn-red">
+                <Link href={registerHref} className="btn btn-red">
                   {t("ctaPrimary")}
                 </Link>
               ) : (
@@ -91,7 +94,7 @@ export function Hero({
             <div className="stats">
               <Stat k={t("stats.dateLabel")} v={t("stats.dateValue")} />
               <Stat k={t("stats.freeLabel")} v={t("stats.freeValue")} />
-              <Stat k={t("stats.maxParticipantsLabel")} v={t("stats.maxParticipantsValue")} />
+              <Stat k={t("stats.prizeLabel")} v={t("stats.prizeValue")} />
             </div>
             <div className="pin">
               <PinIcon />

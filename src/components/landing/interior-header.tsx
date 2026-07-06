@@ -1,3 +1,4 @@
+import { AuthNav } from "@/features/auth/components/auth-nav";
 import { Link } from "@/i18n/navigation";
 
 import { LangPill } from "./lang-pill";
@@ -15,7 +16,10 @@ export function InteriorHeader() {
         <Link href="/" className="iv-header__brand" aria-label="ACE BATTLE — home">
           <Wordmark variant="nav" />
         </Link>
-        <LangPill />
+        <div className="iv-header__right">
+          <AuthNav />
+          <LangPill />
+        </div>
       </div>
     </header>
   );
