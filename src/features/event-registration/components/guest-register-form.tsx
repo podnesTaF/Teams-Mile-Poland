@@ -89,7 +89,19 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
         <span className="iv-eyebrow">{t("checkEmail.title")}</span>
         <p className="iv-sub">{t("checkEmail.body", { email: data.email })}</p>
         {resent ? <div className="banner banner--info">{t("checkEmail.resent")}</div> : null}
-        {error ? <div className="banner banner--red">{error}</div> : null}
+        {error ? (
+          <div className="banner banner--red">
+            {error}
+            {showSignIn ? (
+              <>
+                {" "}
+                <Link href={signInHref} className="link">
+                  {t("guest.signIn")}
+                </Link>
+              </>
+            ) : null}
+          </div>
+        ) : null}
         <div className="iv-actions">
           <button
             type="button"

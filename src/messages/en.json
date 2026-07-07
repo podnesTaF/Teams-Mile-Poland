@@ -1088,8 +1088,6 @@
     "alreadyTitle": "Already registered",
     "alreadyBody": "You're on the list for this event.",
     "viewTicket": "View ticket",
-    "closedTitle": "Registration closed",
-    "closedBody": "Registration isn't open for this event.",
     "verifyTitle": "Verify your email",
     "verifyBody": "Confirm your email address before registering.",
     "verifyCta": "Verify email",

@@ -12,7 +12,12 @@ export function parseDateOnly(value: string): Date {
 }
 
 export function coerceToDate(value: unknown): Date | null {
-  if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    // DB `date` columns come back as UTC midnight; rebuild as a local calendar
+    // date so age math matches the string path (parseDateOnly, local midnight)
+    // and doesn't shift a day on servers west of UTC.
+    return new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
+  }
   if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
     return parseDateOnly(value.slice(0, 10));
   }
@@ -48,18 +53,15 @@ export function maxDobForMinAge(minAge: number, asOf: Date = new Date()): string
 
 const DATE_FORMAT_ERROR = "Enter a valid date";
 
-/** Zod schema for an HTML date input (YYYY-MM-DD), format only. */
+/**
+ * Zod schema for an HTML date input (YYYY-MM-DD), format only. The minimum-age
+ * rule is intentionally NOT baked in here: it depends on the *event* date and
+ * is enforced server-side per registration (see `registerForEvent` /
+ * `registerAsGuest`), never against a module-load `new Date()`.
+ */
 export function dateOfBirthFormatSchema() {
   return z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, DATE_FORMAT_ERROR)
     .refine((v) => !Number.isNaN(Date.parse(v)), DATE_FORMAT_ERROR);
-}
-
-/** Zod schema for an HTML date input (YYYY-MM-DD) with optional minimum-age check. */
-export function dateOfBirthSchema(asOf: Date = new Date()) {
-  return dateOfBirthFormatSchema().refine(
-    (v) => meetsMinParticipantAge(v, asOf),
-    MIN_PARTICIPANT_AGE_ERROR,
-  );
 }

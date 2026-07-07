@@ -86,11 +86,20 @@ export function RegisterConfirm({
   const dateTime = eventTime ? `${eventDate} · ${eventTime}` : eventDate;
 
   // Returning verified guest: show a finishing state while we auto-register.
+  // If the auto-submit fails (e.g. a transient error), offer a retry rather
+  // than dead-ending on a static message.
   if (autoConfirm) {
     return (
       <section className="iv-card center-narrow">
         <span className="iv-eyebrow">{t("confirm.eyebrow")}</span>
         <p className="iv-sub">{error ?? t("confirm.finishing")}</p>
+        {error ? (
+          <div className="iv-actions">
+            <button type="button" className="btn btn-red" onClick={run} disabled={pending}>
+              {pending ? t("submitting") : t("confirm.submit")}
+            </button>
+          </div>
+        ) : null}
       </section>
     );
   }
