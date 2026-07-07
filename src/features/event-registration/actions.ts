@@ -9,11 +9,17 @@ import { accounts, users } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { getEventBySlug } from "@/lib/events/registry";
 import { auth } from "@/lib/auth/better-auth";
-import { isProfileComplete } from "@/lib/auth/user-session";
+import { canRegister } from "@/lib/auth/user-session";
 
 import { createFreeRegistration, hasRegistration } from "./data";
 import { guestRegisterSchema, type GuestRegisterInput } from "./schemas";
 import { makeEventTicketUrl, sendEventTicketEmail } from "./ticket";
+import {
+  coerceToDate,
+  meetsMinParticipantAge,
+  MIN_PARTICIPANT_AGE_ERROR,
+  parseDateOnly,
+} from "@/lib/age";
 
 export type RegisterResult =
   | { ok: true; ticketUrl: string }
@@ -35,7 +41,7 @@ export async function registerForEvent(eventSlug: string): Promise<RegisterResul
   if (!user.emailVerified) {
     return { ok: false, reason: "verify", message: "Verify your email before registering." };
   }
-  if (!isProfileComplete(user)) {
+  if (!canRegister(user)) {
     return { ok: false, reason: "profile", message: "Complete your profile before registering." };
   }
 
@@ -43,6 +49,16 @@ export async function registerForEvent(eventSlug: string): Promise<RegisterResul
   if (!event || event.eventType !== "individual") {
     return { ok: false, reason: "notfound", message: "Event not found." };
   }
+
+  const dob = coerceToDate((user as { dateOfBirth?: unknown }).dateOfBirth);
+  if (!dob || !meetsMinParticipantAge(dob, parseDateOnly(event.date))) {
+    return {
+      ok: false,
+      reason: "profile",
+      message: MIN_PARTICIPANT_AGE_ERROR,
+    };
+  }
+
   if (event.status !== "registration_open") {
     return { ok: false, reason: "closed", message: "Registration is not open for this event." };
   }
@@ -108,6 +124,15 @@ export async function registerAsGuest(
   const data = parsed.data;
   const email = data.email.trim().toLowerCase();
   const db = getDb();
+
+  if (!meetsMinParticipantAge(data.dateOfBirth, parseDateOnly(event.date))) {
+    return {
+      ok: false,
+      reason: "invalid",
+      message: "Check the highlighted fields and try again.",
+      fieldErrors: { dateOfBirth: [MIN_PARTICIPANT_AGE_ERROR] },
+    };
+  }
 
   const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
   if (existing.length > 0) {

@@ -9,7 +9,8 @@ import { ProfileForm } from "@/features/profile/components/profile-form";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { Link } from "@/i18n/navigation";
 import { getEventBySlug } from "@/lib/events/registry";
-import { getUser, isProfileComplete } from "@/lib/auth/user-session";
+import { getUser, canRegister } from "@/lib/auth/user-session";
+import { coerceToDate, meetsMinParticipantAge, parseDateOnly } from "@/lib/age";
 import { defaultLocale } from "@/lib/i18n/config";
 
 /** Serialize a stored DOB (Date via mode:"date", or string) to YYYY-MM-DD. */
@@ -45,6 +46,7 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
         eventSlug={slug}
         eventName={event.name}
         eventDate={event.shortDate}
+        eventDateIso={event.date}
         eventTime={event.timeRange ? `${event.timeRange.start}–${event.timeRange.end}` : null}
         venue={`${event.venue}, ${event.city}`}
         locale={locale}
@@ -80,7 +82,7 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
       />
     );
   }
-  if (!isProfileComplete(user)) {
+  if (!canRegister(user)) {
     // Complete the profile inline (no bounce to /profile). Saving returns
     // straight to this page, which then shows the confirm step.
     const pu = user as typeof user & {
@@ -110,9 +112,14 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
             <div className="banner__txt">{t("profileBody")}</div>
           </div>
         </div>
-        <ProfileForm initial={initial} redirectTo={`/events/${slug}/register`} />
+        <ProfileForm initial={initial} redirectTo={`/events/${slug}/register`} maxDobAsOf={event.date} />
       </div>
     );
+  }
+
+  const dob = coerceToDate((user as { dateOfBirth?: unknown }).dateOfBirth);
+  if (!dob || !meetsMinParticipantAge(dob, parseDateOnly(event.date))) {
+    return <Notice title={t("ageTitle")} body={t("ageBody")} linkHref="/profile" linkText={t("profileCta")} />;
   }
 
   const u = user as typeof user & { firstName?: string | null; lastName?: string | null };

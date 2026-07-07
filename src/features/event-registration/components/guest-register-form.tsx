@@ -5,6 +5,8 @@ import { useState, useTransition } from "react";
 
 import { Link } from "@/i18n/navigation";
 
+import { maxDobForMinAge, MIN_PARTICIPANT_AGE, parseDateOnly } from "@/lib/age";
+
 import { registerAsGuest } from "../actions";
 import type { GuestRegisterInput } from "../schemas";
 
@@ -12,6 +14,7 @@ type Props = {
   eventSlug: string;
   eventName: string;
   eventDate: string;
+  eventDateIso: string;
   eventTime: string | null;
   venue: string;
   locale: string;
@@ -32,7 +35,7 @@ const EMPTY: GuestRegisterInput = {
  * the server action) emails the ticket + a set-password link. Existing emails
  * are pointed at sign-in instead.
  */
-export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventTime, venue, locale }: Props) {
+export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIso, eventTime, venue, locale }: Props) {
   const t = useTranslations("register");
   const tp = useTranslations("profile");
   const [data, setData] = useState<GuestRegisterInput>(EMPTY);
@@ -44,6 +47,7 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventTime, 
 
   const dateTime = eventTime ? `${eventDate} · ${eventTime}` : eventDate;
   const signInHref = `/auth/sign-in?redirectTo=${encodeURIComponent(`/events/${eventSlug}/register`)}`;
+  const maxDob = maxDobForMinAge(MIN_PARTICIPANT_AGE, parseDateOnly(eventDateIso));
 
   function set<K extends keyof GuestRegisterInput>(key: K, value: GuestRegisterInput[K]) {
     setData((d) => ({ ...d, [key]: value }));
@@ -131,6 +135,7 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventTime, 
                 type="date"
                 value={data.dateOfBirth}
                 onChange={(e) => set("dateOfBirth", e.target.value)}
+                max={maxDob}
                 required
               />
             </Field>

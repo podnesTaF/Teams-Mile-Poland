@@ -27,8 +27,9 @@ export async function requireUser(): Promise<SessionUser | null> {
 }
 
 /**
- * Whether a user has filled the profile fields required to register for an
- * event. `club` is optional (free-text, may be blank); the rest are required.
+ * Whether a user has filled the full profile (including phone). Drives the
+ * profile-page "complete your profile" badge. The event register gate uses the
+ * looser {@link canRegister} — phone is not required to register.
  */
 export function isProfileComplete(user: SessionUser | null | undefined): boolean {
   if (!user) return false;
@@ -45,5 +46,25 @@ export function isProfileComplete(user: SessionUser | null | undefined): boolean
       u.dateOfBirth &&
       u.sex &&
       u.phone?.trim(),
+  );
+}
+
+/**
+ * Whether a user has the profile fields required to register for an event:
+ * `firstName, lastName, dateOfBirth, sex`. `phone` and `club` are optional —
+ * the event doesn't need a phone, so it must not gate registration (ADR-0002).
+ * Kept separate from {@link isProfileComplete} so the profile-page badge keeps
+ * nudging for a phone while the register bar does not.
+ */
+export function canRegister(user: SessionUser | null | undefined): boolean {
+  if (!user) return false;
+  const u = user as SessionUser & {
+    firstName?: string | null;
+    lastName?: string | null;
+    dateOfBirth?: unknown;
+    sex?: string | null;
+  };
+  return Boolean(
+    u.firstName?.trim() && u.lastName?.trim() && u.dateOfBirth && u.sex,
   );
 }

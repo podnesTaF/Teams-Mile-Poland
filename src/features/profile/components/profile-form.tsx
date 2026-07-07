@@ -5,6 +5,8 @@ import { useState, useTransition } from "react";
 
 import { useRouter } from "@/i18n/navigation";
 
+import { maxDobForMinAge, MIN_PARTICIPANT_AGE, parseDateOnly } from "@/lib/age";
+
 import { updateProfile } from "../actions";
 import type { ProfileInput } from "../schemas";
 
@@ -12,6 +14,8 @@ type Props = {
   initial: ProfileInput;
   /** Where to continue after saving (e.g. back to the registration flow). */
   redirectTo?: string;
+  /** Reference date (YYYY-MM-DD) for the DOB picker max — e.g. race day during event signup. */
+  maxDobAsOf?: string;
 };
 
 /**
@@ -20,7 +24,7 @@ type Props = {
  * name, date of birth, sex, club, phone. When reached via `redirectTo` (the
  * finish-profile round-trip) Save returns straight to registration.
  */
-export function ProfileForm({ initial, redirectTo }: Props) {
+export function ProfileForm({ initial, redirectTo, maxDobAsOf }: Props) {
   const t = useTranslations("profile");
   const router = useRouter();
   const [data, setData] = useState<ProfileInput>(initial);
@@ -28,6 +32,11 @@ export function ProfileForm({ initial, redirectTo }: Props) {
   const [saved, setSaved] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [pending, startTransition] = useTransition();
+
+  const maxDob = maxDobForMinAge(
+    MIN_PARTICIPANT_AGE,
+    maxDobAsOf ? parseDateOnly(maxDobAsOf) : new Date(),
+  );
 
   function set<K extends keyof ProfileInput>(key: K, value: ProfileInput[K]) {
     setData((d) => ({ ...d, [key]: value }));
@@ -97,6 +106,7 @@ export function ProfileForm({ initial, redirectTo }: Props) {
               type="date"
               value={data.dateOfBirth}
               onChange={(e) => set("dateOfBirth", e.target.value)}
+              max={maxDob}
               required
             />
           </Field>

@@ -1,11 +1,11 @@
 import ExcelJS from "exceljs";
 import { and, asc, eq, ilike, or, sql } from "drizzle-orm";
 
-import { eventRegistrations, users } from "@/db/schema";
+import { eventRegistrations, users, type ParticipationStatus } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { getEventBySlug } from "@/lib/events/registry";
 
-export type ParticipationStatus = (typeof eventRegistrations.status.enumValues)[number];
+export type { ParticipationStatus };
 
 export type RosterRow = {
   id: string;
@@ -72,12 +72,14 @@ export async function getEventRoster(
     if (search) filters.push(search);
   }
 
-  return db
+  const rows = await db
     .select(ROSTER_COLUMNS)
     .from(eventRegistrations)
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
     .where(and(...filters))
     .orderBy(asc(eventRegistrations.bib), asc(users.lastName));
+  // `cancelled` is deprecated and never set — narrow to the live union.
+  return rows.map((r) => ({ ...r, status: r.status as ParticipationStatus }));
 }
 
 /** A single roster row by registration id (scoped to the event), or null. */
@@ -92,7 +94,7 @@ export async function getRosterRowById(
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
     .where(and(eq(eventRegistrations.eventSlug, eventSlug), eq(eventRegistrations.id, registrationId)))
     .limit(1);
-  return row ?? null;
+  return row ? { ...row, status: row.status as ParticipationStatus } : null;
 }
 
 /** Count of registrations per status for an event (roster header stats). */
@@ -108,9 +110,11 @@ export async function getRosterStats(eventSlug: string): Promise<Record<Particip
     registered: 0,
     checked_in: 0,
     no_show: 0,
-    cancelled: 0,
   };
-  for (const r of rows) out[r.status] = r.count;
+  // `cancelled` is deprecated and never set; skip any legacy rows defensively.
+  for (const r of rows) {
+    if (r.status !== "cancelled") out[r.status] = r.count;
+  }
   return out;
 }
 

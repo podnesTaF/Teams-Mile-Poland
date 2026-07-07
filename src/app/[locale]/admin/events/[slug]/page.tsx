@@ -15,7 +15,7 @@ import { getEventBySlug } from "@/lib/events/registry";
 import { getAdminSession } from "@/lib/auth/admin-session";
 import { defaultLocale } from "@/lib/i18n/config";
 
-const STATUSES: ParticipationStatus[] = ["registered", "checked_in", "no_show", "cancelled"];
+const STATUSES: ParticipationStatus[] = ["registered", "checked_in", "no_show"];
 
 function fmt(date: Date | null) {
   if (!date) return "—";
@@ -51,7 +51,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
     getEventRoster(slug, { status: statusFilter }),
     getRosterStats(slug),
   ]);
-  const total = stats.registered + stats.checked_in + stats.no_show + stats.cancelled;
+  const total = stats.registered + stats.checked_in + stats.no_show;
 
   return (
     <div className="ace-landing iv">
@@ -158,7 +158,7 @@ function StatusPill({ status }: { status: ParticipationStatus }) {
   const cls =
     status === "checked_in"
       ? "iv-pill--ok"
-      : status === "no_show" || status === "cancelled"
+      : status === "no_show"
         ? "iv-pill--red"
         : "iv-pill--due";
   return <span className={`iv-pill ${cls}`}>{status.replaceAll("_", " ")}</span>;

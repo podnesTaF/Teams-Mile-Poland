@@ -1087,6 +1087,8 @@
     "verifyCta": "Verify email",
     "profileTitle": "Complete your profile",
     "profileBody": "Add your details before registering for events.",
-    "profileCta": "Complete profile"
+    "profileCta": "Complete profile",
+    "ageTitle": "Minimum age",
+    "ageBody": "You must be at least 16 years old on race day to register."
   }
 }

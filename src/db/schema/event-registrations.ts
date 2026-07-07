@@ -3,13 +3,27 @@ import { boolean, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid }
 
 import { users } from "./auth";
 
-/** Participation lifecycle for individual events. */
+/**
+ * Participation lifecycle for individual events. Live model:
+ * `registered → checked_in → no_show`. `cancelled` is **deprecated in code**
+ * (never set — see {@link ParticipationStatus}); the physical enum value is
+ * retained here because dropping it is not an additive migration.
+ */
 export const participationStatusEnum = pgEnum("participation_status", [
   "registered",
   "checked_in",
   "no_show",
   "cancelled",
 ]);
+
+/**
+ * The live participation statuses code may set or read. Excludes the deprecated
+ * `cancelled` physical enum value so it can never leak into the TS surface.
+ */
+export type ParticipationStatus = Exclude<
+  (typeof participationStatusEnum.enumValues)[number],
+  "cancelled"
+>;
 
 /**
  * One row per (event, user). Keyed by `event_slug` text (no FK — events live in

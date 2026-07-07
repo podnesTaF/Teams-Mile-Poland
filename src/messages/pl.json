@@ -1087,6 +1087,8 @@
     "verifyCta": "Potwierdź e-mail",
     "profileTitle": "Uzupełnij profil",
     "profileBody": "Dodaj swoje dane przed zapisem na wydarzenia.",
-    "profileCta": "Uzupełnij profil"
+    "profileCta": "Uzupełnij profil",
+    "ageTitle": "Minimalny wiek",
+    "ageBody": "Aby się zapisać, w dniu wyścigu musisz mieć ukończone co najmniej 16 lat."
   }
 }
