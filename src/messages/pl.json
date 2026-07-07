@@ -1097,6 +1097,15 @@
     "profileBody": "Dodaj swoje dane przed zapisem na wydarzenia.",
     "profileCta": "Uzupełnij profil",
     "ageTitle": "Minimalny wiek",
-    "ageBody": "Aby się zapisać, w dniu wyścigu musisz mieć ukończone co najmniej 16 lat."
+    "ageBody": "Aby się zapisać, w dniu wyścigu musisz mieć ukończone co najmniej 16 lat.",
+    "lifecycle": {
+      "upcomingTitle": "Rejestracja wkrótce się otworzy",
+      "upcomingBody": "Rejestracja na ten bieg ({date}) nie jest jeszcze otwarta — zajrzyj wkrótce.",
+      "closedTitle": "Rejestracja zamknięta",
+      "closedBody": "Rejestracja na ten bieg została zamknięta.",
+      "completedTitle": "To wydarzenie się zakończyło",
+      "completedBody": "Ten bieg już się odbył — zobacz, jak poszło.",
+      "completedCta": "Zobacz wyniki"
+    }
   }
 }

@@ -9,6 +9,7 @@ import { ProfileForm } from "@/features/profile/components/profile-form";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { Link } from "@/i18n/navigation";
 import { getEventBySlug } from "@/lib/events/registry";
+import type { EventSummary } from "@/lib/events/types";
 import { getUser, canRegister } from "@/lib/auth/user-session";
 import { coerceToDate, meetsMinParticipantAge, parseDateOnly } from "@/lib/age";
 import { defaultLocale } from "@/lib/i18n/config";
@@ -35,11 +36,11 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
 
   const user = await getUser();
   if (!user) {
-    // Logged-out visitors register right here (passwordless): the guest form
-    // creates the account + registration and emails a set-password link. If
-    // registration isn't open, show the closed notice instead.
+    // Logged-out visitors register right here (passwordless, verification-gated):
+    // the guest form creates an unverified account and emails a link. If
+    // registration isn't open, show the lifecycle-specific notice instead.
     if (event.status !== "registration_open") {
-      return <Notice title={t("closedTitle")} body={t("closedBody")} />;
+      return <LifecycleNotice event={event} />;
     }
     return (
       <GuestRegisterForm
@@ -70,7 +71,7 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
   }
 
   if (event.status !== "registration_open") {
-    return <Notice title={t("closedTitle")} body={t("closedBody")} />;
+    return <LifecycleNotice event={event} />;
   }
   if (!user.emailVerified) {
     return (
@@ -137,6 +138,35 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
       runnerEmail={user.email}
     />
   );
+}
+
+/**
+ * Distinct notice per non-open lifecycle state (both guest and signed-in
+ * entries): `upcoming` = opens-soon + date, `registration_closed` = closed,
+ * `completed` = finished + link to results. `full` is n/a (free/uncapped).
+ */
+async function LifecycleNotice({ event }: { event: EventSummary }) {
+  const t = await getTranslations("register");
+  if (event.status === "upcoming") {
+    return (
+      <Notice
+        title={t("lifecycle.upcomingTitle")}
+        body={t("lifecycle.upcomingBody", { date: event.shortDate })}
+      />
+    );
+  }
+  if (event.status === "completed") {
+    return (
+      <Notice
+        title={t("lifecycle.completedTitle")}
+        body={t("lifecycle.completedBody")}
+        linkHref="/#results"
+        linkText={t("lifecycle.completedCta")}
+      />
+    );
+  }
+  // registration_closed (and any other non-open fallback).
+  return <Notice title={t("lifecycle.closedTitle")} body={t("lifecycle.closedBody")} />;
 }
 
 function Notice({

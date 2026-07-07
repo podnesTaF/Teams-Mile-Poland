@@ -1097,6 +1097,15 @@
     "profileBody": "Add your details before registering for events.",
     "profileCta": "Complete profile",
     "ageTitle": "Minimum age",
-    "ageBody": "You must be at least 16 years old on race day to register."
+    "ageBody": "You must be at least 16 years old on race day to register.",
+    "lifecycle": {
+      "upcomingTitle": "Registration opens soon",
+      "upcomingBody": "Registration for this race on {date} isn't open yet — check back soon.",
+      "closedTitle": "Registration is closed",
+      "closedBody": "Registration for this race has closed.",
+      "completedTitle": "This event has finished",
+      "completedBody": "This race has already taken place — see how it went.",
+      "completedCta": "View results"
+    }
   }
 }
