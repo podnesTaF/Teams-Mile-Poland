@@ -1,7 +1,11 @@
+import { and, eq } from "drizzle-orm";
+
+import { eventEmailLog } from "@/db/schema";
 import { getAppUrl } from "@/features/registration/data";
 import { generateTicketQrPng } from "@/features/ticket/qr";
 import { signEventTicket } from "@/features/ticket/sign";
 import { EventTicketEmail, eventTicketSubject } from "@/emails/event-ticket";
+import { getDb } from "@/lib/db";
 import { getEventBySlug } from "@/lib/events/registry";
 import type { EventSummary } from "@/lib/events/types";
 import { FROM_EMAIL, resend } from "@/lib/email";
@@ -66,7 +70,15 @@ export function buildEventTicketView(
   };
 }
 
-/** Send the confirmation email with an embedded, scannable QR ticket. */
+/**
+ * Send the confirmation email with an embedded, scannable QR ticket.
+ *
+ * Idempotent per `(event_registration_id, "confirmation")`: the send is logged
+ * once in `event_email_log`, and a subsequent call for the same registration
+ * short-circuits before re-sending. Mirrors the reminder-chain pattern — only
+ * successful sends are logged, so a failed send (which throws) retries cleanly.
+ * The single choke point covers both the signed-in and guest registration paths.
+ */
 export async function sendEventTicketEmail(input: {
   registration: EventRegistrationRow;
   user: TicketUser;
@@ -76,6 +88,22 @@ export async function sendEventTicketEmail(input: {
   const ticketUrl = makeEventTicketUrl(input.registration.id, { locale: input.registration.locale });
 
   if (!resend) {
+    return { ticketUrl };
+  }
+
+  const db = getDb();
+  const [already] = await db
+    .select({ id: eventEmailLog.id })
+    .from(eventEmailLog)
+    .where(
+      and(
+        eq(eventEmailLog.eventRegistrationId, input.registration.id),
+        eq(eventEmailLog.kind, "confirmation"),
+        eq(eventEmailLog.status, "sent"),
+      ),
+    )
+    .limit(1);
+  if (already) {
     return { ticketUrl };
   }
 
@@ -89,6 +117,13 @@ export async function sendEventTicketEmail(input: {
     react: EventTicketEmail({ view, ticketUrl, qrCid }),
     attachments: [{ filename: "ticket-qr.png", content: qrBuffer, contentId: qrCid }],
   });
+
+  // Log after a successful send. The unique (registration, kind) index makes a
+  // concurrent double-insert a no-op, so exactly one `confirmation` row exists.
+  await db
+    .insert(eventEmailLog)
+    .values({ eventRegistrationId: input.registration.id, kind: "confirmation", status: "sent" })
+    .onConflictDoNothing();
 
   return { ticketUrl };
 }

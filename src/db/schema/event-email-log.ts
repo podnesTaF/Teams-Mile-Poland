@@ -15,6 +15,7 @@ export const eventEmailKindEnum = pgEnum("event_email_kind", [
   "reminder_3d",
   "reminder_1d",
   "morning",
+  "confirmation",
 ]);
 
 export const eventEmailLog = pgTable(
