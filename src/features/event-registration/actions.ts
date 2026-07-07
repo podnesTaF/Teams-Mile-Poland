@@ -5,11 +5,12 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 
-import { accounts, users } from "@/db/schema";
+import { users } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { getEventBySlug } from "@/lib/events/registry";
 import { auth } from "@/lib/auth/better-auth";
 import { canRegister } from "@/lib/auth/user-session";
+import { defaultLocale } from "@/lib/i18n/config";
 
 import { createFreeRegistration, hasRegistration } from "./data";
 import { guestRegisterSchema, type GuestRegisterInput } from "./schemas";
@@ -20,6 +21,16 @@ import {
   MIN_PARTICIPANT_AGE_ERROR,
   parseDateOnly,
 } from "@/lib/age";
+
+/**
+ * Locale-aware return path baked into the verification link. On click, Better
+ * Auth verifies + auto-signs-in, then redirects here; the `?verified=1` marker
+ * tells the confirm island to auto-complete the registration.
+ */
+function verifiedCallbackPath(locale: string, eventSlug: string): string {
+  const prefix = locale === defaultLocale ? "" : `/${locale}`;
+  return `${prefix}/events/${eventSlug}/register?verified=1`;
+}
 
 export type RegisterResult =
   | { ok: true; ticketUrl: string }
@@ -82,7 +93,7 @@ export async function registerForEvent(eventSlug: string): Promise<RegisterResul
 }
 
 export type GuestRegisterResult =
-  | { ok: true; ticketUrl: string }
+  | { ok: true; pending: true }
   | {
       ok: false;
       reason: "invalid" | "notfound" | "closed" | "exists" | "error";
@@ -91,12 +102,17 @@ export type GuestRegisterResult =
     };
 
 /**
- * Passwordless "register for event" for logged-out visitors. Creates a runner
- * account + `credential` account (unusable placeholder password), registers
- * them, emails the ticket, and sends a set-password link so they can access
- * their profile later. `emailVerified` is true so that — once they set a
- * password via the emailed link — they can sign in; the missing password is
- * what gates sign-in until then. Existing emails are bounced to sign-in.
+ * Passwordless **email-verification-gated** registration for logged-out
+ * visitors (ADR-0002). Creates an **unverified** account via Better Auth
+ * `signUpEmail` (random placeholder password; profile fields as
+ * additionalFields) — no registration row and no ticket yet. Better Auth's
+ * `sendOnSignUp` mails the verification link, whose `callbackURL` returns to
+ * `/events/[slug]/register?verified=1`; the confirm island then completes the
+ * registration and sends the ticket.
+ *
+ * Repeat submissions of an **unverified** email refresh the stored profile
+ * fields and re-send the link (idempotent — no duplicate account). An existing
+ * **verified** email is bounced to sign-in.
  */
 export async function registerAsGuest(
   eventSlug: string,
@@ -134,57 +150,68 @@ export async function registerAsGuest(
     };
   }
 
-  const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
-  if (existing.length > 0) {
-    return {
-      ok: false,
-      reason: "exists",
-      message: "You already have an account — sign in to register.",
-    };
+  const fullName = `${data.firstName} ${data.lastName}`.trim();
+  const callbackURL = verifiedCallbackPath(locale, eventSlug);
+
+  const [existing] = await db
+    .select({ id: users.id, emailVerified: users.emailVerified })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+
+  if (existing) {
+    if (existing.emailVerified) {
+      return {
+        ok: false,
+        reason: "exists",
+        message: "You already have an account — sign in to register.",
+      };
+    }
+    // Unverified account already exists → refresh stored fields and re-send the
+    // verification link. Never a second account or registration.
+    try {
+      await db
+        .update(users)
+        .set({
+          name: fullName,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          dateOfBirth: new Date(data.dateOfBirth),
+          sex: data.sex,
+          club: data.club || "",
+          locale,
+        })
+        .where(eq(users.id, existing.id));
+      await auth.api.sendVerificationEmail({ body: { email, callbackURL } });
+      return { ok: true, pending: true };
+    } catch {
+      return { ok: false, reason: "error", message: "Registration failed. Please try again." };
+    }
   }
 
-  const userId = randomUUID();
-  const fullName = `${data.firstName} ${data.lastName}`.trim();
-
+  // New unverified account. `signUpEmail` honours the configured
+  // `requireEmailVerification` / `sendOnSignUp`, so no session is created and
+  // the verification link is mailed. The placeholder password is unusable until
+  // the runner sets a real one via the ticket email's set-password CTA.
   try {
-    await db.insert(users).values({
-      id: userId,
-      name: fullName,
-      email,
-      emailVerified: true,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      dateOfBirth: new Date(data.dateOfBirth),
-      sex: data.sex,
-      club: data.club || "",
-      locale,
+    await auth.api.signUpEmail({
+      body: {
+        email,
+        password: randomUUID(),
+        name: fullName,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dateOfBirth: new Date(data.dateOfBirth),
+        sex: data.sex,
+        club: data.club || "",
+        locale,
+        callbackURL,
+      },
     });
-    // Credential account with an unusable password — the set-password email
-    // (below) lets the runner set a real one before they can sign in.
-    await db.insert(accounts).values({
-      id: randomUUID(),
-      accountId: userId,
-      providerId: "credential",
-      userId,
-      password: randomUUID(),
-    });
-
-    const registration = await createFreeRegistration({ eventSlug, userId, locale });
-    await sendEventTicketEmail({
-      registration,
-      user: { email, name: fullName, firstName: data.firstName, lastName: data.lastName, club: data.club || null },
-    });
-
-    // Set-password ("welcome") email — reuses the configured reset flow.
-    try {
-      await auth.api.requestPasswordReset({ body: { email, redirectTo: "/auth/reset-password" } });
-    } catch {
-      // Non-fatal: they're registered and have their ticket regardless.
-    }
-
-    return { ok: true, ticketUrl: makeEventTicketUrl(registration.id, { locale }) };
+    return { ok: true, pending: true };
   } catch (error) {
-    if (error instanceof Error && /unique|duplicate/i.test(error.message)) {
+    // A verified account created between the check and now, or any unique clash.
+    if (error instanceof Error && /exist|unique|duplicate|already/i.test(error.message)) {
       return { ok: false, reason: "exists", message: "You already have an account — sign in to register." };
     }
     return { ok: false, reason: "error", message: "Registration failed. Please try again." };

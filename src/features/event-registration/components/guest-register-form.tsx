@@ -43,6 +43,8 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
   const [error, setError] = useState<string | null>(null);
   const [showSignIn, setShowSignIn] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [sent, setSent] = useState(false);
+  const [resent, setResent] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const dateTime = eventTime ? `${eventDate} · ${eventTime}` : eventDate;
@@ -53,9 +55,8 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
     setData((d) => ({ ...d, [key]: value }));
   }
 
-  function onSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    if (!terms || pending) return;
+  function submit(isResend: boolean) {
+    if (pending) return;
     setError(null);
     setShowSignIn(false);
     setFieldErrors({});
@@ -67,8 +68,40 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
         setFieldErrors(result.fieldErrors ?? {});
         return;
       }
-      window.location.assign(result.ticketUrl);
+      // No ticket yet — an unverified account + verification email were created.
+      // Switch to the "check your email" state (or confirm a re-send).
+      if (isResend) setResent(true);
+      setSent(true);
     });
+  }
+
+  function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!terms) return;
+    submit(false);
+  }
+
+  // "Check your email" state — registration completes only after the visitor
+  // clicks the verification link (which returns them here with ?verified=1).
+  if (sent) {
+    return (
+      <section className="iv-card center-narrow">
+        <span className="iv-eyebrow">{t("checkEmail.title")}</span>
+        <p className="iv-sub">{t("checkEmail.body", { email: data.email })}</p>
+        {resent ? <div className="banner banner--info">{t("checkEmail.resent")}</div> : null}
+        {error ? <div className="banner banner--red">{error}</div> : null}
+        <div className="iv-actions">
+          <button
+            type="button"
+            className="btn btn-stroke-dark"
+            onClick={() => submit(true)}
+            disabled={pending}
+          >
+            {pending ? t("checkEmail.resending") : t("checkEmail.resend")}
+          </button>
+        </div>
+      </section>
+    );
   }
 
   return (

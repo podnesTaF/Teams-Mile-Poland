@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import { Link, useRouter } from "@/i18n/navigation";
 
@@ -21,6 +22,11 @@ type Props = {
  * Auth-gated confirm step (design `f-register`): a white commit-list summary +
  * a terms/confirm aside. Registration is free, so success routes straight to
  * the ticket. Guard failures (verify/profile) route to the right fix.
+ *
+ * When reached with `?verified=1` (a guest returning from the verification
+ * link, now auto-signed-in), it **auto-submits on mount** — no extra click —
+ * reusing the same `registerForEvent` path that records `terms=true` and fires
+ * the confirmation ticket email. Manual signed-in visits show the confirm form.
  */
 export function RegisterConfirm({
   eventSlug,
@@ -33,13 +39,14 @@ export function RegisterConfirm({
 }: Props) {
   const t = useTranslations("register");
   const router = useRouter();
+  const autoConfirm = useSearchParams().get("verified") === "1";
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const fired = useRef(false);
 
-  function onSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    if (!terms || pending) return;
+  function run() {
+    if (pending) return;
     setError(null);
     startTransition(async () => {
       const result = await registerForEvent(eventSlug);
@@ -60,7 +67,33 @@ export function RegisterConfirm({
     });
   }
 
+  // Auto-complete for a returning verified guest (terms already accepted on the
+  // guest form). Fire once; a StrictMode double-mount is guarded by the ref.
+  useEffect(() => {
+    if (autoConfirm && !fired.current) {
+      fired.current = true;
+      run();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoConfirm]);
+
+  function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!terms) return;
+    run();
+  }
+
   const dateTime = eventTime ? `${eventDate} · ${eventTime}` : eventDate;
+
+  // Returning verified guest: show a finishing state while we auto-register.
+  if (autoConfirm) {
+    return (
+      <section className="iv-card center-narrow">
+        <span className="iv-eyebrow">{t("confirm.eyebrow")}</span>
+        <p className="iv-sub">{error ?? t("confirm.finishing")}</p>
+      </section>
+    );
+  }
 
   return (
     <form onSubmit={onSubmit}>

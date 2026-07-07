@@ -1050,17 +1050,25 @@
       "runner": "Zawodnik",
       "cost": "Koszt",
       "submit": "Potwierdź rejestrację",
-      "note": "Bez opłat — bieg na milę jest darmowy."
+      "note": "Bez opłat — bieg na milę jest darmowy.",
+      "finishing": "Finalizujemy Twoją rejestrację…"
     },
     "guest": {
       "title": "Zapisz się na {event}",
       "detailsTitle": "Twoje dane",
-      "detailsSub": "Utworzymy Twój profil zawodnika i wyślemy bilet e-mailem.",
+      "detailsSub": "Wyślemy link, aby potwierdzić Twój adres i dokończyć rejestrację.",
       "email": "E-mail",
-      "passwordNote": "Wyślemy link do ustawienia hasła i dostępu do profilu.",
-      "submit": "Zapisz się i odbierz bilet",
+      "passwordNote": "Najpierw potwierdź e-mail; bilet (z linkiem do ustawienia hasła) przyjdzie zaraz potem.",
+      "submit": "Zarejestruj się",
       "signInPrompt": "Masz już konto?",
       "signIn": "Zaloguj się"
+    },
+    "checkEmail": {
+      "title": "Sprawdź skrzynkę e-mail",
+      "body": "Wysłaliśmy link potwierdzający na adres {email}. Otwórz go, aby potwierdzić adres — rejestracja zostanie dokończona, a bilet przyjdzie zaraz potem.",
+      "resend": "Wyślij link ponownie",
+      "resending": "Wysyłanie…",
+      "resent": "Link wysłany ponownie — sprawdź skrzynkę (i spam)."
     },
     "summary": {
       "date": "Data",

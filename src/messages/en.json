@@ -1050,17 +1050,25 @@
       "runner": "Runner",
       "cost": "Cost",
       "submit": "Confirm registration",
-      "note": "No payment needed — the individual mile is free."
+      "note": "No payment needed — the individual mile is free.",
+      "finishing": "Completing your registration…"
     },
     "guest": {
       "title": "Register for {event}",
       "detailsTitle": "Your details",
-      "detailsSub": "We'll create your runner profile and email your ticket.",
+      "detailsSub": "We'll email a link to confirm your address and finish your registration.",
       "email": "Email",
-      "passwordNote": "We'll email a link to set a password and access your profile.",
-      "submit": "Register & get ticket",
+      "passwordNote": "First confirm your email; your ticket (with a set-password link) arrives right after.",
+      "submit": "Register",
       "signInPrompt": "Already have an account?",
       "signIn": "Sign in"
+    },
+    "checkEmail": {
+      "title": "Check your email",
+      "body": "We've sent a confirmation link to {email}. Open it to confirm your address — your registration completes and your ticket arrives right after.",
+      "resend": "Resend link",
+      "resending": "Sending…",
+      "resent": "Link sent again — check your inbox (and spam)."
     },
     "summary": {
       "date": "Date",

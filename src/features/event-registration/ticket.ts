@@ -49,6 +49,33 @@ export function makeEventTicketUrl(registrationId: string, opts: { locale?: stri
   return `${getAppUrl()}${prefix}/tickets/${encodeURIComponent(registrationId)}?s=${encodeURIComponent(sig)}`;
 }
 
+/**
+ * Localized "set a password" CTA for the ticket email. Guests register
+ * passwordlessly, so the ticket carries a link to set a real password for
+ * later sign-in (points at the app's password-set entry — the reset email
+ * system itself is unchanged).
+ */
+const SET_PASSWORD_COPY: Record<string, { line: string; cta: string }> = {
+  en: {
+    line: "Set a password to sign in later and manage your registration.",
+    cta: "Set a password",
+  },
+  pl: {
+    line: "Ustaw hasło, aby móc się później zalogować i zarządzać swoją rejestracją.",
+    cta: "Ustaw hasło",
+  },
+  ua: {
+    line: "Встановіть пароль, щоб згодом увійти та керувати своєю реєстрацією.",
+    cta: "Встановити пароль",
+  },
+};
+
+function setPasswordCta(locale: string): { line: string; cta: string; url: string } {
+  const copy = SET_PASSWORD_COPY[locale] ?? SET_PASSWORD_COPY[defaultLocale];
+  const prefix = locale === defaultLocale ? "" : `/${locale}`;
+  return { ...copy, url: `${getAppUrl()}${prefix}/auth/forgot-password` };
+}
+
 /** Build a render-ready ticket view from a registration + user + event config. */
 export function buildEventTicketView(
   registration: EventRegistrationRow,
@@ -114,7 +141,12 @@ export async function sendEventTicketEmail(input: {
     from: FROM_EMAIL,
     to: view.email,
     subject: eventTicketSubject(view),
-    react: EventTicketEmail({ view, ticketUrl, qrCid }),
+    react: EventTicketEmail({
+      view,
+      ticketUrl,
+      qrCid,
+      setPassword: setPasswordCta(input.registration.locale),
+    }),
     attachments: [{ filename: "ticket-qr.png", content: qrBuffer, contentId: qrCid }],
   });
 
