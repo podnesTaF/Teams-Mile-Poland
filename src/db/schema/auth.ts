@@ -30,6 +30,11 @@ export const users = pgTable("users", {
   club: text("club"),
   phone: text("phone"),
   locale: text("locale").default("pl").notNull(),
+  // Marketing consent flag set by the public signed unsubscribe link; the
+  // broadcast segment resolver excludes opted-out users centrally.
+  // Transactional email (tickets, verification) ignores it. Not a Better Auth
+  // additionalField — written by direct DB update, never through the auth API.
+  marketingOptOut: boolean("marketing_opt_out").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

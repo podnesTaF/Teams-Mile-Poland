@@ -137,3 +137,6 @@ Current `src/features/mailings/schedule.ts` is hardcoded to 2026-06-27. Paramete
 - Paid-slot leakage on abandoned checkouts — expired webhook + cron sweep; monitor paidClaimed vs paid rows.
 - Webhook regression for legacy flow — branch only on new metadata, don't touch legacy path.
 - Bib races — partial unique index is source of truth; UI retries.
+
+## Progress log
+- 2026-07-12 — PRD #7 slice 1 (issue #9): additive migration 0010 (`legacy_participations`, `user_broadcasts`, `user_broadcast_log`, `users.marketing_opt_out`) + one-time first-event import script (`npm run import:first-event`, dry-run default / `--write`). Dry-run against live data: 83 runners → 78 unique emails (66 new users, 12 existing attach-only), 13/23 results entries matched, 10 unmatched (on-site heat 3 + Cyrillic-registered names), 0 ambiguous. Migration apply + `--write` + idempotency re-run still need a Neon branch (no neonctl here).
