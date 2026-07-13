@@ -1,11 +1,13 @@
-import { redirect } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 
 import "@/app/landing.css";
 
-import { InteriorHeader } from "@/components/landing/interior-header";
+import { requireAdmin } from "@/features/admin/action-helpers";
+import { AdminShell } from "@/features/admin/components/admin-shell";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
+import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { RecipientMultiselect } from "@/features/admin/components/recipient-multiselect";
+import { formatAdminDateTime as fmtDate } from "@/features/admin/format";
 import {
   runDueMailingsAction,
   sendBroadcastAction,
@@ -14,13 +16,6 @@ import {
 } from "@/features/mailings/actions";
 import { getMailingsOverview, listRegistrations, type MailingRow } from "@/features/mailings/data";
 import { TEST_EMAIL_OPTIONS } from "@/features/mailings/test-send";
-import { getAdminSession } from "@/lib/auth/admin-session";
-import { defaultLocale } from "@/lib/i18n/config";
-
-function fmtDate(date: Date | null) {
-  if (!date) return "—";
-  return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(date);
-}
 
 const SEGMENT_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "All runners" },
@@ -39,40 +34,18 @@ export default async function MailingsPage({
   const { locale } = await params;
   const { msg } = await searchParams;
   setRequestLocale(locale);
-
-  if (!(await getAdminSession())) {
-    redirect(locale === defaultLocale ? "/admin/login" : `/${locale}/admin/login`);
-  }
-
-  const adminHref = locale === defaultLocale ? "/admin" : `/${locale}/admin`;
+  await requireAdmin(locale);
 
   return (
-    <div className="ace-landing iv">
-      <InteriorHeader />
-      <main className="iv-main">
-        <div className="iv-wrap">
-          <div className="iv-toolbar">
-            <div>
-              <span className="iv-eyebrow">Admin</span>
-              <h1 className="iv-title">Mailings</h1>
-            </div>
-            <a href={adminHref} className="btn btn-stroke btn-sm">
-              ← Dashboard
-            </a>
-          </div>
+    <AdminShell locale={locale} title="Mailings" active="mailings">
+      {msg ? <div className="iv-notice iv-notice--info">{msg}</div> : null}
 
-          {msg ? <div className="iv-notice iv-notice--info">{msg}</div> : null}
-
-          {process.env.DATABASE_URL ? (
-            <MailingsBody locale={locale} />
-          ) : (
-            <div className="iv-notice iv-notice--info">
-              No database connected. Set <code>DATABASE_URL</code> to manage mailings.
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+      {process.env.DATABASE_URL ? (
+        <MailingsBody locale={locale} />
+      ) : (
+        <NoDatabaseNotice>manage mailings</NoDatabaseNotice>
+      )}
+    </AdminShell>
   );
 }
 

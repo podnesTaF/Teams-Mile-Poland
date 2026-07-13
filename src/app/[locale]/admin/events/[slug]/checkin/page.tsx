@@ -1,25 +1,25 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 
 import "@/app/landing.css";
 
-import { InteriorHeader } from "@/components/landing/interior-header";
+import { requireAdmin } from "@/features/admin/action-helpers";
+import { AdminShell } from "@/features/admin/components/admin-shell";
 import {
   assignBibAndCheckIn,
   markNoShow,
   revertToRegistered,
 } from "@/features/admin/checkin-actions";
+import { StatusPill } from "@/features/admin/components/status-pill";
 import {
   getEventRoster,
   getRosterRowById,
   suggestNextBib,
-  type ParticipationStatus,
   type RosterRow,
 } from "@/features/admin/events-data";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { getEventBySlug } from "@/lib/events/registry";
-import { getAdminSession } from "@/lib/auth/admin-session";
-import { defaultLocale } from "@/lib/i18n/config";
+import { Link } from "@/i18n/navigation";
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
@@ -48,15 +48,11 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
   const { locale, slug } = await params;
   const { q, ok, error } = await searchParams;
   setRequestLocale(locale);
-
-  if (!(await getAdminSession())) {
-    redirect(locale === defaultLocale ? "/admin/login" : `/${locale}/admin/login`);
-  }
+  await requireAdmin(locale);
 
   const event = getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
 
-  const p = (suffix: string) => (locale === defaultLocale ? suffix : `/${locale}${suffix}`);
   const query = q?.trim() ?? "";
 
   // Resolve results: a scanned/pasted ticket URL resolves to one verified
@@ -81,49 +77,44 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
   const errorText = scanError ? ERROR_TEXT.scan : error ? ERROR_TEXT[error] : null;
 
   return (
-    <div className="ace-landing iv">
-      <InteriorHeader />
-      <main className="iv-main">
-        <div className="iv-wrap iv-wrap--narrow">
-          <div className="iv-toolbar">
-            <div>
-              <span className="iv-eyebrow">Check-in · {event.shortDate}</span>
-              <h1 className="iv-title">{event.name}</h1>
-            </div>
-            <a href={p(`/admin/events/${slug}`)} className="btn btn-stroke btn-sm">
-              Roster
-            </a>
-          </div>
+    <AdminShell
+      locale={locale}
+      eyebrow={`Check-in · ${event.shortDate}`}
+      title={event.name}
+      narrow
+      actions={
+        <Link href={`/admin/events/${slug}`} className="btn btn-stroke btn-sm">
+          Roster
+        </Link>
+      }
+    >
+      {ok ? <div className="iv-notice iv-notice--info">Checked in · bib #{ok}</div> : null}
+      {errorText ? <div className="iv-notice iv-notice--error">{errorText}</div> : null}
 
-          {ok ? <div className="iv-notice iv-notice--info">Checked in · bib #{ok}</div> : null}
-          {errorText ? <div className="iv-notice iv-notice--error">{errorText}</div> : null}
-
-          <form method="get" className="iv-card">
-            <span className="iv-fieldlabel">Search name / email / bib, or scan a ticket QR</span>
-            <input
-              className="iv-input"
-              name="q"
-              defaultValue={query}
-              placeholder="e.g. Kowalski, ola@…, 12, or paste ticket link"
-              autoFocus
-            />
-            <div className="iv-actions">
-              <button type="submit" className="btn btn-red">
-                Find
-              </button>
-            </div>
-          </form>
-
-          {query && results.length === 0 && !scanError ? (
-            <p className="iv-note">No matching runners.</p>
-          ) : null}
-
-          {results.map((row) => (
-            <RunnerCard key={row.id} row={row} slug={slug} locale={locale} q={query} nextBib={nextBib} />
-          ))}
+      <form method="get" className="iv-card">
+        <span className="iv-fieldlabel">Search name / email / bib, or scan a ticket QR</span>
+        <input
+          className="iv-input"
+          name="q"
+          defaultValue={query}
+          placeholder="e.g. Kowalski, ola@…, 12, or paste ticket link"
+          autoFocus
+        />
+        <div className="iv-actions">
+          <button type="submit" className="btn btn-red">
+            Find
+          </button>
         </div>
-      </main>
-    </div>
+      </form>
+
+      {query && results.length === 0 && !scanError ? (
+        <p className="iv-note">No matching runners.</p>
+      ) : null}
+
+      {results.map((row) => (
+        <RunnerCard key={row.id} row={row} slug={slug} locale={locale} q={query} nextBib={nextBib} />
+      ))}
+    </AdminShell>
   );
 }
 
@@ -222,14 +213,4 @@ function ActionForm({
       {children}
     </form>
   );
-}
-
-function StatusPill({ status }: { status: ParticipationStatus }) {
-  const cls =
-    status === "checked_in"
-      ? "iv-pill--ok"
-      : status === "no_show"
-        ? "iv-pill--red"
-        : "iv-pill--due";
-  return <span className={`iv-pill ${cls}`}>{status.replaceAll("_", " ")}</span>;
 }
