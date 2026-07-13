@@ -905,6 +905,22 @@
       "heats": "Biegi na milę",
       "cooldown": "Schłodzenie",
       "awards": "Dekoracja i zdjęcia"
+    },
+    "media": {
+      "eyebrow": "Galeria wydarzenia",
+      "back": "← Powrót do wydarzenia",
+      "openAlbum": "Otwórz pełny album na Dysku ↗",
+      "photos": "Zdjęcia",
+      "videos": "Wideo",
+      "download": "Pobierz",
+      "playVideo": "Odtwórz wideo",
+      "close": "Zamknij",
+      "prev": "Poprzednie",
+      "next": "Następne",
+      "teaserHeading": "Zdjęcia i wideo",
+      "viewAll": "Zobacz pełną galerię →",
+      "videoCount": "{count, plural, one {# film} few {# filmy} many {# filmów} other {# filmu}}",
+      "comingSoon": "Zdjęcia i wideo z tej nocy biegowej pojawią się wkrótce — zajrzyj tu, aby zobaczyć i pobrać swoje ujęcia."
     }
   },
   "auth": {
@@ -1113,5 +1129,17 @@
     "successBody": "Nie będziesz już otrzymywać wiadomości marketingowych od Teams Mile. Nadal będziesz dostawać niezbędne e-maile dotyczące wydarzeń, na które się zapiszesz, takie jak bilety i przypomnienia.",
     "errorTitle": "Ten link jest nieprawidłowy",
     "errorBody": "Ten link do wypisania się jest nieprawidłowy lub wygasł, więc nic nie zostało zmienione. Użyj linku z ostatniej wiadomości e-mail lub skontaktuj się z nami, jeśli potrzebujesz pomocy."
+  },
+  "news": {
+    "eyebrow": "Aktualności",
+    "listTitle": "Najnowsze aktualności",
+    "landingTitle": "Najnowsze aktualności",
+    "readMore": "Czytaj więcej",
+    "allNews": "Wszystkie aktualności",
+    "backToNews": "Powrót do aktualności",
+    "empty": "Brak aktualności. Zajrzyj wkrótce po nowe informacje z cyklu mile.",
+    "meta": {
+      "listTitle": "Aktualności — ACE BATTLE RUN"
+    }
   }
 }

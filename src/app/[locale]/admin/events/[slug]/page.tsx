@@ -5,6 +5,7 @@ import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminShell } from "@/features/admin/components/admin-shell";
+import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { DownloadLink } from "@/features/admin/components/download-link";
 import { Stat } from "@/features/admin/components/stat";
 import { StatusPill } from "@/features/admin/components/status-pill";
@@ -16,6 +17,8 @@ import {
   type RosterRow,
 } from "@/features/admin/events-data";
 import { formatAdminDateTime as fmt } from "@/features/admin/format";
+import { removeRegistration } from "@/features/admin/roster-actions";
+import { sendMediaLiveMailingAction } from "@/features/event-mailings/media-live-actions";
 import { getEventBySlug } from "@/lib/events/registry";
 import { Link } from "@/i18n/navigation";
 
@@ -27,12 +30,12 @@ function parseStatus(value: string | undefined): ParticipationStatus | undefined
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; msg?: string }>;
 };
 
 export default async function AdminEventRosterPage({ params, searchParams }: PageProps) {
   const { locale, slug } = await params;
-  const { status } = await searchParams;
+  const { status, msg } = await searchParams;
   setRequestLocale(locale);
   await requireAdmin(locale);
 
@@ -41,6 +44,9 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
 
   const statusFilter = parseStatus(status);
   const eventDate = new Date(event.date);
+  // The media-live mailing only makes sense once the gallery is published: a
+  // completed event with a `media` folder configured (PRD #14, slice #18).
+  const canSendMediaLive = event.status === "completed" && Boolean(event.media);
 
   const [roster, stats] = await Promise.all([
     getEventRoster(slug, { status: statusFilter }),
@@ -59,9 +65,24 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
             Check-in
           </Link>
           <DownloadLink href={`/api/admin/events/${slug}/export`}>Export Excel</DownloadLink>
+          {canSendMediaLive ? (
+            <form action={sendMediaLiveMailingAction}>
+              <input type="hidden" name="locale" value={locale} />
+              <input type="hidden" name="slug" value={slug} />
+              <ConfirmSubmit
+                label="Send photos-live email"
+                title="Send the photos-live email?"
+                message="Emails every registered participant of this event that their gallery is live, with a link to it. Anyone already emailed for this event is skipped, so nobody is double-mailed."
+                confirmLabel="Send email"
+                danger={false}
+              />
+            </form>
+          ) : null}
         </>
       }
     >
+      {msg ? <div className="iv-notice iv-notice--info">{msg}</div> : null}
+
       <div className="iv-grid">
         <Stat label="Registered" value={stats.registered} />
         <Stat label="Checked in" value={stats.checked_in} />
@@ -101,11 +122,19 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
                   <th>Contact</th>
                   <th>Status</th>
                   <th>Checked in</th>
+                  <th aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
                 {roster.map((r) => (
-                  <RosterRowView key={r.id} row={r} eventDate={eventDate} />
+                  <RosterRowView
+                    key={r.id}
+                    row={r}
+                    eventDate={eventDate}
+                    slug={slug}
+                    locale={locale}
+                    statusFilter={statusFilter}
+                  />
                 ))}
               </tbody>
             </table>
@@ -116,7 +145,19 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
   );
 }
 
-function RosterRowView({ row, eventDate }: { row: RosterRow; eventDate: Date }) {
+function RosterRowView({
+  row,
+  eventDate,
+  slug,
+  locale,
+  statusFilter,
+}: {
+  row: RosterRow;
+  eventDate: Date;
+  slug: string;
+  locale: string;
+  statusFilter: ParticipationStatus | undefined;
+}) {
   const name = [row.firstName, row.lastName].filter(Boolean).join(" ") || row.name;
   return (
     <tr>
@@ -134,6 +175,20 @@ function RosterRowView({ row, eventDate }: { row: RosterRow; eventDate: Date }) 
         <StatusPill status={row.status} />
       </td>
       <td>{fmt(row.checkedInAt)}</td>
+      <td>
+        <form action={removeRegistration}>
+          <input type="hidden" name="locale" value={locale} />
+          <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="registrationId" value={row.id} />
+          {statusFilter ? <input type="hidden" name="status" value={statusFilter} /> : null}
+          <ConfirmSubmit
+            label="Remove"
+            title="Remove this registration?"
+            message={`This permanently deletes ${name}'s registration for this event. Use it for duplicates and withdrawal requests. This cannot be undone.`}
+            confirmLabel="Remove"
+          />
+        </form>
+      </td>
     </tr>
   );
 }

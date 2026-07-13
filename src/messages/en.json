@@ -905,6 +905,22 @@
       "heats": "Mile heats",
       "cooldown": "Cool-down",
       "awards": "Awards & photos"
+    },
+    "media": {
+      "eyebrow": "Event gallery",
+      "back": "← Back to event",
+      "openAlbum": "Open full album on Drive ↗",
+      "photos": "Photos",
+      "videos": "Videos",
+      "download": "Download",
+      "playVideo": "Play video",
+      "close": "Close",
+      "prev": "Previous",
+      "next": "Next",
+      "teaserHeading": "Photos & video",
+      "viewAll": "View full gallery →",
+      "videoCount": "{count, plural, one {# video} other {# videos}}",
+      "comingSoon": "Photos & video from this race night are coming soon — check back to see and download your shots."
     }
   },
   "auth": {
@@ -1113,5 +1129,17 @@
     "successBody": "You won't receive any more marketing emails from Teams Mile. You'll still get essential emails about events you register for, like tickets and reminders.",
     "errorTitle": "This link isn't valid",
     "errorBody": "This unsubscribe link is invalid or has expired, so nothing was changed. Use the link from a recent email, or contact us if you need help."
+  },
+  "news": {
+    "eyebrow": "News",
+    "listTitle": "Latest news",
+    "landingTitle": "Latest news",
+    "readMore": "Read more",
+    "allNews": "All news",
+    "backToNews": "Back to news",
+    "empty": "No news yet. Check back soon for updates from the mile series.",
+    "meta": {
+      "listTitle": "News — ACE BATTLE RUN"
+    }
   }
 }
