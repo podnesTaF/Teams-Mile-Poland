@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { key: "overview", label: "Overview", href: "/admin" },
   { key: "users", label: "Users", href: "/admin/users" },
   { key: "inquiries", label: "Inquiries", href: "/admin/inquiries" },
+  { key: "news", label: "News", href: "/admin/news" },
   { key: "legacy", label: "Legacy", href: "/admin/legacy" },
   { key: "mailings", label: "Mailings", href: "/admin/mailings" },
 ] as const;
