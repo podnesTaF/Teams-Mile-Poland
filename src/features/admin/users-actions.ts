@@ -7,7 +7,14 @@ import { revalidatePath } from "next/cache";
 import { users } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { auth } from "@/lib/auth/better-auth";
+import { getEventBySlug } from "@/lib/events/registry";
 import { defaultLocale } from "@/lib/i18n/config";
+import {
+  createFreeRegistration,
+  hasRegistration,
+  type EventRegistrationRow,
+} from "@/features/event-registration/data";
+import { sendEventTicketEmail } from "@/features/event-registration/ticket";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 
@@ -69,4 +76,63 @@ export async function resendUserVerification(formData: FormData) {
     back(locale, redirectTo, "Could not send the verification email. Try again.");
   }
   back(locale, redirectTo, "Verification email sent.");
+}
+
+/**
+ * Register a user for an individual event from their detail page and send the
+ * normal ticket email. Guards (PRD contract, frozen): user email verified,
+ * event exists, lifecycle status not `completed` (`registration_closed` is an
+ * allowed admin override), and no existing registration. The verified-email
+ * invariant behind every registration holds — no path here creates a row for an
+ * unverified account (the button is also disabled upstream for such accounts).
+ */
+export async function adminRegisterUserForEvent(formData: FormData) {
+  const locale = safeLocale(formData.get("locale"));
+  await requireAdmin(locale);
+  const id = String(formData.get("id") ?? "");
+  const eventSlug = String(formData.get("eventSlug") ?? "");
+  const suffix = id ? `/${id}` : "";
+  if (!id || !eventSlug) back(locale, suffix, "Select an event to register for.");
+
+  const db = getDb();
+  const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  if (!user) back(locale, suffix, "User not found.");
+  if (!user.emailVerified) {
+    back(locale, suffix, "User must verify their email before they can be registered.");
+  }
+
+  const event = getEventBySlug(eventSlug);
+  if (!event || event.eventType !== "individual") back(locale, suffix, "Event not found.");
+  if (event.status === "completed") {
+    back(locale, suffix, "Cannot register a user for a completed event.");
+  }
+
+  if (await hasRegistration(eventSlug, id)) {
+    back(locale, suffix, "User is already registered for this event.");
+  }
+
+  const ticketLocale = user.locale ?? defaultLocale;
+  let registration: EventRegistrationRow;
+  try {
+    registration = await createFreeRegistration({ eventSlug, userId: id, locale: ticketLocale });
+  } catch (error) {
+    if (error instanceof Error && /unique|duplicate/i.test(error.message)) {
+      back(locale, suffix, "User is already registered for this event.");
+    }
+    back(locale, suffix, "Could not register the user. Try again.");
+  }
+
+  // The row exists now; report accurately if only the ticket email fails so the
+  // admin knows the registration stands (rather than seeing a "failed" message
+  // and retrying into an "already registered" block).
+  try {
+    await sendEventTicketEmail({ registration, user });
+  } catch {
+    back(
+      locale,
+      suffix,
+      `Registered for ${event.name} — ${event.shortDate}, but the ticket email could not be sent.`,
+    );
+  }
+  back(locale, suffix, `Registered for ${event.name} — ${event.shortDate}. Ticket email sent.`);
 }

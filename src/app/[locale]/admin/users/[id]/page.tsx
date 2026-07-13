@@ -8,8 +8,14 @@ import { AdminShell } from "@/features/admin/components/admin-shell";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { formatAdminDateTime as fmt } from "@/features/admin/format";
-import { deleteUser, resendUserVerification } from "@/features/admin/users-actions";
+import {
+  adminRegisterUserForEvent,
+  deleteUser,
+  resendUserVerification,
+} from "@/features/admin/users-actions";
 import { getUserDetail, type UserHistoryEntry, type UserProfile } from "@/features/admin/users-data";
+import { getSeriesEvents } from "@/lib/events/registry";
+import type { EventSummary } from "@/lib/events/types";
 import { Link } from "@/i18n/navigation";
 
 export default async function AdminUserDetailPage({
@@ -36,6 +42,9 @@ export default async function AdminUserDetailPage({
   if (!detail) notFound();
   const { user, history } = detail;
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name;
+  // Non-completed individual events — the registry set an admin may register a
+  // user for. `registration_closed` events remain in this set as admin overrides.
+  const registrableEvents = getSeriesEvents();
 
   return (
     <AdminShell
@@ -52,6 +61,7 @@ export default async function AdminUserDetailPage({
 
       <ProfileCard user={user} />
       <HistoryCard history={history} />
+      <RegisterForEventCard user={user} locale={locale} events={registrableEvents} />
       <ActionsCard user={user} locale={locale} />
     </AdminShell>
   );
@@ -136,6 +146,56 @@ function HistoryCard({ history }: { history: UserHistoryEntry[] }) {
           </table>
         </div>
       )}
+    </section>
+  );
+}
+
+function RegisterForEventCard({
+  user,
+  locale,
+  events,
+}: {
+  user: UserProfile;
+  locale: string;
+  events: EventSummary[];
+}) {
+  return (
+    <section className="iv-card" style={{ marginTop: 18 }}>
+      <h2 className="iv-section-title">Register for an event</h2>
+      {!user.emailVerified ? (
+        <p className="iv-note" style={{ marginTop: 12 }}>
+          This account must verify its email before it can be registered for an event.
+        </p>
+      ) : events.length === 0 ? (
+        <p className="iv-note" style={{ marginTop: 12 }}>
+          No events are open for registration.
+        </p>
+      ) : (
+        <form
+          action={adminRegisterUserForEvent}
+          className="iv-inline"
+          style={{ marginTop: 12, alignItems: "flex-end", gap: 12 }}
+        >
+          <input type="hidden" name="locale" value={locale} />
+          <input type="hidden" name="id" value={user.id} />
+          <label className="block">
+            <span className="iv-fieldlabel">Event</span>
+            <select name="eventSlug" className="iv-input" defaultValue={events[0].slug}>
+              {events.map((e) => (
+                <option key={e.slug} value={e.slug}>
+                  {e.name} — {e.shortDate}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="submit" className="btn btn-red btn-sm">
+            Register &amp; send ticket
+          </button>
+        </form>
+      )}
+      <p className="iv-note" style={{ marginTop: 10 }}>
+        Sends the normal ticket email. Blocked for completed events and duplicate registrations.
+      </p>
     </section>
   );
 }
