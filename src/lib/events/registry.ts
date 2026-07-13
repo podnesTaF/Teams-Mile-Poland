@@ -114,11 +114,13 @@ export function getSeriesEvents(): EventSummary[] {
 }
 
 /**
- * Every individual mile event in the registry regardless of lifecycle status —
- * the "Aug events" universe the broadcast segments (`registered_any_aug`,
- * `not_registered_aug`, `registered:<slug>`) are computed against. Unlike
- * {@link getSeriesEvents} this includes completed individual events, so a past
- * event's registrants stay reachable. Soonest first.
+ * Every individual mile event in the registry regardless of lifecycle status.
+ * Two consumers: the "Aug events" universe the broadcast segments
+ * (`registered_any_aug`, `not_registered_aug`, `registered:<slug>`) are computed
+ * against, and the event detail page's static params (a completed race night
+ * must keep its page — the gallery teaser/back-link and media-live mailing CTA
+ * point at it). Unlike {@link getSeriesEvents} this includes completed
+ * individual events, so a past event stays reachable. Soonest first.
  */
 export function getIndividualEvents(): EventSummary[] {
   return EVENTS.filter((e) => e.eventType === "individual").sort((a, b) =>

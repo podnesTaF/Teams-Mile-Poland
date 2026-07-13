@@ -7,7 +7,7 @@ import "@/app/series-flows.css";
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { EventRegisterCta } from "@/features/event-registration/components/event-register-cta";
 import { Link } from "@/i18n/navigation";
-import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
+import { getEventBySlug, getIndividualEvents } from "@/lib/events/registry";
 import type { EventStatus } from "@/lib/events/types";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -35,7 +35,11 @@ const BANNER_TONE: Record<DetailState, string> = {
 };
 
 export function generateStaticParams() {
-  return getSeriesEvents().map((event) => ({ slug: event.slug }));
+  // Individual events including completed ones — a race night that flips to
+  // `completed` must keep its detail page (gallery teaser, gallery back-link,
+  // and the media-live mailing CTA all point at it). `getSeriesEvents` drops
+  // completed events and drives landing cards, so it can't back the params.
+  return getIndividualEvents().map((event) => ({ slug: event.slug }));
 }
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
