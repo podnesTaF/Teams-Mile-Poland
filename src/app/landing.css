@@ -4029,6 +4029,87 @@
   margin-bottom: 10px;
 }
 
+/* =========================================================
+ * News — shared card style for the public `/news` list and the
+ * landing "latest news" section, plus the landing section chrome.
+ * Both surfaces sit on the dark landing root (`.ace-landing`).
+ * ========================================================= */
+.ace-landing .news-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: clamp(18px, 2.6vw, 26px);
+}
+.ace-landing .news-card__date {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.ace-landing .news-card__title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-h3);
+  line-height: 1.1;
+  margin: 0;
+}
+.ace-landing .news-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+.ace-landing .news-card__title a:hover {
+  color: var(--acl-red);
+}
+.ace-landing .news-card__excerpt {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.55;
+  font-size: var(--fs-body-m);
+}
+.ace-landing .news-card__more {
+  margin-top: auto;
+  align-self: flex-start;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--acl-red);
+  text-decoration: none;
+}
+.ace-landing .news-card__more:hover {
+  text-decoration: underline;
+}
+
+/* Landing "latest news" section chrome. */
+.ace-landing .news-sec__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(24px, 3.5vw, 40px);
+}
+.ace-landing .news-sec__all {
+  flex-shrink: 0;
+}
+.ace-landing .news-sec__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+@media (max-width: 900px) {
+  .ace-landing .news-sec__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .ace-landing .ev-series__head {
   max-width: 640px;
   margin: 0 auto clamp(28px, 4vw, 44px);

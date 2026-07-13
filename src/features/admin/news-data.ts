@@ -86,6 +86,32 @@ export async function listPublishedArticles(): Promise<PublishedArticle[]> {
 }
 
 /**
+ * The latest published articles for the landing "latest news" section, newest-first
+ * by `published_at`, capped at `limit` (3 by default). Shares the build-time guard
+ * of {@link listPublishedArticles}: no DB configured, or an unreachable/unmigrated
+ * store during the build, yields `[]` so the landing prerenders without a news
+ * section — a later publish revalidates the landing (see `revalidateNews`).
+ */
+export async function listLatestPublishedArticles(limit = 3): Promise<PublishedArticle[]> {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const rows = await getDb()
+      .select()
+      .from(newsArticles)
+      .where(isNotNull(newsArticles.publishedAt))
+      .orderBy(desc(newsArticles.publishedAt))
+      .limit(limit);
+    return rows as PublishedArticle[];
+  } catch (error) {
+    if (process.env.NEXT_PHASE === "phase-production-build") {
+      console.warn("[news] build-time read failed; prerendering no landing section:", error);
+      return [];
+    }
+    throw error;
+  }
+}
+
+/**
  * A single *published* article by slug for `/news/[slug]`, or null when the slug
  * is unknown or still a draft — either case the page turns into a 404, so drafts
  * never leak publicly. Memoized per request so the page and its `generateMetadata`
