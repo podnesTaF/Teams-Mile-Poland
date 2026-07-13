@@ -1,0 +1,150 @@
+/* Public news surfaces — list cards and the article page. Piggybacks on the
+   interior `.ace-landing .iv-*` shell (dark theme, wrap, title). Cover images
+   land in a later slice; cards are text-only for now. */
+
+.ace-landing .news-empty {
+  margin-top: 28px;
+}
+
+.ace-landing .news-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-top: 32px;
+}
+@media (max-width: 680px) {
+  .ace-landing .news-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ace-landing .news-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: clamp(18px, 2.6vw, 26px);
+}
+
+.ace-landing .news-card__date {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.ace-landing .news-card__title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-h3);
+  line-height: 1.1;
+  margin: 0;
+}
+.ace-landing .news-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+.ace-landing .news-card__title a:hover {
+  color: var(--acl-red);
+}
+
+.ace-landing .news-card__excerpt {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.55;
+  font-size: var(--fs-body-m);
+}
+
+.ace-landing .news-card__more {
+  margin-top: auto;
+  align-self: flex-start;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--acl-red);
+  text-decoration: none;
+}
+.ace-landing .news-card__more:hover {
+  text-decoration: underline;
+}
+
+/* Article body — rendered markdown. Constrained measure, generous rhythm. */
+.ace-landing .news-prose {
+  margin-top: 28px;
+  max-width: 70ch;
+  color: rgba(255, 255, 255, 0.86);
+  line-height: 1.7;
+  font-size: var(--fs-body-l);
+}
+.ace-landing .news-prose > :first-child {
+  margin-top: 0;
+}
+.ace-landing .news-prose p {
+  margin: 0 0 1.1em;
+}
+.ace-landing .news-prose h2,
+.ace-landing .news-prose h3,
+.ace-landing .news-prose h4 {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  line-height: 1.15;
+  margin: 1.6em 0 0.5em;
+}
+.ace-landing .news-prose h2 {
+  font-size: var(--fs-h3);
+}
+.ace-landing .news-prose h3 {
+  font-size: var(--fs-h4);
+}
+.ace-landing .news-prose a {
+  color: var(--acl-red);
+  text-decoration: underline;
+}
+.ace-landing .news-prose ul,
+.ace-landing .news-prose ol {
+  margin: 0 0 1.1em;
+  padding-left: 1.4em;
+}
+.ace-landing .news-prose li {
+  margin: 0.3em 0;
+}
+.ace-landing .news-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1em 0;
+}
+.ace-landing .news-prose blockquote {
+  margin: 0 0 1.1em;
+  padding-left: 1em;
+  border-left: 3px solid var(--acl-red);
+  color: rgba(255, 255, 255, 0.72);
+}
+.ace-landing .news-prose code {
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+.ace-landing .news-prose pre {
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin: 0 0 1.1em;
+}
+.ace-landing .news-prose pre code {
+  background: none;
+  padding: 0;
+}

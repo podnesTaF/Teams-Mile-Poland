@@ -1,4 +1,5 @@
-import { desc, eq } from "drizzle-orm";
+import { cache } from "react";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 
 import { newsArticles, type NewsArticle } from "@/db/schema";
 import { getDb } from "@/lib/db";
@@ -47,3 +48,57 @@ export async function getArticleById(id: string): Promise<NewsArticle | null> {
     .limit(1);
   return article ?? null;
 }
+
+/**
+ * A published article carries a non-null `published_at`; the public surfaces
+ * narrow to this so the display date is a plain `Date`, not `Date | null`.
+ */
+export type PublishedArticle = NewsArticle & { publishedAt: Date };
+
+/**
+ * Published articles for the public `/news` list, newest-first by `published_at`
+ * (the publish date, which is also the sort key). Returns `[]` when no database
+ * is configured so the page prerenders its empty state at build time without a
+ * DB — publish mutations revalidate it once real data exists.
+ */
+export async function listPublishedArticles(): Promise<PublishedArticle[]> {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const rows = await getDb()
+      .select()
+      .from(newsArticles)
+      .where(isNotNull(newsArticles.publishedAt))
+      .orderBy(desc(newsArticles.publishedAt));
+    return rows as PublishedArticle[];
+  } catch (error) {
+    // The list page is statically prerendered, so this query runs at build time.
+    // If the store is unreachable or not yet migrated during the build, bake an
+    // empty list rather than failing the whole build — a later publish
+    // revalidates the page. At runtime (including on-demand revalidation) the
+    // error is rethrown, so a transient blip never overwrites good news with an
+    // empty cache entry.
+    if (process.env.NEXT_PHASE === "phase-production-build") {
+      console.warn("[news] build-time read failed; prerendering an empty list:", error);
+      return [];
+    }
+    throw error;
+  }
+}
+
+/**
+ * A single *published* article by slug for `/news/[slug]`, or null when the slug
+ * is unknown or still a draft — either case the page turns into a 404, so drafts
+ * never leak publicly. Memoized per request so the page and its `generateMetadata`
+ * share one query. Returns null without a database (see {@link listPublishedArticles}).
+ */
+export const getPublishedArticleBySlug = cache(
+  async (slug: string): Promise<PublishedArticle | null> => {
+    if (!process.env.DATABASE_URL) return null;
+    const [article] = await getDb()
+      .select()
+      .from(newsArticles)
+      .where(and(eq(newsArticles.slug, slug), isNotNull(newsArticles.publishedAt)))
+      .limit(1);
+    return (article as PublishedArticle | undefined) ?? null;
+  },
+);
