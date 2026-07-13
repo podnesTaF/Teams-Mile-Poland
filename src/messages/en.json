@@ -905,6 +905,18 @@
       "heats": "Mile heats",
       "cooldown": "Cool-down",
       "awards": "Awards & photos"
+    },
+    "media": {
+      "eyebrow": "Event gallery",
+      "back": "← Back to event",
+      "openAlbum": "Open full album on Drive ↗",
+      "photos": "Photos",
+      "videos": "Videos",
+      "download": "Download",
+      "playVideo": "Play video",
+      "close": "Close",
+      "prev": "Previous",
+      "next": "Next"
     }
   },
   "auth": {

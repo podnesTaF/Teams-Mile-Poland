@@ -905,6 +905,18 @@
       "heats": "Biegi na milę",
       "cooldown": "Schłodzenie",
       "awards": "Dekoracja i zdjęcia"
+    },
+    "media": {
+      "eyebrow": "Galeria wydarzenia",
+      "back": "← Powrót do wydarzenia",
+      "openAlbum": "Otwórz pełny album na Dysku ↗",
+      "photos": "Zdjęcia",
+      "videos": "Wideo",
+      "download": "Pobierz",
+      "playVideo": "Odtwórz wideo",
+      "close": "Zamknij",
+      "prev": "Poprzednie",
+      "next": "Następne"
     }
   },
   "auth": {
