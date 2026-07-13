@@ -12,8 +12,8 @@ import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
  *
  * `published_at` is the single source of draft-vs-published state: null = draft,
  * non-null = published, and it doubles as the display date and newest-first sort
- * key. `cover_image_url` holds a Blob URL (required to publish, enforced in the
- * action). Both are nullable and stay empty in the draft-CRUD slice.
+ * key. `cover_image_url` holds a Vercel Blob URL — nullable so drafts can lack a
+ * cover, but required to publish (enforced in `publishArticle`, not here).
  */
 export const newsArticles = pgTable("news_articles", {
   id: uuid("id").defaultRandom().primaryKey(),

@@ -22,6 +22,7 @@
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.0.8",
     "@stripe/stripe-js": "^9.5.0",
+    "@vercel/blob": "^2.6.1",
     "better-auth": "^1.6.23",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

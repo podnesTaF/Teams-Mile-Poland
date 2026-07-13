@@ -55,6 +55,15 @@ export default async function NewsArticlePage({
             </time>
           </p>
 
+          {article.coverImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- Blob-hosted cover
+            <img
+              className="news-hero"
+              src={article.coverImageUrl}
+              alt={titleFor(article, locale)}
+            />
+          ) : null}
+
           <div className="news-prose">
             <ArticleBody markdown={bodyFor(article, locale)} />
           </div>

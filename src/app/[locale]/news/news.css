@@ -1,9 +1,20 @@
 /* Public news surfaces — list cards and the article page. Piggybacks on the
-   interior `.ace-landing .iv-*` shell (dark theme, wrap, title). Cover images
-   land in a later slice; cards are text-only for now. */
+   interior `.ace-landing .iv-*` shell (dark theme, wrap, title). Cards carry an
+   optional cover thumbnail (`.news-card__cover`, styled in landing.css). */
 
 .ace-landing .news-empty {
   margin-top: 28px;
+}
+
+/* Article cover — hero image above the body on `/news/[slug]`. */
+.ace-landing .news-hero {
+  display: block;
+  width: 100%;
+  max-height: 460px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-top: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .ace-landing .news-grid {

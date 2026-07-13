@@ -4043,6 +4043,20 @@
   border-radius: 10px;
   padding: clamp(18px, 2.6vw, 26px);
 }
+/* Cover thumbnail — full-bleed strip at the top of the card, breaking out of the
+   card padding so it sits flush with the rounded top corners. */
+.ace-landing .news-card__cover {
+  display: block;
+  margin: calc(-1 * clamp(18px, 2.6vw, 26px)) calc(-1 * clamp(18px, 2.6vw, 26px)) 4px;
+  border-radius: 10px 10px 0 0;
+  overflow: hidden;
+}
+.ace-landing .news-card__cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
 .ace-landing .news-card__date {
   font-family: var(--font-cta), "Exo 2", sans-serif;
   font-size: 0.72rem;

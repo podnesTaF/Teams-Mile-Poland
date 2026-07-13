@@ -1,10 +1,12 @@
 "use server";
 
+import { put } from "@vercel/blob";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { newsArticles } from "@/db/schema";
+import { getAdminSession } from "@/lib/auth/admin-session";
 import { getDb } from "@/lib/db";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
@@ -48,9 +50,51 @@ function firstMissing(text: ArticleText): string | null {
   return null;
 }
 
+/** The submitted cover-image Blob URL, trimmed, or null when absent. */
+function readCover(formData: FormData): string | null {
+  const url = String(formData.get("coverImageUrl") ?? "").trim();
+  return url || null;
+}
+
 /** Postgres unique-violation surfaced by a slug collision. */
 function isSlugCollision(error: unknown): boolean {
   return error instanceof Error && /unique|duplicate/i.test(error.message);
+}
+
+/** Result of an image upload — a Blob URL on success, or a message on failure. */
+export type UploadNewsImageResult = { url: string } | { error: string };
+
+/**
+ * Upload one image (cover or inline body photo) to Vercel Blob and return its
+ * public URL. Shared by the admin article form's cover-image field and the
+ * body "insert image" button. Admin-gated (no redirect — this is invoked
+ * directly from the client and returns a value, so an unauthenticated caller
+ * gets an error object rather than a redirect). The stored URL is what the form
+ * then submits (cover) or splices into the markdown (`![](url)`); there is no
+ * blob deletion/GC in v1, so replaced or removed images are simply orphaned.
+ */
+export async function uploadNewsImage(formData: FormData): Promise<UploadNewsImageResult> {
+  const session = await getAdminSession();
+  if (!session) return { error: "Not authorized." };
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return { error: "Image uploads are not configured (missing BLOB_READ_WRITE_TOKEN)." };
+  }
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { error: "Choose an image to upload." };
+  if (!file.type.startsWith("image/")) return { error: "That file is not an image." };
+
+  try {
+    const blob = await put(`news/${file.name}`, file, {
+      access: "public",
+      addRandomSuffix: true,
+    });
+    return { url: blob.url };
+  } catch (error) {
+    console.error("[news] image upload failed:", error);
+    return { error: "Upload failed. Please try again." };
+  }
 }
 
 /**
@@ -87,13 +131,14 @@ export async function createArticle(formData: FormData) {
   }
 
   const text = readText(formData);
+  const coverImageUrl = readCover(formData);
   const slug = slugify(String(formData.get("slug") ?? "")) || slugify(text.titleEn);
   if (!slug) back("/new", "Provide a slug or an English title.");
 
   try {
     await getDb()
       .insert(newsArticles)
-      .values({ slug, ...text });
+      .values({ slug, ...text, coverImageUrl });
   } catch (error) {
     if (isSlugCollision(error))
       back("/new", `The slug “${slug}” is already taken. Choose another.`);
@@ -131,23 +176,25 @@ export async function updateArticle(formData: FormData) {
   if (!existing) back("", "Article not found.");
 
   const text = readText(formData);
+  const coverImageUrl = readCover(formData);
   const isDraft = existing.publishedAt === null;
   const submittedSlug = slugify(String(formData.get("slug") ?? "")) || slugify(text.titleEn);
   if (isDraft && !submittedSlug) back(editPath, "Provide a slug or an English title.");
 
   // Drafts may be saved partially, but a published article is live — editing it
-  // must not blank a locale field out from under the public surfaces. Hold
-  // published articles to the same completeness bar as publish.
+  // must not blank a locale field or the cover out from under the public
+  // surfaces. Hold published articles to the same completeness bar as publish.
   if (!isDraft) {
     const missing = firstMissing(text);
     if (missing) back(editPath, `${missing} is required while the article is published.`);
+    if (!coverImageUrl) back(editPath, "A cover image is required while the article is published.");
   }
 
   // Only drafts may change their slug; a published article's slug column stays
   // as stored, so we simply omit it from the update.
   const values = isDraft
-    ? { slug: submittedSlug, ...text, updatedAt: new Date() }
-    : { ...text, updatedAt: new Date() };
+    ? { slug: submittedSlug, ...text, coverImageUrl, updatedAt: new Date() }
+    : { ...text, coverImageUrl, updatedAt: new Date() };
 
   try {
     await db.update(newsArticles).set(values).where(eq(newsArticles.id, id));
@@ -161,11 +208,11 @@ export async function updateArticle(formData: FormData) {
 }
 
 /**
- * Publish an article: validate that all six trilingual text fields are present
- * (the cover-image requirement joins this check in the images slice) and stamp
- * `published_at`, which flips it live on the public surfaces. Validation runs
- * against the *stored* row — the admin saves edits first, then publishes — so a
- * half-translated article is rejected and stays a draft.
+ * Publish an article: validate that all six trilingual text fields *and* a cover
+ * image are present, then stamp `published_at`, which flips it live on the public
+ * surfaces. Validation runs against the *stored* row — the admin saves edits
+ * first, then publishes — so a half-translated or cover-less article is rejected
+ * and stays a draft.
  */
 export async function publishArticle(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
@@ -194,6 +241,8 @@ export async function publishArticle(formData: FormData) {
   };
   const missing = firstMissing(text);
   if (missing) back(editPath, `Cannot publish — ${missing} is missing. Fill every locale first.`);
+  if (!existing.coverImageUrl)
+    back(editPath, "Cannot publish — a cover image is required. Upload one first.");
 
   // Idempotent: re-publishing an already-live article keeps its original date.
   if (existing.publishedAt === null) {

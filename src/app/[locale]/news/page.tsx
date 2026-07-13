@@ -42,6 +42,12 @@ export default async function NewsListPage({ params }: { params: Promise<{ local
             <div className="news-grid">
               {articles.map((article) => (
                 <article className="news-card" key={article.slug}>
+                  {article.coverImageUrl ? (
+                    <Link href={`/news/${article.slug}`} className="news-card__cover">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- Blob-hosted cover */}
+                      <img src={article.coverImageUrl} alt="" loading="lazy" />
+                    </Link>
+                  ) : null}
                   <time className="news-card__date" dateTime={article.publishedAt.toISOString()}>
                     {formatNewsDate(article.publishedAt, locale)}
                   </time>

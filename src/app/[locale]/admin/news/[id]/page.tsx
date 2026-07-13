@@ -46,6 +46,7 @@ export default async function AdminNewsEditPage({
     bodyPl: article.bodyPl,
     bodyEn: article.bodyEn,
     bodyUa: article.bodyUa,
+    coverImageUrl: article.coverImageUrl ?? "",
   };
 
   return (
@@ -105,7 +106,7 @@ export default async function AdminNewsEditPage({
         {!article.publishedAt ? (
           <p className="iv-note" style={{ marginBottom: 14 }}>
             Save your changes first — publish validates the stored article and requires every
-            locale’s title and body.
+            locale’s title and body plus a cover image.
           </p>
         ) : null}
 
