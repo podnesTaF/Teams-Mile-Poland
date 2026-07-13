@@ -1,4 +1,4 @@
-import { Text } from "@react-email/components";
+import { Link, Text } from "@react-email/components";
 
 import { Btn, C, EmailShell, Field, HeroBand, SectionPad } from "@/emails/components";
 
@@ -116,16 +116,20 @@ export function LifecycleEmail({
 
 /**
  * Ad-hoc admin broadcast. `bodyHtml` is admin-authored (trusted) and rendered
- * inside the branded shell.
+ * inside the branded shell. User broadcasts pass `unsubscribe` to append a
+ * localized opt-out footer; the frozen legacy mailer omits it (transactional
+ * lifecycle emails never carry one), keeping its output byte-identical.
  */
 export function BroadcastEmail({
   subject,
   bodyHtml,
   preview,
+  unsubscribe,
 }: {
   subject: string;
   bodyHtml: string;
   preview?: string;
+  unsubscribe?: { line: string; cta: string; url: string };
 }) {
   return (
     <EmailShell preview={preview ?? subject}>
@@ -135,6 +139,14 @@ export function BroadcastEmail({
           style={{ fontSize: "14px", lineHeight: "1.6", color: C.text }}
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
+        {unsubscribe ? (
+          <Text style={{ margin: "20px 0 0", fontSize: "12px", lineHeight: "1.6", color: C.muted }}>
+            {unsubscribe.line}{" "}
+            <Link href={unsubscribe.url} style={{ color: C.muted, textDecoration: "underline" }}>
+              {unsubscribe.cta}
+            </Link>
+          </Text>
+        ) : null}
       </SectionPad>
     </EmailShell>
   );

@@ -4,6 +4,9 @@ const PURPOSE = "ticket";
 // Distinct purpose so legacy runner ticket signatures can never be replayed as
 // individual-event ticket signatures (different id namespaces).
 const EVENT_PURPOSE = "event-ticket";
+// Signed marketing-unsubscribe purpose, keyed by users.id. Distinct purpose so
+// a ticket signature can never be replayed as an unsubscribe link.
+const UNSUBSCRIBE_PURPOSE = "unsubscribe";
 
 function getSecret() {
   const secret = process.env.MAGIC_LINK_SECRET;
@@ -52,4 +55,13 @@ export function signEventTicket(registrationId: string): string {
 
 export function verifyEventTicket(registrationId: string, signature: string): boolean {
   return verify(EVENT_PURPOSE, registrationId, signature);
+}
+
+/** Marketing-unsubscribe signature, keyed by users.id. */
+export function signUnsubscribe(userId: string): string {
+  return sign(UNSUBSCRIBE_PURPOSE, userId);
+}
+
+export function verifyUnsubscribe(userId: string, signature: string): boolean {
+  return verify(UNSUBSCRIBE_PURPOSE, userId, signature);
 }
