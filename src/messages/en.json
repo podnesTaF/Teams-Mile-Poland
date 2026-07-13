@@ -916,7 +916,11 @@
       "playVideo": "Play video",
       "close": "Close",
       "prev": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "teaserHeading": "Photos & video",
+      "viewAll": "View full gallery →",
+      "videoCount": "{count, plural, one {# video} other {# videos}}",
+      "comingSoon": "Photos & video from this race night are coming soon — check back to see and download your shots."
     }
   },
   "auth": {

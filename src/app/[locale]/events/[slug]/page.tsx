@@ -3,12 +3,15 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import "@/app/landing.css";
 import "@/app/series-flows.css";
+import "@/app/gallery.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { EventRegisterCta } from "@/features/event-registration/components/event-register-cta";
 import { Link } from "@/i18n/navigation";
 import { getEventBySlug, getIndividualEvents } from "@/lib/events/registry";
 import type { EventStatus } from "@/lib/events/types";
+
+import { EventMediaTeaser } from "./event-media-teaser";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 const DATE_TAG: Record<string, string> = { en: "en-GB", pl: "pl-PL", ua: "uk-UA" };
@@ -143,6 +146,25 @@ export default async function EventDetailPage({ params }: PageProps) {
               </div>
             </aside>
           </div>
+
+          {/* Media section — only on completed events. Published (has `media`):
+              a teaser strip into the gallery. Completed without media: a
+              coming-soon note. Non-completed states render nothing. */}
+          {state === "completed" &&
+            (event.media ? (
+              <EventMediaTeaser
+                slug={slug}
+                folderId={event.media.driveFolderId}
+                heading={t("media.teaserHeading")}
+                viewAll={t("media.viewAll")}
+                videoCount={(count) => t("media.videoCount", { count })}
+              />
+            ) : (
+              <section className="media-soon">
+                <span className="ev-eyebrow">{t("media.teaserHeading")}</span>
+                <p className="media-soon__txt">{t("media.comingSoon")}</p>
+              </section>
+            ))}
         </div>
       </main>
     </div>

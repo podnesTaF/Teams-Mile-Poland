@@ -916,7 +916,11 @@
       "playVideo": "Odtwórz wideo",
       "close": "Zamknij",
       "prev": "Poprzednie",
-      "next": "Następne"
+      "next": "Następne",
+      "teaserHeading": "Zdjęcia i wideo",
+      "viewAll": "Zobacz pełną galerię →",
+      "videoCount": "{count, plural, one {# film} few {# filmy} many {# filmów} other {# filmu}}",
+      "comingSoon": "Zdjęcia i wideo z tej nocy biegowej pojawią się wkrótce — zajrzyj tu, aby zobaczyć i pobrać swoje ujęcia."
     }
   },
   "auth": {
