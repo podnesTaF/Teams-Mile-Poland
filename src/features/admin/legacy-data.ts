@@ -1,9 +1,7 @@
 import { desc, eq, inArray } from "drizzle-orm";
 
-import { contactInquiries, emailLog, magicLinks, runners, teams } from "@/db/schema";
+import { broadcasts, emailLog, magicLinks, runners, teams } from "@/db/schema";
 import { getDb } from "@/lib/db";
-
-export type InquiryRow = typeof contactInquiries.$inferSelect;
 
 export type TeamSummary = {
   id: string;
@@ -22,28 +20,22 @@ export type RunnerSummary = {
   phone: string;
   registrationType: string;
   paymentStatus: string;
-  teamId: string | null;
   createdAt: Date;
 };
 
-export type AdminOverview = {
-  inquiries: InquiryRow[];
-  newInquiryCount: number;
+export type LegacyOverview = {
   teams: TeamSummary[];
   runners: RunnerSummary[];
-  totals: { runners: number; teams: number; inquiries: number };
 };
 
-export async function getAdminOverview(): Promise<AdminOverview> {
+/** The frozen warsaw-2026 teams + runners tables, newest first. */
+export async function getLegacyOverview(): Promise<LegacyOverview> {
   const db = getDb();
 
-  const inquiries = await db
-    .select()
-    .from(contactInquiries)
-    .orderBy(desc(contactInquiries.createdAt));
-
-  const teamRows = await db.select().from(teams).orderBy(desc(teams.createdAt));
-  const runnerRows = await db.select().from(runners).orderBy(desc(runners.createdAt));
+  const [teamRows, runnerRows] = await Promise.all([
+    db.select().from(teams).orderBy(desc(teams.createdAt)),
+    db.select().from(runners).orderBy(desc(runners.createdAt)),
+  ]);
 
   const countsByTeam = new Map<string, number>();
   for (const r of runnerRows) {
@@ -67,29 +59,10 @@ export async function getAdminOverview(): Promise<AdminOverview> {
     phone: r.phone,
     registrationType: r.registrationType,
     paymentStatus: r.paymentStatus,
-    teamId: r.teamId,
     createdAt: r.createdAt,
   }));
 
-  return {
-    inquiries,
-    newInquiryCount: inquiries.filter((i) => i.status === "new").length,
-    teams: teamSummaries,
-    runners: runnerSummaries,
-    totals: {
-      runners: runnerRows.length,
-      teams: teamRows.length,
-      inquiries: inquiries.length,
-    },
-  };
-}
-
-export async function setInquiryStatus(id: string, status: "new" | "handled") {
-  await getDb().update(contactInquiries).set({ status }).where(eq(contactInquiries.id, id));
-}
-
-export async function deleteInquiryById(id: string) {
-  await getDb().delete(contactInquiries).where(eq(contactInquiries.id, id));
+  return { teams: teamSummaries, runners: runnerSummaries };
 }
 
 /**
@@ -107,7 +80,9 @@ export async function deleteRunnerCascade(runnerId: string) {
 
 /**
  * Remove a team along with its runners and every magic link referencing the
- * team or those runners — ordered to satisfy the foreign keys.
+ * team or those runners — ordered to satisfy the foreign keys. Broadcasts that
+ * targeted the team are kept (they're send history) with their team reference
+ * detached, since broadcasts.team_id has no cascade.
  */
 export async function deleteTeamCascade(teamId: string) {
   const db = getDb();
@@ -118,6 +93,7 @@ export async function deleteTeamCascade(teamId: string) {
       .where(eq(runners.teamId, teamId));
     const runnerIds = teamRunners.map((r) => r.id);
 
+    await tx.update(broadcasts).set({ teamId: null }).where(eq(broadcasts.teamId, teamId));
     await tx.delete(magicLinks).where(eq(magicLinks.teamId, teamId));
     if (runnerIds.length > 0) {
       await tx.delete(emailLog).where(inArray(emailLog.runnerId, runnerIds));

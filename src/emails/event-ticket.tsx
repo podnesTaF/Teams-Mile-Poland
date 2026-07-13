@@ -8,9 +8,11 @@ type Props = {
   view: EventTicketView;
   ticketUrl: string;
   qrCid: string;
+  /** Localized set-password CTA — lets the runner set a password for later sign-in. */
+  setPassword?: { line: string; cta: string; url: string };
 };
 
-export function EventTicketEmail({ view, ticketUrl, qrCid }: Props) {
+export function EventTicketEmail({ view, ticketUrl, qrCid, setPassword }: Props) {
   return (
     <EmailShell preview={eventTicketSubject(view)}>
       <HeroBand
@@ -67,6 +69,18 @@ export function EventTicketEmail({ view, ticketUrl, qrCid }: Props) {
       <SectionPad>
         <Btn href={ticketUrl}>View &amp; download ticket</Btn>
       </SectionPad>
+
+      {setPassword ? (
+        <>
+          <Rule />
+          <SectionPad soft>
+            <Text style={{ margin: "0 0 14px", fontSize: "14px", color: C.muted, textAlign: "center" }}>
+              {setPassword.line}
+            </Text>
+            <Btn href={setPassword.url}>{setPassword.cta}</Btn>
+          </SectionPad>
+        </>
+      ) : null}
     </EmailShell>
   );
 }

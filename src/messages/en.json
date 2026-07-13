@@ -1050,17 +1050,25 @@
       "runner": "Runner",
       "cost": "Cost",
       "submit": "Confirm registration",
-      "note": "No payment needed — the individual mile is free."
+      "note": "No payment needed — the individual mile is free.",
+      "finishing": "Completing your registration…"
     },
     "guest": {
       "title": "Register for {event}",
       "detailsTitle": "Your details",
-      "detailsSub": "We'll create your runner profile and email your ticket.",
+      "detailsSub": "We'll email a link to confirm your address and finish your registration.",
       "email": "Email",
-      "passwordNote": "We'll email a link to set a password and access your profile.",
-      "submit": "Register & get ticket",
+      "passwordNote": "First confirm your email; your ticket (with a set-password link) arrives right after.",
+      "submit": "Register",
       "signInPrompt": "Already have an account?",
       "signIn": "Sign in"
+    },
+    "checkEmail": {
+      "title": "Check your email",
+      "body": "We've sent a confirmation link to {email}. Open it to confirm your address — your registration completes and your ticket arrives right after.",
+      "resend": "Resend link",
+      "resending": "Sending…",
+      "resent": "Link sent again — check your inbox (and spam)."
     },
     "summary": {
       "date": "Date",
@@ -1080,13 +1088,30 @@
     "alreadyTitle": "Already registered",
     "alreadyBody": "You're on the list for this event.",
     "viewTicket": "View ticket",
-    "closedTitle": "Registration closed",
-    "closedBody": "Registration isn't open for this event.",
     "verifyTitle": "Verify your email",
     "verifyBody": "Confirm your email address before registering.",
     "verifyCta": "Verify email",
     "profileTitle": "Complete your profile",
     "profileBody": "Add your details before registering for events.",
-    "profileCta": "Complete profile"
+    "profileCta": "Complete profile",
+    "ageTitle": "Minimum age",
+    "ageBody": "You must be at least 16 years old on race day to register.",
+    "lifecycle": {
+      "upcomingTitle": "Registration opens soon",
+      "upcomingBody": "Registration for this race on {date} isn't open yet — check back soon.",
+      "closedTitle": "Registration is closed",
+      "closedBody": "Registration for this race has closed.",
+      "completedTitle": "This event has finished",
+      "completedBody": "This race has already taken place — see how it went.",
+      "completedCta": "View results"
+    }
+  },
+  "unsubscribe": {
+    "eyebrow": "Email preferences",
+    "metaTitle": "Unsubscribe · Teams Mile",
+    "successTitle": "You're unsubscribed",
+    "successBody": "You won't receive any more marketing emails from Teams Mile. You'll still get essential emails about events you register for, like tickets and reminders.",
+    "errorTitle": "This link isn't valid",
+    "errorBody": "This unsubscribe link is invalid or has expired, so nothing was changed. Use the link from a recent email, or contact us if you need help."
   }
 }

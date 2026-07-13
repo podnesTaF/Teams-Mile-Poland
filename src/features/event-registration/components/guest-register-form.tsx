@@ -5,6 +5,8 @@ import { useState, useTransition } from "react";
 
 import { Link } from "@/i18n/navigation";
 
+import { maxDobForMinAge, MIN_PARTICIPANT_AGE, parseDateOnly } from "@/lib/age";
+
 import { registerAsGuest } from "../actions";
 import type { GuestRegisterInput } from "../schemas";
 
@@ -12,6 +14,7 @@ type Props = {
   eventSlug: string;
   eventName: string;
   eventDate: string;
+  eventDateIso: string;
   eventTime: string | null;
   venue: string;
   locale: string;
@@ -32,7 +35,7 @@ const EMPTY: GuestRegisterInput = {
  * the server action) emails the ticket + a set-password link. Existing emails
  * are pointed at sign-in instead.
  */
-export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventTime, venue, locale }: Props) {
+export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIso, eventTime, venue, locale }: Props) {
   const t = useTranslations("register");
   const tp = useTranslations("profile");
   const [data, setData] = useState<GuestRegisterInput>(EMPTY);
@@ -40,18 +43,20 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventTime, 
   const [error, setError] = useState<string | null>(null);
   const [showSignIn, setShowSignIn] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [sent, setSent] = useState(false);
+  const [resent, setResent] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const dateTime = eventTime ? `${eventDate} · ${eventTime}` : eventDate;
   const signInHref = `/auth/sign-in?redirectTo=${encodeURIComponent(`/events/${eventSlug}/register`)}`;
+  const maxDob = maxDobForMinAge(MIN_PARTICIPANT_AGE, parseDateOnly(eventDateIso));
 
   function set<K extends keyof GuestRegisterInput>(key: K, value: GuestRegisterInput[K]) {
     setData((d) => ({ ...d, [key]: value }));
   }
 
-  function onSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    if (!terms || pending) return;
+  function submit(isResend: boolean) {
+    if (pending) return;
     setError(null);
     setShowSignIn(false);
     setFieldErrors({});
@@ -63,8 +68,52 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventTime, 
         setFieldErrors(result.fieldErrors ?? {});
         return;
       }
-      window.location.assign(result.ticketUrl);
+      // No ticket yet — an unverified account + verification email were created.
+      // Switch to the "check your email" state (or confirm a re-send).
+      if (isResend) setResent(true);
+      setSent(true);
     });
+  }
+
+  function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!terms) return;
+    submit(false);
+  }
+
+  // "Check your email" state — registration completes only after the visitor
+  // clicks the verification link (which returns them here with ?verified=1).
+  if (sent) {
+    return (
+      <section className="iv-card center-narrow">
+        <span className="iv-eyebrow">{t("checkEmail.title")}</span>
+        <p className="iv-sub">{t("checkEmail.body", { email: data.email })}</p>
+        {resent ? <div className="banner banner--info">{t("checkEmail.resent")}</div> : null}
+        {error ? (
+          <div className="banner banner--red">
+            {error}
+            {showSignIn ? (
+              <>
+                {" "}
+                <Link href={signInHref} className="link">
+                  {t("guest.signIn")}
+                </Link>
+              </>
+            ) : null}
+          </div>
+        ) : null}
+        <div className="iv-actions">
+          <button
+            type="button"
+            className="btn btn-stroke-dark"
+            onClick={() => submit(true)}
+            disabled={pending}
+          >
+            {pending ? t("checkEmail.resending") : t("checkEmail.resend")}
+          </button>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -131,6 +180,7 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventTime, 
                 type="date"
                 value={data.dateOfBirth}
                 onChange={(e) => set("dateOfBirth", e.target.value)}
+                max={maxDob}
                 required
               />
             </Field>

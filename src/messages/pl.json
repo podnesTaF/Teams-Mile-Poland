@@ -1050,17 +1050,25 @@
       "runner": "Zawodnik",
       "cost": "Koszt",
       "submit": "Potwierdź rejestrację",
-      "note": "Bez opłat — bieg na milę jest darmowy."
+      "note": "Bez opłat — bieg na milę jest darmowy.",
+      "finishing": "Finalizujemy Twoją rejestrację…"
     },
     "guest": {
       "title": "Zapisz się na {event}",
       "detailsTitle": "Twoje dane",
-      "detailsSub": "Utworzymy Twój profil zawodnika i wyślemy bilet e-mailem.",
+      "detailsSub": "Wyślemy link, aby potwierdzić Twój adres i dokończyć rejestrację.",
       "email": "E-mail",
-      "passwordNote": "Wyślemy link do ustawienia hasła i dostępu do profilu.",
-      "submit": "Zapisz się i odbierz bilet",
+      "passwordNote": "Najpierw potwierdź e-mail; bilet (z linkiem do ustawienia hasła) przyjdzie zaraz potem.",
+      "submit": "Zarejestruj się",
       "signInPrompt": "Masz już konto?",
       "signIn": "Zaloguj się"
+    },
+    "checkEmail": {
+      "title": "Sprawdź skrzynkę e-mail",
+      "body": "Wysłaliśmy link potwierdzający na adres {email}. Otwórz go, aby potwierdzić adres — rejestracja zostanie dokończona, a bilet przyjdzie zaraz potem.",
+      "resend": "Wyślij link ponownie",
+      "resending": "Wysyłanie…",
+      "resent": "Link wysłany ponownie — sprawdź skrzynkę (i spam)."
     },
     "summary": {
       "date": "Data",
@@ -1080,13 +1088,30 @@
     "alreadyTitle": "Już zapisany",
     "alreadyBody": "Jesteś na liście na to wydarzenie.",
     "viewTicket": "Zobacz bilet",
-    "closedTitle": "Zapisy zamknięte",
-    "closedBody": "Zapisy na to wydarzenie nie są otwarte.",
     "verifyTitle": "Potwierdź e-mail",
     "verifyBody": "Potwierdź adres e-mail przed zapisem.",
     "verifyCta": "Potwierdź e-mail",
     "profileTitle": "Uzupełnij profil",
     "profileBody": "Dodaj swoje dane przed zapisem na wydarzenia.",
-    "profileCta": "Uzupełnij profil"
+    "profileCta": "Uzupełnij profil",
+    "ageTitle": "Minimalny wiek",
+    "ageBody": "Aby się zapisać, w dniu wyścigu musisz mieć ukończone co najmniej 16 lat.",
+    "lifecycle": {
+      "upcomingTitle": "Rejestracja wkrótce się otworzy",
+      "upcomingBody": "Rejestracja na ten bieg ({date}) nie jest jeszcze otwarta — zajrzyj wkrótce.",
+      "closedTitle": "Rejestracja zamknięta",
+      "closedBody": "Rejestracja na ten bieg została zamknięta.",
+      "completedTitle": "To wydarzenie się zakończyło",
+      "completedBody": "Ten bieg już się odbył — zobacz, jak poszło.",
+      "completedCta": "Zobacz wyniki"
+    }
+  },
+  "unsubscribe": {
+    "eyebrow": "Preferencje e-mail",
+    "metaTitle": "Wypisz się · Teams Mile",
+    "successTitle": "Zostałeś wypisany",
+    "successBody": "Nie będziesz już otrzymywać wiadomości marketingowych od Teams Mile. Nadal będziesz dostawać niezbędne e-maile dotyczące wydarzeń, na które się zapiszesz, takie jak bilety i przypomnienia.",
+    "errorTitle": "Ten link jest nieprawidłowy",
+    "errorBody": "Ten link do wypisania się jest nieprawidłowy lub wygasł, więc nic nie zostało zmienione. Użyj linku z ostatniej wiadomości e-mail lub skontaktuj się z nami, jeśli potrzebujesz pomocy."
   }
 }

@@ -1,11 +1,13 @@
-import { redirect } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 
 import "@/app/landing.css";
 
-import { InteriorHeader } from "@/components/landing/interior-header";
+import { requireAdmin } from "@/features/admin/action-helpers";
+import { AdminShell } from "@/features/admin/components/admin-shell";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
+import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { RecipientMultiselect } from "@/features/admin/components/recipient-multiselect";
+import { formatAdminDateTime as fmtDate } from "@/features/admin/format";
 import {
   runDueMailingsAction,
   sendBroadcastAction,
@@ -14,13 +16,12 @@ import {
 } from "@/features/mailings/actions";
 import { getMailingsOverview, listRegistrations, type MailingRow } from "@/features/mailings/data";
 import { TEST_EMAIL_OPTIONS } from "@/features/mailings/test-send";
-import { getAdminSession } from "@/lib/auth/admin-session";
-import { defaultLocale } from "@/lib/i18n/config";
-
-function fmtDate(date: Date | null) {
-  if (!date) return "—";
-  return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(date);
-}
+import {
+  resendUserBroadcastAction,
+  sendUserBroadcastAction,
+} from "@/features/event-mailings/user-broadcast-actions";
+import { listUserBroadcasts, type UserBroadcastRow } from "@/features/event-mailings/user-broadcast";
+import { describeUserSegments, type SegmentOption } from "@/features/event-mailings/user-segments";
 
 const SEGMENT_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "All runners" },
@@ -39,46 +40,26 @@ export default async function MailingsPage({
   const { locale } = await params;
   const { msg } = await searchParams;
   setRequestLocale(locale);
-
-  if (!(await getAdminSession())) {
-    redirect(locale === defaultLocale ? "/admin/login" : `/${locale}/admin/login`);
-  }
-
-  const adminHref = locale === defaultLocale ? "/admin" : `/${locale}/admin`;
+  await requireAdmin(locale);
 
   return (
-    <div className="ace-landing iv">
-      <InteriorHeader />
-      <main className="iv-main">
-        <div className="iv-wrap">
-          <div className="iv-toolbar">
-            <div>
-              <span className="iv-eyebrow">Admin</span>
-              <h1 className="iv-title">Mailings</h1>
-            </div>
-            <a href={adminHref} className="btn btn-stroke btn-sm">
-              ← Dashboard
-            </a>
-          </div>
+    <AdminShell locale={locale} title="Mailings" active="mailings">
+      {msg ? <div className="iv-notice iv-notice--info">{msg}</div> : null}
 
-          {msg ? <div className="iv-notice iv-notice--info">{msg}</div> : null}
-
-          {process.env.DATABASE_URL ? (
-            <MailingsBody locale={locale} />
-          ) : (
-            <div className="iv-notice iv-notice--info">
-              No database connected. Set <code>DATABASE_URL</code> to manage mailings.
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+      {process.env.DATABASE_URL ? (
+        <MailingsBody locale={locale} />
+      ) : (
+        <NoDatabaseNotice>manage mailings</NoDatabaseNotice>
+      )}
+    </AdminShell>
   );
 }
 
 async function MailingsBody({ locale }: { locale: string }) {
   const { rows, past, totalRunners } = await getMailingsOverview(new Date());
   const registrations = await listRegistrations();
+  const userSegments = await describeUserSegments();
+  const userBroadcasts = await listUserBroadcasts();
 
   return (
     <>
@@ -171,6 +152,9 @@ async function MailingsBody({ locale }: { locale: string }) {
         </form>
       </section>
 
+      {/* ---- User broadcast composer (segments + unsubscribe) ---- */}
+      <UserBroadcastSection locale={locale} segments={userSegments} past={userBroadcasts} />
+
       {/* ---- Test a template ---- */}
       <section className="iv-card">
         <h2 className="iv-section-title">Test an email template</h2>
@@ -234,6 +218,118 @@ async function MailingsBody({ locale }: { locale: string }) {
                     <td>{b.sentCount}</td>
                     <td>{b.status}</td>
                     <td>{fmtDate(b.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </>
+  );
+}
+
+function UserBroadcastSection({
+  locale,
+  segments,
+  past,
+}: {
+  locale: string;
+  segments: SegmentOption[];
+  past: UserBroadcastRow[];
+}) {
+  return (
+    <>
+      <section className="iv-card">
+        <h2 className="iv-section-title">Send a user broadcast</h2>
+        <p className="iv-note" style={{ marginTop: 4 }}>
+          Emails a segment of user accounts (not the frozen legacy runners). Opted-out users are
+          excluded automatically, and every broadcast carries an unsubscribe footer. Recipient counts
+          are live. Sends are deduped per person, so re-sending never double-emails.
+        </p>
+        <form action={sendUserBroadcastAction} className="iv-editmodal__form" style={{ marginTop: 14 }}>
+          <input type="hidden" name="locale" value={locale} />
+          <div>
+            <label className="iv-fieldlabel" htmlFor="ub-subject">
+              Subject
+            </label>
+            <input id="ub-subject" name="subject" className="iv-input" required maxLength={160} />
+          </div>
+          <div>
+            <label className="iv-fieldlabel" htmlFor="ub-segment">
+              Segment
+            </label>
+            <select id="ub-segment" name="segment" className="iv-input" defaultValue="all">
+              {segments.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label} ({s.count})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="iv-fieldlabel" htmlFor="ub-body">
+              Message (HTML allowed)
+            </label>
+            <textarea
+              id="ub-body"
+              name="body"
+              required
+              rows={8}
+              className="iv-input"
+              style={{ height: "auto", padding: "12px 14px", lineHeight: 1.5 }}
+            />
+          </div>
+          <div className="iv-actions">
+            <ConfirmSubmit
+              label="Send user broadcast"
+              title="Send user broadcast?"
+              message="This emails the selected user segment immediately (opted-out users excluded). Double-check the subject and message."
+              confirmLabel="Send user broadcast"
+              danger={false}
+            />
+          </div>
+        </form>
+      </section>
+
+      <section className="iv-card">
+        <h2 className="iv-section-title">Past user broadcasts</h2>
+        {past.length === 0 ? (
+          <p className="iv-note">No user broadcasts sent yet.</p>
+        ) : (
+          <div className="iv-tablewrap">
+            <table className="iv-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Segment</th>
+                  <th>Sent</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {past.map((b) => (
+                  <tr key={b.id}>
+                    <td>{b.subject}</td>
+                    <td>{b.segment}</td>
+                    <td>{b.sentCount}</td>
+                    <td>{b.status}</td>
+                    <td>{fmtDate(b.createdAt)}</td>
+                    <td>
+                      <form action={resendUserBroadcastAction}>
+                        <input type="hidden" name="locale" value={locale} />
+                        <input type="hidden" name="broadcastId" value={b.id} />
+                        <ConfirmSubmit
+                          label="Re-send"
+                          title="Re-send this broadcast?"
+                          message="Re-sends to the same segment. Anyone already emailed for this broadcast is skipped, so nobody is double-emailed."
+                          confirmLabel="Re-send"
+                          danger={false}
+                        />
+                      </form>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -3,9 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-import { getAdminSession } from "@/lib/auth/admin-session";
-import { defaultLocale, locales } from "@/lib/i18n/config";
-
+import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 import {
   checkInWithBib,
   isUniqueViolation,
@@ -13,25 +11,12 @@ import {
   suggestNextBib,
 } from "./events-data";
 
-function safeLocale(value: FormDataEntryValue | null) {
-  const v = typeof value === "string" ? value : "";
-  return (locales as readonly string[]).includes(v) ? v : defaultLocale;
-}
-
 function checkinPath(locale: string, slug: string, query = "") {
-  const prefix = locale === defaultLocale ? "" : `/${locale}`;
-  return `${prefix}/admin/events/${slug}/checkin${query}`;
+  return adminPath(locale, `/events/${slug}/checkin${query}`);
 }
 
 function eventPath(locale: string, slug: string) {
-  const prefix = locale === defaultLocale ? "" : `/${locale}`;
-  return `${prefix}/admin/events/${slug}`;
-}
-
-async function requireAdmin(locale: string) {
-  if (!(await getAdminSession())) {
-    redirect(`${locale === defaultLocale ? "" : `/${locale}`}/admin/login`);
-  }
+  return adminPath(locale, `/events/${slug}`);
 }
 
 /**
