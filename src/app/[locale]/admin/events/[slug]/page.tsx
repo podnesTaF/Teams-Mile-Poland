@@ -18,6 +18,7 @@ import {
 } from "@/features/admin/events-data";
 import { formatAdminDateTime as fmt } from "@/features/admin/format";
 import { removeRegistration } from "@/features/admin/roster-actions";
+import { sendMediaLiveMailingAction } from "@/features/event-mailings/media-live-actions";
 import { getEventBySlug } from "@/lib/events/registry";
 import { Link } from "@/i18n/navigation";
 
@@ -43,6 +44,9 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
 
   const statusFilter = parseStatus(status);
   const eventDate = new Date(event.date);
+  // The media-live mailing only makes sense once the gallery is published: a
+  // completed event with a `media` folder configured (PRD #14, slice #18).
+  const canSendMediaLive = event.status === "completed" && Boolean(event.media);
 
   const [roster, stats] = await Promise.all([
     getEventRoster(slug, { status: statusFilter }),
@@ -61,6 +65,19 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
             Check-in
           </Link>
           <DownloadLink href={`/api/admin/events/${slug}/export`}>Export Excel</DownloadLink>
+          {canSendMediaLive ? (
+            <form action={sendMediaLiveMailingAction}>
+              <input type="hidden" name="locale" value={locale} />
+              <input type="hidden" name="slug" value={slug} />
+              <ConfirmSubmit
+                label="Send photos-live email"
+                title="Send the photos-live email?"
+                message="Emails every registered participant of this event that their gallery is live, with a link to it. Anyone already emailed for this event is skipped, so nobody is double-mailed."
+                confirmLabel="Send email"
+                danger={false}
+              />
+            </form>
+          ) : null}
         </>
       }
     >

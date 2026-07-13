@@ -16,6 +16,10 @@ export const eventEmailKindEnum = pgEnum("event_email_kind", [
   "reminder_1d",
   "morning",
   "confirmation",
+  // Manual, admin-triggered "your gallery is live" mailing (PRD #14, slice #18).
+  // Not part of the scheduled chain — dispatched from the admin event page, one
+  // per event, idempotent per (event_registration_id, 'media_live').
+  "media_live",
 ]);
 
 export const eventEmailLog = pgTable(
