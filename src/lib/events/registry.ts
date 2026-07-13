@@ -113,6 +113,19 @@ export function getSeriesEvents(): EventSummary[] {
   );
 }
 
+/**
+ * Every individual mile event in the registry regardless of lifecycle status —
+ * the "Aug events" universe the broadcast segments (`registered_any_aug`,
+ * `not_registered_aug`, `registered:<slug>`) are computed against. Unlike
+ * {@link getSeriesEvents} this includes completed individual events, so a past
+ * event's registrants stay reachable. Soonest first.
+ */
+export function getIndividualEvents(): EventSummary[] {
+  return EVENTS.filter((e) => e.eventType === "individual").sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
+}
+
 /** Look up a single event by slug. */
 export function getEventBySlug(slug: string): EventSummary | undefined {
   return EVENTS.find((e) => e.slug === slug);

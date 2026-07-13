@@ -1105,5 +1105,13 @@
       "completedBody": "Ten bieg już się odbył — zobacz, jak poszło.",
       "completedCta": "Zobacz wyniki"
     }
+  },
+  "unsubscribe": {
+    "eyebrow": "Preferencje e-mail",
+    "metaTitle": "Wypisz się · Teams Mile",
+    "successTitle": "Zostałeś wypisany",
+    "successBody": "Nie będziesz już otrzymywać wiadomości marketingowych od Teams Mile. Nadal będziesz dostawać niezbędne e-maile dotyczące wydarzeń, na które się zapiszesz, takie jak bilety i przypomnienia.",
+    "errorTitle": "Ten link jest nieprawidłowy",
+    "errorBody": "Ten link do wypisania się jest nieprawidłowy lub wygasł, więc nic nie zostało zmienione. Użyj linku z ostatniej wiadomości e-mail lub skontaktuj się z nami, jeśli potrzebujesz pomocy."
   }
 }
