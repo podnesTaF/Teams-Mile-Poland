@@ -55,6 +55,9 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
       title={`${event.name} roster`}
       actions={
         <>
+          <Link href={`/admin/events/${slug}/heats`} className="btn btn-stroke btn-sm">
+            Heats
+          </Link>
           <Link href={`/admin/events/${slug}/checkin`} className="btn btn-red btn-sm">
             Check-in
           </Link>

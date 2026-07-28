@@ -14,6 +14,18 @@ function span(start: string, from: number, to: number): string {
   return `${addMinutes(start, from)}–${addMinutes(start, to)}`;
 }
 
+/** Minutes from the event's window start to the moment the racing window opens. */
+const HEATS_OFFSET_MINUTES = 60;
+
+/**
+ * Wall-clock time the first heat can run, for an event window starting at
+ * `start`. The heat builder prefills generated heat times from here, so it stays
+ * in step with the timetable block below rather than repeating the offset.
+ */
+export function firstHeatTime(start: string): string {
+  return addMinutes(start, HEATS_OFFSET_MINUTES);
+}
+
 /**
  * The on-site schedule for a single 3-hour individual-mile block. Every event
  * in the series runs the same flow at the same stadium — only the start time
@@ -27,7 +39,7 @@ export function buildMileTimetable(start: string): TimetableBlock[] {
   return [
     { time: span(start, 0, 45), labelKey: "checkin" },
     { time: span(start, 45, 60), labelKey: "briefing" },
-    { time: span(start, 60, 150), labelKey: "heats" },
+    { time: span(start, HEATS_OFFSET_MINUTES, 150), labelKey: "heats" },
     { time: span(start, 150, 165), labelKey: "cooldown" },
     { time: span(start, 165, 180), labelKey: "awards" },
   ];

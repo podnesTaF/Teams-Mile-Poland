@@ -1,7 +1,7 @@
 import { EVENT } from "@/lib/marketing/event";
 
 import { warsaw2026Results } from "./results/warsaw-2026";
-import { buildMileTimetable } from "./timetables";
+import { buildMileTimetable, firstHeatTime } from "./timetables";
 import {
   DEFAULT_BIB_POOL,
   DEFAULT_HEAT_INTERVAL_MINUTES,
@@ -131,6 +131,24 @@ export function getEventBySlug(slug: string): EventSummary | undefined {
  */
 export function getBibPool(slug: string): number {
   return getEventBySlug(slug)?.bibPool ?? DEFAULT_BIB_POOL;
+}
+
+/**
+ * Spacing used to prefill generated heat start times, falling back to the series
+ * default. Like the pool size this is config: once a heat is generated its
+ * `scheduledAt` is a stored fact and editing the registry never moves it.
+ */
+export function getHeatIntervalMinutes(slug: string): number {
+  return getEventBySlug(slug)?.heatIntervalMinutes ?? DEFAULT_HEAT_INTERVAL_MINUTES;
+}
+
+/**
+ * Wall-clock time ("HH:MM") the first heat of an event can start — the moment its
+ * racing window opens. `null` for events with no configured window.
+ */
+export function getFirstHeatTime(slug: string): string | null {
+  const start = getEventBySlug(slug)?.timeRange?.start;
+  return start ? firstHeatTime(start) : null;
 }
 
 /** Look up a single event by slug, throwing if it does not exist. */
