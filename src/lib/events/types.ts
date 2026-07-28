@@ -61,6 +61,15 @@ export type EventResults = {
   heats: ResultHeat[];
 };
 
+/**
+ * Bibs available per event night when config does not say otherwise — the
+ * RaceResult timing system supplies 50 (ADR 0003).
+ */
+export const DEFAULT_BIB_POOL = 50;
+
+/** Spacing between generated heats when config does not say otherwise. */
+export const DEFAULT_HEAT_INTERVAL_MINUTES = 10;
+
 export type EventSummary = {
   slug: string;
   status: EventStatus;
@@ -77,5 +86,16 @@ export type EventSummary = {
   timeRange?: TimeRange;
   /** On-site schedule blocks (individual events). */
   timetable?: TimetableBlock[];
+  /**
+   * Physical bibs the timing system supplies at the venue (individual events).
+   * Bibs are leases drawn from `1..bibPool` — see ADR 0003. Defaults to
+   * {@link DEFAULT_BIB_POOL} when omitted.
+   */
+  bibPool?: number;
+  /**
+   * Spacing used to prefill generated heat start times (individual events).
+   * Defaults to {@link DEFAULT_HEAT_INTERVAL_MINUTES} when omitted.
+   */
+  heatIntervalMinutes?: number;
   results?: EventResults;
 };

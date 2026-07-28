@@ -14,11 +14,12 @@ import { StatusPill } from "@/features/admin/components/status-pill";
 import {
   getEventRoster,
   getRosterRowById,
+  holdsBib,
   suggestNextBib,
   type RosterRow,
 } from "@/features/admin/events-data";
 import { verifyEventTicket } from "@/features/ticket/sign";
-import { getEventBySlug } from "@/lib/events/registry";
+import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 import { Link } from "@/i18n/navigation";
 
 type PageProps = {
@@ -37,12 +38,26 @@ function parseScannedTicket(value: string): { registrationId: string; sig: strin
   };
 }
 
-const ERROR_TEXT: Record<string, string> = {
-  bib_taken: "That bib is already assigned for this event. Choose another.",
-  bib: "Enter a valid bib number.",
-  input: "Missing runner or event.",
-  scan: "Invalid or unverified ticket QR.",
-};
+/**
+ * Desk-facing copy for a failed check-in. Bib exhaustion is deliberately absent:
+ * it is not an error — check-in succeeds bib-less and reports through `ok`.
+ */
+function errorText(code: string, pool: number): string | null {
+  switch (code) {
+    case "bib_held":
+      return "Another runner is holding that bib right now. Choose another.";
+    case "bib":
+      return `Enter a bib number between 1 and ${pool}.`;
+    case "bib_race":
+      return "Another desk took that bib first. Try again.";
+    case "input":
+      return "Missing runner or event.";
+    case "scan":
+      return "Invalid or unverified ticket QR.";
+    default:
+      return null;
+  }
+}
 
 export default async function AdminCheckinPage({ params, searchParams }: PageProps) {
   const { locale, slug } = await params;
@@ -73,8 +88,9 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
     }
   }
 
+  const pool = getBibPool(slug);
   const nextBib = await suggestNextBib(slug);
-  const errorText = scanError ? ERROR_TEXT.scan : error ? ERROR_TEXT[error] : null;
+  const notice = errorText(scanError ? "scan" : (error ?? ""), pool);
 
   return (
     <AdminShell
@@ -88,8 +104,21 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
         </Link>
       }
     >
-      {ok ? <div className="iv-notice iv-notice--info">Checked in · bib #{ok}</div> : null}
-      {errorText ? <div className="iv-notice iv-notice--error">{errorText}</div> : null}
+      {ok === "pending" ? (
+        <div className="iv-notice iv-notice--info">
+          Checked in · bib pending. No bibs available — mark a finished heat complete to free some.
+        </div>
+      ) : ok ? (
+        <div className="iv-notice iv-notice--info">Checked in · bib #{ok}</div>
+      ) : null}
+      {notice ? <div className="iv-notice iv-notice--error">{notice}</div> : null}
+
+      {nextBib === null ? (
+        <div className="iv-notice iv-notice--error">
+          All {pool} bibs are out. Check-in still works — mark a finished heat complete to free
+          bibs.
+        </div>
+      ) : null}
 
       <form method="get" className="iv-card">
         <span className="iv-fieldlabel">Search name / email / bib, or scan a ticket QR</span>
@@ -112,7 +141,15 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
       ) : null}
 
       {results.map((row) => (
-        <RunnerCard key={row.id} row={row} slug={slug} locale={locale} q={query} nextBib={nextBib} />
+        <RunnerCard
+          key={row.id}
+          row={row}
+          slug={slug}
+          locale={locale}
+          q={query}
+          nextBib={nextBib}
+          pool={pool}
+        />
       ))}
     </AdminShell>
   );
@@ -124,12 +161,14 @@ function RunnerCard({
   locale,
   q,
   nextBib,
+  pool,
 }: {
   row: RosterRow;
   slug: string;
   locale: string;
   q: string;
-  nextBib: number;
+  nextBib: number | null;
+  pool: number;
 }) {
   const name = [row.firstName, row.lastName].filter(Boolean).join(" ") || row.name;
   const checkedIn = row.status === "checked_in";
@@ -149,7 +188,11 @@ function RunnerCard({
 
       {checkedIn ? (
         <div className="iv-inline" style={{ marginTop: 12 }}>
-          <span className="iv-sub">Bib #{row.bib} assigned.</span>
+          <span className="iv-sub">
+            {holdsBib(row)
+              ? `Bib #${row.bib} leased.`
+              : "Present · bib pending — free one by marking a finished heat complete."}
+          </span>
           <ActionForm action={revertToRegistered} slug={slug} locale={locale} q={q} regId={row.id}>
             <button type="submit" className="iv-linkbtn">
               Undo check-in
@@ -170,7 +213,9 @@ function RunnerCard({
                 name="bib"
                 type="number"
                 min={1}
-                defaultValue={row.bib ?? nextBib}
+                max={pool}
+                placeholder={nextBib === null ? "none free" : undefined}
+                defaultValue={nextBib ?? ""}
                 style={{ width: 120 }}
               />
             </label>

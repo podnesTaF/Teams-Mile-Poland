@@ -19,7 +19,7 @@ import { formatAdminDateTime as fmt } from "@/features/admin/format";
 import { getEventBySlug } from "@/lib/events/registry";
 import { Link } from "@/i18n/navigation";
 
-const STATUSES: ParticipationStatus[] = ["registered", "checked_in", "no_show"];
+const STATUSES: ParticipationStatus[] = ["registered", "confirmed", "checked_in", "no_show"];
 
 function parseStatus(value: string | undefined): ParticipationStatus | undefined {
   return STATUSES.includes(value as ParticipationStatus) ? (value as ParticipationStatus) : undefined;
@@ -46,7 +46,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
     getEventRoster(slug, { status: statusFilter }),
     getRosterStats(slug),
   ]);
-  const total = stats.registered + stats.checked_in + stats.no_show;
+  const total = STATUSES.reduce((sum, s) => sum + stats[s], 0);
 
   return (
     <AdminShell
@@ -64,6 +64,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
     >
       <div className="iv-grid">
         <Stat label="Registered" value={stats.registered} />
+        <Stat label="Confirmed" value={stats.confirmed} />
         <Stat label="Checked in" value={stats.checked_in} />
         <Stat label="No-show" value={stats.no_show} />
         <Stat label="Total" value={total} />

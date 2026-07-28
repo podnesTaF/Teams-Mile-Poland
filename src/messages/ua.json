@@ -1027,6 +1027,7 @@
       "paid": "Оплачено",
       "status": {
         "registered": "Зареєстровано",
+        "confirmed": "Підтверджено",
         "checked_in": "Відмічено",
         "no_show": "Не з'явився",
         "cancelled": "Скасовано"

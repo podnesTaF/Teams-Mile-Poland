@@ -2,7 +2,12 @@ import { EVENT } from "@/lib/marketing/event";
 
 import { warsaw2026Results } from "./results/warsaw-2026";
 import { buildMileTimetable } from "./timetables";
-import type { EventSummary, TimeRange } from "./types";
+import {
+  DEFAULT_BIB_POOL,
+  DEFAULT_HEAT_INTERVAL_MINUTES,
+  type EventSummary,
+  type TimeRange,
+} from "./types";
 
 /**
  * Shared config for the Aug-2026 individual mile series — same venue for every
@@ -31,6 +36,8 @@ function mileEvent(
     city: EVENT.venue.city,
     timeRange,
     timetable: buildMileTimetable(timeRange.start),
+    bibPool: DEFAULT_BIB_POOL,
+    heatIntervalMinutes: DEFAULT_HEAT_INTERVAL_MINUTES,
   };
 }
 
@@ -116,6 +123,14 @@ export function getSeriesEvents(): EventSummary[] {
 /** Look up a single event by slug. */
 export function getEventBySlug(slug: string): EventSummary | undefined {
   return EVENTS.find((e) => e.slug === slug);
+}
+
+/**
+ * The bib pool an event draws leases from (ADR 0003), falling back to the series
+ * default for events whose config omits it. Pool size is config, not data.
+ */
+export function getBibPool(slug: string): number {
+  return getEventBySlug(slug)?.bibPool ?? DEFAULT_BIB_POOL;
 }
 
 /** Look up a single event by slug, throwing if it does not exist. */

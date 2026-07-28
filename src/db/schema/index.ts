@@ -10,6 +10,7 @@ export * from "./contact-inquiries";
 export * from "./broadcasts";
 export * from "./email-log";
 export * from "./auth";
+export * from "./event-heats";
 export * from "./event-registrations";
 export * from "./event-email-log";
 export * from "./legacy-participations";

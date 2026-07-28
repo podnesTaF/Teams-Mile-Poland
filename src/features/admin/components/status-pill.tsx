@@ -6,6 +6,8 @@ export function StatusPill({ status }: { status: ParticipationStatus }) {
       ? "iv-pill--ok"
       : status === "no_show"
         ? "iv-pill--red"
-        : "iv-pill--due";
+        : status === "confirmed"
+          ? ""
+          : "iv-pill--due";
   return <span className={`iv-pill ${cls}`}>{status.replaceAll("_", " ")}</span>;
 }

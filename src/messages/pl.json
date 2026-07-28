@@ -1027,6 +1027,7 @@
       "paid": "Opłacone",
       "status": {
         "registered": "Zapisany",
+        "confirmed": "Potwierdzony",
         "checked_in": "Zameldowany",
         "no_show": "Nieobecny",
         "cancelled": "Anulowano"

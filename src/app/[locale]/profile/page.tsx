@@ -118,7 +118,10 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
               <div className="reg-list">
                 {registrations.map((reg) => {
                   const event = getEventBySlug(reg.eventSlug);
-                  const active = reg.status === "registered" || reg.status === "checked_in";
+                  const active =
+                    reg.status === "registered" ||
+                    reg.status === "confirmed" ||
+                    reg.status === "checked_in";
                   const [y, m, d] = (event?.date ?? "").split("-");
                   const day = d ? String(parseInt(d, 10)) : reg.eventSlug;
                   const month = m ? MONTHS[parseInt(m, 10) - 1] ?? "" : "";

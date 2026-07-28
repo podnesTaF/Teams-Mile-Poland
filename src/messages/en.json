@@ -1027,6 +1027,7 @@
       "paid": "Paid",
       "status": {
         "registered": "Registered",
+        "confirmed": "Confirmed",
         "checked_in": "Checked in",
         "no_show": "No-show",
         "cancelled": "Cancelled"

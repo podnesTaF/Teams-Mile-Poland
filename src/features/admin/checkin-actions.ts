@@ -3,9 +3,12 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
+import { getBibPool } from "@/lib/events/registry";
+
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 import {
   checkInWithBib,
+  checkInWithoutBib,
   isUniqueViolation,
   setRegistrationStatus,
   suggestNextBib,
@@ -20,9 +23,13 @@ function eventPath(locale: string, slug: string) {
 }
 
 /**
- * Assign a bib and check a runner in. If a bib is supplied it's used verbatim
- * (unique-violation → "bib taken"); if blank, the next suggested bib is used
- * with a short retry loop to absorb concurrent assignments.
+ * Lease a bib and check a runner in. If a bib is supplied it's used verbatim
+ * (unique-violation → "bib held"); if blank, the lowest free bib in the pool is
+ * leased, with a short retry loop to absorb a concurrent desk taking it first.
+ *
+ * An exhausted pool is not a failure (ADR 0003): the runner is checked in
+ * bib-less and the desk is told to free numbers by marking a finished heat
+ * complete.
  */
 export async function assignBibAndCheckIn(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
@@ -33,34 +40,42 @@ export async function assignBibAndCheckIn(formData: FormData) {
   const bibRaw = String(formData.get("bib") ?? "").trim();
   const q = String(formData.get("q") ?? "");
   const backQuery = q ? `?q=${encodeURIComponent(q)}` : "";
+  const back = (params: string) =>
+    checkinPath(locale, slug, `${backQuery}${backQuery ? "&" : "?"}${params}`);
 
   if (!slug || !registrationId) {
-    redirect(checkinPath(locale, slug, `${backQuery}${backQuery ? "&" : "?"}error=input`));
+    redirect(back("error=input"));
   }
 
   // Explicit bib: one attempt, surface conflicts.
   if (bibRaw) {
     const bib = Number.parseInt(bibRaw, 10);
-    if (!Number.isInteger(bib) || bib < 1) {
-      redirect(checkinPath(locale, slug, `${backQuery}${backQuery ? "&" : "?"}error=bib`));
+    if (!Number.isInteger(bib) || bib < 1 || bib > getBibPool(slug)) {
+      redirect(back("error=bib"));
     }
     try {
       await checkInWithBib(registrationId, bib);
     } catch (error) {
       if (isUniqueViolation(error)) {
-        redirect(checkinPath(locale, slug, `${backQuery}${backQuery ? "&" : "?"}error=bib_taken`));
+        redirect(back("error=bib_held"));
       }
       throw error;
     }
     revalidatePath(checkinPath(locale, slug));
     revalidatePath(eventPath(locale, slug));
-    redirect(checkinPath(locale, slug, `${backQuery}${backQuery ? "&" : "?"}ok=${bib}`));
+    redirect(back(`ok=${bib}`));
   }
 
-  // Auto-assign: retry on the (rare) race where the suggested bib is taken.
+  // Auto-lease: retry on the (rare) race where the suggested bib is taken
+  // between suggestion and update.
   let assigned: number | null = null;
-  for (let attempt = 0; attempt < 5 && assigned === null; attempt += 1) {
+  let exhausted = false;
+  for (let attempt = 0; attempt < 5 && assigned === null && !exhausted; attempt += 1) {
     const bib = await suggestNextBib(slug);
+    if (bib === null) {
+      exhausted = true;
+      break;
+    }
     try {
       await checkInWithBib(registrationId, bib);
       assigned = bib;
@@ -70,13 +85,19 @@ export async function assignBibAndCheckIn(formData: FormData) {
     }
   }
 
+  // Lost five suggestions in a row to other desks while bibs were still free —
+  // a genuine race, distinct from exhaustion.
+  if (assigned === null && !exhausted) {
+    redirect(back("error=bib_race"));
+  }
+
   if (assigned === null) {
-    redirect(checkinPath(locale, slug, `${backQuery}${backQuery ? "&" : "?"}error=bib_taken`));
+    await checkInWithoutBib(registrationId);
   }
 
   revalidatePath(checkinPath(locale, slug));
   revalidatePath(eventPath(locale, slug));
-  redirect(checkinPath(locale, slug, `${backQuery}${backQuery ? "&" : "?"}ok=${assigned}`));
+  redirect(back(assigned === null ? "ok=pending" : `ok=${assigned}`));
 }
 
 /** Mark a runner a no-show. */

@@ -14,7 +14,8 @@ export type EventRecipient = {
 
 /**
  * Active participants for an event's lifecycle emails: registrations that are
- * still on (registered or already checked in). Cancelled / no-show are skipped.
+ * still on (registered, confirmed, or already checked in). Cancelled / no-show
+ * are skipped.
  */
 export async function eligibleForEvent(eventSlug: string): Promise<EventRecipient[]> {
   const db = getDb();
@@ -32,7 +33,7 @@ export async function eligibleForEvent(eventSlug: string): Promise<EventRecipien
     .where(
       and(
         eq(eventRegistrations.eventSlug, eventSlug),
-        inArray(eventRegistrations.status, ["registered", "checked_in"]),
+        inArray(eventRegistrations.status, ["registered", "confirmed", "checked_in"]),
       ),
     );
 

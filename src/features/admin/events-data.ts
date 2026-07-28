@@ -1,9 +1,9 @@
 import ExcelJS from "exceljs";
-import { and, asc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
 
 import { eventRegistrations, users, type ParticipationStatus } from "@/db/schema";
 import { getDb } from "@/lib/db";
-import { getEventBySlug } from "@/lib/events/registry";
+import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 
 export type { ParticipationStatus };
 
@@ -11,6 +11,8 @@ export type RosterRow = {
   id: string;
   status: ParticipationStatus;
   bib: number | null;
+  /** Set once the bib lease is back in the pool; see {@link holdsBib}. */
+  bibReturnedAt: Date | null;
   firstName: string | null;
   lastName: string | null;
   name: string;
@@ -27,6 +29,7 @@ const ROSTER_COLUMNS = {
   id: eventRegistrations.id,
   status: eventRegistrations.status,
   bib: eventRegistrations.bib,
+  bibReturnedAt: eventRegistrations.bibReturnedAt,
   firstName: users.firstName,
   lastName: users.lastName,
   name: users.name,
@@ -108,6 +111,7 @@ export async function getRosterStats(eventSlug: string): Promise<Record<Particip
 
   const out: Record<ParticipationStatus, number> = {
     registered: 0,
+    confirmed: 0,
     checked_in: 0,
     no_show: 0,
   };
@@ -118,14 +122,43 @@ export async function getRosterStats(eventSlug: string): Promise<Record<Particip
   return out;
 }
 
-/** The next free bib for an event: max(assigned bib) + 1 (or 1). */
-export async function suggestNextBib(eventSlug: string): Promise<number> {
+/** Whether a registration currently holds its bib lease (ADR 0003). */
+export function holdsBib(row: Pick<RosterRow, "bib" | "bibReturnedAt">): boolean {
+  return row.bib !== null && row.bibReturnedAt === null;
+}
+
+/** The bibs currently held for an event — the numbers that are out on loan. */
+async function heldBibs(eventSlug: string): Promise<Set<number>> {
   const db = getDb();
-  const [row] = await db
-    .select({ max: sql<number | null>`max(${eventRegistrations.bib})` })
+  const rows = await db
+    .select({ bib: eventRegistrations.bib })
     .from(eventRegistrations)
-    .where(eq(eventRegistrations.eventSlug, eventSlug));
-  return (row?.max ?? 0) + 1;
+    .where(
+      and(
+        eq(eventRegistrations.eventSlug, eventSlug),
+        isNotNull(eventRegistrations.bib),
+        isNull(eventRegistrations.bibReturnedAt),
+      ),
+    );
+  return new Set(rows.map((r) => r.bib as number));
+}
+
+/**
+ * The lowest bib in `1..bibPool` nobody is currently holding, or `null` when the
+ * pool is exhausted. Bibs are recycled leases (ADR 0003), so a returned number
+ * is free again — which is why this cannot be `max(bib) + 1`: that hands out
+ * numbers above the pool the venue actually has.
+ *
+ * Exhaustion is a normal expected state, not an error: callers check a runner in
+ * bib-less and tell the desk to free bibs by marking a finished heat complete.
+ */
+export async function suggestNextBib(eventSlug: string): Promise<number | null> {
+  const pool = getBibPool(eventSlug);
+  const held = await heldBibs(eventSlug);
+  for (let bib = 1; bib <= pool; bib += 1) {
+    if (!held.has(bib)) return bib;
+  }
+  return null;
 }
 
 /**
@@ -211,32 +244,57 @@ export function rosterExportFilename(eventSlug: string): string {
 
 /* ── check-in mutations ─────────────────────────────────────────────── */
 
-/** Postgres unique-violation SQLSTATE. */
+/**
+ * Postgres unique-violation SQLSTATE. Drizzle wraps driver errors in a
+ * `DrizzleQueryError` that carries no `code` of its own, so the chain has to be
+ * walked to reach the `PostgresError` underneath.
+ */
 export function isUniqueViolation(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "23505"
-  );
+  for (let current = error, depth = 0; current !== null && current !== undefined && depth < 5; depth += 1) {
+    if (typeof current !== "object") return false;
+    if ((current as { code?: unknown }).code === "23505") return true;
+    current = (current as { cause?: unknown }).cause;
+  }
+  return false;
 }
 
 /**
- * Assign a bib and mark checked in. Throws a unique-violation error if the bib
- * is already taken for this event (partial unique index) — callers retry or
- * surface "bib taken".
+ * Lease a bib and mark checked in. `bibReturnedAt` is cleared because this is a
+ * fresh lease — a recycled number must read as held again. Throws a
+ * unique-violation error if another runner already holds the bib (partial unique
+ * index); callers retry with the next free number.
  */
 export async function checkInWithBib(registrationId: string, bib: number) {
   const db = getDb();
   const [row] = await db
     .update(eventRegistrations)
-    .set({ bib, status: "checked_in", checkedInAt: new Date() })
+    .set({ bib, bibReturnedAt: null, status: "checked_in", checkedInAt: new Date() })
     .where(eq(eventRegistrations.id, registrationId))
     .returning({ id: eventRegistrations.id, bib: eventRegistrations.bib });
   return row ?? null;
 }
 
-/** Set a registration's status; clears bib/check-in time for non-checked states. */
+/**
+ * Mark checked in with no bib — the pool is empty. A runner standing at the desk
+ * is never blocked by inventory (ADR 0003); they are present with a bib pending
+ * and get one as soon as a finished heat is marked complete. Any previous `bib`
+ * value is left alone: it is already returned, so it reads as history, not a
+ * lease.
+ */
+export async function checkInWithoutBib(registrationId: string) {
+  const db = getDb();
+  await db
+    .update(eventRegistrations)
+    .set({ status: "checked_in", checkedInAt: new Date() })
+    .where(eq(eventRegistrations.id, registrationId));
+}
+
+/**
+ * Set a registration's status. Leaving `checked_in` releases the bib lease: the
+ * number returns to the pool by stamping `bib_returned_at`, while `bib` itself is
+ * retained so past results stay accurate (ADR 0003). An earlier return stamp is
+ * preserved — the bib went back when its heat finished, not now.
+ */
 export async function setRegistrationStatus(
   registrationId: string,
   status: Exclude<ParticipationStatus, "checked_in">,
@@ -244,6 +302,11 @@ export async function setRegistrationStatus(
   const db = getDb();
   await db
     .update(eventRegistrations)
-    .set({ status, checkedInAt: null })
+    .set({
+      status,
+      checkedInAt: null,
+      bibReturnedAt: sql`case when ${eventRegistrations.bib} is null then null
+        else coalesce(${eventRegistrations.bibReturnedAt}, now()) end`,
+    })
     .where(eq(eventRegistrations.id, registrationId));
 }
