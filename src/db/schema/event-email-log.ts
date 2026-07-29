@@ -20,6 +20,13 @@ export const eventEmailKindEnum = pgEnum("event_email_kind", [
   // Not part of the scheduled chain — dispatched from the admin event page, one
   // per event, idempotent per (event_registration_id, 'media_live').
   "media_live",
+  // "Your heat is <n> at ~<time>" — dispatched by `publishHeats` (PRD #26,
+  // slice #30), not the scheduled chain. Deliberately **one** kind for both the
+  // first notice and a later change: re-notification is gated on the
+  // `notified_heat_id` / `notified_heat_time` delta, not on this log, so the
+  // (registration, kind) row here records only that the runner has been told
+  // about their heat at least once.
+  "heat_assignment",
 ]);
 
 export const eventEmailLog = pgTable(

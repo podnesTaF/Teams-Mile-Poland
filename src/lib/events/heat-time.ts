@@ -7,6 +7,10 @@
  * place that translation happens, so a `datetime-local` input and the stored
  * instant can never disagree about which clock they mean.
  *
+ * Lives in `lib/events` rather than `features/admin` because the runner-facing
+ * surfaces read the same clock: the heat-assignment email, the profile
+ * registration card and the ticket page.
+ *
  * The offset is resolved per instant rather than hardcoded to CEST: the series is
  * an August one today, but a stored heat time must not shift if that changes.
  */

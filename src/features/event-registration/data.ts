@@ -1,6 +1,6 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
 
-import { eventRegistrations, users } from "@/db/schema";
+import { eventHeats, eventRegistrations, users } from "@/db/schema";
 import { getDb } from "@/lib/db";
 
 export type EventRegistrationRow = typeof eventRegistrations.$inferSelect;
@@ -55,6 +55,39 @@ export async function getUserRegistrations(userId: string): Promise<EventRegistr
     .from(eventRegistrations)
     .where(eq(eventRegistrations.userId, userId))
     .orderBy(desc(eventRegistrations.createdAt));
+}
+
+/** A runner's heat as the profile card and the ticket page display it. */
+export type PublishedHeatView = { number: number; scheduledAt: Date };
+
+/**
+ * Published heats for the given registrations, keyed by registration id.
+ *
+ * **Published only.** A draft heat is admin work-in-progress that the runner has
+ * not been emailed about, and showing it would contradict the mailing the moment
+ * an admin rebalanced the card (PRD #26). One query for a whole list, so the
+ * profile page does not fan out per registration.
+ *
+ * The returned `scheduledAt` is the stored instant; callers format it as Warsaw
+ * wall-clock via `formatHeatTime` and label it approximate.
+ */
+export async function publishedHeatsByRegistration(
+  registrationIds: string[],
+): Promise<Map<string, PublishedHeatView>> {
+  const ids = [...new Set(registrationIds)];
+  if (ids.length === 0) return new Map();
+
+  const rows = await getDb()
+    .select({
+      registrationId: eventRegistrations.id,
+      number: eventHeats.number,
+      scheduledAt: eventHeats.scheduledAt,
+    })
+    .from(eventRegistrations)
+    .innerJoin(eventHeats, eq(eventRegistrations.heatId, eventHeats.id))
+    .where(and(inArray(eventRegistrations.id, ids), isNotNull(eventHeats.publishedAt)));
+
+  return new Map(rows.map((r) => [r.registrationId, { number: r.number, scheduledAt: r.scheduledAt }]));
 }
 
 /** Load one registration joined with its user, for ticket rendering. */

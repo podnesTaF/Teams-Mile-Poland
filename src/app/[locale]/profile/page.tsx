@@ -8,10 +8,23 @@ import { LogOutButton } from "@/features/auth/components/log-out-button";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { getUserRegistrations } from "@/features/event-registration/data";
+import {
+  getUserRegistrations,
+  publishedHeatsByRegistration,
+} from "@/features/event-registration/data";
+import {
+  ConfirmAttendanceForm,
+  confirmNotice,
+} from "@/features/event-registration/components/confirm-attendance-form";
+import {
+  awaitingConfirmation,
+  isConfirmationOpen,
+  slugsWithPublishedHeats,
+} from "@/features/event-registration/confirmation";
 import { makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import type { ProfileInput } from "@/features/profile/schemas";
+import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug } from "@/lib/events/registry";
 import { defaultLocale } from "@/lib/i18n/config";
 import { getUser, isProfileComplete } from "@/lib/auth/user-session";
@@ -20,7 +33,7 @@ const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "
 
 type PageProps = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ redirectTo?: string }>;
+  searchParams: Promise<{ redirectTo?: string; c?: string }>;
 };
 
 /** Serialize a stored DOB (Date via mode:"date", or string) to YYYY-MM-DD. */
@@ -36,7 +49,7 @@ function toDateInput(value: unknown): string {
 
 export default async function ProfilePage({ params, searchParams }: PageProps) {
   const { locale } = await params;
-  const { redirectTo } = await searchParams;
+  const { redirectTo, c } = await searchParams;
   setRequestLocale(locale);
 
   const user = await getUser();
@@ -66,6 +79,15 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const t = await getTranslations("profile");
   const registrations = await getUserRegistrations(user.id);
   const incomplete = !isProfileComplete(user);
+
+  // Confirmation closes once the heat card is published — one query for the
+  // whole list rather than one per registration.
+  const publishedSlugs = await slugsWithPublishedHeats(registrations.map((r) => r.eventSlug));
+  // Read-only heat display (PRD #26, slice #30) — published heats only, so the
+  // card never shows a lane the runner has not been emailed about.
+  const heats = await publishedHeatsByRegistration(registrations.map((r) => r.id));
+  const now = new Date();
+  const notice = confirmNotice(c);
 
   return (
     <div className="ace-landing iv">
@@ -104,13 +126,25 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
 
             <ProfileForm initial={initial} redirectTo={redirectTo} />
 
-          <section className="regs-section">
+          <section className="regs-section" id="registrations">
             <div className="section-label">
               <span className="iv-eyebrow">{t("registrations.title")}</span>
             </div>
             <h2 className="iv-title" style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)" }}>
               {t("registrations.heading")}
             </h2>
+
+            {notice ? (
+              <div
+                className={`banner ${notice.ok ? "banner--ok" : "banner--warn"}`}
+                style={{ marginTop: 16 }}
+                role="status"
+              >
+                <div className="banner__body">
+                  <div className="banner__txt">{t(`registrations.confirm.${notice.key}`)}</div>
+                </div>
+              </div>
+            ) : null}
 
             {registrations.length === 0 ? (
               <div className="regs-empty">{t("registrations.empty")}</div>
@@ -125,6 +159,16 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                   const [y, m, d] = (event?.date ?? "").split("-");
                   const day = d ? String(parseInt(d, 10)) : reg.eventSlug;
                   const month = m ? MONTHS[parseInt(m, 10) - 1] ?? "" : "";
+                  const canConfirm =
+                    awaitingConfirmation(reg) &&
+                    isConfirmationOpen({
+                      event,
+                      now,
+                      heatsPublished: publishedSlugs.has(reg.eventSlug),
+                    });
+                  // A heat is only meaningful in the run-up to the race; once the
+                  // event is completed the result, not the lane, is the story.
+                  const heat = event?.status === "completed" ? undefined : heats.get(reg.id);
                   return (
                     <div key={reg.id} className="reg-card" data-state={active ? "registered" : "completed"}>
                       <div className="race-date">
@@ -140,15 +184,37 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                               ? `${t("registrations.bib")} #${reg.bib}`
                               : t("registrations.bibPending")}
                           </span>
+                          {heat ? (
+                            <span>
+                              {t("registrations.heat")}{" "}
+                              {t("registrations.heatValue", {
+                                number: heat.number,
+                                time: formatHeatTime(heat.scheduledAt),
+                              })}
+                            </span>
+                          ) : null}
                         </div>
+                        {canConfirm ? (
+                          <div className="reg-card__ask">{t("registrations.confirm.ask")}</div>
+                        ) : null}
                       </div>
                       <div className="reg-card__actions">
                         <span className={`status ${active ? "status--registered" : "status--completed"}`}>
                           <span className="status__dot" />
                           {t(`registrations.status.${reg.status}`)}
                         </span>
+                        {canConfirm ? (
+                          <ConfirmAttendanceForm
+                            registrationId={reg.id}
+                            locale={locale}
+                            surface="profile"
+                          />
+                        ) : null}
                         {active ? (
-                          <a className="btn btn-red btn-sm" href={makeEventTicketUrl(reg.id, { locale })}>
+                          <a
+                            className={`btn btn-sm ${canConfirm ? "btn-stroke-dark" : "btn-red"}`}
+                            href={makeEventTicketUrl(reg.id, { locale })}
+                          >
                             {t("registrations.ticket")}
                           </a>
                         ) : null}

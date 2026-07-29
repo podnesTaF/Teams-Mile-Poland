@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 
 import {
   eventHeats,
@@ -23,6 +23,34 @@ export type HeatWithFill = {
   fill: number;
 };
 
+/** What a runner has last been told about the heat they are currently in. */
+export type HeatNotifyState = "none" | "stale" | "notified";
+
+/**
+ * The publish delta, in one place: where a runner is now versus what they were
+ * last emailed (`notifiedHeatId` / `notifiedHeatTime`).
+ *
+ * - `"none"` — never notified, or not in a heat at all. Covers a walk-up seeded
+ *   after the card was first published.
+ * - `"stale"` — notified, but their heat or start time has moved since.
+ * - `"notified"` — what they hold in their inbox is current.
+ *
+ * `publishHeats` mails everything that is not `"notified"`; the builder counts
+ * the same set so the button can say how many it will email. Times compare by
+ * instant, not identity — the driver hands back fresh `Date` objects.
+ */
+export function heatNotifyState(r: {
+  heatId: string | null;
+  scheduledAt: Date | null;
+  notifiedHeatId: string | null;
+  notifiedHeatTime: Date | null;
+}): HeatNotifyState {
+  if (!r.heatId || !r.scheduledAt) return "none";
+  if (r.notifiedHeatId === null) return "none";
+  if (r.notifiedHeatId !== r.heatId) return "stale";
+  return r.notifiedHeatTime?.getTime() === r.scheduledAt.getTime() ? "notified" : "stale";
+}
+
 /** One seedable runner: a row of the builder's runner lists. */
 export type SeedRow = {
   id: string;
@@ -32,6 +60,8 @@ export type SeedRow = {
   email: string;
   club: string | null;
   sex: "M" | "F" | null;
+  /** Whether a publish press would email this runner (see {@link heatNotifyState}). */
+  notifyState: HeatNotifyState;
 };
 
 /**
@@ -82,9 +112,14 @@ export async function getSeedPool(eventSlug: string): Promise<SeedRow[]> {
       email: users.email,
       club: users.club,
       sex: users.sex,
+      notifiedHeatId: eventRegistrations.notifiedHeatId,
+      notifiedHeatTime: eventRegistrations.notifiedHeatTime,
+      scheduledAt: eventHeats.scheduledAt,
     })
     .from(eventRegistrations)
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
+    // Left, not inner: unseeded runners are the Unassigned list.
+    .leftJoin(eventHeats, eq(eventRegistrations.heatId, eventHeats.id))
     .where(
       and(
         eq(eventRegistrations.eventSlug, eventSlug),
@@ -106,6 +141,7 @@ export async function getSeedPool(eventSlug: string): Promise<SeedRow[]> {
     email: r.email,
     club: r.club,
     sex: r.sex,
+    notifyState: heatNotifyState(r),
   }));
 }
 
@@ -208,6 +244,26 @@ export async function deleteHeatRow(eventSlug: string, heatId: string): Promise<
     .where(and(eq(eventHeats.id, heatId), eq(eventHeats.eventSlug, eventSlug)))
     .returning({ id: eventHeats.id });
   return rows.length > 0;
+}
+
+/**
+ * Release the event's card: stamp `publishedAt` on its still-unpublished heats.
+ * Returns how many were newly published.
+ *
+ * Only null timestamps are written. `publishedAt` records when the card was
+ * *first* released, and publishing is re-pressable after edits (PRD #26) — a
+ * second press must not rewrite that instant, or the audit trail of when runners
+ * were first told would move every time an admin fixed a typo. Per-event by
+ * design: no runner should see a half-released card.
+ */
+export async function publishEventHeats(eventSlug: string): Promise<number> {
+  const db = getDb();
+  const rows = await db
+    .update(eventHeats)
+    .set({ publishedAt: new Date() })
+    .where(and(eq(eventHeats.eventSlug, eventSlug), isNull(eventHeats.publishedAt)))
+    .returning({ id: eventHeats.id });
+  return rows.length;
 }
 
 /** Whether a heat id belongs to this event. */

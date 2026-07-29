@@ -831,11 +831,11 @@
     },
     "detail": {
       "back": "← Wszystkie wydarzenia",
-    "cta": {
-      "create": "Załóż konto, aby się zapisać →",
-      "signInPrompt": "Masz już konto?",
-      "signIn": "Zaloguj się"
-    },
+      "cta": {
+        "create": "Załóż konto, aby się zapisać →",
+        "signInPrompt": "Masz już konto?",
+        "signIn": "Zaloguj się"
+      },
       "whenTitle": "Kiedy",
       "whereTitle": "Gdzie",
       "capacityTitle": "Miejsca",
@@ -1037,6 +1037,8 @@
       "heading": "Twoje starty",
       "bib": "Numer",
       "bibPending": "Numer nadawany przy odprawie",
+      "heat": "Seria",
+      "heatValue": "{number} · ok. {time}",
       "empty": "Nie masz jeszcze żadnych zapisów.",
       "ticket": "Zobacz bilet →",
       "free": "Za darmo",
@@ -1047,6 +1049,15 @@
         "checked_in": "Zameldowany",
         "no_show": "Nieobecny",
         "cancelled": "Anulowano"
+      },
+      "confirm": {
+        "ask": "Będziesz na starcie? Potwierdź, abyśmy mogli ułożyć biegi.",
+        "cta": "Będę",
+        "state": "Obecność potwierdzona",
+        "ok": "Dziękujemy — Twoja obecność jest potwierdzona. Do zobaczenia na starcie.",
+        "already": "Twoja obecność jest już potwierdzona.",
+        "failed": "Nie udało się potwierdzić tej rejestracji. Otwórz link z e-maila z biletem i spróbuj ponownie.",
+        "ineligible": "Ta rejestracja jest oznaczona jako nieobecność. Skontaktuj się z organizatorami."
       }
     }
   },

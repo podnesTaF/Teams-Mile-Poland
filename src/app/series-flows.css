@@ -862,6 +862,11 @@
   align-items: flex-end;
   gap: 8px;
 }
+/* Attendance ask, shown only while a registration is still unconfirmed. */
+.ace-landing .reg-card__ask {
+  font-size: 0.85rem;
+  color: var(--amber);
+}
 .ace-landing .status--registered {
   background: var(--ok-soft);
   color: #7fe39c;

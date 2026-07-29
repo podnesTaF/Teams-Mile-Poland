@@ -9,7 +9,7 @@ import { getSeriesEvents } from "@/lib/events/registry";
 import type { EventSummary } from "@/lib/events/types";
 import { EVENT } from "@/lib/marketing/event";
 
-import { eventMailContent, type MailLocale } from "./copy";
+import { asksForConfirmation, eventMailContent, type MailLocale } from "./copy";
 import { eligibleForEvent } from "./audience";
 import { dueScheduledKind, type EventScheduledKind } from "./schedule";
 
@@ -111,6 +111,7 @@ export async function sendEventKind(
       continue;
     }
     const content = eventMailContent(kind, r.locale, r.fullName);
+    const ticket = makeEventTicketUrl(r.registrationId, { locale: r.locale });
     try {
       await resend.emails.send({
         from: FROM_EMAIL,
@@ -122,10 +123,13 @@ export async function sendEventKind(
           fullName: r.fullName,
           urls: {
             calendar,
-            ticket: makeEventTicketUrl(r.registrationId, { locale: r.locale }),
+            ticket,
             map: EVENT.mapsUrl,
+            confirm: `${ticket}#confirm`,
           },
           whenWhere: whenWhereFor(event, r.locale),
+          // Only the reminders ask, and only of someone who has not answered.
+          showConfirm: asksForConfirmation(kind) && r.status === "registered",
         }),
       });
       await db

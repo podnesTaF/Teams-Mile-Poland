@@ -13,7 +13,7 @@ const CHIPS = [
 ] as const;
 
 /** YouTube clip opened by the play button above the chips. */
-const INVITE_VIDEO_ID = "zKlnB1buY4E";
+const INVITE_VIDEO_ID = "X8wbdTMgxJ0";
 
 /** White interlude: video play button + chips + headline + CTA. */
 export function Invite() {

@@ -1,0 +1,1 @@
+ALTER TYPE "public"."event_email_kind" ADD VALUE 'heat_assignment';

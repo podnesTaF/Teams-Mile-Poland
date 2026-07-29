@@ -2,6 +2,7 @@ import { Text } from "@react-email/components";
 
 import { Btn, C, EmailShell, Field, HeroBand, SectionPad } from "@/emails/components";
 import {
+  confirmBlockCopy,
   eventMailContent,
   UI,
   type EventMailAction,
@@ -13,6 +14,8 @@ export type EventMailUrls = {
   calendar: string;
   ticket: string;
   map: string;
+  /** Ticket page anchored at its confirm CTA — see {@link EventLifecycleEmail}. */
+  confirm: string;
 };
 
 export type EventWhenWhere = {
@@ -26,6 +29,13 @@ export type EventWhenWhere = {
  * One parameterized template for every individual-event lifecycle email. Copy
  * comes from ./copy by kind+locale; the when/where block is passed in from the
  * registry event (date/time/venue), so it's correct for each mile night.
+ *
+ * `showConfirm` renders the attendance ask (PRD #26). The caller passes it only
+ * for reminder kinds and only while the registration is still `registered`, so
+ * a runner who has already answered is never nagged again. The button links to
+ * the signed ticket page rather than confirming on click: a GET that mutates
+ * would be fired by the link-scanning in corporate mail gateways, silently
+ * confirming people who never opened the email.
  */
 export function EventLifecycleEmail({
   kind,
@@ -33,12 +43,14 @@ export function EventLifecycleEmail({
   fullName,
   urls,
   whenWhere,
+  showConfirm = false,
 }: {
   kind: EventScheduledKind;
   locale: MailLocale;
   fullName: string;
   urls: EventMailUrls;
   whenWhere: EventWhenWhere;
+  showConfirm?: boolean;
 }) {
   const c = eventMailContent(kind, locale, fullName);
   const ui = UI[locale];
@@ -71,6 +83,8 @@ export function EventLifecycleEmail({
             ))}
           </ul>
         ) : null}
+
+        {showConfirm ? <ConfirmAsk locale={locale} href={urls.confirm} /> : null}
 
         {c.showWhenWhere ? (
           <div
@@ -112,6 +126,40 @@ export function EventLifecycleEmail({
         {c.outro ? <Text style={{ ...para, margin: "16px 0 0", color: C.muted }}>{c.outro}</Text> : null}
       </SectionPad>
     </EmailShell>
+  );
+}
+
+/** The conditional attendance ask — a callout, visually distinct from the body. */
+function ConfirmAsk({ locale, href }: { locale: MailLocale; href: string }) {
+  const copy = confirmBlockCopy(locale);
+  return (
+    <div
+      style={{
+        border: `1px solid ${C.border}`,
+        borderRadius: "8px",
+        padding: "16px",
+        margin: "4px 0 16px",
+        backgroundColor: C.cardSoft,
+      }}
+    >
+      <Text
+        style={{
+          margin: "0 0 6px",
+          fontSize: "15px",
+          lineHeight: "1.4",
+          color: C.white,
+          fontWeight: 700,
+        }}
+      >
+        {copy.title}
+      </Text>
+      <Text style={{ margin: "0 0 14px", fontSize: "14px", lineHeight: "1.6", color: C.text }}>
+        {copy.body}
+      </Text>
+      <Btn href={href} variant="primary">
+        {copy.cta}
+      </Btn>
+    </div>
   );
 }
 

@@ -11,6 +11,12 @@ type ConfirmSubmitProps = {
   message: string;
   confirmLabel?: string;
   danger?: boolean;
+  /**
+   * Override the trigger's classes. Defaults to the inline `iv-linkbtn` that
+   * suits a table row; a standalone action (publishing the card) wants a real
+   * button instead.
+   */
+  triggerClassName?: string;
 };
 
 /**
@@ -24,6 +30,7 @@ export function ConfirmSubmit({
   message,
   confirmLabel = "Remove",
   danger = true,
+  triggerClassName,
 }: ConfirmSubmitProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -52,7 +59,7 @@ export function ConfirmSubmit({
       <button
         ref={triggerRef}
         type="button"
-        className={cn("iv-linkbtn", danger && "iv-linkbtn--danger")}
+        className={triggerClassName ?? cn("iv-linkbtn", danger && "iv-linkbtn--danger")}
         onClick={() => setOpen(true)}
       >
         {label}

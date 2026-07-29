@@ -831,11 +831,11 @@
     },
     "detail": {
       "back": "← All events",
-    "cta": {
-      "create": "Create account to register →",
-      "signInPrompt": "Already have an account?",
-      "signIn": "Sign in"
-    },
+      "cta": {
+        "create": "Create account to register →",
+        "signInPrompt": "Already have an account?",
+        "signIn": "Sign in"
+      },
       "whenTitle": "When",
       "whereTitle": "Where",
       "capacityTitle": "Capacity",
@@ -1037,6 +1037,8 @@
       "heading": "Your race nights",
       "bib": "Bib",
       "bibPending": "Bib assigned at check-in",
+      "heat": "Heat",
+      "heatValue": "{number} · approx. {time}",
       "empty": "You haven't registered for any events yet.",
       "ticket": "View ticket →",
       "free": "Free",
@@ -1047,6 +1049,15 @@
         "checked_in": "Checked in",
         "no_show": "No-show",
         "cancelled": "Cancelled"
+      },
+      "confirm": {
+        "ask": "Are you coming? Confirm so we can build the heats.",
+        "cta": "I am coming",
+        "state": "Attendance confirmed",
+        "ok": "Thanks — your attendance is confirmed. See you at the start line.",
+        "already": "Your attendance is already confirmed.",
+        "failed": "We could not confirm that registration. Open the link from your ticket email and try again.",
+        "ineligible": "This registration is marked as a no-show. Please contact the organizers."
       }
     }
   },

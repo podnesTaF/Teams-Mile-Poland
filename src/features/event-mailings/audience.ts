@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 
-import { eventRegistrations, users } from "@/db/schema";
+import { eventRegistrations, users, type ParticipationStatus } from "@/db/schema";
 import { getDb } from "@/lib/db";
 
 import { asMailLocale, type MailLocale } from "./copy";
@@ -10,6 +10,8 @@ export type EventRecipient = {
   email: string;
   fullName: string;
   locale: MailLocale;
+  /** Drives the conditional confirmation ask in the reminder templates. */
+  status: ParticipationStatus;
 };
 
 /**
@@ -27,6 +29,7 @@ export async function eligibleForEvent(eventSlug: string): Promise<EventRecipien
       firstName: users.firstName,
       lastName: users.lastName,
       locale: eventRegistrations.locale,
+      status: eventRegistrations.status,
     })
     .from(eventRegistrations)
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
@@ -42,5 +45,6 @@ export async function eligibleForEvent(eventSlug: string): Promise<EventRecipien
     email: r.email,
     fullName: [r.firstName, r.lastName].filter(Boolean).join(" ").trim() || r.name || r.email,
     locale: asMailLocale(r.locale),
+    status: r.status as ParticipationStatus,
   }));
 }

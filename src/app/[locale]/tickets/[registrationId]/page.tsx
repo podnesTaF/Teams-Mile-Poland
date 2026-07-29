@@ -1,24 +1,37 @@
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import "@/app/landing.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
-import { loadEventRegistration } from "@/features/event-registration/data";
+import {
+  loadEventRegistration,
+  publishedHeatsByRegistration,
+} from "@/features/event-registration/data";
+import {
+  ConfirmAttendanceForm,
+  confirmNotice,
+} from "@/features/event-registration/components/confirm-attendance-form";
+import {
+  awaitingConfirmation,
+  isConfirmationOpen,
+  slugsWithPublishedHeats,
+} from "@/features/event-registration/confirmation";
 import { buildEventTicketView, makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { generateTicketQrPng } from "@/features/ticket/qr";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { DownloadTicketButton } from "@/features/ticket/components/download-ticket-button";
+import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug } from "@/lib/events/registry";
 
 type PageProps = {
   params: Promise<{ locale: string; registrationId: string }>;
-  searchParams: Promise<{ s?: string }>;
+  searchParams: Promise<{ s?: string; c?: string }>;
 };
 
 export default async function EventTicketPage({ params, searchParams }: PageProps) {
   const { locale, registrationId } = await params;
-  const { s } = await searchParams;
+  const { s, c } = await searchParams;
   setRequestLocale(locale);
 
   if (!s || !verifyEventTicket(registrationId, s)) {
@@ -35,6 +48,30 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
 
   const qrBuffer = await generateTicketQrPng(makeEventTicketUrl(registrationId, { locale }));
   const qrDataUri = `data:image/png;base64,${qrBuffer.toString("base64")}`;
+
+  // Confirmation: the passwordless escape hatch. The signature already verified
+  // above is what authorizes it, so a signed-out guest can answer from here.
+  const published = await slugsWithPublishedHeats([loaded.registration.eventSlug]);
+  const canConfirm =
+    awaitingConfirmation(loaded.registration) &&
+    isConfirmationOpen({
+      event,
+      now: new Date(),
+      heatsPublished: published.has(loaded.registration.eventSlug),
+    });
+  const notice = confirmNotice(c);
+  const tc = await getTranslations("profile.registrations.confirm");
+
+  // Read-only heat display (PRD #26, slice #30). Published heats only, and only
+  // while the race is still ahead. The keys live under `profile.registrations`
+  // because the profile card renders the same two facts — one source of truth
+  // rather than a second copy of "Heat" in three languages. The page's other,
+  // pre-existing English literals are deliberately left alone (PRD #26).
+  const tr = await getTranslations("profile.registrations");
+  const heat =
+    event?.status === "completed"
+      ? undefined
+      : (await publishedHeatsByRegistration([registrationId])).get(registrationId);
 
   return (
     <div className="ace-landing iv tk-page">
@@ -61,6 +98,15 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
                 <Field label="Email" value={view.email} />
                 {view.club ? <Field label="Club" value={view.club} /> : null}
                 <Field label="Bib" value={view.bib ? String(view.bib) : "Assigned at check-in"} />
+                {heat ? (
+                  <Field
+                    label={tr("heat")}
+                    value={tr("heatValue", {
+                      number: heat.number,
+                      time: formatHeatTime(heat.scheduledAt),
+                    })}
+                  />
+                ) : null}
               </div>
             </div>
 
@@ -74,6 +120,28 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
               <CheckInBadge checkedInAt={view.checkedInAt} />
               <span className="tk-code">#{view.registrationId.slice(0, 8).toUpperCase()}</span>
             </div>
+          </div>
+
+          <div id="confirm" className="tk-confirm iv-no-print">
+            {notice ? (
+              <p className={`tk-confirm__note${notice.ok ? " tk-confirm__note--ok" : ""}`} role="status">
+                {tc(notice.key)}
+              </p>
+            ) : null}
+            {canConfirm ? (
+              <>
+                <p className="tk-confirm__ask">{tc("ask")}</p>
+                <ConfirmAttendanceForm
+                  registrationId={registrationId}
+                  locale={locale}
+                  surface="ticket"
+                  sig={s}
+                  buttonClassName="btn btn-red"
+                />
+              </>
+            ) : loaded.registration.confirmedAt ? (
+              <p className="tk-confirm__note tk-confirm__note--ok">{tc("state")}</p>
+            ) : null}
           </div>
 
           <div className="iv-actions iv-no-print" style={{ justifyContent: "center" }}>

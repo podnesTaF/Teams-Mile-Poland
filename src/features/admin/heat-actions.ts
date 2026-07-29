@@ -3,10 +3,15 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
+import {
+  HeatPublishNotEligibleError,
+  publishHeatsAndNotify,
+  type PublishHeatsSummary,
+} from "@/features/event-mailings/heat-assignment";
+import { warsawLocalToInstant } from "@/lib/events/heat-time";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
-import { warsawLocalToInstant } from "./heat-time";
 import {
   createHeats,
   deleteHeatRow,
@@ -166,6 +171,41 @@ export async function assignToHeat(formData: FormData) {
   const moved = await setHeatForRegistrations(slug, heatId, ids);
   revalidateBuilder(locale, slug);
   back(locale, slug, `ok=assigned&n=${moved}`);
+}
+
+/**
+ * Publish the event's heats and notify the runners it affects — the contract's
+ * `publishHeats` (PRD #26). One press per event, re-pressable: only runners whose
+ * heat or start time moved since their last notification are emailed, plus anyone
+ * never notified (a walk-up seeded after the first press).
+ *
+ * The counts come back in the flash rather than being swallowed, because "did
+ * that actually mail anyone?" is the whole question an admin has after pressing
+ * it.
+ */
+export async function publishHeats(formData: FormData) {
+  const locale = safeLocale(formData.get("locale"));
+  await requireAdmin(locale);
+
+  const slug = String(formData.get("slug") ?? "");
+  if (!slug) {
+    back(locale, slug, "error=input");
+  }
+
+  let summary: PublishHeatsSummary;
+  try {
+    summary = await publishHeatsAndNotify(slug);
+  } catch (e) {
+    back(locale, slug, e instanceof HeatPublishNotEligibleError ? "error=input" : "error=publish");
+  }
+
+  revalidateBuilder(locale, slug);
+  back(
+    locale,
+    slug,
+    `ok=published&published=${summary.published}&notified=${summary.notified}` +
+      `&skipped=${summary.skipped}&failed=${summary.failed}`,
+  );
 }
 
 /** Bulk-remove the selected registrations from whatever heat they are in. */

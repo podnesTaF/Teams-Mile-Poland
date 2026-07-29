@@ -10,8 +10,8 @@ import {
   unassignFromHeat,
   updateHeat,
 } from "@/features/admin/heat-actions";
-import { formatHeatTime, instantToWarsawLocal } from "@/features/admin/heat-time";
 import type { HeatWithFill, SeedRow } from "@/features/admin/heats-data";
+import { formatHeatTime, instantToWarsawLocal } from "@/lib/events/heat-time";
 
 const STATE_LABEL: Record<HeatWithFill["state"], string> = {
   draft: "draft",
@@ -20,12 +20,14 @@ const STATE_LABEL: Record<HeatWithFill["state"], string> = {
 };
 
 /**
- * The heat card: every heat with its seeded runners, plus an Unassigned column of
- * confirmed-but-unplaced runners.
+ * The heat card: one full-width row per heat showing its whole field at once,
+ * under an Unassigned row of confirmed-but-unplaced runners. Rows rather than
+ * columns because a heat holds up to a bib pool's worth of runners and names in a
+ * narrow column are unreadable.
  *
  * The selection lives here as a `Set<registrationId>` (the recipient-multiselect
  * idiom) and is mirrored into hidden inputs on the bulk-move form, so one
- * selection spanning several columns can be moved in a single server action. The
+ * selection spanning several rows can be moved in a single server action. The
  * runner checkboxes deliberately sit *outside* that form — nesting them inside it
  * would nest them inside the per-heat edit forms too, which HTML forbids.
  */
@@ -179,53 +181,50 @@ export function HeatBuilder({
         </form>
       </section>
 
-      {/* ---- unassigned + heat columns ---- */}
-      <div
-        style={{
-          display: "grid",
-          gap: 16,
-          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-          marginTop: 16,
-        }}
-      >
-        <section className="iv-card">
-          <div className="iv-section-head">
+      {/* ---- one full-width row per heat, Unassigned first ---- */}
+      <section className="iv-card" style={{ marginTop: 16 }}>
+        <div className="iv-section-head">
+          <div className="iv-inline" style={{ gap: 10, alignItems: "baseline" }}>
             <h3 className="iv-section-title">Unassigned</h3>
             <span className="iv-pill iv-pill--due">{unassignedTotal}</span>
+            <span className="iv-note">confirmed runners not yet in a heat</span>
           </div>
-          <p className="iv-note" style={{ marginTop: 4 }}>
-            Confirmed runners not yet in a heat.
-          </p>
-          <RunnerList
-            rows={unassigned}
-            selected={selected}
-            onToggle={toggle}
-            onToggleAll={() => toggleAll(unassigned)}
-            emptyText={query ? "No matches here." : "Everyone confirmed is placed."}
-          />
-        </section>
+          <SelectShown rows={unassigned} selected={selected} onToggleAll={() => toggleAll(unassigned)} />
+        </div>
+        <RunnerGrid
+          rows={unassigned}
+          selected={selected}
+          onToggle={toggle}
+          emptyText={query ? "No matches here." : "Everyone confirmed is placed."}
+          scroll
+        />
+      </section>
 
-        {heats.map((heat) => {
-          const rows = byHeat.get(heat.id) ?? [];
-          const over = heat.fill > heat.capacity;
-          return (
-            <section key={heat.id} className="iv-card">
-              <div className="iv-section-head">
+      {heats.map((heat) => {
+        const rows = byHeat.get(heat.id) ?? [];
+        const over = heat.fill > heat.capacity;
+        return (
+          <section key={heat.id} className="iv-card" style={{ marginTop: 16 }}>
+            <div className="iv-section-head">
+              <div className="iv-inline" style={{ gap: 10, alignItems: "baseline" }}>
                 <h3 className="iv-section-title">Heat {heat.number}</h3>
                 <span className={`iv-pill ${over ? "iv-pill--red" : "iv-pill--ok"}`}>
                   {heat.fill}/{heat.capacity}
                 </span>
+                <span className="iv-note">
+                  {formatHeatTime(heat.scheduledAt)} · {STATE_LABEL[heat.state]}
+                  {over ? " · over capacity" : ""}
+                </span>
+                <SelectShown rows={rows} selected={selected} onToggleAll={() => toggleAll(rows)} />
               </div>
-              <p className="iv-note" style={{ marginTop: 4 }}>
-                {formatHeatTime(heat.scheduledAt)} · {STATE_LABEL[heat.state]}
-                {over ? " · over capacity" : ""}
-              </p>
 
-              <form action={updateHeat} style={{ marginTop: 10 }}>
-                <input type="hidden" name="locale" value={locale} />
-                <input type="hidden" name="slug" value={slug} />
-                <input type="hidden" name="heatId" value={heat.id} />
-                <div className="iv-inline" style={{ alignItems: "flex-end", gap: 8 }}>
+              {/* Edit and delete are sibling forms; the runner grid below sits
+                  outside both, because nesting forms is illegal. */}
+              <div className="iv-inline" style={{ alignItems: "flex-end", gap: 8 }}>
+                <form action={updateHeat} className="iv-inline" style={{ alignItems: "flex-end", gap: 8 }}>
+                  <input type="hidden" name="locale" value={locale} />
+                  <input type="hidden" name="slug" value={slug} />
+                  <input type="hidden" name="heatId" value={heat.id} />
                   <label className="block">
                     <span className="iv-fieldlabel">Start</span>
                     <input
@@ -244,111 +243,137 @@ export function HeatBuilder({
                       min={1}
                       max={pool}
                       defaultValue={heat.capacity}
-                      style={{ width: 80 }}
+                      style={{ width: 78 }}
                     />
                   </label>
                   <button type="submit" className="btn btn-stroke btn-sm">
                     Save
                   </button>
-                </div>
-              </form>
+                </form>
+                <form action={deleteHeat}>
+                  <input type="hidden" name="locale" value={locale} />
+                  <input type="hidden" name="slug" value={slug} />
+                  <input type="hidden" name="heatId" value={heat.id} />
+                  <ConfirmSubmit
+                    label="Delete"
+                    title={`Delete heat ${heat.number}?`}
+                    message="Its runners go back to Unassigned. Registrations are not deleted, and the remaining heats keep their numbers."
+                    confirmLabel="Delete heat"
+                  />
+                </form>
+              </div>
+            </div>
 
-              <RunnerList
-                rows={rows}
-                selected={selected}
-                onToggle={toggle}
-                onToggleAll={() => toggleAll(rows)}
-                emptyText={query ? "No matches in this heat." : "Empty — move runners in."}
-              />
-
-              <form action={deleteHeat} style={{ marginTop: 10 }}>
-                <input type="hidden" name="locale" value={locale} />
-                <input type="hidden" name="slug" value={slug} />
-                <input type="hidden" name="heatId" value={heat.id} />
-                <ConfirmSubmit
-                  label="Delete heat"
-                  title={`Delete heat ${heat.number}?`}
-                  message="Its runners go back to Unassigned. Registrations are not deleted, and the remaining heats keep their numbers."
-                  confirmLabel="Delete heat"
-                />
-              </form>
-            </section>
-          );
-        })}
-      </div>
+            <RunnerGrid
+              rows={rows}
+              selected={selected}
+              onToggle={toggle}
+              emptyText={query ? "No matches in this heat." : "Empty — select runners above and move them in."}
+            />
+          </section>
+        );
+      })}
     </>
   );
 }
 
-function RunnerList({
+/** "Select shown" / "Clear shown" for one list. */
+function SelectShown({
+  rows,
+  selected,
+  onToggleAll,
+}: {
+  rows: SeedRow[];
+  selected: Set<string>;
+  onToggleAll: () => void;
+}) {
+  const allOn = rows.length > 0 && rows.every((r) => selected.has(r.id));
+  return (
+    <button type="button" className="iv-linkbtn" onClick={onToggleAll} disabled={rows.length === 0}>
+      {allOn ? "Clear shown" : "Select shown"}
+    </button>
+  );
+}
+
+/**
+ * Runners as a wrapping grid of selectable cards, so a full-width heat row shows
+ * its whole field at once instead of hiding it in a narrow scroller. Only the
+ * Unassigned list scrolls — a heat is capped at the bib pool, the pool is not.
+ */
+function RunnerGrid({
   rows,
   selected,
   onToggle,
-  onToggleAll,
   emptyText,
+  scroll = false,
 }: {
   rows: SeedRow[];
   selected: Set<string>;
   onToggle: (id: string) => void;
-  onToggleAll: () => void;
   emptyText: string;
+  scroll?: boolean;
 }) {
-  const allOn = rows.length > 0 && rows.every((r) => selected.has(r.id));
+  if (rows.length === 0) {
+    return <p className="iv-note">{emptyText}</p>;
+  }
 
   return (
-    <div style={{ marginTop: 10 }}>
-      <button
-        type="button"
-        className="iv-linkbtn"
-        onClick={onToggleAll}
-        disabled={rows.length === 0}
-      >
-        {allOn ? "Clear shown" : "Select shown"}
-      </button>
-
-      <div
-        style={{
-          marginTop: 6,
-          maxHeight: 300,
-          overflowY: "auto",
-          border: "1px solid rgba(255,255,255,.12)",
-          borderRadius: 8,
-        }}
-      >
-        {rows.length === 0 ? (
-          <p className="iv-note" style={{ padding: "10px 12px", margin: 0 }}>
-            {emptyText}
-          </p>
-        ) : (
-          rows.map((r) => (
-            <label
-              key={r.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "8px 12px",
-                borderBottom: "1px solid rgba(255,255,255,.06)",
-                cursor: "pointer",
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={selected.has(r.id)}
-                onChange={() => onToggle(r.id)}
-              />
-              <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: "block", fontWeight: 600 }}>{r.name}</span>
-                <span style={{ display: "block", fontSize: 12, opacity: 0.7 }}>
-                  {r.sex ?? "—"}
-                  {r.club ? ` · ${r.club}` : ""}
-                </span>
+    <div
+      style={{
+        display: "grid",
+        gap: 8,
+        gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))",
+        ...(scroll ? { maxHeight: 320, overflowY: "auto" as const, paddingRight: 4 } : {}),
+      }}
+    >
+      {rows.map((r) => {
+        const on = selected.has(r.id);
+        return (
+          <label
+            key={r.id}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "8px 10px",
+              borderRadius: 8,
+              cursor: "pointer",
+              border: `1px solid ${on ? "rgba(255,255,255,.34)" : "rgba(255,255,255,.12)"}`,
+              background: on ? "rgba(255,255,255,.08)" : "transparent",
+            }}
+          >
+            <input type="checkbox" checked={on} onChange={() => onToggle(r.id)} />
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span
+                style={{
+                  display: "block",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {r.name}
               </span>
-              {r.status === "confirmed" ? null : <StatusPill status={r.status} />}
-            </label>
-          ))
-        )}
-      </div>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 12,
+                  opacity: 0.7,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {r.sex ?? "—"}
+                {r.club ? ` · ${r.club}` : ""}
+              </span>
+            </span>
+            {r.status === "confirmed" ? null : <StatusPill status={r.status} />}
+          </label>
+        );
+      })}
     </div>
   );
 }
+
