@@ -1,6 +1,7 @@
 import { setRequestLocale } from "next-intl/server";
 
 import "@/app/landing.css";
+import "@/app/series-flows.css";
 
 import { EventRegisterContent } from "@/features/event-registration/components/event-register-content";
 import { RegisterModal } from "@/features/event-registration/components/register-modal";

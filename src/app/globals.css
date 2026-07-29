@@ -141,6 +141,11 @@
   }
 }
 
+/* Modal size variants live outside @layer so Tailwind v4 cannot tree-shake
+ * them when the class is applied via a size prop map. */
+.modal-md { max-width: 480px; }
+.modal-lg { max-width: 1073px; padding: 48px 32px 32px; }
+
 @layer components {
   /* Container — bounded width, gutter, centered */
   .container-bleed {
@@ -252,8 +257,6 @@
   }
   @keyframes modal-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   .modal-soft { background: var(--form-bg-soft); padding: 32px; }
-  .modal-md { max-width: 480px; }
-  .modal-lg { max-width: 1073px; padding: 48px 32px 32px; }
 
   /* Close X — top-right of the dark backdrop */
   .modal-close {

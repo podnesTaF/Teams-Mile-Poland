@@ -8,6 +8,15 @@ import { IconBack, IconClose } from "./icons";
 
 type ModalSize = "" | "sm" | "md" | "lg";
 
+/** Static map so Tailwind v4 keeps `.modal-md` / `.modal-lg` (dynamic
+ * `modal-${size}` strings are invisible to the content scanner and get purged). */
+const MODAL_SIZE_CLASS: Record<ModalSize, string> = {
+  "": "",
+  sm: "modal-sm",
+  md: "modal-md",
+  lg: "modal-lg",
+};
+
 type ModalProps = {
   open: boolean;
   onClose: () => void;
@@ -75,7 +84,7 @@ export function Modal({
         <IconClose />
       </button>
       <div
-        className={cn("modal", size && `modal-${size}`, soft && "modal-soft")}
+        className={cn("modal", MODAL_SIZE_CLASS[size], soft && "modal-soft")}
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}

@@ -725,6 +725,10 @@
   border-radius: 6px;
   padding: clamp(24px, 3vw, 36px);
 }
+.ace-landing .profile-form .auth-check {
+  /* Dark card form — lighten the default ink-soft label. */
+  color: #c4c4c2;
+}
 .ace-landing .form-section {
   padding-bottom: 24px;
   margin-bottom: 24px;
@@ -975,6 +979,66 @@
   max-width: 560px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Intercepted /events/.../register dialog.
+ * Wrapper carries `.ace-landing` so scoped form rules apply; dialog stays the
+ * house white card, with light-field overrides for the shared on-dark markup. */
+.ace-landing.register-modal {
+  /* Don't paint a full-page ink slab over the event page behind the overlay. */
+  background: transparent;
+  min-height: 0;
+  color: var(--form-ink, #191a18);
+}
+.ace-landing.register-modal .modal {
+  background: #fff;
+  color: var(--form-ink, #191a18);
+  border: 0;
+  max-width: min(720px, 100%);
+  max-height: calc(100dvh - 100px);
+  overflow-y: auto;
+}
+.ace-landing.register-modal .modal .profile-form {
+  /* Already inside the white dialog — drop the nested dark card chrome. */
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+.ace-landing.register-modal .modal .page-head .iv-title,
+.ace-landing.register-modal .modal .form-section__h {
+  color: var(--form-ink, #191a18);
+}
+.ace-landing.register-modal .modal .iv-sub,
+.ace-landing.register-modal .modal .form-section__sub,
+.ace-landing.register-modal .modal .form-actions__note,
+.ace-landing.register-modal .modal .auth-foot {
+  color: var(--muted);
+}
+.ace-landing.register-modal .modal .form-section {
+  border-bottom-color: var(--grey-line);
+}
+.ace-landing.register-modal .modal .finput.on-dark,
+.ace-landing.register-modal .modal .fselect.on-dark {
+  background: #fff;
+  border-color: var(--grey-line);
+  color: var(--ink);
+  color-scheme: light;
+}
+.ace-landing.register-modal .modal .finput.on-dark::placeholder {
+  color: var(--muted);
+}
+.ace-landing.register-modal .modal .flabel.on-dark {
+  color: var(--ink-soft);
+}
+.ace-landing.register-modal .modal .auth-check {
+  color: var(--ink-soft);
+}
+.ace-landing.register-modal .modal-close {
+  color: rgb(89, 85, 104);
+}
+.ace-landing.register-modal .modal-close:hover {
+  color: #fff;
 }
 /* Logout rendered as a nav link needs the default <button> chrome reset. */
 .ace-landing button.iv-header__auth,

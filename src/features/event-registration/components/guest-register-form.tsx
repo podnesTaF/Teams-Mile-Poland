@@ -209,7 +209,7 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
           </div>
         </div>
 
-        <label className="auth-check" style={{ color: "#c4c4c2" }}>
+        <label className="auth-check">
           <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
           <span>
             {t.rich("terms", {
