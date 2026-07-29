@@ -26,6 +26,20 @@ export default async function AdminPage({
       ) : (
         <NoDatabaseNotice>view stats and registrations</NoDatabaseNotice>
       )}
+
+      <section className="iv-card" style={{ marginTop: 20 }}>
+        <div className="iv-toolbar" style={{ marginBottom: 0 }}>
+          <div>
+            <h2 className="iv-section-title">News</h2>
+            <p className="iv-note" style={{ marginTop: 4 }}>
+              Author and manage on-site announcements.
+            </p>
+          </div>
+          <Link href="/admin/news" className="btn btn-stroke btn-sm">
+            Manage news
+          </Link>
+        </div>
+      </section>
     </AdminShell>
   );
 }

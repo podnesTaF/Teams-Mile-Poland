@@ -223,3 +223,53 @@ export function eventMailContent(
 ): EventMailContent {
   return { greeting: GREETING[locale](firstName(fullName)), ...BUILDERS[kind](locale) };
 }
+
+/**
+ * Copy for the manual, admin-triggered "your photos are live" mailing
+ * (`media_live` kind — PRD #14, slice #18). Not part of the scheduled chain, so
+ * it lives outside {@link BUILDERS}. `title` doubles as the email subject and the
+ * hero title; `cta` labels the button that opens the event's gallery page.
+ */
+export type MediaLiveContent = {
+  preview: string;
+  eyebrow: string;
+  title: string;
+  greeting: string;
+  intro: string;
+  cta: string;
+  outro: string;
+};
+
+const MEDIA_LIVE: Record<MailLocale, Omit<MediaLiveContent, "greeting">> = {
+  ua: {
+    preview: "Фото та відео з твоєї милі вже онлайн",
+    eyebrow: "Галерея відкрита",
+    title: "Твої фото вже тут",
+    intro:
+      "Фотограф завершив обробку — світлини та відео з твого забігу вже опубліковані. Переглядай, гортай у повний розмір і завантажуй свої кадри.",
+    cta: "Відкрити галерею",
+    outro: "На сторінці галереї також є посилання на повний альбом у Google Диску.",
+  },
+  pl: {
+    preview: "Zdjęcia i wideo z Twojej mili są już online",
+    eyebrow: "Galeria otwarta",
+    title: "Twoje zdjęcia są już tutaj",
+    intro:
+      "Fotograf skończył obróbkę — zdjęcia i wideo z Twojego biegu są już opublikowane. Przeglądaj, otwieraj w pełnym rozmiarze i pobieraj swoje kadry.",
+    cta: "Otwórz galerię",
+    outro: "Na stronie galerii znajdziesz też link do pełnego albumu na Dysku Google.",
+  },
+  en: {
+    preview: "Photos and video from your mile are online",
+    eyebrow: "Gallery is live",
+    title: "Your photos are here",
+    intro:
+      "The photographer's edit is in — photos and video from your race are now published. Browse the grid, open shots at full size and download your favourites.",
+    cta: "Open the gallery",
+    outro: "The gallery page also links to the full album on Google Drive.",
+  },
+};
+
+export function mediaLiveMailContent(locale: MailLocale, fullName: string): MediaLiveContent {
+  return { greeting: GREETING[locale](firstName(fullName)), ...MEDIA_LIVE[locale] };
+}

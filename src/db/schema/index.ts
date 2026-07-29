@@ -15,3 +15,4 @@ export * from "./event-registrations";
 export * from "./event-email-log";
 export * from "./legacy-participations";
 export * from "./user-broadcasts";
+export * from "./news-articles";

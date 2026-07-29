@@ -70,6 +70,24 @@ export const DEFAULT_BIB_POOL = 50;
 /** Spacing between generated heats when config does not say otherwise. */
 export const DEFAULT_HEAT_INTERVAL_MINUTES = 10;
 
+/** Photo vs. video, split from the Drive file's MIME type at build time. */
+export type EventMediaKind = "photo" | "video";
+
+/**
+ * One media file in a completed event's public Drive gallery folder, as read at
+ * build time. All thumbnail / large / download / preview URLs derive from `id`
+ * (see `drive-urls.ts`); nothing else about the file is persisted. `name` is the
+ * filename and doubles as the sort key (photographer shooting order).
+ */
+export type EventMediaItem = {
+  id: string;
+  name: string;
+  kind: EventMediaKind;
+  /** Pixel dimensions when Drive reports them; used for grid aspect ratios. */
+  width?: number;
+  height?: number;
+};
+
 export type EventSummary = {
   slug: string;
   status: EventStatus;
@@ -98,4 +116,11 @@ export type EventSummary = {
    */
   heatIntervalMinutes?: number;
   results?: EventResults;
+  /**
+   * Post-event media gallery. Present = media is published: the completed event
+   * gets a public `/events/<slug>/gallery` page built from the referenced Drive
+   * folder. Adding this field + redeploying *is* the publication act; absent =
+   * no gallery route. The folder must be shared "anyone with link".
+   */
+  media?: { driveFolderId: string };
 };

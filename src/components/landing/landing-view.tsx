@@ -13,6 +13,7 @@ import { Hero } from "@/components/landing/hero";
 import { HowItGoes } from "@/components/landing/how-it-goes";
 import { InternationalAssociation } from "@/components/landing/international-association";
 import { LandingHeader } from "@/components/landing/landing-header";
+import { LatestNews } from "@/components/landing/latest-news";
 import { Location } from "@/components/landing/location";
 import { Parallax } from "@/components/landing/parallax";
 import { PathForward } from "@/components/landing/path";
@@ -64,6 +65,7 @@ export function LandingView() {
         registerHref={registerHref}
       />
       <EventSeries />
+      <LatestNews />
       {resultsEvent && <Results event={resultsEvent} />}
       {showTeamFormats && <Formats />}
       <WhatIs />

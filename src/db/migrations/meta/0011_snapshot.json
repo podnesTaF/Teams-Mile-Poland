@@ -1,5 +1,5 @@
 {
-  "id": "314d0dd0-9154-44e6-a1b0-7f2b4a187f5b",
+  "id": "4ee1c6ec-9015-4e5a-8390-c2cdbd6f5c65",
   "prevId": "ecd81918-b474-4a8b-ade8-8ca2ca80f04d",
   "version": "7",
   "dialect": "postgresql",
@@ -1066,91 +1066,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.event_heats": {
-      "name": "event_heats",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "event_slug": {
-          "name": "event_slug",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "number": {
-          "name": "number",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "capacity": {
-          "name": "capacity",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "scheduled_at": {
-          "name": "scheduled_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "published_at": {
-          "name": "published_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "finished_at": {
-          "name": "finished_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "event_heats_event_number_uq": {
-          "name": "event_heats_event_number_uq",
-          "columns": [
-            {
-              "expression": "event_slug",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "number",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.event_registrations": {
       "name": "event_registrations",
       "schema": "",
@@ -1188,12 +1103,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "bib_returned_at": {
-          "name": "bib_returned_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
         "terms": {
           "name": "terms",
           "type": "boolean",
@@ -1207,30 +1116,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'pl'"
-        },
-        "heat_id": {
-          "name": "heat_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "confirmed_at": {
-          "name": "confirmed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "notified_heat_id": {
-          "name": "notified_heat_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "notified_heat_time": {
-          "name": "notified_heat_time",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
         },
         "checked_in_at": {
           "name": "checked_in_at",
@@ -1268,8 +1153,8 @@
           "method": "btree",
           "with": {}
         },
-        "event_registrations_event_bib_held_uq": {
-          "name": "event_registrations_event_bib_held_uq",
+        "event_registrations_event_bib_uq": {
+          "name": "event_registrations_event_bib_uq",
           "columns": [
             {
               "expression": "event_slug",
@@ -1285,7 +1170,7 @@
             }
           ],
           "isUnique": true,
-          "where": "\"event_registrations\".\"bib\" is not null and \"event_registrations\".\"bib_returned_at\" is null",
+          "where": "\"event_registrations\".\"bib\" is not null",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -1303,19 +1188,6 @@
             "id"
           ],
           "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "event_registrations_heat_id_event_heats_id_fk": {
-          "name": "event_registrations_heat_id_event_heats_id_fk",
-          "tableFrom": "event_registrations",
-          "tableTo": "event_heats",
-          "columnsFrom": [
-            "heat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -1654,6 +1526,102 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
+    },
+    "public.news_articles": {
+      "name": "news_articles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title_pl": {
+          "name": "title_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title_en": {
+          "name": "title_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title_ua": {
+          "name": "title_ua",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body_pl": {
+          "name": "body_pl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body_en": {
+          "name": "body_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body_ua": {
+          "name": "body_ua",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cover_image_url": {
+          "name": "cover_image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "published_at": {
+          "name": "published_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "news_articles_slug_unique": {
+          "name": "news_articles_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     }
   },
   "enums": {
@@ -1757,7 +1725,6 @@
       "schema": "public",
       "values": [
         "registered",
-        "confirmed",
         "checked_in",
         "no_show",
         "cancelled"
