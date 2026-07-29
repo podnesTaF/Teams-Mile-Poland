@@ -937,7 +937,8 @@
       "generic": "Coś poszło nie tak. Spróbuj ponownie.",
       "badCredentials": "Nieprawidłowy e-mail lub hasło.",
       "notVerified": "Potwierdź adres e-mail przed zalogowaniem.",
-      "passwordMismatch": "Hasła nie są takie same."
+      "passwordMismatch": "Hasła nie są takie same.",
+      "googleUnavailable": "Logowanie przez Google jest teraz niedostępne. Użyj e-maila i hasła."
     },
     "fields": {
       "firstName": "Imię",
@@ -966,7 +967,9 @@
       "submitting": "Logowanie…",
       "forgot": "Nie pamiętasz hasła?",
       "noAccount": "Nie masz konta?",
-      "remember": "Zapamiętaj mnie"
+      "remember": "Zapamiętaj mnie",
+      "noPasswordYet": "Konto założone przez formularz wydarzenia, bez hasła?",
+      "setPassword": "Ustaw hasło"
     },
     "forgot": {
       "eyebrow": "Reset hasła",

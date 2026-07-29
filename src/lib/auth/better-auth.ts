@@ -1,12 +1,13 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import type { ReactElement } from "react";
 
 import { accounts, sessions, users, verifications } from "@/db/schema";
 import { ResetPasswordEmail } from "@/emails/reset-password";
 import { VerifyEmail } from "@/emails/verify-email";
 import { db } from "@/lib/db";
-import { FROM_EMAIL, resend } from "@/lib/email";
+import { FROM_EMAIL, getResend, resend } from "@/lib/email";
 
 /**
  * Better Auth instance for the individual mile series (email+password + Google,
@@ -33,6 +34,36 @@ function firstNameOf(user: { name?: string | null; firstName?: string | null }):
   return user.firstName?.trim() || user.name?.trim().split(/\s+/)[0] || undefined;
 }
 
+/**
+ * Send an auth email and fail loudly.
+ *
+ * Resend reports API-level rejections (unverified sending domain, bad `from`,
+ * rate limit) in the resolved `{ error }` rather than by throwing, so a bare
+ * `await resend.emails.send(...)` swallows them: `/request-password-reset`
+ * still answers `{ status: true }` and the flow looks healthy while no mail
+ * ever leaves. Better Auth runs these senders through
+ * `runInBackgroundOrAwait`, which catches and logs whatever we throw — the
+ * response stays 200 either way, so the tagged `console.error` below is what
+ * makes a dead send findable in the deploy logs.
+ */
+async function sendAuthEmail(input: {
+  kind: "reset-password" | "verify-email";
+  to: string;
+  subject: string;
+  react: ReactElement;
+}): Promise<void> {
+  const { error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: input.to,
+    subject: input.subject,
+    react: input.react,
+  });
+  if (error) {
+    console.error(`[auth] ${input.kind} email to ${input.to} rejected by Resend:`, error);
+    throw new Error(`Resend rejected the ${input.kind} email: ${error.message}`);
+  }
+}
+
 export const auth = betterAuth({
   baseURL: appUrl(),
   secret: process.env.BETTER_AUTH_SECRET,
@@ -54,8 +85,8 @@ export const auth = betterAuth({
         console.log(`[auth] reset password for ${user.email}: ${url}`);
         return;
       }
-      await resend.emails.send({
-        from: FROM_EMAIL,
+      await sendAuthEmail({
+        kind: "reset-password",
         to: user.email,
         subject: "Reset your password — TEAMS MILE Warsaw",
         react: ResetPasswordEmail({ url, firstName }),
@@ -72,8 +103,8 @@ export const auth = betterAuth({
         console.log(`[auth] verify email for ${user.email}: ${url}`);
         return;
       }
-      await resend.emails.send({
-        from: FROM_EMAIL,
+      await sendAuthEmail({
+        kind: "verify-email",
         to: user.email,
         subject: "Verify your email — TEAMS MILE Warsaw",
         react: VerifyEmail({ url, firstName }),

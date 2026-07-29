@@ -34,11 +34,18 @@ export function SignInForm({ redirectTo = "/profile" }: { redirectTo?: string })
         callbackURL: redirectTo,
       });
       if (err) {
-        if (err.status === 403) {
+        // Branch on the code, not the status: Better Auth answers 403 for both
+        // EMAIL_NOT_VERIFIED and INVALID_ORIGIN (a BETTER_AUTH_URL that does
+        // not match the host being browsed). Telling someone to verify an
+        // already-verified email sends them after the wrong problem.
+        if (err.code === "EMAIL_NOT_VERIFIED") {
           setNeedsVerify(true);
           setError(t("errors.notVerified"));
+        } else if (err.code === "INVALID_EMAIL_OR_PASSWORD") {
+          setError(t("errors.badCredentials"));
         } else {
-          setError(err.message ?? t("errors.badCredentials"));
+          console.error("[auth] sign-in failed:", err);
+          setError(t("errors.generic"));
         }
         return;
       }
@@ -113,6 +120,19 @@ export function SignInForm({ redirectTo = "/profile" }: { redirectTo?: string })
           {pending ? t("signIn.submitting") : t("signIn.submit")}
         </button>
       </form>
+
+      {/*
+        Guests who registered through an event form never chose a password —
+        `registerAsGuest` signs them up with a random one — so email sign-in can
+        never work for them. The ticket email carries a set-password link; this
+        is the same escape hatch for anyone who no longer has that email.
+      */}
+      <p className="auth-foot">
+        {t("signIn.noPasswordYet")}{" "}
+        <Link href="/auth/forgot-password" className="link">
+          {t("signIn.setPassword")}
+        </Link>
+      </p>
 
       <p className="auth-foot">
         {t("signIn.noAccount")}{" "}

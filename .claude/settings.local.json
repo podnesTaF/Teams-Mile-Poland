@@ -36,7 +36,11 @@
       "Bash(ls src/*.d.ts global.d.ts *.d.ts)",
       "Bash(npm run *)",
       "Bash(cat drizzle.config.ts)",
-      "Bash(cat drizzle.config.*)"
+      "Bash(cat drizzle.config.*)",
+      "Bash(gh issue *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(git *)",
+      "PowerShell(gh issue *)"
     ]
   }
 }

@@ -937,7 +937,8 @@
       "generic": "Щось пішло не так. Спробуйте ще раз.",
       "badCredentials": "Невірний e-mail або пароль.",
       "notVerified": "Підтвердьте e-mail перед входом.",
-      "passwordMismatch": "Паролі не збігаються."
+      "passwordMismatch": "Паролі не збігаються.",
+      "googleUnavailable": "Вхід через Google зараз недоступний. Скористайтеся e-mail і паролем."
     },
     "fields": {
       "firstName": "Ім'я",
@@ -966,7 +967,9 @@
       "submitting": "Вхід…",
       "forgot": "Забули пароль?",
       "noAccount": "Ще немає акаунта?",
-      "remember": "Запам'ятати мене"
+      "remember": "Запам'ятати мене",
+      "noPasswordYet": "Реєструвалися через форму заходу й не встановили пароль?",
+      "setPassword": "Встановіть його зараз"
     },
     "forgot": {
       "eyebrow": "Скидання пароля",

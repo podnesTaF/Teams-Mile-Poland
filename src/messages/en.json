@@ -937,7 +937,8 @@
       "generic": "Something went wrong. Please try again.",
       "badCredentials": "Incorrect email or password.",
       "notVerified": "Verify your email before signing in.",
-      "passwordMismatch": "Passwords don't match."
+      "passwordMismatch": "Passwords don't match.",
+      "googleUnavailable": "Google sign-in isn't available right now. Use your email and password instead."
     },
     "fields": {
       "firstName": "First name",
@@ -966,7 +967,9 @@
       "submitting": "Signing in…",
       "forgot": "Forgot password?",
       "noAccount": "No account yet?",
-      "remember": "Remember me"
+      "remember": "Remember me",
+      "noPasswordYet": "Signed up through an event form and never set a password?",
+      "setPassword": "Set one now"
     },
     "forgot": {
       "eyebrow": "Password reset",
