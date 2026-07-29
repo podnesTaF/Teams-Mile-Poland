@@ -899,6 +899,14 @@
         }
       }
     },
+    "docs": {
+      "heading": "Documents",
+      "download": "Download",
+      "fallback": "Not translated",
+      "items": {
+        "regulations": "Event regulations"
+      }
+    },
     "timetable": {
       "checkin": "Check-in & bib pickup",
       "briefing": "Briefing & warm-up",

@@ -4,6 +4,7 @@ import { and, count, eq, lt, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 import { magicLinks, pendingRegistrations, runners, slotCounter, teams } from "@/db/schema";
+import { getAppUrl } from "@/lib/app-url";
 import { getDb } from "@/lib/db";
 import { EVENT } from "@/lib/marketing/event";
 
@@ -11,6 +12,8 @@ import {
   normalizeTeamCode,
   type RegistrationPayload,
 } from "./schemas";
+
+export { getAppUrl } from "@/lib/app-url";
 
 const MAX_TEAM_SIZE = 12;
 const COUNTER_ID = 1;
@@ -207,10 +210,6 @@ export async function createMagicLink(input: {
   });
 
   return `${getAppUrl()}${input.path ?? "/dashboard"}?token=${encodeURIComponent(token)}`;
-}
-
-export function getAppUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 }
 
 export function makeInviteUrl(teamCode: string) {

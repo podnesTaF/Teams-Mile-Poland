@@ -40,7 +40,8 @@
       "Bash(gh issue *)",
       "Bash(echo \"EXIT: $?\")",
       "Bash(git *)",
-      "PowerShell(gh issue *)"
+      "PowerShell(gh issue *)",
+      "Bash(cd *)"
     ]
   }
 }

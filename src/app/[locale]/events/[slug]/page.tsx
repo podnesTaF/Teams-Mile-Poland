@@ -1,3 +1,4 @@
+import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -8,8 +9,11 @@ import "@/app/gallery.css";
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { EventRegisterCta } from "@/features/event-registration/components/event-register-cta";
 import { Link } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
+import { getEventDocuments, resolveDocumentFile } from "@/lib/events/documents";
 import { getEventBySlug, getIndividualEvents } from "@/lib/events/registry";
 import type { EventStatus } from "@/lib/events/types";
+import { defaultLocale } from "@/lib/i18n/config";
 
 import { EventMediaTeaser } from "./event-media-teaser";
 
@@ -58,6 +62,11 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   const t = await getTranslations("events");
   const state = detailState(event.status);
+  const docLocale = hasLocale(routing.locales, locale) ? locale : defaultLocale;
+  const docs = getEventDocuments(slug).flatMap((doc) => {
+    const resolved = resolveDocumentFile(doc, docLocale);
+    return resolved ? [{ id: doc.id, labelKey: doc.labelKey, ...resolved }] : [];
+  });
   const [, m, d] = event.date.split("-");
   const longDate = new Intl.DateTimeFormat(DATE_TAG[locale] ?? "en-GB", {
     day: "numeric",
@@ -112,6 +121,38 @@ export default async function EventDetailPage({ params }: PageProps) {
                   </div>
                 </div>
               </div>
+
+              {/* Attached files. Static for now — every event shares the same
+                  regulations PDF, picked to match the reader's locale. */}
+              {docs.length > 0 && (
+                <div className="detail-docs">
+                  <span className="ev-eyebrow">{t("docs.heading")}</span>
+                  <ul className="doc-list">
+                    {docs.map((doc) => (
+                      <li key={doc.id}>
+                        <a className="doc-row" href={doc.file.href} target="_blank" rel="noopener">
+                          <span className="doc-row__ic" aria-hidden>
+                            PDF
+                          </span>
+                          <span className="doc-row__body">
+                            <span className="doc-row__title">
+                              {t(`docs.items.${doc.labelKey}`)}
+                            </span>
+                            <span className="doc-row__meta">
+                              {`PDF · ${doc.file.lang.toUpperCase()}`}
+                              {doc.isFallback ? ` · ${t("docs.fallback")}` : ""}
+                            </span>
+                          </span>
+                          <span className="doc-row__act">
+                            {t("docs.download")}
+                            <span aria-hidden> ↓</span>
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             <aside>

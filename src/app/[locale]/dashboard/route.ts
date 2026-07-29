@@ -4,6 +4,7 @@ import { and, eq, gt } from "drizzle-orm";
 
 import { magicLinks, runners, teams } from "@/db/schema";
 import { getDb } from "@/lib/db";
+import { appAbsoluteUrl } from "@/lib/app-url";
 import { isCaptainRunner } from "@/features/team/data";
 import { setTeamSession } from "@/lib/auth/team-session";
 import { defaultLocale, locales } from "@/lib/i18n/config";
@@ -21,6 +22,9 @@ import { defaultLocale, locales } from "@/lib/i18n/config";
  *
  * Unlike the team-login link, this one is intentionally NOT single-use: the
  * runner can reopen it from their inbox any time until it expires.
+ *
+ * Redirects use `NEXT_PUBLIC_APP_URL` — not `request.url` — so a click never
+ * lands on the Vercel deployment hostname after a custom domain is attached.
  */
 function withLocale(locale: string, path: string) {
   const prefix = locale === defaultLocale ? "" : `/${locale}`;
@@ -37,10 +41,9 @@ export async function GET(
 ) {
   const { locale: rawLocale } = await params;
   const locale = safeLocale(rawLocale);
-  const baseUrl = new URL(request.url);
-  const token = baseUrl.searchParams.get("token");
+  const token = new URL(request.url).searchParams.get("token");
 
-  const landing = () => NextResponse.redirect(new URL(withLocale(locale, "/"), baseUrl));
+  const landing = () => NextResponse.redirect(appAbsoluteUrl(withLocale(locale, "/")));
 
   if (!token) return landing();
 
@@ -74,13 +77,13 @@ export async function GET(
         role: isCaptainRunner(runner) ? "captain" : "member",
       });
       return NextResponse.redirect(
-        new URL(withLocale(locale, `/team/${encodeURIComponent(team.code)}`), baseUrl),
+        appAbsoluteUrl(withLocale(locale, `/team/${encodeURIComponent(team.code)}`)),
       );
     }
   }
 
   // Solo / free-agent runner → their ticket page.
   return NextResponse.redirect(
-    new URL(withLocale(locale, `/ticket/${runner.id}`), baseUrl),
+    appAbsoluteUrl(withLocale(locale, `/ticket/${runner.id}`)),
   );
 }

@@ -339,6 +339,79 @@
   gap: 14px;
 }
 
+/* attached files (regulations) */
+.ace-landing .detail-docs {
+  padding: clamp(18px, 2.4vw, 24px);
+  border-top: 1px solid var(--line-d);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ace-landing .doc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ace-landing .doc-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-d);
+  border-radius: 4px;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.ace-landing .doc-row:hover {
+  border-color: var(--red);
+  background: rgba(255, 255, 255, 0.03);
+}
+.ace-landing .doc-row__ic {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 42px;
+  border: 1px solid var(--line-d);
+  border-radius: 3px;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.ace-landing .doc-row:hover .doc-row__ic {
+  border-color: var(--red);
+  background: var(--red);
+  color: var(--acl-white);
+}
+.ace-landing .doc-row__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1 1 auto; }
+.ace-landing .doc-row__title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+.ace-landing .doc-row__meta {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ace-landing .doc-row__act {
+  flex: 0 0 auto;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.ace-landing .doc-row:hover .doc-row__act { color: var(--acl-white); }
+
 /* slot summary aside (white card) */
 .ace-landing .slots-card {
   background: #fff;
@@ -394,6 +467,9 @@
   .ace-landing .fact { border-right: 0; }
   .ace-landing .detail-hero__badge { position: static; margin-bottom: 12px; }
   .ace-landing .detail-title { font-size: 2rem; }
+  /* the arrow alone carries the affordance once the row gets tight */
+  .ace-landing .doc-row__act { font-size: 0; }
+  .ace-landing .doc-row__act [aria-hidden] { font-size: 0.85rem; }
 }
 
 /* ================================================================
