@@ -7,9 +7,12 @@ import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminShell } from "@/features/admin/components/admin-shell";
 import {
   assignBibAndCheckIn,
+  assignPendingBib,
   markNoShow,
   revertToRegistered,
 } from "@/features/admin/checkin-actions";
+import { checkedInText, checkinErrorText, plural } from "@/features/admin/checkin-copy";
+import { awaitingBib, HeatDesk, RaceMorningLists } from "@/features/admin/components/race-morning";
 import { StatusPill } from "@/features/admin/components/status-pill";
 import {
   getEventRoster,
@@ -18,13 +21,26 @@ import {
   suggestNextBib,
   type RosterRow,
 } from "@/features/admin/events-data";
+import { getEventHeats } from "@/features/admin/heats-data";
 import { verifyEventTicket } from "@/features/ticket/sign";
+import { formatHeatTime } from "@/lib/events/heat-time";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 import { Link } from "@/i18n/navigation";
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
-  searchParams: Promise<{ q?: string; ok?: string; error?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    ok?: string;
+    error?: string;
+    /** Walk-up placement: a heat number, or `none` for Unplaced. */
+    heat?: string;
+    /** Bib counts carried back by finish / un-finish. */
+    returned?: string;
+    released?: string;
+    /** Bibs that blocked an un-finish, comma separated. */
+    bibs?: string;
+  }>;
 };
 
 /** Extract { registrationId, sig } from a scanned ticket URL, or null. */
@@ -39,29 +55,29 @@ function parseScannedTicket(value: string): { registrationId: string; sig: strin
 }
 
 /**
- * Desk-facing copy for a failed check-in. Bib exhaustion is deliberately absent:
- * it is not an error — check-in succeeds bib-less and reports through `ok`.
+ * Confirmation copy for a completed action. Check-in itself is worded by
+ * {@link checkedInText}, shared with the ticket-page panel; the heat presses are
+ * desk-only and worded here.
  */
-function errorText(code: string, pool: number): string | null {
+function okText(
+  code: string,
+  q: { heat?: string; returned?: string; released?: string },
+): string | null {
   switch (code) {
-    case "bib_held":
-      return "Another runner is holding that bib right now. Choose another.";
-    case "bib":
-      return `Enter a bib number between 1 and ${pool}.`;
-    case "bib_race":
-      return "Another desk took that bib first. Try again.";
-    case "input":
-      return "Missing runner or event.";
-    case "scan":
-      return "Invalid or unverified ticket QR.";
-    default:
+    case "":
       return null;
+    case "finished":
+      return `Heat finished — ${plural(Number(q.returned ?? 0), "bib")} back in the pool.`;
+    case "unfinished":
+      return `Heat re-opened — ${plural(Number(q.released ?? 0), "bib")} re-leased to its runners.`;
+    default:
+      return checkedInText(code, q.heat);
   }
 }
 
 export default async function AdminCheckinPage({ params, searchParams }: PageProps) {
   const { locale, slug } = await params;
-  const { q, ok, error } = await searchParams;
+  const { q, ok, error, heat, returned, released, bibs } = await searchParams;
   setRequestLocale(locale);
   await requireAdmin(locale);
 
@@ -89,28 +105,31 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
   }
 
   const pool = getBibPool(slug);
-  const nextBib = await suggestNextBib(slug);
-  const notice = errorText(scanError ? "scan" : (error ?? ""), pool);
+  const [nextBib, heats, checkedIn] = await Promise.all([
+    suggestNextBib(slug),
+    getEventHeats(slug),
+    getEventRoster(slug, { status: "checked_in" }),
+  ]);
+  const notice = checkinErrorText(scanError ? "scan" : (error ?? ""), { pool, bibs });
+  const confirmation = okText(ok ?? "", { heat, returned, released });
 
   return (
     <AdminShell
       locale={locale}
       eyebrow={`Check-in · ${event.shortDate}`}
       title={event.name}
-      narrow
       actions={
-        <Link href={`/admin/events/${slug}`} className="btn btn-stroke btn-sm">
-          Roster
-        </Link>
+        <>
+          <Link href={`/admin/events/${slug}`} className="btn btn-stroke btn-sm">
+            Roster
+          </Link>
+          <Link href={`/admin/events/${slug}/heats`} className="btn btn-stroke btn-sm">
+            Heats
+          </Link>
+        </>
       }
     >
-      {ok === "pending" ? (
-        <div className="iv-notice iv-notice--info">
-          Checked in · bib pending. No bibs available — mark a finished heat complete to free some.
-        </div>
-      ) : ok ? (
-        <div className="iv-notice iv-notice--info">Checked in · bib #{ok}</div>
-      ) : null}
+      {confirmation ? <div className="iv-notice iv-notice--info">{confirmation}</div> : null}
       {notice ? <div className="iv-notice iv-notice--error">{notice}</div> : null}
 
       {nextBib === null ? (
@@ -151,6 +170,16 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
           pool={pool}
         />
       ))}
+
+      <RaceMorningLists
+        locale={locale}
+        slug={slug}
+        q={query}
+        checkedIn={checkedIn}
+        bibAvailable={nextBib !== null}
+      />
+
+      <HeatDesk locale={locale} slug={slug} heats={heats} />
     </AdminShell>
   );
 }
@@ -172,6 +201,9 @@ function RunnerCard({
 }) {
   const name = [row.firstName, row.lastName].filter(Boolean).join(" ") || row.name;
   const checkedIn = row.status === "checked_in";
+  // Holding no bib is not the same as needing one — a runner whose heat has been
+  // marked finished has run, and must not be handed a fresh number (ADR 0003).
+  const waiting = awaitingBib(row);
 
   return (
     <section className="iv-card" style={{ marginTop: 16 }}>
@@ -183,16 +215,36 @@ function RunnerCard({
             {row.club ? ` · ${row.club}` : ""}
           </div>
         </div>
-        <StatusPill status={row.status} />
+        <div className="iv-inline" style={{ gap: 8 }}>
+          {/* The desk reads the heat off the card, so a runner can be told where
+              to stand at the moment they are chipped. */}
+          <span className="iv-pill">
+            {row.heatNumber === null
+              ? "no heat"
+              : `heat ${row.heatNumber}${
+                  row.heatScheduledAt ? ` · ${formatHeatTime(row.heatScheduledAt)}` : ""
+                }`}
+          </span>
+          <StatusPill status={row.status} />
+        </div>
       </div>
 
       {checkedIn ? (
-        <div className="iv-inline" style={{ marginTop: 12 }}>
+        <div className="iv-inline" style={{ marginTop: 12, gap: 12 }}>
           <span className="iv-sub">
             {holdsBib(row)
               ? `Bib #${row.bib} leased.`
-              : "Present · bib pending — free one by marking a finished heat complete."}
+              : waiting
+                ? "Present · bib pending."
+                : `Ran in heat ${row.heatNumber} · bib ${row.bib ?? "—"} returned to the pool.`}
           </span>
+          {waiting ? (
+            <ActionForm action={assignPendingBib} slug={slug} locale={locale} q={q} regId={row.id}>
+              <button type="submit" className="btn btn-red btn-sm" disabled={nextBib === null}>
+                {nextBib === null ? "No bib free" : `Assign bib ${nextBib}`}
+              </button>
+            </ActionForm>
+          ) : null}
           <ActionForm action={revertToRegistered} slug={slug} locale={locale} q={q} regId={row.id}>
             <button type="submit" className="iv-linkbtn">
               Undo check-in

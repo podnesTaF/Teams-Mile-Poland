@@ -8,7 +8,7 @@ import { eventRegistrations } from "@/db/schema";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { getUser } from "@/lib/auth/user-session";
 import { getDb } from "@/lib/db";
-import { defaultLocale, locales } from "@/lib/i18n/config";
+import { defaultLocale, locales, localePath } from "@/lib/i18n/config";
 
 import { confirmRegistration, type ConfirmOutcome } from "./confirmation";
 
@@ -22,10 +22,6 @@ type Surface = "profile" | "ticket";
 function safeLocale(value: FormDataEntryValue | null): string {
   const raw = String(value ?? "");
   return (locales as readonly string[]).includes(raw) ? raw : defaultLocale;
-}
-
-function localePath(locale: string, path: string): string {
-  return locale === defaultLocale ? path : `/${locale}${path}`;
 }
 
 /**

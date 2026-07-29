@@ -21,6 +21,8 @@ export type HeatWithFill = {
   state: HeatState;
   /** Registrations currently seeded into this heat. */
   fill: number;
+  /** Bib leases its members are still holding — what finishing it would free. */
+  bibsHeld: number;
 };
 
 /** What a runner has last been told about the heat they are currently in. */
@@ -65,10 +67,13 @@ export type SeedRow = {
 };
 
 /**
- * Heats for an event, lowest number first, each with its fill count.
+ * Heats for an event, lowest number first, each with its fill count and how many
+ * bib leases its members still hold.
  *
  * Fill counts every seeded registration regardless of status: a runner occupies a
- * lane on the card whether or not they have checked in yet.
+ * lane on the card whether or not they have checked in yet. `bibsHeld` counts only
+ * live leases, so the race-morning desk can see what marking the heat finished
+ * would actually return to the pool.
  */
 export async function getEventHeats(eventSlug: string): Promise<HeatWithFill[]> {
   const db = getDb();
@@ -81,6 +86,8 @@ export async function getEventHeats(eventSlug: string): Promise<HeatWithFill[]> 
       publishedAt: eventHeats.publishedAt,
       finishedAt: eventHeats.finishedAt,
       fill: sql<number>`count(${eventRegistrations.id})::int`,
+      bibsHeld: sql<number>`(count(${eventRegistrations.bib}) filter (
+        where ${eventRegistrations.bibReturnedAt} is null))::int`,
     })
     .from(eventHeats)
     .leftJoin(eventRegistrations, eq(eventRegistrations.heatId, eventHeats.id))
@@ -275,6 +282,228 @@ export async function heatBelongsToEvent(eventSlug: string, heatId: string): Pro
     .where(and(eq(eventHeats.id, heatId), eq(eventHeats.eventSlug, eventSlug)))
     .limit(1);
   return Boolean(row);
+}
+
+/* ── race morning ───────────────────────────────────────────────────── */
+
+/**
+ * The heat a walk-up should join: the earliest published, unfinished heat with a
+ * free lane. Earliest rather than emptiest, because someone who has just arrived
+ * and been chipped should run at the next opportunity.
+ */
+export async function findHeatWithRoom(
+  eventSlug: string,
+): Promise<{ id: string; number: number } | null> {
+  const db = getDb();
+  const [row] = await db
+    .select({ id: eventHeats.id, number: eventHeats.number })
+    .from(eventHeats)
+    .leftJoin(eventRegistrations, eq(eventRegistrations.heatId, eventHeats.id))
+    .where(
+      and(
+        eq(eventHeats.eventSlug, eventSlug),
+        isNotNull(eventHeats.publishedAt),
+        isNull(eventHeats.finishedAt),
+      ),
+    )
+    .groupBy(eventHeats.id)
+    .having(sql`count(${eventRegistrations.id}) < ${eventHeats.capacity}`)
+    .orderBy(asc(eventHeats.scheduledAt), asc(eventHeats.number))
+    .limit(1);
+  return row ?? null;
+}
+
+export type WalkUpPlacement =
+  | { placed: true; heatNumber: number }
+  /** Already on the card, or no published heat has a free lane (**Unplaced**). */
+  | { placed: false; reason: "already-seeded" | "no-room" };
+
+/**
+ * Seed a walk-up into a published heat with room.
+ *
+ * `"no-room"` is the **Unplaced** case, not a failure: being chipped never depends
+ * on heat insertion succeeding (PRD #26), so the runner stays checked in and
+ * surfaces on the desk's Unplaced list for deliberate placement.
+ *
+ * The update is guarded on `heat_id is null` as well as the pre-read, so a runner
+ * an admin deliberately seeded is never dragged out of their heat.
+ */
+export async function placeWalkUp(
+  eventSlug: string,
+  registrationId: string,
+): Promise<WalkUpPlacement> {
+  const db = getDb();
+  const [registration] = await db
+    .select({ heatId: eventRegistrations.heatId })
+    .from(eventRegistrations)
+    .where(
+      and(
+        eq(eventRegistrations.id, registrationId),
+        eq(eventRegistrations.eventSlug, eventSlug),
+      ),
+    )
+    .limit(1);
+  if (!registration || registration.heatId) return { placed: false, reason: "already-seeded" };
+
+  const heat = await findHeatWithRoom(eventSlug);
+  if (!heat) return { placed: false, reason: "no-room" };
+
+  const rows = await db
+    .update(eventRegistrations)
+    .set({ heatId: heat.id })
+    .where(
+      and(
+        eq(eventRegistrations.id, registrationId),
+        eq(eventRegistrations.eventSlug, eventSlug),
+        isNull(eventRegistrations.heatId),
+      ),
+    )
+    .returning({ id: eventRegistrations.id });
+  return rows.length > 0
+    ? { placed: true, heatNumber: heat.number }
+    : { placed: false, reason: "already-seeded" };
+}
+
+export type FinishOutcome =
+  | { result: "finished"; returned: number }
+  | { result: "already" }
+  | { result: "not-published" }
+  | { result: "missing" };
+
+/**
+ * Mark a heat finished and return every bib its members still hold to the pool —
+ * one action, because reclaiming a dozen numbers one at a time is not something a
+ * marshal will do between heats (PRD #26).
+ *
+ * A draft heat cannot be finished: nobody was ever told to run it, so it has not
+ * happened. This keeps `heatState`'s three states in the order the card actually
+ * moves through them — draft → published → finished — rather than letting a heat
+ * skip straight from unreleased to run.
+ *
+ * Atomic: the stamp and the returns land together, so the pool can never read as
+ * freed by a heat that is not finished, or vice versa.
+ */
+export async function finishHeatRow(
+  eventSlug: string,
+  heatId: string,
+): Promise<FinishOutcome> {
+  const db = getDb();
+  return db.transaction(async (tx) => {
+    const [heat] = await tx
+      .select({ publishedAt: eventHeats.publishedAt, finishedAt: eventHeats.finishedAt })
+      .from(eventHeats)
+      .where(and(eq(eventHeats.id, heatId), eq(eventHeats.eventSlug, eventSlug)))
+      .limit(1);
+    if (!heat) return { result: "missing" };
+    if (heat.finishedAt) return { result: "already" };
+    if (!heat.publishedAt) return { result: "not-published" };
+
+    await tx.update(eventHeats).set({ finishedAt: new Date() }).where(eq(eventHeats.id, heatId));
+
+    const returned = await tx
+      .update(eventRegistrations)
+      .set({ bibReturnedAt: new Date() })
+      .where(
+        and(
+          eq(eventRegistrations.heatId, heatId),
+          isNotNull(eventRegistrations.bib),
+          isNull(eventRegistrations.bibReturnedAt),
+        ),
+      )
+      .returning({ id: eventRegistrations.id });
+
+    return { result: "finished", returned: returned.length };
+  });
+}
+
+export type UnfinishOutcome =
+  | { result: "unfinished"; released: number }
+  | { result: "not-finished" }
+  | { result: "missing" }
+  /** Bibs this heat returned that somebody else now holds — nothing was changed. */
+  | { result: "conflict"; bibs: number[] };
+
+/**
+ * Undo marking a heat finished, re-leasing the bibs it returned.
+ *
+ * **Fails loudly** rather than partially (ADR 0003): if any of those numbers has
+ * since been leased to another runner, the whole reversal is refused and the
+ * offending bibs are named. Two runners must never wear the same number at once,
+ * and quietly skipping the clashes would leave a heat that reads recoverable but
+ * has lost half its chips.
+ *
+ * Only members still `checked_in` are re-leased. A member reverted to registered
+ * or no-show since had their bib released deliberately, and un-finishing the heat
+ * is not the place to undo that.
+ */
+export async function unfinishHeatRow(
+  eventSlug: string,
+  heatId: string,
+): Promise<UnfinishOutcome> {
+  const db = getDb();
+  return db.transaction(async (tx) => {
+    const [heat] = await tx
+      .select({ finishedAt: eventHeats.finishedAt })
+      .from(eventHeats)
+      .where(and(eq(eventHeats.id, heatId), eq(eventHeats.eventSlug, eventSlug)))
+      .limit(1);
+    if (!heat) return { result: "missing" };
+    if (!heat.finishedAt) return { result: "not-finished" };
+
+    const candidates = await tx
+      .select({ id: eventRegistrations.id, bib: eventRegistrations.bib })
+      .from(eventRegistrations)
+      .where(
+        and(
+          eq(eventRegistrations.heatId, heatId),
+          eq(eventRegistrations.status, "checked_in"),
+          isNotNull(eventRegistrations.bib),
+          isNotNull(eventRegistrations.bibReturnedAt),
+        ),
+      );
+
+    if (candidates.length > 0) {
+      const held = await tx
+        .select({ bib: eventRegistrations.bib })
+        .from(eventRegistrations)
+        .where(
+          and(
+            eq(eventRegistrations.eventSlug, eventSlug),
+            isNotNull(eventRegistrations.bib),
+            isNull(eventRegistrations.bibReturnedAt),
+          ),
+        );
+      const heldBibs = new Set(held.map((r) => r.bib as number));
+
+      // Two candidates on the same number would collide with each other, not with
+      // an outside holder — same refusal, same reason.
+      const seen = new Set<number>();
+      const clashes = new Set<number>();
+      for (const c of candidates) {
+        const bib = c.bib as number;
+        if (heldBibs.has(bib) || seen.has(bib)) clashes.add(bib);
+        seen.add(bib);
+      }
+      if (clashes.size > 0) {
+        // Nothing has been written yet, so returning here leaves the heat and
+        // every lease exactly as they were.
+        return { result: "conflict", bibs: [...clashes].sort((a, b) => a - b) };
+      }
+
+      await tx
+        .update(eventRegistrations)
+        .set({ bibReturnedAt: null })
+        .where(
+          inArray(
+            eventRegistrations.id,
+            candidates.map((c) => c.id),
+          ),
+        );
+    }
+
+    await tx.update(eventHeats).set({ finishedAt: null }).where(eq(eventHeats.id, heatId));
+    return { result: "unfinished", released: candidates.length };
+  });
 }
 
 /**
