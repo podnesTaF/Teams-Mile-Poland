@@ -6,6 +6,7 @@ import "@/app/landing.css";
 import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminShell } from "@/features/admin/components/admin-shell";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
+import { DownloadLink } from "@/features/admin/components/download-link";
 import { HeatBuilder } from "@/features/admin/components/heat-builder";
 import { Stat } from "@/features/admin/components/stat";
 import { generateHeats, publishHeats } from "@/features/admin/heat-actions";
@@ -161,6 +162,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
           <Link href={`/admin/events/${slug}/checkin`} className="btn btn-stroke btn-sm">
             Check-in
           </Link>
+          <DownloadLink href={`/api/admin/events/${slug}/heats/export`}>Export Excel</DownloadLink>
         </>
       }
     >
