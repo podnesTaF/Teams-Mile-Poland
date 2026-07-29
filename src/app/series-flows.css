@@ -384,6 +384,9 @@
 .ace-landing .slots-val--paid { color: var(--red); }
 .ace-landing .slots-val--muted { color: var(--muted); }
 .ace-landing .slots-note { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+/* Secondary link under the entry CTA — the start list, once registration has
+   closed and the card is being built. */
+.ace-landing .slots-link { margin-top: 12px; }
 
 @media (max-width: 860px) {
   .ace-landing .detail-grid { grid-template-columns: 1fr; }

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
+import { revalidateStartList } from "@/features/event-heats/start-list";
 import {
   HeatPublishNotEligibleError,
   publishHeatsAndNotify,
@@ -30,9 +31,21 @@ function back(locale: string, slug: string, params: string): never {
   redirect(heatsPath(locale, slug, `?${params}`));
 }
 
-function revalidateBuilder(locale: string, slug: string) {
+/**
+ * Invalidate every surface a heat mutation can change: the builder, the admin
+ * event page — and the public start list, which is server-rendered once and then
+ * cached until something tells it to re-render.
+ *
+ * Every heat action goes through here, including generate: a card's first draft
+ * heat flips the public page from its empty state to "not published yet", which
+ * is a visible change even though no heat is released yet. Check-in deliberately
+ * does *not* revalidate the start list — no bib is displayed there, so nothing on
+ * that page depends on it (PRD #26).
+ */
+function revalidateHeatSurfaces(locale: string, slug: string) {
   revalidatePath(heatsPath(locale, slug));
   revalidatePath(adminPath(locale, `/events/${slug}`));
+  revalidateStartList();
 }
 
 function readInt(formData: FormData, key: string): number | null {
@@ -80,7 +93,7 @@ export async function generateHeats(formData: FormData) {
   }
 
   await createHeats(slug, { count, capacity, firstStart, intervalMinutes });
-  revalidateBuilder(locale, slug);
+  revalidateHeatSurfaces(locale, slug);
   back(locale, slug, `ok=generated&n=${count}`);
 }
 
@@ -122,7 +135,7 @@ export async function updateHeat(formData: FormData) {
     back(locale, slug, "error=nochange");
   }
 
-  revalidateBuilder(locale, slug);
+  revalidateHeatSurfaces(locale, slug);
   back(locale, slug, "ok=updated");
 }
 
@@ -138,7 +151,7 @@ export async function deleteHeat(formData: FormData) {
   }
 
   const deleted = await deleteHeatRow(slug, heatId);
-  revalidateBuilder(locale, slug);
+  revalidateHeatSurfaces(locale, slug);
   back(locale, slug, deleted ? "ok=deleted" : "error=missing");
 }
 
@@ -169,7 +182,7 @@ export async function assignToHeat(formData: FormData) {
   }
 
   const moved = await setHeatForRegistrations(slug, heatId, ids);
-  revalidateBuilder(locale, slug);
+  revalidateHeatSurfaces(locale, slug);
   back(locale, slug, `ok=assigned&n=${moved}`);
 }
 
@@ -199,7 +212,7 @@ export async function publishHeats(formData: FormData) {
     back(locale, slug, e instanceof HeatPublishNotEligibleError ? "error=input" : "error=publish");
   }
 
-  revalidateBuilder(locale, slug);
+  revalidateHeatSurfaces(locale, slug);
   back(
     locale,
     slug,
@@ -223,6 +236,6 @@ export async function unassignFromHeat(formData: FormData) {
   }
 
   const moved = await setHeatForRegistrations(slug, null, ids);
-  revalidateBuilder(locale, slug);
+  revalidateHeatSurfaces(locale, slug);
   back(locale, slug, `ok=unassigned&n=${moved}`);
 }

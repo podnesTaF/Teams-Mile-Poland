@@ -921,6 +921,26 @@
       "viewAll": "Zobacz pełną galerię →",
       "videoCount": "{count, plural, one {# film} few {# filmy} many {# filmów} other {# filmu}}",
       "comingSoon": "Zdjęcia i wideo z tej nocy biegowej pojawią się wkrótce — zajrzyj tu, aby zobaczyć i pobrać swoje ujęcia."
+    },
+    "heats": {
+      "eyebrow": "Lista startowa",
+      "back": "← Powrót do wydarzenia",
+      "cta": "Lista startowa",
+      "approxNote": "Godziny startu są przybliżone — serie mogą się przesuwać. Zawodnicy powinni być na stadionie najpóźniej 30 minut przed swoją serią.",
+      "heat": "Seria {number}",
+      "approxTime": "ok. {time}",
+      "runners": "{count, plural, one {# zawodnik} few {# zawodnicy} many {# zawodników} other {# zawodnika}}",
+      "colName": "Zawodnik",
+      "colClub": "Klub",
+      "heatEmpty": "W tej serii nie ma jeszcze zawodników.",
+      "unpublished": {
+        "title": "Jeszcze nieopublikowana",
+        "txt": "Lista startowa tej nocy biegowej nie została jeszcze opublikowana. Każdy, kto potwierdzi swój udział, otrzyma e-mailem numer serii i przybliżoną godzinę startu, gdy tylko lista będzie gotowa."
+      },
+      "empty": {
+        "title": "Brak listy startowej",
+        "txt": "Dla tej nocy biegowej nie ma listy startowej."
+      }
     }
   },
   "auth": {

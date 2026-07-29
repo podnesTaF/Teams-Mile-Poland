@@ -15,10 +15,9 @@ import {
 } from "@/lib/events/drive-urls";
 import { listEventMedia } from "@/lib/events/media";
 import { getEventBySlug, getGalleryEvents } from "@/lib/events/registry";
+import { formatEventLongDate } from "@/lib/events/time";
 
 import { GalleryLightbox } from "./gallery-lightbox";
-
-const DATE_TAG: Record<string, string> = { en: "en-GB", pl: "pl-PL", ua: "uk-UA" };
 
 export function generateStaticParams() {
   // Only completed individual events with published media get a gallery page.
@@ -73,12 +72,7 @@ export default async function GalleryPage({ params }: PageProps) {
   // Build-time listing; throws (fails the build) if the folder can't be read.
   const items = await listEventMedia(event.media.driveFolderId);
 
-  const longDate = new Intl.DateTimeFormat(DATE_TAG[locale] ?? "en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "Europe/Warsaw",
-  }).format(new Date(`${event.date}T12:00:00+02:00`));
+  const longDate = formatEventLongDate(locale, event.date);
 
   return (
     <div className="ace-landing iv">

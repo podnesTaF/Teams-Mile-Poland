@@ -921,6 +921,26 @@
       "viewAll": "View full gallery →",
       "videoCount": "{count, plural, one {# video} other {# videos}}",
       "comingSoon": "Photos & video from this race night are coming soon — check back to see and download your shots."
+    },
+    "heats": {
+      "eyebrow": "Start list",
+      "back": "← Back to event",
+      "cta": "Start list",
+      "approxNote": "Start times are approximate — heats can drift. Runners should be at the stadium at least 30 minutes before their heat.",
+      "heat": "Heat {number}",
+      "approxTime": "approx. {time}",
+      "runners": "{count, plural, one {# runner} other {# runners}}",
+      "colName": "Runner",
+      "colClub": "Club",
+      "heatEmpty": "No runners in this heat yet.",
+      "unpublished": {
+        "title": "Not published yet",
+        "txt": "The start list for this race night has not been published yet. Everyone who confirms they are coming is emailed their heat and approximate start time the moment it is."
+      },
+      "empty": {
+        "title": "No start list",
+        "txt": "There is no start list for this race night."
+      }
     }
   },
   "auth": {
