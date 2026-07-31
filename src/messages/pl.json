@@ -899,6 +899,14 @@
         }
       }
     },
+    "docs": {
+      "heading": "Dokumenty",
+      "download": "Pobierz",
+      "fallback": "Bez tłumaczenia",
+      "items": {
+        "regulations": "Regulamin zawodów"
+      }
+    },
     "timetable": {
       "checkin": "Rejestracja i odbiór numerów",
       "briefing": "Odprawa i rozgrzewka",

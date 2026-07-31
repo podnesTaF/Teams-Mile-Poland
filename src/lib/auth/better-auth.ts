@@ -6,6 +6,7 @@ import type { ReactElement } from "react";
 import { accounts, sessions, users, verifications } from "@/db/schema";
 import { ResetPasswordEmail } from "@/emails/reset-password";
 import { VerifyEmail } from "@/emails/verify-email";
+import { getAppUrl } from "@/lib/app-url";
 import { db } from "@/lib/db";
 import { FROM_EMAIL, getResend, resend } from "@/lib/email";
 
@@ -20,14 +21,10 @@ import { FROM_EMAIL, getResend, resend } from "@/lib/email";
  * `auth.api.getSession({ headers: await headers() })`, NOT in proxy.ts — this
  * custom Next 16 build uses proxy.ts for next-intl only, and its matcher
  * already excludes `/api` so the catch-all auth handler is reachable.
+ *
+ * `baseURL` must be the public custom domain (`NEXT_PUBLIC_APP_URL`), not the
+ * Vercel deployment host — verification/reset emails embed this origin.
  */
-function appUrl() {
-  return (
-    process.env.BETTER_AUTH_URL ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3000"
-  ).replace(/\/$/, "");
-}
 
 /** Best-effort first name for email greetings: additionalField or `name`. */
 function firstNameOf(user: { name?: string | null; firstName?: string | null }): string | undefined {
@@ -65,7 +62,8 @@ async function sendAuthEmail(input: {
 }
 
 export const auth = betterAuth({
-  baseURL: appUrl(),
+  baseURL: getAppUrl(),
+  trustedOrigins: [getAppUrl()],
   secret: process.env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(db!, {
     provider: "pg",

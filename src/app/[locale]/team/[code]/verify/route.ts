@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getTeamByCode, isCaptainRunner, normalizeTeamCode } from "@/features/team/data";
 import { consumeMagicLink } from "@/features/team/tokens";
 import { setTeamSession } from "@/lib/auth/team-session";
+import { appAbsoluteUrl } from "@/lib/app-url";
 import { defaultLocale, locales } from "@/lib/i18n/config";
 
 import { eq } from "drizzle-orm";
@@ -26,19 +27,18 @@ export async function GET(
   const { locale: rawLocale, code: rawCode } = await params;
   const locale = safeLocale(rawLocale);
   const code = normalizeTeamCode(decodeURIComponent(rawCode));
-  const baseUrl = new URL(request.url);
 
   const team = await getTeamByCode(code);
   if (!team) {
     return NextResponse.redirect(
-      new URL(`${teamPathFor(locale, code)}/access?error=invalid`, baseUrl),
+      appAbsoluteUrl(`${teamPathFor(locale, code)}/access?error=invalid`),
     );
   }
 
   const rawToken = new URL(request.url).searchParams.get("token");
   if (!rawToken) {
     return NextResponse.redirect(
-      new URL(`${teamPathFor(locale, code)}/access?error=invalid`, baseUrl),
+      appAbsoluteUrl(`${teamPathFor(locale, code)}/access?error=invalid`),
     );
   }
 
@@ -52,7 +52,7 @@ export async function GET(
           ? "used"
           : "invalid";
     return NextResponse.redirect(
-      new URL(`${teamPathFor(locale, code)}/access?error=${errorParam}`, baseUrl),
+      appAbsoluteUrl(`${teamPathFor(locale, code)}/access?error=${errorParam}`),
     );
   }
 
@@ -64,7 +64,7 @@ export async function GET(
 
   if (!runner) {
     return NextResponse.redirect(
-      new URL(`${teamPathFor(locale, code)}/access?error=invalid`, baseUrl),
+      appAbsoluteUrl(`${teamPathFor(locale, code)}/access?error=invalid`),
     );
   }
 
@@ -76,5 +76,5 @@ export async function GET(
     role: isCaptainRunner(runner) ? "captain" : "member",
   });
 
-  return NextResponse.redirect(new URL(teamPathFor(locale, code), baseUrl));
+  return NextResponse.redirect(appAbsoluteUrl(teamPathFor(locale, code)));
 }

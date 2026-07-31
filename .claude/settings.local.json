@@ -42,7 +42,8 @@
       "Bash(git *)",
       "PowerShell(gh issue *)",
       "PowerShell(gh *)",
-      "Bash(xargs grep -l 'requestPasswordReset')"
+      "Bash(xargs grep -l 'requestPasswordReset')",
+      "Bash(cd *)"
     ]
   }
 }
