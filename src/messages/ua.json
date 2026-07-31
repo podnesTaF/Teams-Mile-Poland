@@ -949,6 +949,7 @@
     "backToSignIn": "Назад до входу",
     "nav": {
       "profile": "Профіль",
+      "adminPanel": "Панель адміна",
       "signIn": "Увійти",
       "logOut": "Вийти",
       "loggingOut": "Вихід…"

@@ -5,12 +5,12 @@ import {
   exportFilename,
   parseExportScope,
 } from "@/features/admin/export-runners";
-import { getAdminSession } from "@/lib/auth/admin-session";
+import { getAdminUser } from "@/lib/auth/user-session";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  if (!(await getAdminSession())) {
+  if (!(await getAdminUser())) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

@@ -115,7 +115,6 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
 
   return (
     <AdminShell
-      locale={locale}
       eyebrow={`Check-in · ${event.shortDate}`}
       title={event.name}
       actions={

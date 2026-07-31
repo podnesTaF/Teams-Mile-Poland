@@ -43,7 +43,7 @@ export default async function MailingsPage({
   await requireAdmin(locale);
 
   return (
-    <AdminShell locale={locale} title="Mailings" active="mailings">
+    <AdminShell title="Mailings" active="mailings">
       {msg ? <div className="iv-notice iv-notice--info">{msg}</div> : null}
 
       {process.env.DATABASE_URL ? (

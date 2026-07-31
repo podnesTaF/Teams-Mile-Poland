@@ -28,7 +28,7 @@ export default async function AdminNewsEditPage({
 
   if (!process.env.DATABASE_URL) {
     return (
-      <AdminShell locale={locale} eyebrow="Admin · News" title="Article" narrow>
+      <AdminShell eyebrow="Admin · News" title="Article" narrow>
         <NoDatabaseNotice>edit news articles</NoDatabaseNotice>
       </AdminShell>
     );
@@ -51,7 +51,6 @@ export default async function AdminNewsEditPage({
 
   return (
     <AdminShell
-      locale={locale}
       eyebrow="Admin · News"
       title={article.titleEn || "(untitled)"}
       narrow

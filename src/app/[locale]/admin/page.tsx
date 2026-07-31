@@ -20,7 +20,7 @@ export default async function AdminPage({
   await requireAdmin(locale);
 
   return (
-    <AdminShell locale={locale} title="Dashboard" active="overview">
+    <AdminShell title="Dashboard" active="overview">
       {process.env.DATABASE_URL ? (
         <OverviewBody />
       ) : (

@@ -949,6 +949,7 @@
     "backToSignIn": "Powrót do logowania",
     "nav": {
       "profile": "Profil",
+      "adminPanel": "Panel admina",
       "signIn": "Zaloguj się",
       "logOut": "Wyloguj się",
       "loggingOut": "Wylogowywanie…"

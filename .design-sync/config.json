@@ -1,0 +1,51 @@
+{
+  "projectId": "ab35baf5-04e9-4fc1-b0e9-eded3555685b",
+  "shape": "package",
+  "pkg": "teams-mile-warshaw",
+  "globalName": "AceBattleRun",
+  "buildCmd": "node .design-sync/build.mjs",
+  "srcDir": "../../src/components/ui",
+  "tsconfig": "../../tsconfig.json",
+  "cssEntry": "ds-compiled.css",
+  "docsDir": "../docs",
+  "readmeHeader": ".design-sync/conventions.md",
+  "componentSrcMap": {
+    "LanguageSwitcher": null,
+    "Button": "../../src/components/ui/button.tsx",
+    "LinkButton": "../../src/components/ui/button.tsx",
+    "Cbx": "../../src/components/ui/cbx.tsx",
+    "Chip": "../../src/components/ui/chip.tsx",
+    "Container": "../../src/components/ui/container.tsx",
+    "Eyebrow": "../../src/components/ui/eyebrow.tsx",
+    "FloatField": "../../src/components/ui/float-field.tsx",
+    "IconClose": "../../src/components/ui/icons.tsx",
+    "IconBack": "../../src/components/ui/icons.tsx",
+    "IconPerson": "../../src/components/ui/icons.tsx",
+    "IconTeam": "../../src/components/ui/icons.tsx",
+    "IconWhatsApp": "../../src/components/ui/icons.tsx",
+    "IconTelegram": "../../src/components/ui/icons.tsx",
+    "Loader": "../../src/components/ui/loader.tsx",
+    "LoadingScreen": "../../src/components/ui/loading-screen.tsx",
+    "Modal": "../../src/components/ui/modal.tsx",
+    "ModalHead": "../../src/components/ui/modal.tsx",
+    "ModalBody": "../../src/components/ui/modal.tsx",
+    "ModalFoot": "../../src/components/ui/modal.tsx",
+    "PhoneField": "../../src/components/ui/phone-field.tsx",
+    "Rank": "../../src/components/ui/rank.tsx",
+    "Section": "../../src/components/ui/section.tsx",
+    "SectionHead": "../../src/components/ui/section.tsx",
+    "Wordmark": "../../src/components/ui/wordmark.tsx"
+  },
+  "overrides": {
+    "Modal": { "cardMode": "single", "viewport": "820x620" },
+    "LoadingScreen": { "cardMode": "single", "primaryStory": "FullScreenWait" },
+    "Chip": { "cardMode": "column" },
+    "Container": { "cardMode": "column" },
+    "Loader": { "cardMode": "column" }
+  },
+  "dtsPropsFor": {
+    "Button": "className?: string;\n  id?: string;\n  style?: React.CSSProperties;\n  children?: React.ReactNode;\n  intent?: \"primary\" | \"dark\" | \"ghost\" | \"ghostLight\" | \"link\";\n  size?: \"sm\" | \"md\" | \"lg\";\n  block?: boolean;\n  disabled?: boolean;\n  type?: \"button\" | \"submit\" | \"reset\";\n  onClick?: React.MouseEventHandler<HTMLButtonElement>;\n  name?: string;\n  value?: string | number;\n  form?: string;\n  autoFocus?: boolean;\n  tabIndex?: number;\n  title?: string;\n  \"aria-label\"?: string;\n  ref?: React.Ref<HTMLButtonElement>",
+    "LinkButton": "href?: string;\n  className?: string;\n  id?: string;\n  style?: React.CSSProperties;\n  children?: React.ReactNode;\n  intent?: \"primary\" | \"dark\" | \"ghost\" | \"ghostLight\" | \"link\";\n  size?: \"sm\" | \"md\" | \"lg\";\n  block?: boolean;\n  target?: string;\n  rel?: string;\n  download?: boolean | string;\n  onClick?: React.MouseEventHandler<HTMLAnchorElement>;\n  title?: string;\n  \"aria-label\"?: string",
+    "FloatField": "as?: \"input\" | \"select\" | \"textarea\";\n  label?: string;\n  error?: string;\n  hint?: string;\n  className?: string;\n  id?: string;\n  children?: React.ReactNode;\n  value?: string | number;\n  defaultValue?: string | number;\n  onChange?: (event: React.ChangeEvent<HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement>) => void;\n  onBlur?: React.FocusEventHandler;\n  type?: string;\n  name?: string;\n  placeholder?: string;\n  required?: boolean;\n  disabled?: boolean;\n  readOnly?: boolean;\n  autoComplete?: string;\n  rows?: number;\n  min?: string | number;\n  max?: string | number;\n  step?: string | number"
+  }
+}

@@ -119,6 +119,10 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
+      // `input: false` keeps this off every client-writable payload (sign-up,
+      // update-user) while still returning it on the session user — that is
+      // what makes `session.user.role` a safe admin gate.
+      role: { type: "string", required: false, input: false, defaultValue: "user" },
       firstName: { type: "string", required: false, input: true },
       lastName: { type: "string", required: false, input: true },
       dateOfBirth: { type: "date", required: false, input: true },

@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-import { getAdminSession } from "@/lib/auth/admin-session";
+import { requireAdmin } from "@/features/admin/action-helpers";
 import { defaultLocale, locales } from "@/lib/i18n/config";
 import { broadcastSegmentEnum } from "@/db/schema";
 
@@ -25,12 +25,6 @@ function safeLocale(value: FormDataEntryValue | null) {
 function mailingsPath(locale: string, query = "") {
   const prefix = locale === defaultLocale ? "" : `/${locale}`;
   return `${prefix}/admin/mailings${query}`;
-}
-
-async function requireAdmin(locale: string) {
-  if (!(await getAdminSession())) {
-    redirect(`${locale === defaultLocale ? "" : `/${locale}`}/admin/login`);
-  }
 }
 
 function back(locale: string, msg: string) {

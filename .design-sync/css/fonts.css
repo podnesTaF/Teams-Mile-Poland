@@ -1,0 +1,28 @@
+/* =========================================================
+ * Font shim for the design-system bundle.
+ *
+ * In the Next.js app these six families are loaded by
+ * next/font/google in src/app/[locale]/layout.tsx, which also
+ * injects the --font-* custom properties that globals.css and
+ * landing.css reference (var(--font-head), var(--font-body), …).
+ *
+ * Nothing injects those variables outside Next, so a bundled
+ * design system without this file renders every component in a
+ * fallback font with the type scale silently broken. This file
+ * reproduces exactly what layout.tsx sets up: the same families,
+ * the same weights/styles, and the same variable names.
+ *
+ * Keep in sync with src/app/[locale]/layout.tsx.
+ * ========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Alumni+Sans:ital,wght@0,400;0,700;0,800;0,900;1,400;1,700;1,800;1,900&family=Exo+2:wght@600;700&family=Fira+Sans+Condensed:ital,wght@1,500;1,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap");
+
+:root {
+  /* Names match layout.tsx's `variable:` keys one-for-one. */
+  --font-display: "Alumni Sans";
+  --font-display-alt: "Manrope";
+  --font-body: "Inter";
+  --font-mono: "JetBrains Mono";
+  --font-head: "Fira Sans Condensed";
+  --font-cta: "Exo 2";
+}

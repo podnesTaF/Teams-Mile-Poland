@@ -1,0 +1,14 @@
+/* Tailwind entry for the design-system bundle.
+ *
+ * Mirrors what the app itself loads: globals.css (tokens, base
+ * reset, modal/form component layer) plus landing.css (the
+ * .ace-landing design language every non-landing page also
+ * imports). fonts.css comes first so the --font-* variables are
+ * defined before anything reads them.
+ *
+ * Compiled by scripts/build-ds-css.sh into ds-compiled.css,
+ * which is what cfg.cssEntry points at. */
+
+@import "./fonts.css";
+@import "../../src/app/globals.css";
+@import "../../src/app/landing.css";

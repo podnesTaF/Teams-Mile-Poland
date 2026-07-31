@@ -22,7 +22,7 @@ import { buildEventTicketView, makeEventTicketUrl } from "@/features/event-regis
 import { generateTicketQrPng } from "@/features/ticket/qr";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { DownloadTicketButton } from "@/features/ticket/components/download-ticket-button";
-import { getAdminSession } from "@/lib/auth/admin-session";
+import { getAdminUser } from "@/lib/auth/user-session";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug } from "@/lib/events/registry";
 
@@ -77,11 +77,11 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
       ? undefined
       : (await publishedHeatsByRegistration([registrationId])).get(registrationId);
 
-  // Race morning (PRD #26, slice #32): an admin session turns this page into the
+  // Race morning (PRD #26, slice #32): an admin turns this page into the
   // check-in surface, because the QR baked into sent tickets points here and
   // cannot be retargeted. Everyone else — the ticket's owner included — sees
   // exactly the page they saw before. The panel enforces nothing; its actions do.
-  const isAdmin = Boolean(await getAdminSession());
+  const isAdmin = Boolean(await getAdminUser());
 
   return (
     <div className="ace-landing iv tk-page">

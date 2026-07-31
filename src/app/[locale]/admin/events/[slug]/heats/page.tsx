@@ -151,7 +151,6 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
 
   return (
     <AdminShell
-      locale={locale}
       eyebrow={`Heats · ${event.shortDate}`}
       title={`${event.name} heats`}
       actions={

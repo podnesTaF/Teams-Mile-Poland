@@ -14,12 +14,26 @@ import { boolean, date, index, pgEnum, pgTable, text, timestamp } from "drizzle-
 /** Profile sex — an individual-event profile field (heat/category grouping). */
 export const userSexEnum = pgEnum("user_sex", ["M", "F"]);
 
+/**
+ * Account role. `admin` is the only thing that opens `/admin` — there is no
+ * shared admin password any more. Declared as a Better Auth additionalField
+ * with `input: false` so it rides along on the session user but can never be
+ * set by a client payload (sign-up, update-user); it moves only through
+ * `src/features/admin/admins-actions.ts` or `scripts/grant-admin.ts`.
+ *
+ * Plain `text` rather than a pgEnum on purpose: enum values can only be added
+ * by `ALTER TYPE`, which is exactly the migration shape that stranded 0012 on
+ * the live DB. A role set is a value, not a type.
+ */
+export type UserRole = "user" | "admin";
+
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  role: text("role").$type<UserRole>().default("user").notNull(),
   // --- profile additionalFields (see better-auth config user.additionalFields)
   firstName: text("first_name"),
   lastName: text("last_name"),

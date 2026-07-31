@@ -40,7 +40,9 @@
       "Bash(gh issue *)",
       "Bash(echo \"EXIT: $?\")",
       "Bash(git *)",
-      "PowerShell(gh issue *)"
+      "PowerShell(gh issue *)",
+      "PowerShell(gh *)",
+      "Bash(xargs grep -l 'requestPasswordReset')"
     ]
   }
 }

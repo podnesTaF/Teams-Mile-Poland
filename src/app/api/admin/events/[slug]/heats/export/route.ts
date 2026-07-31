@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 
 import { buildHeatExportWorkbook, heatExportFilename } from "@/features/admin/heat-export";
 import { getEventBySlug } from "@/lib/events/registry";
-import { getAdminSession } from "@/lib/auth/admin-session";
+import { getAdminUser } from "@/lib/auth/user-session";
 
 export const runtime = "nodejs";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
-  if (!(await getAdminSession())) {
+  if (!(await getAdminUser())) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

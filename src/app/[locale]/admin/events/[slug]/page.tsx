@@ -56,7 +56,6 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
 
   return (
     <AdminShell
-      locale={locale}
       eyebrow={`Admin · ${event.shortDate}`}
       title={`${event.name} roster`}
       actions={

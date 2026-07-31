@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { newsArticles } from "@/db/schema";
-import { getAdminSession } from "@/lib/auth/admin-session";
+import { getAdminUser } from "@/lib/auth/user-session";
 import { getDb } from "@/lib/db";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
@@ -74,8 +74,7 @@ export type UploadNewsImageResult = { url: string } | { error: string };
  * blob deletion/GC in v1, so replaced or removed images are simply orphaned.
  */
 export async function uploadNewsImage(formData: FormData): Promise<UploadNewsImageResult> {
-  const session = await getAdminSession();
-  if (!session) return { error: "Not authorized." };
+  if (!(await getAdminUser())) return { error: "Not authorized." };
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return { error: "Image uploads are not configured (missing BLOB_READ_WRITE_TOKEN)." };
