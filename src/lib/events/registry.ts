@@ -1,5 +1,6 @@
 import { EVENT } from "@/lib/marketing/event";
 
+import { mile20260801Results } from "./results/mile-2026-08-01";
 import { warsaw2026Results } from "./results/warsaw-2026";
 import { buildMileTimetable, firstHeatTime } from "./timetables";
 import {
@@ -59,10 +60,10 @@ export const EVENTS: EventSummary[] = [
     city: EVENT.venue.city,
     results: warsaw2026Results,
   },
-  // Aug-2026 individual mile series. Registration for the first night is closed;
-  // the second is open. The rest are announced ("opens soon") until their
-  // registration windows open.
-  mileEvent("2026-08-01", MORNING, "registration_closed"),
+  // Aug-2026 individual mile series. The first race morning has been run;
+  // the second night is open. The rest are announced ("opens soon") until
+  // their registration windows open.
+  { ...mileEvent("2026-08-01", MORNING, "completed"), results: mile20260801Results },
   mileEvent("2026-08-08", EVENING, "registration_open"),
   mileEvent("2026-08-15", MORNING),
   mileEvent("2026-08-22", EVENING),
