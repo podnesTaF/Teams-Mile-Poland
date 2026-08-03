@@ -59,7 +59,11 @@ async function main(): Promise<void> {
   ok("workbook is non-empty", buffer.length > 0, `${buffer.length} bytes`);
 
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(buffer);
+  // exceljs declares its own `interface Buffer extends ArrayBuffer` (index.d.ts:1),
+  // so `load()` wants an ArrayBuffer, not Node's Buffer — hand it one. (jszip
+  // underneath takes either; `heat-export.ts` crosses the same gap the other way
+  // with `Buffer.from(await writeBuffer())`.)
+  await wb.xlsx.load(new Uint8Array(buffer).buffer);
   const names = wb.worksheets.map((w) => w.name);
   console.log(`  sheets: ${names.join(", ")}\n`);
 
