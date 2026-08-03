@@ -6,8 +6,8 @@ import { users } from "./auth";
  * Admin-composed mailings to segments of `users` — the user-keyed sibling of
  * the frozen legacy `broadcasts` table (which targets legacy runners/teams).
  * `segment` is text, not an enum, because segments include parameterized
- * values (`registered:<event-slug>`) resolved at send time; see the PRD's
- * segment identifiers. Statuses: `draft` | `sent`.
+ * values (`registered:<event-slug>`, `awaiting_confirmation:<event-slug>`,
+ * `confirmed:<event-slug>`) resolved at send time. Statuses: `draft` | `sent`.
  */
 export const userBroadcasts = pgTable("user_broadcasts", {
   id: uuid("id").defaultRandom().primaryKey(),

@@ -72,3 +72,20 @@ export function dueScheduledKind(now: Date, event: EventSummary): EventScheduled
   }
   return due;
 }
+
+export type EventScheduleRow = {
+  kind: EventScheduledKind;
+  sendAt: Date;
+  status: "done" | "due" | "upcoming";
+};
+
+/** For the admin UI: each scheduled kind for one event with send time + status. */
+export function scheduleRowsForEvent(now: Date, event: EventSummary): EventScheduleRow[] {
+  const due = dueScheduledKind(now, event);
+  return EVENT_SCHEDULED_KINDS.map((kind) => {
+    const at = sendAt(kind, event);
+    const status: EventScheduleRow["status"] =
+      kind === due ? "due" : at.getTime() <= now.getTime() ? "done" : "upcoming";
+    return { kind, sendAt: at, status };
+  });
+}
