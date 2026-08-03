@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { COUNTRY_OPTIONS, countryByDial, countryByIso } from "@/lib/country-calling-codes";
 import {
@@ -18,6 +18,12 @@ type Props = {
   onChange: (value: string) => void;
   error?: string;
   className?: string;
+  /**
+   * Recolors to the house `.finput` fields (series-flows.css): "light" for the
+   * auth cards, "dark" for the profile/guest forms. Default keeps the legacy
+   * modal skin from globals.css.
+   */
+  variant?: "light" | "dark";
 };
 
 function isoForDial(dialCode: string, preferredIso?: string): string {
@@ -29,15 +35,14 @@ function isoForDial(dialCode: string, preferredIso?: string): string {
  * Phone input with a country-code selector and a masked national number field.
  * Defaults to Poland (+48) and stores values like "+48 512 345 678".
  */
-export function PhoneField({ label, value, onChange, error, className }: Props) {
+export function PhoneField({ label, value, onChange, error, className, variant }: Props) {
   const parsed = parsePhone(value);
+  // Last explicit country pick — only disambiguates countries sharing a dial
+  // code; the effective country is derived from `value` on every render.
   const [iso, setIso] = useState(() => isoForDial(parsed.dialCode));
 
-  useEffect(() => {
-    setIso((current) => isoForDial(parsed.dialCode, current));
-  }, [parsed.dialCode]);
-
-  const selected = countryByIso(iso) ?? countryByIso(DEFAULT_COUNTRY_ISO)!;
+  const selected =
+    countryByIso(isoForDial(parsed.dialCode, iso)) ?? countryByIso(DEFAULT_COUNTRY_ISO)!;
   const nationalDisplay = formatNationalDigits(parsed.national);
 
   function updateCountry(nextIso: string) {
@@ -53,7 +58,14 @@ export function PhoneField({ label, value, onChange, error, className }: Props) 
   }
 
   return (
-    <label className={cn("ff phone-field", error && "ff-err", className)}>
+    <label
+      className={cn(
+        "ff phone-field",
+        variant && `phone-field--${variant}`,
+        error && "ff-err",
+        className,
+      )}
+    >
       <div className="phone-field__row">
         <div className="phone-field__code-wrap">
           <span className="phone-field__code-display" aria-hidden>
@@ -61,7 +73,7 @@ export function PhoneField({ label, value, onChange, error, className }: Props) 
           </span>
           <select
             className="phone-field__code"
-            value={iso}
+            value={selected.iso}
             aria-label="Country code"
             onChange={(event) => updateCountry(event.target.value)}
           >

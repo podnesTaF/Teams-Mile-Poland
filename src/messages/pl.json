@@ -84,7 +84,7 @@
       "venue": "Stadion Podskarbińska",
       "stats": {
         "dateLabel": "Najbliższe wydarzenie",
-        "dateValue": "1 sierpnia",
+        "dateValue": "8 sierpnia",
         "freeLabel": "Udział",
         "freeValue": "BEZPŁATNY",
         "prizeLabel": "💰 Pula nagród",
@@ -461,12 +461,18 @@
       "eyebrow": "Wyniki biegu",
       "title": "Wyniki",
       "subtitle": "{date} · {count} zawodników",
+      "subtitleAll": "Wszystkie biegi · {count} zawodników",
+      "tabsLabel": "Filtruj wyniki według biegu",
+      "tabs": {
+        "all": "Wszystkie"
+      },
       "cols": {
         "place": "Miejsce",
         "name": "Zawodnik",
         "level": "Poziom",
         "category": "Kategoria",
-        "time": "Czas"
+        "time": "Czas",
+        "race": "Bieg"
       },
       "level": "Poz. {n}",
       "detailsLabel": "Szczegóły",
@@ -976,7 +982,8 @@
       "password": "Hasło",
       "newPassword": "Nowe hasło",
       "confirmPassword": "Potwierdź hasło",
-      "fullName": "Imię i nazwisko"
+      "fullName": "Imię i nazwisko",
+      "phone": "Telefon"
     },
     "signUp": {
       "eyebrow": "Załóż konto",
@@ -1063,6 +1070,17 @@
       "club": "Klub biegowy",
       "clubPlaceholder": "Opcjonalnie",
       "phone": "Telefon"
+    },
+    "security": {
+      "title": "Bezpieczeństwo",
+      "sub": "Zmień hasło, którym logujesz się na konto.",
+      "current": "Obecne hasło",
+      "wrongCurrent": "Obecne hasło jest nieprawidłowe.",
+      "forgot": "Nie pamiętasz obecnego hasła albo nigdy go nie ustawiono?",
+      "forgotCta": "Zresetuj je e-mailem",
+      "submit": "Zmień hasło",
+      "submitting": "Zmienianie…",
+      "saved": "Hasło zostało zmienione. Inne urządzenia zostały wylogowane."
     },
     "registrations": {
       "title": "Moje zapisy",

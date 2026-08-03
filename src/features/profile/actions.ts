@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth/better-auth";
+import { locales, type Locale } from "@/lib/i18n/config";
 
 import { profileSchema, type ProfileInput, type ProfileResult } from "./schemas";
 
@@ -43,5 +44,29 @@ export async function updateProfile(input: ProfileInput): Promise<ProfileResult>
       ok: false,
       message: error instanceof Error ? error.message : "Could not save your profile.",
     };
+  }
+}
+
+/**
+ * Persist the site language picked in the header switcher onto the account.
+ * `users.locale` drives the language of every outbound email (tickets, heat
+ * assignments, broadcasts); without this it stays frozen at whatever URL
+ * locale the user happened to sign up under. Fire-and-forget from the client:
+ * signed-out visitors and failures are silent no-ops — the page language
+ * switch must never be blocked by this write.
+ */
+export async function syncUserLocale(locale: string): Promise<void> {
+  if (!locales.includes(locale as Locale)) return;
+
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session || session.user.locale === locale) return;
+
+    await auth.api.updateUser({
+      headers: await headers(),
+      body: { locale },
+    });
+  } catch {
+    // Best-effort preference sync — never surface to the switcher.
   }
 }

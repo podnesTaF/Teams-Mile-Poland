@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 
 import { Link } from "@/i18n/navigation";
 
+import { PhoneField } from "@/components/ui/phone-field";
 import { maxDobForMinAge, MIN_PARTICIPANT_AGE, parseDateOnly } from "@/lib/age";
 
 import { registerAsGuest } from "../actions";
@@ -27,6 +28,7 @@ const EMPTY: GuestRegisterInput = {
   dateOfBirth: "",
   sex: "" as GuestRegisterInput["sex"],
   club: "",
+  phone: "",
 };
 
 /**
@@ -198,6 +200,16 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
                 <option value="F">{tp("fields.sexF")}</option>
               </select>
             </Field>
+            {/* PhoneField renders its own <label> root — no Field wrapper. */}
+            <div className="block col-2">
+              <span className="flabel on-dark">{tp("fields.phone")}</span>
+              <PhoneField
+                variant="dark"
+                value={data.phone}
+                onChange={(value) => set("phone", value)}
+                error={fieldErrors.phone?.[0]}
+              />
+            </div>
             <Field label={tp("fields.club")} error={fieldErrors.club?.[0]} full>
               <input
                 className="finput on-dark"

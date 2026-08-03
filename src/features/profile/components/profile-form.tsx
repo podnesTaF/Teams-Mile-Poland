@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 
 import { useRouter } from "@/i18n/navigation";
 
+import { PhoneField } from "@/components/ui/phone-field";
 import { maxDobForMinAge, MIN_PARTICIPANT_AGE, parseDateOnly } from "@/lib/age";
 
 import { updateProfile } from "../actions";
@@ -132,16 +133,16 @@ export function ProfileForm({ initial, redirectTo, maxDobAsOf }: Props) {
               placeholder={t("fields.clubPlaceholder")}
             />
           </Field>
-          <Field label={t("fields.phone")} error={fieldErrors.phone?.[0]}>
-            <input
-              className="finput on-dark"
-              type="tel"
-              autoComplete="tel"
+          {/* PhoneField renders its own <label> root — no Field wrapper. */}
+          <div className="block">
+            <span className="flabel on-dark">{t("fields.phone")}</span>
+            <PhoneField
+              variant="dark"
               value={data.phone}
-              onChange={(e) => set("phone", e.target.value)}
-              required
+              onChange={(value) => set("phone", value)}
+              error={fieldErrors.phone?.[0]}
             />
-          </Field>
+          </div>
         </div>
       </div>
 

@@ -41,3 +41,11 @@ machinery (the auth stack is already configured for required verification).
   ticket email (which carries the set-password CTA).
 - Do **not** "fix" this back to force-setting `emailVerified: true`, nor to the full
   sign-up gate chain — the passwordless-but-verified shape is intentional.
+
+**Amendment (2026-08-03).** Phone is now **required** to register, superseding the
+"phone is not required" consequence above: the guest form and account sign-up both
+collect it (via the country-dial-code `PhoneField`), `registerAsGuest` persists it, and
+`canRegister` now equals `isProfileComplete` (adds `phone` to the gate). A verified
+guest still auto-registers on return — the phone was captured on the form, so no wall
+is hit. Legacy phone-less accounts are prompted through the profile form on their next
+registration. The passwordless + email-verification-gated shape is unchanged.

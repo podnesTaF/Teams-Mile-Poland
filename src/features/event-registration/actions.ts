@@ -179,6 +179,7 @@ export async function registerAsGuest(
           dateOfBirth: new Date(data.dateOfBirth),
           sex: data.sex,
           club: data.club || "",
+          phone: data.phone,
           locale,
         })
         .where(eq(users.id, existing.id));
@@ -204,6 +205,7 @@ export async function registerAsGuest(
         dateOfBirth: new Date(data.dateOfBirth),
         sex: data.sex,
         club: data.club || "",
+        phone: data.phone,
         locale,
         callbackURL,
       },

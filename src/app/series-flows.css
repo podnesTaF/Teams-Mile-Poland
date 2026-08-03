@@ -865,6 +865,66 @@
 .ace-landing .flabel.on-dark {
   color: #c4c4c2;
 }
+/* PhoneField (components/ui/phone-field) recolored to the house form fields:
+ * --light matches .finput (auth cards), --dark matches .finput.on-dark
+ * (profile / guest-register forms). The base .ff-* / .phone-field__* skin in
+ * globals.css belongs to the legacy modals and is sized 60px, hence the
+ * height/padding resets here. */
+.ace-landing .phone-field--light .ff-input,
+.ace-landing .phone-field--dark .ff-input,
+.ace-landing .phone-field--light .phone-field__code-display,
+.ace-landing .phone-field--dark .phone-field__code-display {
+  height: auto;
+  border-color: var(--grey-line);
+  border-radius: 4px;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 1rem;
+  color: var(--ink);
+}
+.ace-landing .phone-field--light .ff-input,
+.ace-landing .phone-field--dark .ff-input {
+  padding: 14px 12px;
+}
+.ace-landing .phone-field--light .phone-field__code-wrap,
+.ace-landing .phone-field--dark .phone-field__code-wrap {
+  height: auto;
+}
+.ace-landing .phone-field--light .phone-field__code,
+.ace-landing .phone-field--dark .phone-field__code {
+  height: 100%;
+}
+.ace-landing .phone-field--light .ff-input::placeholder,
+.ace-landing .phone-field--dark .ff-input::placeholder {
+  color: var(--muted);
+}
+.ace-landing .phone-field--light .ff-input:focus,
+.ace-landing .phone-field--dark .ff-input:focus {
+  outline: none;
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-soft);
+}
+.ace-landing .phone-field--dark .ff-input,
+.ace-landing .phone-field--dark .phone-field__code-display {
+  background-color: #1a1c1a;
+  border-color: var(--line-d2);
+  color: #fff;
+  color-scheme: dark;
+}
+.ace-landing .phone-field--dark .phone-field__code-display {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23c4c4c2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.ace-landing .phone-field--light.ff-err .ff-input,
+.ace-landing .phone-field--dark.ff-err .ff-input,
+.ace-landing .phone-field--light.ff-err .phone-field__code-display,
+.ace-landing .phone-field--dark.ff-err .phone-field__code-display {
+  border-color: var(--red);
+}
+.ace-landing .phone-field--light .ff-error-msg,
+.ace-landing .phone-field--dark .ff-error-msg {
+  color: var(--red);
+  font-size: 0.78rem;
+  margin: 6px 0 0;
+}
 .ace-landing .form-actions {
   display: flex;
   flex-wrap: wrap;

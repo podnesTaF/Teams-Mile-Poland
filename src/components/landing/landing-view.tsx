@@ -24,7 +24,7 @@ import { Results } from "@/components/landing/results";
 import { Roles } from "@/components/landing/roles";
 import { ScrollReveal } from "@/components/landing/scroll-reveal";
 import { WhatIs } from "@/components/landing/what-is";
-import { getFeaturedEvent, getLatestResults, isRegistrationOpen } from "@/lib/events/registry";
+import { getFeaturedEvent, getResultsEvents, isRegistrationOpen } from "@/lib/events/registry";
 
 /**
  * The full landing section tree. Rendered both by the locale page
@@ -35,7 +35,7 @@ import { getFeaturedEvent, getLatestResults, isRegistrationOpen } from "@/lib/ev
  */
 export function LandingView() {
   const featuredEvent = getFeaturedEvent();
-  const resultsEvent = getLatestResults();
+  const resultsEvents = getResultsEvents();
   const registrationOpen = isRegistrationOpen(featuredEvent);
   // Individual events register on their own detail page; the legacy team event
   // keeps the /register modal flow. Drives the hero + mid-page CTAs.
@@ -61,12 +61,12 @@ export function LandingView() {
       <LandingHeader registrationOpen={registrationOpen} registerHref={registerHref} />
       <Hero
         registrationOpen={registrationOpen}
-        hasResults={Boolean(resultsEvent)}
+        hasResults={resultsEvents.length > 0}
         registerHref={registerHref}
       />
       <EventSeries />
       <LatestNews />
-      {resultsEvent && <Results event={resultsEvent} />}
+      {resultsEvents.length > 0 && <Results events={resultsEvents} />}
       {showTeamFormats && <Formats />}
       <WhatIs />
       <RatingPath />

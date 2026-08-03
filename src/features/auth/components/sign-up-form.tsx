@@ -3,8 +3,10 @@
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
+import { PhoneField } from "@/components/ui/phone-field";
 import { Link, useRouter } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth/auth-client";
+import { isPhoneEmpty } from "@/lib/phone";
 
 import { GoogleButton } from "./google-button";
 
@@ -25,13 +27,15 @@ export function SignUpForm({
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const ready = name.trim() && email.trim() && password.length >= 8 && terms;
+  const ready =
+    name.trim() && email.trim() && !isPhoneEmpty(phone) && password.length >= 8 && terms;
 
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -45,6 +49,7 @@ export function SignUpForm({
         name: name.trim(),
         firstName,
         lastName,
+        phone,
         locale,
         // Email-link lands back in the registration flow (or profile).
         callbackURL: redirectTo,
@@ -91,6 +96,10 @@ export function SignUpForm({
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@email.com"
           />
+        </div>
+        <div>
+          <label className="flabel">{t("fields.phone")}</label>
+          <PhoneField variant="light" value={phone} onChange={setPhone} />
         </div>
         <div>
           <label className="flabel">{t("fields.password")}</label>

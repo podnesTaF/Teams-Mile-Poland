@@ -46,8 +46,8 @@ export async function getAdminUser(): Promise<SessionUser | null> {
 
 /**
  * Whether a user has filled the full profile (including phone). Drives the
- * profile-page "complete your profile" badge. The event register gate uses the
- * looser {@link canRegister} — phone is not required to register.
+ * profile-page "complete your profile" badge and the event register gate
+ * ({@link canRegister}).
  */
 export function isProfileComplete(user: SessionUser | null | undefined): boolean {
   if (!user) return false;
@@ -69,20 +69,11 @@ export function isProfileComplete(user: SessionUser | null | undefined): boolean
 
 /**
  * Whether a user has the profile fields required to register for an event:
- * `firstName, lastName, dateOfBirth, sex`. `phone` and `club` are optional —
- * the event doesn't need a phone, so it must not gate registration (ADR-0002).
- * Kept separate from {@link isProfileComplete} so the profile-page badge keeps
- * nudging for a phone while the register bar does not.
+ * `firstName, lastName, dateOfBirth, sex, phone` (`club` stays optional).
+ * Phone became required at registration with the ADR-0002 amendment
+ * (2026-08), so this now matches {@link isProfileComplete}. Kept as its own
+ * name so call sites keep reading as the register gate.
  */
 export function canRegister(user: SessionUser | null | undefined): boolean {
-  if (!user) return false;
-  const u = user as SessionUser & {
-    firstName?: string | null;
-    lastName?: string | null;
-    dateOfBirth?: unknown;
-    sex?: string | null;
-  };
-  return Boolean(
-    u.firstName?.trim() && u.lastName?.trim() && u.dateOfBirth && u.sex,
-  );
+  return isProfileComplete(user);
 }

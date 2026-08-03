@@ -9,30 +9,57 @@ import type { EventSummary } from "@/lib/events/types";
 
 import { ChevronIcon } from "./icons";
 
+/** The "all races" tab — deliberately not a valid event slug. */
+const ALL = "all";
+
 /**
- * Results section — a combined leaderboard for a completed event, sorted by
- * time across all heats. Rendered directly below the hero when the latest
+ * Results section — leaderboards for every completed event, sorted by time
+ * across all heats. Rendered directly below the hero when at least one
  * completed event has results.
+ *
+ * A tab row lets the visitor pick which race to see: "All" combines every
+ * event into one leaderboard; each date tab shows that race alone. The tabs
+ * only render when more than one event has results.
  *
  * Layout adapts to width without duplicating the data: it stays a single
  * `<table>`, but on narrow screens the detail columns (level / category)
  * collapse and each row gains an expand button that reveals them in a
  * stacked panel — so place, athlete, and time are always visible at a glance.
  */
-export function Results({ event }: { event: EventSummary }) {
+export function Results({ events }: { events: EventSummary[] }) {
   const t = useTranslations("landing.results");
+  const [selected, setSelected] = useState<string>(ALL);
   const [open, setOpen] = useState<string | null>(null);
-  const results = event.results;
-  if (!results) return null;
 
-  const rows = results.heats
-    .flatMap((heat) => heat.entries)
+  const withResults = events.filter((e) => e.results);
+  if (withResults.length === 0) return null;
+
+  const selectedEvent = withResults.find((e) => e.slug === selected) ?? null;
+  const shownEvents = selectedEvent ? [selectedEvent] : withResults;
+
+  const rows = shownEvents
+    .flatMap((event) =>
+      (event.results?.heats ?? []).flatMap((heat) =>
+        heat.entries.map((entry) => ({
+          ...entry,
+          event,
+          // Bibs are recycled leases (ADR 0003): only (event, heat, bib) is
+          // unique, so the row id carries all three.
+          id: `${event.slug}:${heat.number}:${entry.bib}`,
+        })),
+      ),
+    )
     .sort((a, b) => a.timeCs - b.timeCs)
     .map((entry, i) => ({
       ...entry,
       rank: i + 1,
       level: computeLevel(entry.timeCs, entry.gender),
     }));
+
+  const selectTab = (slug: string) => {
+    setSelected(slug);
+    setOpen(null);
+  };
 
   return (
     <section className="section results" id="results" data-screen-label="Results">
@@ -41,12 +68,35 @@ export function Results({ event }: { event: EventSummary }) {
           <span className="results__eyebrow">{t("eyebrow")}</span>
           <h2 className="head t-sec">{t("title")}</h2>
           <p className="head t-20" style={{ opacity: 0.6 }}>
-            {t("subtitle", {
-              date: event.shortDate,
-              count: rows.length,
-            })}
+            {selectedEvent
+              ? t("subtitle", { date: selectedEvent.shortDate, count: rows.length })
+              : t("subtitleAll", { count: rows.length })}
           </p>
         </div>
+
+        {withResults.length > 1 && (
+          <div className="results__tabs" role="group" aria-label={t("tabsLabel")}>
+            <button
+              type="button"
+              className="results__tab"
+              aria-pressed={selected === ALL}
+              onClick={() => selectTab(ALL)}
+            >
+              {t("tabs.all")}
+            </button>
+            {withResults.map((event) => (
+              <button
+                key={event.slug}
+                type="button"
+                className="results__tab"
+                aria-pressed={selected === event.slug}
+                onClick={() => selectTab(event.slug)}
+              >
+                {event.shortDate}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="results__scroll">
           <table className="results__table">
@@ -72,11 +122,10 @@ export function Results({ event }: { event: EventSummary }) {
             </thead>
             <tbody>
               {rows.map((row) => {
-                const id = String(row.bib);
-                const isOpen = open === id;
+                const isOpen = open === row.id;
                 const podium = row.rank <= 3;
                 return (
-                  <Fragment key={id}>
+                  <Fragment key={row.id}>
                     <tr className={podium ? "is-podium" : undefined}>
                       <td className="results__rank">{row.rank}</td>
                       <td className="results__name">{row.name}</td>
@@ -92,16 +141,16 @@ export function Results({ event }: { event: EventSummary }) {
                           type="button"
                           className="results__toggle"
                           aria-expanded={isOpen}
-                          aria-controls={`results-detail-${id}`}
+                          aria-controls={`results-detail-${row.id}`}
                           aria-label={t("detailsLabel")}
-                          onClick={() => setOpen(isOpen ? null : id)}
+                          onClick={() => setOpen(isOpen ? null : row.id)}
                         >
                           <ChevronIcon className={isOpen ? "is-open" : undefined} />
                         </button>
                       </td>
                     </tr>
                     <tr
-                      id={`results-detail-${id}`}
+                      id={`results-detail-${row.id}`}
                       className={`results__detail-row${isOpen ? " is-open" : ""}`}
                     >
                       <td colSpan={6}>
@@ -114,6 +163,12 @@ export function Results({ event }: { event: EventSummary }) {
                             <dt>{t("cols.category")}</dt>
                             <dd>{t(`category.${row.gender}`)}</dd>
                           </div>
+                          {!selectedEvent && (
+                            <div>
+                              <dt>{t("cols.race")}</dt>
+                              <dd>{row.event.shortDate}</dd>
+                            </div>
+                          )}
                         </dl>
                       </td>
                     </tr>

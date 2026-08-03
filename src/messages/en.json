@@ -84,7 +84,7 @@
       "venue": "Stadion Podskarbińska",
       "stats": {
         "dateLabel": "Next event",
-        "dateValue": "1 August",
+        "dateValue": "8 August",
         "freeLabel": "Entry",
         "freeValue": "FREE",
         "prizeLabel": "💰 Prize pool",
@@ -461,12 +461,18 @@
       "eyebrow": "Race results",
       "title": "Results",
       "subtitle": "{date} · {count} finishers",
+      "subtitleAll": "All races · {count} finishers",
+      "tabsLabel": "Filter results by race",
+      "tabs": {
+        "all": "All"
+      },
       "cols": {
         "place": "Place",
         "name": "Athlete",
         "level": "Level",
         "category": "Category",
-        "time": "Time"
+        "time": "Time",
+        "race": "Race"
       },
       "level": "Lvl {n}",
       "detailsLabel": "Details",
@@ -976,7 +982,8 @@
       "password": "Password",
       "newPassword": "New password",
       "confirmPassword": "Confirm password",
-      "fullName": "Full name"
+      "fullName": "Full name",
+      "phone": "Phone"
     },
     "signUp": {
       "eyebrow": "Create account",
@@ -1063,6 +1070,17 @@
       "club": "Running club",
       "clubPlaceholder": "Optional",
       "phone": "Phone"
+    },
+    "security": {
+      "title": "Security",
+      "sub": "Change the password you use to sign in.",
+      "current": "Current password",
+      "wrongCurrent": "The current password is incorrect.",
+      "forgot": "Forgot your current password, or never set one?",
+      "forgotCta": "Reset it by email",
+      "submit": "Change password",
+      "submitting": "Changing…",
+      "saved": "Password changed. Other devices have been signed out."
     },
     "registrations": {
       "title": "My registrations",

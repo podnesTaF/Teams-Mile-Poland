@@ -5,8 +5,8 @@ import { dateOfBirthFormatSchema } from "@/lib/age";
 /**
  * Guest (passwordless) event-registration input. Collects the runner profile
  * fields inline — the account is created from this, and a set-password email
- * lets them access their profile later. Phone is intentionally omitted here
- * (kept minimal); it can be added later from the profile page.
+ * lets them access their profile later. Phone is required (ADR-0002
+ * amendment), mirroring the profile schema.
  *
  * Minimum age is re-checked server-side against the event date.
  */
@@ -17,6 +17,7 @@ export const guestRegisterSchema = z.object({
   dateOfBirth: dateOfBirthFormatSchema(),
   sex: z.enum(["M", "F"], { error: "Select one" }),
   club: z.string().trim().max(120).optional().or(z.literal("")),
+  phone: z.string().trim().min(6, "Phone is required").max(32),
 });
 
 export type GuestRegisterInput = z.infer<typeof guestRegisterSchema>;

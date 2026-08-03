@@ -93,9 +93,9 @@ export function getPastEvents(): EventSummary[] {
   );
 }
 
-/** The most recent completed event that has results, if any. */
-export function getLatestResults(): EventSummary | null {
-  return getPastEvents().find((e) => e.results) ?? null;
+/** Completed events that have results, newest first. */
+export function getResultsEvents(): EventSummary[] {
+  return getPastEvents().filter((e) => e.results);
 }
 
 /** Whether the featured event is currently accepting registrations. */

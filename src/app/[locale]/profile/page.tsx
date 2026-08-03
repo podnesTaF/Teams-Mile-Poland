@@ -4,6 +4,7 @@ import "@/app/landing.css";
 import "@/app/series-flows.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
+import { ChangePasswordForm } from "@/features/auth/components/change-password-form";
 import { LogOutButton } from "@/features/auth/components/log-out-button";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -125,6 +126,10 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
           ) : null}
 
             <ProfileForm initial={initial} redirectTo={redirectTo} />
+
+          <section id="security" style={{ marginTop: 24 }}>
+            <ChangePasswordForm />
+          </section>
 
           <section className="regs-section" id="registrations">
             <div className="section-label">

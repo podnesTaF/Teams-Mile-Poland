@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 
+import { syncUserLocale } from "@/features/profile/actions";
 import { usePathname, useRouter } from "@/i18n/navigation";
 
 const LOCALES = ["en", "pl", "ua"] as const;
@@ -19,7 +20,10 @@ export function LanguageSwitcher() {
         value={locale}
         aria-label={t("language")}
         onChange={(event) => {
-          router.replace(pathname, { locale: event.target.value });
+          const nextLocale = event.target.value;
+          router.replace(pathname, { locale: nextLocale });
+          // Keep the account's email language in step with the site language.
+          void syncUserLocale(nextLocale);
         }}
         className="h-full max-w-[44px] bg-transparent text-[10px] uppercase outline-none sm:max-w-[52px] sm:text-[11px]"
       >

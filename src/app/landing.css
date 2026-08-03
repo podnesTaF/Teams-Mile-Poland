@@ -3954,6 +3954,42 @@
   color: var(--acl-red);
   font-size: var(--fs-body-m);
 }
+.ace-landing .results__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: clamp(20px, 3vw, 32px);
+}
+.ace-landing .results__tab {
+  appearance: none;
+  cursor: pointer;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: var(--fs-body-s);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.ace-landing .results__tab:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+.ace-landing .results__tab[aria-pressed="true"] {
+  background: var(--acl-red);
+  border-color: var(--acl-red);
+  color: #fff;
+}
 .ace-landing .results__scroll {
   margin-top: clamp(28px, 4vw, 44px);
   overflow-x: auto;
