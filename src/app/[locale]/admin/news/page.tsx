@@ -25,7 +25,6 @@ export default async function AdminNewsPage({
 
   return (
     <AdminShell
-      locale={locale}
       title="News"
       active="news"
       actions={

@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
+import { TicketAdminPanel } from "@/features/admin/components/ticket-admin-panel";
 import {
   loadEventRegistration,
   publishedHeatsByRegistration,
@@ -21,17 +22,20 @@ import { buildEventTicketView, makeEventTicketUrl } from "@/features/event-regis
 import { generateTicketQrPng } from "@/features/ticket/qr";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { DownloadTicketButton } from "@/features/ticket/components/download-ticket-button";
+import { getAdminUser } from "@/lib/auth/user-session";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug } from "@/lib/events/registry";
 
 type PageProps = {
   params: Promise<{ locale: string; registrationId: string }>;
-  searchParams: Promise<{ s?: string; c?: string }>;
+  /** `ok` / `error` / `heat` are the admin panel's flash codes, shared with the
+   * check-in desk; see {@link TicketAdminPanel}. */
+  searchParams: Promise<{ s?: string; c?: string; ok?: string; error?: string; heat?: string }>;
 };
 
 export default async function EventTicketPage({ params, searchParams }: PageProps) {
   const { locale, registrationId } = await params;
-  const { s, c } = await searchParams;
+  const { s, c, ok, error, heat: heatFlash } = await searchParams;
   setRequestLocale(locale);
 
   if (!s || !verifyEventTicket(registrationId, s)) {
@@ -72,6 +76,12 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
     event?.status === "completed"
       ? undefined
       : (await publishedHeatsByRegistration([registrationId])).get(registrationId);
+
+  // Race morning (PRD #26, slice #32): an admin turns this page into the
+  // check-in surface, because the QR baked into sent tickets points here and
+  // cannot be retargeted. Everyone else — the ticket's owner included — sees
+  // exactly the page they saw before. The panel enforces nothing; its actions do.
+  const isAdmin = Boolean(await getAdminUser());
 
   return (
     <div className="ace-landing iv tk-page">
@@ -121,6 +131,18 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
               <span className="tk-code">#{view.registrationId.slice(0, 8).toUpperCase()}</span>
             </div>
           </div>
+
+          {isAdmin ? (
+            <TicketAdminPanel
+              registrationId={registrationId}
+              sig={s}
+              locale={locale}
+              slug={loaded.registration.eventSlug}
+              ok={ok}
+              error={error}
+              heat={heatFlash}
+            />
+          ) : null}
 
           <div id="confirm" className="tk-confirm iv-no-print">
             {notice ? (

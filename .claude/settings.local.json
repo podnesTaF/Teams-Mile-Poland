@@ -41,7 +41,10 @@
       "Bash(echo \"EXIT: $?\")",
       "Bash(git *)",
       "PowerShell(gh issue *)",
-      "Bash(cd *)"
+      "PowerShell(gh *)",
+      "Bash(xargs grep -l 'requestPasswordReset')",
+      "Bash(cd *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/better-auth/package.json'\\).version\\)\")"
     ]
   }
 }

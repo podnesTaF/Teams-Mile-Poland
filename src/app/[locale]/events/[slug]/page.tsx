@@ -12,13 +12,13 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { getEventDocuments, resolveDocumentFile } from "@/lib/events/documents";
 import { getEventBySlug, getIndividualEvents } from "@/lib/events/registry";
+import { formatEventLongDate } from "@/lib/events/time";
 import type { EventStatus } from "@/lib/events/types";
 import { defaultLocale } from "@/lib/i18n/config";
 
 import { EventMediaTeaser } from "./event-media-teaser";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-const DATE_TAG: Record<string, string> = { en: "en-GB", pl: "pl-PL", ua: "uk-UA" };
 
 /** Config status → mockup detail display state (server-side; no live "full"). */
 type DetailState = "open" | "soon" | "closed" | "completed";
@@ -68,12 +68,7 @@ export default async function EventDetailPage({ params }: PageProps) {
     return resolved ? [{ id: doc.id, labelKey: doc.labelKey, ...resolved }] : [];
   });
   const [, m, d] = event.date.split("-");
-  const longDate = new Intl.DateTimeFormat(DATE_TAG[locale] ?? "en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "Europe/Warsaw",
-  }).format(new Date(`${event.date}T12:00:00+02:00`));
+  const longDate = formatEventLongDate(locale, event.date);
 
   return (
     <div className="ace-landing iv">
@@ -184,6 +179,20 @@ export default async function EventDetailPage({ params }: PageProps) {
                 )}
 
                 <p className="slots-note">{t(`detail.states.${state}.note`)}</p>
+
+                {/* The start list, once entries have closed and the card is
+                    being built. Config-derived so this page stays static: the
+                    link is shown for the whole `registration_closed` window and
+                    the start list itself renders its own "not published yet"
+                    state until an admin publishes. */}
+                {state === "closed" ? (
+                  <Link
+                    href={`/events/${slug}/heats`}
+                    className="btn btn-stroke-dark btn-block slots-link"
+                  >
+                    {t("heats.cta")}
+                  </Link>
+                ) : null}
               </div>
             </aside>
           </div>

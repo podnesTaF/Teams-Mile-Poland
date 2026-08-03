@@ -17,6 +17,15 @@ import {
 import { getMailingsOverview, listRegistrations, type MailingRow } from "@/features/mailings/data";
 import { TEST_EMAIL_OPTIONS } from "@/features/mailings/test-send";
 import {
+  runDueEventMailingsAction,
+  sendEventKindNowAction,
+} from "@/features/event-mailings/actions";
+import {
+  getEventMailingsOverview,
+  type EventMailingRow,
+  type EventMailingsGroup,
+} from "@/features/event-mailings/data";
+import {
   resendUserBroadcastAction,
   sendUserBroadcastAction,
 } from "@/features/event-mailings/user-broadcast-actions";
@@ -43,7 +52,7 @@ export default async function MailingsPage({
   await requireAdmin(locale);
 
   return (
-    <AdminShell locale={locale} title="Mailings" active="mailings">
+    <AdminShell title="Mailings" active="mailings">
       {msg ? <div className="iv-notice iv-notice--info">{msg}</div> : null}
 
       {process.env.DATABASE_URL ? (
@@ -56,23 +65,57 @@ export default async function MailingsPage({
 }
 
 async function MailingsBody({ locale }: { locale: string }) {
-  const { rows, past, totalRunners } = await getMailingsOverview(new Date());
+  const now = new Date();
+  const { rows, past, totalRunners } = await getMailingsOverview(now);
+  const eventGroups = await getEventMailingsOverview(now);
   const registrations = await listRegistrations();
   const userSegments = await describeUserSegments();
   const userBroadcasts = await listUserBroadcasts();
 
   return (
     <>
-      {/* ---- Lifecycle chain ---- */}
+      {/* ---- Series event lifecycle (per event) ---- */}
       <section className="iv-card" style={{ marginTop: 20 }}>
         <div className="iv-toolbar" style={{ marginBottom: 12 }}>
-          <h2 className="iv-section-title">Lifecycle chain</h2>
+          <h2 className="iv-section-title">Series lifecycle (per event)</h2>
+          <form action={runDueEventMailingsAction}>
+            <input type="hidden" name="locale" value={locale} />
+            <ConfirmSubmit
+              label="Run due series mailings"
+              title="Run due series mailings?"
+              message="Send every due lifecycle email across the individual mile series. Each event has its own chain. Already-sent emails are skipped. Reminder emails include the confirmation ask only for runners still awaiting confirmation."
+              confirmLabel="Run now"
+              danger={false}
+            />
+          </form>
+        </div>
+        <p className="iv-note" style={{ marginBottom: 14 }}>
+          One chain per mile night. Reminders (−7 / −3 / −1) ask unconfirmed runners to confirm
+          participation; confirmed runners still get the reminder body without the ask. Cron:{" "}
+          <code>/api/cron/mailings</code>.
+        </p>
+        {eventGroups.length === 0 ? (
+          <p className="iv-note">No active series events.</p>
+        ) : (
+          eventGroups.map((g) => (
+            <EventLifecycleGroupView key={g.eventSlug} group={g} locale={locale} />
+          ))
+        )}
+      </section>
+
+      {/* ---- User broadcast composer (segments + unsubscribe) ---- */}
+      <UserBroadcastSection locale={locale} segments={userSegments} past={userBroadcasts} />
+
+      {/* ---- Legacy lifecycle (frozen warsaw-2026) ---- */}
+      <section className="iv-card">
+        <div className="iv-toolbar" style={{ marginBottom: 12 }}>
+          <h2 className="iv-section-title">Legacy lifecycle (warsaw-2026)</h2>
           <form action={runDueMailingsAction}>
             <input type="hidden" name="locale" value={locale} />
             <ConfirmSubmit
-              label="Run due mailings now"
-              title="Run due mailings?"
-              message={`Send every lifecycle email that is currently due to all eligible runners (${totalRunners} registered). Already-sent emails are skipped.`}
+              label="Run due legacy mailings"
+              title="Run due legacy mailings?"
+              message={`Send every lifecycle email that is currently due to eligible legacy runners (${totalRunners} registered). Already-sent emails are skipped.`}
               confirmLabel="Run now"
               danger={false}
             />
@@ -99,14 +142,13 @@ async function MailingsBody({ locale }: { locale: string }) {
           </table>
         </div>
         <p className="iv-note">
-          Scheduled emails send automatically via the daily cron (<code>/api/cron/mailings</code>); use
-          “Send now” to dispatch a specific email immediately. Each email reaches a runner at most once.
+          Frozen team-event chain. Does not email series participants.
         </p>
       </section>
 
-      {/* ---- Broadcast composer ---- */}
+      {/* ---- Legacy broadcast composer ---- */}
       <section className="iv-card">
-        <h2 className="iv-section-title">Send a broadcast</h2>
+        <h2 className="iv-section-title">Send a legacy broadcast</h2>
         <form action={sendBroadcastAction} className="iv-editmodal__form" style={{ marginTop: 14 }}>
           <input type="hidden" name="locale" value={locale} />
           <div>
@@ -151,9 +193,6 @@ async function MailingsBody({ locale }: { locale: string }) {
           </div>
         </form>
       </section>
-
-      {/* ---- User broadcast composer (segments + unsubscribe) ---- */}
-      <UserBroadcastSection locale={locale} segments={userSegments} past={userBroadcasts} />
 
       {/* ---- Test a template ---- */}
       <section className="iv-card">
@@ -243,9 +282,11 @@ function UserBroadcastSection({
       <section className="iv-card">
         <h2 className="iv-section-title">Send a user broadcast</h2>
         <p className="iv-note" style={{ marginTop: 4 }}>
-          Emails a segment of user accounts (not the frozen legacy runners). Opted-out users are
-          excluded automatically, and every broadcast carries an unsubscribe footer. Recipient counts
-          are live. Sends are deduped per person, so re-sending never double-emails.
+          Emails a segment of user accounts (not the frozen legacy runners). Each series event has
+          its own <em>all registrations</em>, <em>awaiting confirmation</em>, and{" "}
+          <em>confirmed</em> segments — use awaiting confirmation to nudge participation confirms.
+          Opted-out users are excluded automatically; every broadcast carries an unsubscribe footer.
+          Recipient counts are live. Sends are deduped per person.
         </p>
         <form action={sendUserBroadcastAction} className="iv-editmodal__form" style={{ marginTop: 14 }}>
           <input type="hidden" name="locale" value={locale} />
@@ -338,6 +379,82 @@ function UserBroadcastSection({
         )}
       </section>
     </>
+  );
+}
+
+function EventLifecycleGroupView({
+  group,
+  locale,
+}: {
+  group: EventMailingsGroup;
+  locale: string;
+}) {
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div className="iv-toolbar" style={{ marginBottom: 8 }}>
+        <h3 className="iv-section-title" style={{ fontSize: 16, margin: 0 }}>
+          {group.eventLabel}
+        </h3>
+        <p className="iv-note" style={{ margin: 0 }}>
+          {group.eligible} eligible · {group.awaitingConfirmation} awaiting confirmation
+        </p>
+      </div>
+      <div className="iv-tablewrap">
+        <table className="iv-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Scheduled</th>
+              <th>Status</th>
+              <th>Eligible</th>
+              <th>Awaiting confirm</th>
+              <th>Sent</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {group.rows.map((r) => (
+              <EventLifecycleRowView key={`${r.eventSlug}:${r.kind}`} row={r} locale={locale} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function EventLifecycleRowView({ row, locale }: { row: EventMailingRow; locale: string }) {
+  const pill =
+    row.status === "due" ? "iv-pill--red" : row.status === "done" ? "iv-pill--ok" : "";
+  const confirmNote =
+    row.kind === "morning"
+      ? "No confirm ask on morning-of."
+      : `Confirm ask shown to ${row.awaitingConfirmation} awaiting confirmation (of ${row.eligible} eligible).`;
+  return (
+    <tr>
+      <td>{row.label}</td>
+      <td>{fmtDate(row.sendAt)}</td>
+      <td>
+        <span className={`iv-pill ${pill}`}>{row.status}</span>
+      </td>
+      <td>{row.eligible}</td>
+      <td>{row.kind === "morning" ? "—" : row.awaitingConfirmation}</td>
+      <td>{row.sent}</td>
+      <td>
+        <form action={sendEventKindNowAction}>
+          <input type="hidden" name="locale" value={locale} />
+          <input type="hidden" name="eventSlug" value={row.eventSlug} />
+          <input type="hidden" name="kind" value={row.kind} />
+          <ConfirmSubmit
+            label="Send now"
+            title={`Send "${row.label}" for ${row.eventLabel}?`}
+            message={`Send this email to ${row.eligible} eligible runner(s) for ${row.eventLabel}. ${confirmNote} Anyone who already received it is skipped.`}
+            confirmLabel="Send now"
+            danger={false}
+          />
+        </form>
+      </td>
+    </tr>
   );
 }
 

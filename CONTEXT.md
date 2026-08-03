@@ -90,8 +90,10 @@ _Avoid_: newsletter (no subscription list exists), campaign
 
 **Audience segment**:
 A named, queryable slice of `users` a broadcast can target (e.g. first-event
-attended, first-event no-show, not registered for any Aug event). Always excludes
-opted-out users.
+attended, first-event no-show, not registered for any Aug event, or — per mile
+night — all registrations / awaiting confirmation / confirmed). Always excludes
+opted-out users. Confirmation splits are per event because Confirmation is a
+property of a registration, not of the user.
 
 **Marketing opt-out**:
 A user-level flag set via the unsubscribe link in broadcast emails. Blocks all

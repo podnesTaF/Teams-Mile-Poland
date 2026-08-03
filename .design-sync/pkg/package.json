@@ -1,0 +1,9 @@
+{
+  "name": "teams-mile-warshaw",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ace Battle Run design system — the app's src/components/ui primitives, packaged for claude.ai/design.",
+  "types": "types/index.d.ts",
+  "module": "index.ts",
+  "main": "index.ts"
+}

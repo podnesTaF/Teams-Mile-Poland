@@ -23,7 +23,6 @@ export default async function AdminNewsNewPage({
 
   return (
     <AdminShell
-      locale={locale}
       eyebrow="Admin · News"
       title="New article"
       narrow

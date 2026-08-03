@@ -54,7 +54,7 @@ export default async function AdminUsersPage({
   };
 
   return (
-    <AdminShell locale={locale} title="Users" active="users">
+    <AdminShell title="Users" active="users">
       {sp.msg ? <div className="iv-notice iv-notice--info">{sp.msg}</div> : null}
 
       {process.env.DATABASE_URL ? (

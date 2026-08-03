@@ -32,7 +32,7 @@ export default async function AdminUserDetailPage({
 
   if (!process.env.DATABASE_URL) {
     return (
-      <AdminShell locale={locale} title="User" eyebrow="Admin · Users">
+      <AdminShell title="User" eyebrow="Admin · Users">
         <NoDatabaseNotice>view user details</NoDatabaseNotice>
       </AdminShell>
     );
@@ -48,7 +48,6 @@ export default async function AdminUserDetailPage({
 
   return (
     <AdminShell
-      locale={locale}
       eyebrow="Admin · Users"
       title={displayName}
       actions={

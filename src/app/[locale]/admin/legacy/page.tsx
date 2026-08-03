@@ -22,7 +22,7 @@ export default async function AdminLegacyPage({
   await requireAdmin(locale);
 
   return (
-    <AdminShell locale={locale} title="Warsaw 2026 (legacy)" active="legacy">
+    <AdminShell title="Warsaw 2026 (legacy)" active="legacy">
       {process.env.DATABASE_URL ? (
         <LegacyBody locale={locale} />
       ) : (

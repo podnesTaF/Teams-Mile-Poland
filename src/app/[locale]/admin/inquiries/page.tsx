@@ -19,7 +19,7 @@ export default async function AdminInquiriesPage({
   await requireAdmin(locale);
 
   return (
-    <AdminShell locale={locale} title="Contact inquiries" active="inquiries">
+    <AdminShell title="Contact inquiries" active="inquiries">
       {process.env.DATABASE_URL ? (
         <InquiriesBody locale={locale} />
       ) : (

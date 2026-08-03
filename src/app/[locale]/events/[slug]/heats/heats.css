@@ -1,0 +1,88 @@
+/* Public start list — `/[locale]/events/[slug]/heats`. Piggybacks on the
+   interior `.ace-landing .iv-*` shell (dark theme, wrap, title) and reuses
+   `.iv-table` / `.iv-tablewrap` for the runner rows; only the per-heat block and
+   the two empty states are new here. */
+
+.ace-landing .sl-approx {
+  margin-top: 18px;
+}
+
+.ace-landing .sl-heats {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* One heat: number + approximate time as the heading, runners underneath. */
+.ace-landing .sl-heat {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: clamp(18px, 2.4vw, 26px);
+}
+.ace-landing .sl-heat__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding-bottom: 4px;
+}
+.ace-landing .sl-heat__no {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-h3);
+  line-height: 1.1;
+  margin: 0;
+}
+.ace-landing .sl-heat__time {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: var(--fs-body-m);
+  letter-spacing: 0.04em;
+  color: var(--acl-red);
+}
+/* Pushed to the far end on a wide row, wrapping under the time on a phone. */
+.ace-landing .sl-heat__count {
+  margin-left: auto;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.ace-landing .sl-table {
+  font-size: var(--fs-body-m);
+}
+.ace-landing .sl-table__name {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ace-landing .sl-table__club {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* "Not published yet" / "no start list" — the two states a spectator can land
+   on before the card exists. */
+.ace-landing .sl-state {
+  margin-top: 28px;
+}
+.ace-landing .sl-state__title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-h3);
+  line-height: 1.1;
+  margin: 0;
+}
+.ace-landing .sl-state__txt {
+  margin: 12px 0 0;
+  max-width: 60ch;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+}

@@ -3115,6 +3115,84 @@
   color: #7fe39c;
 }
 
+/* Inline admin check-in panel (PRD #26). Sits outside .tk-card so it is never
+   part of the printed/downloaded ticket, and only rendered for an admin session.
+   English-only, like every other admin surface. */
+.ace-landing .tk-admin {
+  margin-top: 20px;
+  padding: 18px 20px;
+  border: 1px solid rgba(229, 31, 50, 0.45);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ace-landing .tk-admin__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ace-landing .tk-admin__eyebrow {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(255, 140, 150);
+}
+.ace-landing .tk-admin__flash {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #e8e8e6;
+}
+.ace-landing .tk-admin__who {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #f2f2f0;
+}
+.ace-landing .tk-admin__sub {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+.ace-landing .tk-admin__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.ace-landing .tk-admin__result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.ace-landing .tk-admin__biblabel {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+/* Read out across a desk, so: big. */
+.ace-landing .tk-admin__bib {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 3rem;
+  line-height: 1;
+  font-weight: 700;
+  color: #fff;
+}
+.ace-landing .tk-admin__bib--pending {
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(255, 140, 150);
+}
+
 /* Print: isolate the white ticket card, drop all page chrome. */
 @media print {
   .ace-landing.tk-page {

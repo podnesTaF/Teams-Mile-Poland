@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
-import { adminLogout } from "@/features/admin/actions";
+import { LogOutButton } from "@/features/auth/components/log-out-button";
 import { Link } from "@/i18n/navigation";
 
 const NAV_ITEMS = [
   { key: "overview", label: "Overview", href: "/admin" },
   { key: "users", label: "Users", href: "/admin/users" },
+  { key: "admins", label: "Admins", href: "/admin/admins" },
   { key: "inquiries", label: "Inquiries", href: "/admin/inquiries" },
   { key: "news", label: "News", href: "/admin/news" },
   { key: "legacy", label: "Legacy", href: "/admin/legacy" },
@@ -20,9 +21,11 @@ export type AdminNavKey = (typeof NAV_ITEMS)[number]["key"];
  * title + per-page actions + sign-out) and the section nav. Pages render
  * their content as children; `active` highlights the current section (omit
  * on pages outside the nav, e.g. per-event roster/check-in).
+ *
+ * Sign-out is the ordinary Better Auth one — an admin session *is* a user
+ * session now, so there is nothing admin-specific left to clear.
  */
 export function AdminShell({
-  locale,
   title,
   eyebrow = "Admin",
   active,
@@ -30,7 +33,6 @@ export function AdminShell({
   narrow = false,
   children,
 }: {
-  locale: string;
   title: string;
   eyebrow?: string;
   active?: AdminNavKey;
@@ -50,12 +52,7 @@ export function AdminShell({
             </div>
             <div className="iv-inline">
               {actions}
-              <form action={adminLogout}>
-                <input type="hidden" name="locale" value={locale} />
-                <button type="submit" className="btn btn-stroke btn-sm">
-                  Sign out
-                </button>
-              </form>
+              <LogOutButton className="btn btn-stroke btn-sm" />
             </div>
           </div>
 

@@ -27,6 +27,24 @@ export async function requireUser(): Promise<SessionUser | null> {
 }
 
 /**
+ * Whether the account holds the `admin` role — the single gate on `/admin`,
+ * the admin API routes, and the admin-only bits of the ticket page. `role`
+ * rides on the session user as a Better Auth additionalField declared
+ * `input: false`, so it reflects the `users.role` column and cannot be set by
+ * any client payload.
+ */
+export function isAdmin(user: SessionUser | null | undefined): boolean {
+  if (!user) return false;
+  return (user as SessionUser & { role?: string | null }).role === "admin";
+}
+
+/** The signed-in user when they are an admin, else `null`. */
+export async function getAdminUser(): Promise<SessionUser | null> {
+  const user = await getUser();
+  return isAdmin(user) ? user : null;
+}
+
+/**
  * Whether a user has filled the full profile (including phone). Drives the
  * profile-page "complete your profile" badge. The event register gate uses the
  * looser {@link canRegister} — phone is not required to register.

@@ -12,6 +12,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "import:first-event": "tsx scripts/import-first-event.ts",
+    "admin:grant": "tsx scripts/grant-admin.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit"

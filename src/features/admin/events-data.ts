@@ -1,7 +1,7 @@
 import ExcelJS from "exceljs";
-import { and, asc, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, isNotNull, isNull, notExists, or, sql } from "drizzle-orm";
 
-import { eventRegistrations, users, type ParticipationStatus } from "@/db/schema";
+import { eventHeats, eventRegistrations, users, type ParticipationStatus } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 
@@ -21,6 +21,12 @@ export type RosterRow = {
   dateOfBirth: Date | null;
   sex: "M" | "F" | null;
   club: string | null;
+  /** The heat the runner is seeded into, if any — null is the walk-up case. */
+  heatId: string | null;
+  heatNumber: number | null;
+  heatScheduledAt: Date | null;
+  /** Set once their heat has run: they are done, not waiting for a bib. */
+  heatFinishedAt: Date | null;
   checkedInAt: Date | null;
   createdAt: Date;
 };
@@ -38,6 +44,10 @@ const ROSTER_COLUMNS = {
   dateOfBirth: users.dateOfBirth,
   sex: users.sex,
   club: users.club,
+  heatId: eventRegistrations.heatId,
+  heatNumber: eventHeats.number,
+  heatScheduledAt: eventHeats.scheduledAt,
+  heatFinishedAt: eventHeats.finishedAt,
   checkedInAt: eventRegistrations.checkedInAt,
   createdAt: eventRegistrations.createdAt,
 };
@@ -69,7 +79,12 @@ export async function getEventRoster(
     ];
     const bibNum = Number.parseInt(q, 10);
     if (Number.isInteger(bibNum)) {
-      searchClauses.push(eq(eventRegistrations.bib, bibNum));
+      // The *current* holder only. Bibs are recycled leases (ADR 0003), so a
+      // number is worn by several runners across a morning; searching "7" at the
+      // desk has to find who is wearing 7 now, not everyone who ever did.
+      searchClauses.push(
+        and(eq(eventRegistrations.bib, bibNum), isNull(eventRegistrations.bibReturnedAt))!,
+      );
     }
     const search = or(...searchClauses);
     if (search) filters.push(search);
@@ -79,6 +94,8 @@ export async function getEventRoster(
     .select(ROSTER_COLUMNS)
     .from(eventRegistrations)
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
+    // Left, not inner: an unseeded runner is still on the roster.
+    .leftJoin(eventHeats, eq(eventRegistrations.heatId, eventHeats.id))
     .where(and(...filters))
     .orderBy(asc(eventRegistrations.bib), asc(users.lastName));
   // `cancelled` is deprecated and never set — narrow to the live union.
@@ -95,9 +112,27 @@ export async function getRosterRowById(
     .select(ROSTER_COLUMNS)
     .from(eventRegistrations)
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
+    .leftJoin(eventHeats, eq(eventRegistrations.heatId, eventHeats.id))
     .where(and(eq(eventRegistrations.eventSlug, eventSlug), eq(eventRegistrations.id, registrationId)))
     .limit(1);
   return row ? { ...row, status: row.status as ParticipationStatus } : null;
+}
+
+/**
+ * The event a registration belongs to, or null if there is no such registration.
+ *
+ * The ticket page's inline admin panel is reached by registration id alone (the
+ * QR carries no slug), so the event it acts on is resolved from the row rather
+ * than trusted from the form.
+ */
+export async function getRegistrationEventSlug(registrationId: string): Promise<string | null> {
+  const db = getDb();
+  const [row] = await db
+    .select({ eventSlug: eventRegistrations.eventSlug })
+    .from(eventRegistrations)
+    .where(eq(eventRegistrations.id, registrationId))
+    .limit(1);
+  return row?.eventSlug ?? null;
 }
 
 /** Count of registrations per status for an event (roster header stats). */
@@ -272,6 +307,54 @@ export async function checkInWithBib(registrationId: string, bib: number) {
     .where(eq(eventRegistrations.id, registrationId))
     .returning({ id: eventRegistrations.id, bib: eventRegistrations.bib });
   return row ?? null;
+}
+
+/**
+ * Lease a bib to a runner who is **already** checked in — the waiting-list case:
+ * they were marked present with the pool empty, and a number has since come back
+ * from a finished heat.
+ *
+ * Deliberately touches only the lease, not `status` or `checkedInAt`: they were
+ * present before the bib existed, and their arrival time is a fact about the
+ * morning, not about inventory.
+ *
+ * Refused for a runner whose heat has already run: they are `checked_in` with no
+ * lease because their bib went back when the heat finished, not because they are
+ * waiting for one. Handing them a fresh number would take it straight back out of
+ * the pool for somebody who has finished racing.
+ *
+ * Throws a unique violation if another runner took the number first; callers
+ * retry with the next free one.
+ */
+export async function leaseBibForCheckedIn(
+  eventSlug: string,
+  registrationId: string,
+  bib: number,
+): Promise<boolean> {
+  const db = getDb();
+  const rows = await db
+    .update(eventRegistrations)
+    .set({ bib, bibReturnedAt: null })
+    .where(
+      and(
+        eq(eventRegistrations.id, registrationId),
+        eq(eventRegistrations.eventSlug, eventSlug),
+        eq(eventRegistrations.status, "checked_in"),
+        notExists(
+          db
+            .select({ one: sql`1` })
+            .from(eventHeats)
+            .where(
+              and(
+                eq(eventHeats.id, eventRegistrations.heatId),
+                isNotNull(eventHeats.finishedAt),
+              ),
+            ),
+        ),
+      ),
+    )
+    .returning({ id: eventRegistrations.id });
+  return rows.length > 0;
 }
 
 /**

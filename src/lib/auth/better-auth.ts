@@ -6,7 +6,7 @@ import type { ReactElement } from "react";
 import { accounts, sessions, users, verifications } from "@/db/schema";
 import { ResetPasswordEmail } from "@/emails/reset-password";
 import { VerifyEmail } from "@/emails/verify-email";
-import { getAppUrl } from "@/lib/app-url";
+import { getAppUrl, vercelDeploymentOrigins } from "@/lib/app-url";
 import { db } from "@/lib/db";
 import { FROM_EMAIL, getResend, resend } from "@/lib/email";
 
@@ -63,7 +63,10 @@ async function sendAuthEmail(input: {
 
 export const auth = betterAuth({
   baseURL: getAppUrl(),
-  trustedOrigins: [getAppUrl()],
+  // getAppUrl() is the custom domain, so it is the only default trusted
+  // origin — add this deployment's Vercel hosts so sign-in still works when
+  // the app is reached at a preview or `*.vercel.app` URL.
+  trustedOrigins: [getAppUrl(), ...vercelDeploymentOrigins()],
   secret: process.env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(db!, {
     provider: "pg",
@@ -117,6 +120,10 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
+      // `input: false` keeps this off every client-writable payload (sign-up,
+      // update-user) while still returning it on the session user — that is
+      // what makes `session.user.role` a safe admin gate.
+      role: { type: "string", required: false, input: false, defaultValue: "user" },
       firstName: { type: "string", required: false, input: true },
       lastName: { type: "string", required: false, input: true },
       dateOfBirth: { type: "date", required: false, input: true },
