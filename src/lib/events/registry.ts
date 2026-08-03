@@ -59,24 +59,30 @@ export const EVENTS: EventSummary[] = [
     city: EVENT.venue.city,
     results: warsaw2026Results,
   },
-  // Aug-2026 individual mile series. The first night is open; the rest are
-  // announced ("opens soon") until their registration windows open.
-  mileEvent("2026-08-01", MORNING, "registration_open"),
-  mileEvent("2026-08-08", EVENING),
+  // Aug-2026 individual mile series. Registration for the first night is closed;
+  // the second is open. The rest are announced ("opens soon") until their
+  // registration windows open.
+  mileEvent("2026-08-01", MORNING, "registration_closed"),
+  mileEvent("2026-08-08", EVENING, "registration_open"),
   mileEvent("2026-08-15", MORNING),
   mileEvent("2026-08-22", EVENING),
   mileEvent("2026-08-29", MORNING),
 ];
 
 /**
- * The "next" event the site should promote: the soonest event that has not yet
- * happened. Returns `null` when nothing is scheduled (the current state).
+ * The "next" event the site should promote: the soonest event still accepting
+ * registrations, falling back to the soonest not-yet-completed event when none
+ * is open. The open-first preference matters once a race night's registration
+ * closes — by date that night is still the soonest non-completed event, and
+ * featuring it would strip the landing's register CTA (see
+ * {@link isRegistrationOpen}) while a later night is taking entries. Returns
+ * `null` when nothing is scheduled.
  */
 export function getFeaturedEvent(): EventSummary | null {
   const scheduled = EVENTS.filter((e) => e.status !== "completed").sort((a, b) =>
     a.date.localeCompare(b.date),
   );
-  return scheduled[0] ?? null;
+  return scheduled.find((e) => e.status === "registration_open") ?? scheduled[0] ?? null;
 }
 
 /** Completed events, newest first. */
