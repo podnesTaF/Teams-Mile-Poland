@@ -1,6 +1,6 @@
 import { cache } from "react";
 import ExcelJS from "exceljs";
-import { and, asc, eq, ilike, isNotNull, isNull, notExists, or, sql } from "drizzle-orm";
+import { and, eq, ilike, isNotNull, isNull, ne, notExists, or, sql, type SQL } from "drizzle-orm";
 
 import { eventHeats, eventRegistrations, users, type ParticipationStatus } from "@/db/schema";
 import { getDb } from "@/lib/db";
@@ -53,17 +53,46 @@ const ROSTER_COLUMNS = {
   createdAt: eventRegistrations.createdAt,
 };
 
+/** Which roster column the table is ordered by. */
+export type RosterSortKey = "bib" | "name" | "status" | "registered-at";
+
+export type RosterSort = { key: RosterSortKey; dir: "asc" | "desc" };
+
 /**
- * Roster for an event (registrations ⋈ users), optionally filtered by status
- * and a free-text query over name / email / bib. Ordered by bib then name so
- * checked-in runners with bibs sort first.
+ * Bibs first and ascending, then alphabetically — the order the roster has
+ * always had, and the one a check-in desk reads down.
  */
-export async function getEventRoster(
-  eventSlug: string,
-  opts: { status?: ParticipationStatus; q?: string } = {},
-): Promise<RosterRow[]> {
-  const db = getDb();
-  const filters = [eq(eventRegistrations.eventSlug, eventSlug)];
+export const DEFAULT_ROSTER_SORT: RosterSort = { key: "bib", dir: "asc" };
+
+/** What a runner sorts and is searched under: surname, or the single-field name. */
+const SORT_NAME = sql`coalesce(${users.lastName}, ${users.name})`;
+
+/** How the roster is filtered — shared by the page read and its count. */
+export type RosterFilter = {
+  status?: ParticipationStatus;
+  q?: string;
+  /**
+   * Widen the free-text search to the runner's club. Off by default because the
+   * other caller is the check-in desk, whose search box promises "name, email or
+   * bib" in three places — a club typed there would return every one of its
+   * members as a card with live check-in buttons.
+   */
+  searchClub?: boolean;
+};
+
+/** Which slice of the filtered roster to return; omit for all of it. */
+export type RosterWindow = { sort?: RosterSort; limit?: number; offset?: number };
+
+function rosterFilters(eventSlug: string, opts: RosterFilter): SQL[] {
+  const filters = [
+    eq(eventRegistrations.eventSlug, eventSlug),
+    // `cancelled` is deprecated and never written, but the physical enum value
+    // still exists (dropping it is not an additive migration). Excluding it here
+    // rather than only in the mappers is what lets the roster's row read, its
+    // count and `getRosterStats` — which also skips it — agree on one number;
+    // `overview-data` and `users-data` already exclude it the same way.
+    ne(eventRegistrations.status, "cancelled"),
+  ];
 
   if (opts.status) {
     filters.push(eq(eventRegistrations.status, opts.status));
@@ -78,6 +107,7 @@ export async function getEventRoster(
       ilike(users.name, like),
       ilike(users.email, like),
     ];
+    if (opts.searchClub) searchClauses.push(ilike(users.club, like));
     const bibNum = Number.parseInt(q, 10);
     if (Number.isInteger(bibNum)) {
       // The *current* holder only. Bibs are recycled leases (ADR 0003), so a
@@ -91,16 +121,86 @@ export async function getEventRoster(
     if (search) filters.push(search);
   }
 
-  const rows = await db
+  return filters;
+}
+
+/**
+ * The `ORDER BY` for a sort choice, always ending in a total order.
+ *
+ * Two deliberate details. Rows missing the sorted value go to the bottom in
+ * *both* directions — a roster ordered by bib is asking about the runners who
+ * have a number, and flipping to descending should not answer with the ones who
+ * never had one. (It sorts on `bib` itself, not on the lease: a returned number
+ * is history the roster still shows, which is why the *search* — where the
+ * question is "who is wearing 7 right now" — is the one that checks
+ * `bibReturnedAt`.) And the id tiebreaker is what makes pagination trustworthy: without
+ * a total order Postgres may place two runners who tie on the sort key
+ * differently between the query for page 1 and the query for page 2, so one is
+ * shown twice and the other never.
+ */
+function rosterOrder(sort: RosterSort): SQL[] {
+  const dir = sort.dir === "desc" ? sql`desc` : sql`asc`;
+  const primary: Record<RosterSortKey, SQL> = {
+    bib: sql`${eventRegistrations.bib} ${dir} nulls last`,
+    name: sql`${SORT_NAME} ${dir} nulls last`,
+    // Enum columns order by declaration, which here is the participation
+    // lifecycle itself: registered → confirmed → checked_in → no_show.
+    status: sql`${eventRegistrations.status} ${dir}`,
+    "registered-at": sql`${eventRegistrations.createdAt} ${dir}`,
+  };
+  const secondary = sort.key === "name" ? sql`${users.firstName} asc` : sql`${SORT_NAME} asc`;
+  return [primary[sort.key], secondary, sql`${eventRegistrations.id} asc`];
+}
+
+/**
+ * Roster for an event (registrations ⋈ users), optionally filtered by status and
+ * a free-text query over name / email / club / bib, ordered by any of the four
+ * sortable columns, and optionally windowed to one page.
+ *
+ * Filtering, sorting and paging all happen in the database: the admin table is
+ * URL state over this read, not a client-side table library.
+ */
+export async function getEventRoster(
+  eventSlug: string,
+  opts: RosterFilter & RosterWindow = {},
+): Promise<RosterRow[]> {
+  const db = getDb();
+
+  const query = db
     .select(ROSTER_COLUMNS)
     .from(eventRegistrations)
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
     // Left, not inner: an unseeded runner is still on the roster.
     .leftJoin(eventHeats, eq(eventRegistrations.heatId, eventHeats.id))
-    .where(and(...filters))
-    .orderBy(asc(eventRegistrations.bib), asc(users.lastName));
+    .where(and(...rosterFilters(eventSlug, opts)))
+    .orderBy(...rosterOrder(opts.sort ?? DEFAULT_ROSTER_SORT));
+
+  const rows =
+    opts.limit === undefined ? await query : await query.limit(opts.limit).offset(opts.offset ?? 0);
   // `cancelled` is deprecated and never set — narrow to the live union.
   return rows.map((r) => ({ ...r, status: r.status as ParticipationStatus }));
+}
+
+/**
+ * How many rows {@link getEventRoster} would return for the same filter, ignoring
+ * any window — i.e. how many pages the roster table has.
+ *
+ * Separate from the read rather than a window function on it so the read keeps
+ * returning plain `RosterRow[]`, and so an empty page costs one cheap count
+ * instead of dragging every matching row back to decide there are none.
+ */
+export async function countEventRoster(
+  eventSlug: string,
+  opts: RosterFilter = {},
+): Promise<number> {
+  const db = getDb();
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(eventRegistrations)
+    // Inner join, as in the read: the free-text filter is over user columns.
+    .innerJoin(users, eq(eventRegistrations.userId, users.id))
+    .where(and(...rosterFilters(eventSlug, opts)));
+  return row?.count ?? 0;
 }
 
 /** A single roster row by registration id (scoped to the event), or null. */
