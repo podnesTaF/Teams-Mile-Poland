@@ -1,32 +1,29 @@
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import Form from "next/form";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminFlash } from "@/features/admin/components/admin-flash";
-import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
+import { RosterTable } from "@/features/admin/components/roster/roster-table";
 import { adminButton } from "@/features/admin/components/shell/admin-button";
 import { AdminEmptyState } from "@/features/admin/components/shell/admin-empty-state";
 import { adminInput } from "@/features/admin/components/shell/admin-field";
-import { ParticipationBadge } from "@/features/admin/components/shell/participation-badge";
 import {
-  ageCategoryForDob,
   countEventRoster,
   DEFAULT_ROSTER_SORT,
   getEventRoster,
   getRosterStats,
-  holdsBib,
   type ParticipationStatus,
-  type RosterRow,
   type RosterSortKey,
 } from "@/features/admin/events-data";
-import { formatAdminDateTime as fmt, plural } from "@/features/admin/format";
-import { removeRegistration } from "@/features/admin/roster-actions";
+import { plural } from "@/features/admin/format";
+import { getEventHeats } from "@/features/admin/heats-data";
 import {
   isFiltered,
   parseRosterParams,
   ROSTER_PAGE_SIZE,
+  ROSTER_SORT_KEYS,
   ROSTER_STATUSES,
   rosterHref,
   sortToken,
@@ -34,6 +31,12 @@ import {
   type RosterParams,
   type RosterSearchParams,
 } from "@/features/admin/roster-query";
+import {
+  toHeatOption,
+  toRosterRowView,
+  type HeatOption,
+  type RosterRowView,
+} from "@/features/admin/roster-view";
 import { getEventBySlug } from "@/lib/events/registry";
 import type { EventStatus } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
@@ -54,6 +57,12 @@ type PageProps = {
  * paginated view has to survive a server action's redirect, be linkable to a
  * colleague, and work on a phone at the venue, and URL state gets all three for
  * free.
+ *
+ * What *is* client state is the table's two interactions (slice #41), and only
+ * because neither is a view: which registration's drawer is open, and which rows
+ * are ticked for a bulk move into a heat. This page still reads and formats every
+ * value they render, so `RosterTable` receives plain strings and the browser
+ * bundle stays free of the admin data modules.
  *
  * The event itself — name, date, lifecycle status, totals, exports — belongs to
  * the layout above (slice #39), so this page states only the roster.
@@ -86,15 +95,21 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
   const list: RosterParams = { ...requested, page: Math.min(requested.page, pageCount) };
   const offset = (list.page - 1) * ROSTER_PAGE_SIZE;
 
-  const roster =
+  // The heats come back beside the rows because they are the bulk-move form's
+  // target list: seeding from the roster has to be possible on the first page
+  // load, not after a trip to the Heats tab to find out what exists.
+  const [rows, heats]: [RosterRowView[], HeatOption[]] =
     matches === 0
-      ? []
-      : await getEventRoster(slug, {
-          ...filter,
-          sort: list.sort,
-          limit: ROSTER_PAGE_SIZE,
-          offset,
-        });
+      ? [[], []]
+      : await Promise.all([
+          getEventRoster(slug, {
+            ...filter,
+            sort: list.sort,
+            limit: ROSTER_PAGE_SIZE,
+            offset,
+          }).then((roster) => roster.map((row) => toRosterRowView(row, eventDate))),
+          getEventHeats(slug).then((cards) => cards.map(toHeatOption)),
+        ]);
 
   // The whole roster, never the page or the filter — the chips are the control,
   // so their counts have to say what is *available*, not what is showing.
@@ -134,11 +149,13 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
       ) : (
         <>
           <RosterTable
-            rows={roster}
+            rows={rows}
             slug={slug}
             locale={locale}
-            list={list}
-            eventDate={eventDate}
+            statusFilter={list.status}
+            sort={list.sort}
+            sortHrefs={sortHrefs(slug, list)}
+            heats={heats}
           />
           <RosterPager
             slug={slug}
@@ -147,7 +164,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
             matches={matches}
             registrations={registrations}
             offset={offset}
-            shown={roster.length}
+            shown={rows.length}
           />
         </>
       )}
@@ -177,6 +194,18 @@ function plainDescription(list: RosterParams): string {
   if (list.q) parts.push(`nothing matches “${list.q}”`);
   if (list.status) parts.push(`no runner is ${list.status.replaceAll("_", " ")}`);
   return parts.length === 0 ? "" : `In this event ${parts.join(" and ")}.`;
+}
+
+/**
+ * Where each sortable column header points, built here so the table island never
+ * imports `roster-query` — that module reads `DEFAULT_ROSTER_SORT` out of
+ * `events-data`, and a value import from there would pull Drizzle and ExcelJS
+ * into the browser bundle behind it.
+ */
+function sortHrefs(slug: string, list: RosterParams): Record<RosterSortKey, string> {
+  return Object.fromEntries(
+    ROSTER_SORT_KEYS.map((key) => [key, rosterHref(slug, list, { sort: toggleSort(list.sort, key) })]),
+  ) as Record<RosterSortKey, string>;
 }
 
 /* ── controls ───────────────────────────────────────────────────────── */
@@ -297,193 +326,6 @@ function FilterChip({
         {count}
       </span>
     </Link>
-  );
-}
-
-/* ── table ──────────────────────────────────────────────────────────── */
-
-function RosterTable({
-  rows,
-  slug,
-  locale,
-  list,
-  eventDate,
-}: {
-  rows: RosterRow[];
-  slug: string;
-  locale: string;
-  list: RosterParams;
-  eventDate: Date;
-}) {
-  return (
-    <section className="overflow-hidden rounded-admin-lg border border-admin-line bg-admin-surface">
-      <div className="admin-scroll overflow-x-auto">
-        <table data-roster-table className="w-full min-w-[900px] border-collapse text-left">
-          <thead className="border-b border-admin-line bg-admin-surface-2">
-            <tr>
-              <SortHeader slug={slug} list={list} sortKey="bib" label="Bib" className="w-[72px]" />
-              <SortHeader slug={slug} list={list} sortKey="name" label="Runner" />
-              <PlainHeader label="Club" />
-              <PlainHeader label="Cat." className="w-[92px]" />
-              <SortHeader slug={slug} list={list} sortKey="status" label="Status" className="w-[130px]" />
-              <SortHeader
-                slug={slug}
-                list={list}
-                sortKey="registered-at"
-                label="Registered"
-                className="w-[150px]"
-              />
-              <PlainHeader label="Checked in" className="w-[150px]" />
-              <th scope="col" className="w-[90px] px-3 py-2.5">
-                <span className="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-admin-line">
-            {rows.map((row) => (
-              <RosterTableRow
-                key={row.id}
-                row={row}
-                eventDate={eventDate}
-                slug={slug}
-                locale={locale}
-                list={list}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
-const HEAD_CELL =
-  "px-3 py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-admin-muted";
-
-function PlainHeader({ label, className }: { label: string; className?: string }) {
-  return (
-    <th scope="col" className={cn(HEAD_CELL, className)}>
-      {label}
-    </th>
-  );
-}
-
-/**
- * A column header that is also the control for ordering by it: click to sort
- * ascending, click the sorted column again to flip. The direction is stated
- * twice — as an arrow for the eye and as `aria-sort` for a screen reader — and
- * the link is just a URL, so sorting survives a hard reload like everything else
- * here.
- */
-function SortHeader({
-  slug,
-  list,
-  sortKey,
-  label,
-  className,
-}: {
-  slug: string;
-  list: RosterParams;
-  sortKey: RosterSortKey;
-  label: string;
-  className?: string;
-}) {
-  const active = list.sort.key === sortKey;
-  const Arrow = active && list.sort.dir === "desc" ? ChevronDown : ChevronUp;
-
-  return (
-    <th
-      scope="col"
-      aria-sort={active ? (list.sort.dir === "asc" ? "ascending" : "descending") : "none"}
-      className={cn(HEAD_CELL, "p-0", className)}
-    >
-      <Link
-        href={rosterHref(slug, list, { sort: toggleSort(list.sort, sortKey) })}
-        data-roster-sort={sortKey}
-        data-active={active ? "true" : "false"}
-        data-dir={active ? list.sort.dir : undefined}
-        className={cn(
-          "flex w-full items-center gap-1 px-3 py-2.5 transition-colors hover:text-admin-ink",
-          active && "text-admin-ink",
-        )}
-      >
-        {label}
-        <Arrow className={cn("h-3 w-3 shrink-0", active ? "opacity-100" : "opacity-0")} aria-hidden />
-      </Link>
-    </th>
-  );
-}
-
-const CELL = "px-3 py-2.5 align-middle text-[13px] text-admin-ink-2";
-
-function RosterTableRow({
-  row,
-  eventDate,
-  slug,
-  locale,
-  list,
-}: {
-  row: RosterRow;
-  eventDate: Date;
-  slug: string;
-  locale: string;
-  list: RosterParams;
-}) {
-  const name = [row.firstName, row.lastName].filter(Boolean).join(" ") || row.name;
-  const category = ageCategoryForDob(row.dateOfBirth, eventDate);
-  // A bib is a lease (ADR 0003), so this column shows two different facts: the
-  // number a runner is wearing, and the number a runner wore. The second is
-  // dimmed — otherwise the table reads as if half the pool is still out, and a
-  // desk search for that number would find nobody.
-  const wearing = holdsBib(row);
-
-  return (
-    <tr data-roster-row={row.id} className="transition-colors hover:bg-admin-surface-2">
-      <td
-        className={cn(CELL, "font-mono tabular-nums", wearing ? "text-admin-ink" : "text-admin-muted")}
-        title={row.bib !== null && !wearing ? "Returned to the pool" : undefined}
-      >
-        {row.bib ?? "—"}
-      </td>
-      <td className={CELL}>
-        {/* Contact slims to the email and the date of birth to its age category:
-            the raw values move into the row drawer (#41), which is what buys the
-            room for a sortable "Registered". Nothing is lost — the xlsx export
-            still carries phone and DOB in full. */}
-        <span className="block font-medium text-admin-ink">{name}</span>
-        <span className="block truncate text-[11.5px] text-admin-muted">{row.email}</span>
-      </td>
-      <td className={CELL}>{row.club || "—"}</td>
-      <td className={CELL}>
-        {category || "—"}
-        {row.sex ? <span className="text-admin-muted"> · {row.sex}</span> : null}
-      </td>
-      <td className={CELL}>
-        <ParticipationBadge status={row.status} />
-      </td>
-      <td className={cn(CELL, "whitespace-nowrap text-admin-muted")}>{fmt(row.createdAt)}</td>
-      <td className={cn(CELL, "whitespace-nowrap text-admin-muted")}>{fmt(row.checkedInAt)}</td>
-      <td className={cn(CELL, "text-right")}>
-        <form action={removeRegistration}>
-          <input type="hidden" name="locale" value={locale} />
-          <input type="hidden" name="slug" value={slug} />
-          <input type="hidden" name="registrationId" value={row.id} />
-          {/* The action's redirect contract is frozen (PRD #34): it carries the
-              status filter back and nothing else, so a removal returns to the
-              first page of the filtered roster rather than to this exact view. */}
-          {list.status ? <input type="hidden" name="status" value={list.status} /> : null}
-          <ConfirmSubmit
-            label="Remove"
-            title="Remove this registration?"
-            message={`This permanently deletes ${name}'s registration for this event. Use it for duplicates and withdrawal requests. This cannot be undone.`}
-            confirmLabel="Remove"
-            // The quiet button, tinted red on hover: a row action that only
-            // announces itself as destructive when it is reached for.
-            triggerClassName={adminButton("quiet", "hover:bg-admin-accent-soft hover:text-admin-accent")}
-          />
-        </form>
-      </td>
-    </tr>
   );
 }
 
