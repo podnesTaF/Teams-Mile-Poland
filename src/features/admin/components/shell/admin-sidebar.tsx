@@ -4,7 +4,6 @@ import { ArrowUpRight, X } from "lucide-react";
 
 import { Wordmark } from "@/components/landing/wordmark";
 import { Link, usePathname } from "@/i18n/navigation";
-import type { EventStatus } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
 
 import { AdminEyebrow } from "./admin-eyebrow";
@@ -14,6 +13,7 @@ import {
   type AdminNavEvent,
   type AdminNavItem,
 } from "./admin-nav";
+import { EVENT_STATUS_DOT } from "./event-status-badge";
 
 /**
  * The persistent admin sidebar: wordmark, grouped sections, every mile event
@@ -24,13 +24,6 @@ import {
  * topbar's menu button. One element, two behaviours — so there is no second
  * copy of the nav to keep in sync.
  */
-
-const STATUS_DOT: Record<EventStatus, string> = {
-  registration_open: "bg-admin-ok",
-  upcoming: "bg-admin-warn",
-  registration_closed: "bg-admin-accent",
-  completed: "bg-admin-muted",
-};
 
 function isActive(pathname: string, href: string, exact = false): boolean {
   if (exact) return pathname === href;
@@ -195,7 +188,7 @@ function EventLink({
     >
       <span
         aria-hidden
-        className={cn("h-1.5 w-1.5 shrink-0 rounded-full", STATUS_DOT[event.status])}
+        className={cn("h-1.5 w-1.5 shrink-0 rounded-full", EVENT_STATUS_DOT[event.status])}
       />
       <span className="truncate">{event.label}</span>
       <span className="sr-only"> — {eventStatusLabel(event.status)}</span>
