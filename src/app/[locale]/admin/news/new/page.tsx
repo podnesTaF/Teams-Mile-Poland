@@ -3,7 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminShell } from "@/features/admin/components/admin-shell";
+import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { NewsArticleForm } from "@/features/admin/components/news-article-form";
 import { createArticle } from "@/features/admin/news-actions";
@@ -22,7 +22,7 @@ export default async function AdminNewsNewPage({
   await requireAdmin(locale);
 
   return (
-    <AdminShell
+    <AdminPage
       eyebrow="Admin · News"
       title="New article"
       narrow
@@ -44,6 +44,6 @@ export default async function AdminNewsNewPage({
       ) : (
         <NoDatabaseNotice>create news articles</NoDatabaseNotice>
       )}
-    </AdminShell>
+    </AdminPage>
   );
 }

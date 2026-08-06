@@ -3,7 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminShell } from "@/features/admin/components/admin-shell";
+import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { resendUserVerification } from "@/features/admin/users-actions";
 import {
@@ -54,7 +54,7 @@ export default async function AdminUsersPage({
   };
 
   return (
-    <AdminShell title="Users" active="users">
+    <AdminPage title="Users">
       {sp.msg ? <div className="iv-notice iv-notice--info">{sp.msg}</div> : null}
 
       {process.env.DATABASE_URL ? (
@@ -62,7 +62,7 @@ export default async function AdminUsersPage({
       ) : (
         <NoDatabaseNotice>manage users</NoDatabaseNotice>
       )}
-    </AdminShell>
+    </AdminPage>
   );
 }
 

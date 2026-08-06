@@ -3,7 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminShell } from "@/features/admin/components/admin-shell";
+import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { listAdmins, type AdminRow } from "@/features/admin/admins-data";
@@ -22,7 +22,7 @@ export default async function AdminAdminsPage({
   const actor = await requireAdmin(locale);
 
   return (
-    <AdminShell title="Admins" active="admins">
+    <AdminPage title="Admins">
       {sp.msg ? <div className="iv-notice iv-notice--info">{sp.msg}</div> : null}
 
       {process.env.DATABASE_URL ? (
@@ -30,7 +30,7 @@ export default async function AdminAdminsPage({
       ) : (
         <NoDatabaseNotice>manage admins</NoDatabaseNotice>
       )}
-    </AdminShell>
+    </AdminPage>
   );
 }
 

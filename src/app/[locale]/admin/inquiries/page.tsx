@@ -3,7 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminShell } from "@/features/admin/components/admin-shell";
+import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { formatAdminDateTime as fmt } from "@/features/admin/format";
 import { deleteInquiry, markInquiryHandled } from "@/features/admin/inquiries-actions";
@@ -19,13 +19,13 @@ export default async function AdminInquiriesPage({
   await requireAdmin(locale);
 
   return (
-    <AdminShell title="Contact inquiries" active="inquiries">
+    <AdminPage title="Contact inquiries">
       {process.env.DATABASE_URL ? (
         <InquiriesBody locale={locale} />
       ) : (
         <NoDatabaseNotice>view inquiries</NoDatabaseNotice>
       )}
-    </AdminShell>
+    </AdminPage>
   );
 }
 

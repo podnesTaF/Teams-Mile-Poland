@@ -4,7 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminShell } from "@/features/admin/components/admin-shell";
+import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { DownloadLink } from "@/features/admin/components/download-link";
 import { HeatBuilder } from "@/features/admin/components/heat-builder";
@@ -150,7 +150,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
   const unpublished = heats.filter((h) => h.state === "draft").length;
 
   return (
-    <AdminShell
+    <AdminPage
       eyebrow={`Heats · ${event.shortDate}`}
       title={`${event.name} heats`}
       actions={
@@ -305,6 +305,6 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
           <HeatBuilder locale={locale} slug={slug} heats={heats} seeds={seeds} pool={pool} />
         </div>
       )}
-    </AdminShell>
+    </AdminPage>
   );
 }

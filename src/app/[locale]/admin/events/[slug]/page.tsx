@@ -4,7 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminShell } from "@/features/admin/components/admin-shell";
+import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { DownloadLink } from "@/features/admin/components/download-link";
 import { Stat } from "@/features/admin/components/stat";
@@ -55,7 +55,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
   const total = STATUSES.reduce((sum, s) => sum + stats[s], 0);
 
   return (
-    <AdminShell
+    <AdminPage
       eyebrow={`Admin · ${event.shortDate}`}
       title={`${event.name} roster`}
       actions={
@@ -144,7 +144,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
           </div>
         )}
       </section>
-    </AdminShell>
+    </AdminPage>
   );
 }
 

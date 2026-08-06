@@ -3,14 +3,14 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminShell } from "@/features/admin/components/admin-shell";
+import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { Stat } from "@/features/admin/components/stat";
 import { getOverviewStats } from "@/features/admin/overview-data";
 import { getSeriesEvents } from "@/lib/events/registry";
 import { Link } from "@/i18n/navigation";
 
-export default async function AdminPage({
+export default async function AdminOverviewPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -20,7 +20,7 @@ export default async function AdminPage({
   await requireAdmin(locale);
 
   return (
-    <AdminShell title="Dashboard" active="overview">
+    <AdminPage title="Dashboard">
       {process.env.DATABASE_URL ? (
         <OverviewBody />
       ) : (
@@ -40,7 +40,7 @@ export default async function AdminPage({
           </Link>
         </div>
       </section>
-    </AdminShell>
+    </AdminPage>
   );
 }
 

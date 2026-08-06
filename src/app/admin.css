@@ -1,0 +1,65 @@
+/* =========================================================
+ * ADMIN — dark token set for the Tailwind admin layer (ADR 0004)
+ *
+ * The admin panel's chrome and its redesigned pages are built as small
+ * components styled with Tailwind + `cn()` against the `--admin-*` variables
+ * declared here; `tailwind.config.ts` exposes them as the `admin-*` color
+ * scale (`bg-admin-surface`, `border-admin-line`, `text-admin-muted`, …).
+ *
+ * The tokens are scoped to `.admin-root`, which sits on the same element as
+ * the legacy `.ace-landing .iv` root. That root deliberately stays: the six
+ * not-yet-redesigned pages (Users, Admins, Inquiries, News, Legacy, Mailings)
+ * keep rendering through their `.iv-*` rules inside the new shell. The `.iv-*`
+ * vocabulary is frozen for admin — do not grow it, and do not port these
+ * components back onto it.
+ *
+ * Loaded once from the admin layout, after `landing.css`; every selector here
+ * is `.ace-landing.admin-root`-qualified so it outranks the landing root it
+ * overrides regardless of stylesheet order.
+ * ========================================================= */
+
+.ace-landing.admin-root {
+  /* Surfaces — the canvas sits *below* the chrome so sidebar and topbar read
+     as raised panels. */
+  --admin-bg: #0f1011;
+  --admin-surface: #17191b;
+  --admin-surface-2: #1e2124;
+
+  /* Lines */
+  --admin-line: rgba(255, 255, 255, 0.09);
+  --admin-line-2: rgba(255, 255, 255, 0.16);
+
+  /* Ink */
+  --admin-ink: #f4f4f3;
+  --admin-ink-2: rgba(255, 255, 255, 0.72);
+  --admin-muted: rgba(255, 255, 255, 0.45);
+
+  /* Accent — the same red as the landing so admin still reads as ABM. */
+  --admin-accent: #e51f32;
+  --admin-accent-soft: rgba(229, 31, 50, 0.16);
+
+  /* Status */
+  --admin-ok: #3ac06d;
+  --admin-warn: #e2a53c;
+  --admin-info: #59a5e8;
+
+  background: var(--admin-bg);
+  color: var(--admin-ink);
+  /* `.ace-landing` hides horizontal overflow, which turns the root into a
+     scroll container and breaks the sticky topbar. Admin has no bleeding hero
+     to clip, so overflow goes back to visible. */
+  overflow: visible;
+}
+
+/* Thin, unobtrusive scrollbar for the sidebar's nav column. */
+.ace-landing.admin-root .admin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+.ace-landing.admin-root .admin-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.ace-landing.admin-root .admin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}

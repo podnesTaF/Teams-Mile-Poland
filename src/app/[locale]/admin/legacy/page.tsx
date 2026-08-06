@@ -3,7 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminShell } from "@/features/admin/components/admin-shell";
+import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { CopyLinkButton } from "@/features/admin/components/copy-link-button";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { DownloadLink } from "@/features/admin/components/download-link";
@@ -22,13 +22,13 @@ export default async function AdminLegacyPage({
   await requireAdmin(locale);
 
   return (
-    <AdminShell title="Warsaw 2026 (legacy)" active="legacy">
+    <AdminPage title="Warsaw 2026 (legacy)">
       {process.env.DATABASE_URL ? (
         <LegacyBody locale={locale} />
       ) : (
         <NoDatabaseNotice>view teams and runners</NoDatabaseNotice>
       )}
-    </AdminShell>
+    </AdminPage>
   );
 }
 

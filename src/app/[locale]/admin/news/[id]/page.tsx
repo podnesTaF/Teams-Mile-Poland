@@ -4,7 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminShell } from "@/features/admin/components/admin-shell";
+import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import {
   NewsArticleForm,
@@ -28,9 +28,9 @@ export default async function AdminNewsEditPage({
 
   if (!process.env.DATABASE_URL) {
     return (
-      <AdminShell eyebrow="Admin · News" title="Article" narrow>
+      <AdminPage eyebrow="Admin · News" title="Article" narrow>
         <NoDatabaseNotice>edit news articles</NoDatabaseNotice>
-      </AdminShell>
+      </AdminPage>
     );
   }
 
@@ -50,7 +50,7 @@ export default async function AdminNewsEditPage({
   };
 
   return (
-    <AdminShell
+    <AdminPage
       eyebrow="Admin · News"
       title={article.titleEn || "(untitled)"}
       narrow
@@ -116,6 +116,6 @@ export default async function AdminNewsEditPage({
           submitLabel="Save changes"
         />
       </section>
-    </AdminShell>
+    </AdminPage>
   );
 }

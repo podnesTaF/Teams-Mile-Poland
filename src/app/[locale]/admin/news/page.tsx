@@ -3,7 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminShell } from "@/features/admin/components/admin-shell";
+import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { formatAdminDateTime as fmt } from "@/features/admin/format";
@@ -24,9 +24,8 @@ export default async function AdminNewsPage({
   await requireAdmin(locale);
 
   return (
-    <AdminShell
+    <AdminPage
       title="News"
-      active="news"
       actions={
         <Link href="/admin/news/new" className="btn btn-red btn-sm">
           New article
@@ -40,7 +39,7 @@ export default async function AdminNewsPage({
       ) : (
         <NoDatabaseNotice>manage news articles</NoDatabaseNotice>
       )}
-    </AdminShell>
+    </AdminPage>
   );
 }
 

@@ -4,7 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminShell } from "@/features/admin/components/admin-shell";
+import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import {
   assignBibAndCheckIn,
   assignPendingBib,
@@ -114,7 +114,7 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
   const confirmation = okText(ok ?? "", { heat, returned, released });
 
   return (
-    <AdminShell
+    <AdminPage
       eyebrow={`Check-in · ${event.shortDate}`}
       title={event.name}
       actions={
@@ -179,7 +179,7 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
       />
 
       <HeatDesk locale={locale} slug={slug} heats={heats} />
-    </AdminShell>
+    </AdminPage>
   );
 }
 
