@@ -3,7 +3,12 @@
 import { useMemo, useState } from "react";
 
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
-import { StatusPill } from "@/features/admin/components/status-pill";
+import { adminButton } from "@/features/admin/components/shell/admin-button";
+import { ADMIN_NOTE, ADMIN_TITLE, adminCard } from "@/features/admin/components/shell/admin-card";
+import { AdminEmptyState } from "@/features/admin/components/shell/admin-empty-state";
+import { AdminField, adminInput } from "@/features/admin/components/shell/admin-field";
+import { AdminPill, type AdminPillTone } from "@/features/admin/components/shell/admin-pill";
+import { ParticipationBadge } from "@/features/admin/components/shell/participation-badge";
 import {
   assignToHeat,
   deleteHeat,
@@ -12,24 +17,25 @@ import {
 } from "@/features/admin/heat-actions";
 import type { HeatWithFill, SeedRow } from "@/features/admin/heats-data";
 import { formatHeatTime, instantToWarsawLocal } from "@/lib/events/heat-time";
-
-const STATE_LABEL: Record<HeatWithFill["state"], string> = {
-  draft: "draft",
-  published: "published",
-  finished: "finished",
-};
+import { cn } from "@/lib/utils";
 
 /**
- * The heat card: one full-width row per heat showing its whole field at once,
- * under an Unassigned row of confirmed-but-unplaced runners. Rows rather than
- * columns because a heat holds up to a bib pool's worth of runners and names in a
- * narrow column are unreadable.
+ * The heat builder: one card per heat showing its whole field at once, under an
+ * Unassigned card of confirmed-but-unplaced runners. Cards rather than columns
+ * because a heat holds up to a bib pool's worth of runners and names in a narrow
+ * column are unreadable.
  *
- * The selection lives here as a `Set<registrationId>` (the recipient-multiselect
- * idiom) and is mirrored into hidden inputs on the bulk-move form, so one
- * selection spanning several rows can be moved in a single server action. The
- * runner checkboxes deliberately sit *outside* that form — nesting them inside it
- * would nest them inside the per-heat edit forms too, which HTML forbids.
+ * Restyled onto the Tailwind admin layer in slice #42 — **mechanics untouched**.
+ * The selection still lives here as a `Set<registrationId>` (the
+ * recipient-multiselect idiom) mirrored into hidden inputs on the bulk-move form,
+ * so one selection spanning several cards can be moved in a single server
+ * action. The runner checkboxes deliberately sit *outside* that form — nesting
+ * them inside it would nest them inside the per-heat edit forms too, which HTML
+ * forbids.
+ *
+ * `data-admin-heat` / `data-heat-state` / `data-admin-runner` are stable markers
+ * for end-to-end checks: a streamed page cannot be told apart by status code, so
+ * the assertions grep for content (see the parent PRD's verification note).
  */
 export function HeatBuilder({
   locale,
@@ -80,10 +86,32 @@ export function HeatBuilder({
 
   const unassigned = useMemo(() => shown.filter((s) => !s.heatId), [shown]);
 
+  // Whether a list is empty *because of the filter* — the same trimmed reading
+  // `matches` uses, so a whitespace-only query cannot claim "no matches" while
+  // the lists are in fact showing everybody.
+  const filtering = matches !== null;
+
   // The badge counts everyone unplaced, not just those surviving the filter —
   // the heat pills show true fill, and a count that shrank as you typed would
   // read as runners disappearing.
   const unassignedTotal = useMemo(() => seeds.filter((s) => !s.heatId).length, [seeds]);
+
+  /**
+   * Per heat, how many of its runners a publish press would email — the page's
+   * "To notify" stat broken down per card, so the number is visible where the
+   * decision is made rather than only in the total. Counted over the whole field
+   * for the same reason the unassigned badge is: the filter must not look like it
+   * changed what publishing will do. Mirrors the mailing's own filter — a seeded
+   * no-show stays on the card to be taken off, but is not mailed.
+   */
+  const toNotifyByHeat = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const s of seeds) {
+      if (!s.heatId || s.status === "no_show" || s.notifyState === "notified") continue;
+      map.set(s.heatId, (map.get(s.heatId) ?? 0) + 1);
+    }
+    return map;
+  }, [seeds]);
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -108,28 +136,42 @@ export function HeatBuilder({
 
   return (
     <>
-      {/* ---- bulk move bar ---- */}
-      <section className="iv-card">
-        <div className="iv-section-head">
-          <h2 className="iv-section-title">Seed runners</h2>
-          <span className="iv-sub">{selected.size} selected</span>
+      {/* ---- filter + bulk move bar ---- */}
+      <section className={adminCard("p-4 sm:p-5")}>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h2 className={ADMIN_TITLE}>Seed runners</h2>
+          <p
+            data-admin-selected={selected.size}
+            className={cn(
+              "font-mono text-[10px] font-medium uppercase tracking-[0.16em]",
+              selected.size > 0 ? "text-admin-ink" : "text-admin-muted",
+            )}
+          >
+            {selected.size} selected
+          </p>
         </div>
+        <p className={cn(ADMIN_NOTE, "mt-1.5")}>
+          Tick runners in any list below — the selection spans cards — then move them into a heat or
+          take them off the card.
+        </p>
 
-        <input
-          type="text"
-          className="iv-input"
-          placeholder="Filter the lists by name, email or club…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          style={{ marginTop: 10 }}
-        />
+        <div className="mt-4">
+          <AdminField label="Filter" className="max-w-[420px]">
+            <input
+              type="text"
+              className={adminInput()}
+              placeholder="Name, email or club…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </AdminField>
+        </div>
 
         {/* One form, two actions: `formAction` on the second button overrides the
             form's own, so a single selection can be moved or cleared. */}
         <form
           action={assignToHeat}
-          className="iv-inline"
-          style={{ marginTop: 12, alignItems: "flex-end", gap: 12 }}
+          className="mt-4 flex flex-wrap items-end gap-2.5 border-t border-admin-line pt-4"
         >
           <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="slug" value={slug} />
@@ -138,14 +180,12 @@ export function HeatBuilder({
             <input key={id} type="hidden" name="registrationIds" value={id} />
           ))}
 
-          <label className="block">
-            <span className="iv-fieldlabel">Move to</span>
+          <AdminField label="Move to" className="w-full sm:w-[280px]">
             <select
               name="heatId"
-              className="iv-input"
+              className={adminInput()}
               defaultValue={heats[0]?.id ?? ""}
               disabled={heats.length === 0}
-              style={{ minWidth: 220 }}
             >
               {heats.map((h) => (
                 <option key={h.id} value={h.id}>
@@ -153,11 +193,11 @@ export function HeatBuilder({
                 </option>
               ))}
             </select>
-          </label>
+          </AdminField>
 
           <button
             type="submit"
-            className="btn btn-red"
+            className={adminButton("primary")}
             disabled={selected.size === 0 || heats.length === 0}
           >
             Move {selected.size || ""} to heat
@@ -165,14 +205,14 @@ export function HeatBuilder({
           <button
             type="submit"
             formAction={unassignFromHeat}
-            className="btn btn-stroke"
+            className={adminButton("stroke")}
             disabled={selected.size === 0}
           >
             Unassign
           </button>
           <button
             type="button"
-            className="iv-linkbtn"
+            className={adminButton("quiet")}
             onClick={() => setSelected(new Set())}
             disabled={selected.size === 0}
           >
@@ -181,99 +221,251 @@ export function HeatBuilder({
         </form>
       </section>
 
-      {/* ---- one full-width row per heat, Unassigned first ---- */}
-      <section className="iv-card" style={{ marginTop: 16 }}>
-        <div className="iv-section-head">
-          <div className="iv-inline" style={{ gap: 10, alignItems: "baseline" }}>
-            <h3 className="iv-section-title">Unassigned</h3>
-            <span className="iv-pill iv-pill--due">{unassignedTotal}</span>
-            <span className="iv-note">confirmed runners not yet in a heat</span>
+      {/* ---- unassigned, then one card per heat ---- */}
+      <section className={adminCard("mt-4 p-4 sm:p-5")} data-admin-unassigned={unassignedTotal}>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <h3 className={ADMIN_TITLE}>Unassigned</h3>
+            <AdminPill tone={unassignedTotal > 0 ? "warn" : "muted"}>{unassignedTotal}</AdminPill>
           </div>
-          <SelectShown rows={unassigned} selected={selected} onToggleAll={() => toggleAll(unassigned)} />
+          <SelectShown
+            rows={unassigned}
+            selected={selected}
+            onToggleAll={() => toggleAll(unassigned)}
+          />
         </div>
+        <p className={cn(ADMIN_NOTE, "mt-1.5")}>Confirmed runners not yet in a heat.</p>
         <RunnerGrid
+          className="mt-3.5"
           rows={unassigned}
           selected={selected}
           onToggle={toggle}
-          emptyText={query ? "No matches here." : "Everyone confirmed is placed."}
+          emptyText={filtering ? "No matches here." : "Everyone confirmed is placed."}
           scroll
         />
       </section>
 
-      {heats.map((heat) => {
-        const rows = byHeat.get(heat.id) ?? [];
-        const over = heat.fill > heat.capacity;
-        return (
-          <section key={heat.id} className="iv-card" style={{ marginTop: 16 }}>
-            <div className="iv-section-head">
-              <div className="iv-inline" style={{ gap: 10, alignItems: "baseline" }}>
-                <h3 className="iv-section-title">Heat {heat.number}</h3>
-                <span className={`iv-pill ${over ? "iv-pill--red" : "iv-pill--ok"}`}>
-                  {heat.fill}/{heat.capacity}
-                </span>
-                <span className="iv-note">
-                  {formatHeatTime(heat.scheduledAt)} · {STATE_LABEL[heat.state]}
-                  {over ? " · over capacity" : ""}
-                </span>
-                <SelectShown rows={rows} selected={selected} onToggleAll={() => toggleAll(rows)} />
-              </div>
-
-              {/* Edit and delete are sibling forms; the runner grid below sits
-                  outside both, because nesting forms is illegal. */}
-              <div className="iv-inline" style={{ alignItems: "flex-end", gap: 8 }}>
-                <form action={updateHeat} className="iv-inline" style={{ alignItems: "flex-end", gap: 8 }}>
-                  <input type="hidden" name="locale" value={locale} />
-                  <input type="hidden" name="slug" value={slug} />
-                  <input type="hidden" name="heatId" value={heat.id} />
-                  <label className="block">
-                    <span className="iv-fieldlabel">Start</span>
-                    <input
-                      className="iv-input"
-                      type="datetime-local"
-                      name="scheduledAt"
-                      defaultValue={instantToWarsawLocal(heat.scheduledAt)}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="iv-fieldlabel">Cap.</span>
-                    <input
-                      className="iv-input"
-                      type="number"
-                      name="capacity"
-                      min={1}
-                      max={pool}
-                      defaultValue={heat.capacity}
-                      style={{ width: 78 }}
-                    />
-                  </label>
-                  <button type="submit" className="btn btn-stroke btn-sm">
-                    Save
-                  </button>
-                </form>
-                <form action={deleteHeat}>
-                  <input type="hidden" name="locale" value={locale} />
-                  <input type="hidden" name="slug" value={slug} />
-                  <input type="hidden" name="heatId" value={heat.id} />
-                  <ConfirmSubmit
-                    label="Delete"
-                    title={`Delete heat ${heat.number}?`}
-                    message="Its runners go back to Unassigned. Registrations are not deleted, and the remaining heats keep their numbers."
-                    confirmLabel="Delete heat"
-                  />
-                </form>
-              </div>
-            </div>
-
-            <RunnerGrid
-              rows={rows}
-              selected={selected}
-              onToggle={toggle}
-              emptyText={query ? "No matches in this heat." : "Empty — select runners above and move them in."}
-            />
-          </section>
-        );
-      })}
+      {heats.length === 0 ? (
+        <div className="mt-4">
+          <AdminEmptyState title="No heats generated yet">
+            The runners above are waiting for a card. Lay one out with{" "}
+            <strong className="font-semibold text-admin-ink-2">Generate heats</strong> at the top of
+            this page — then select runners and move them in.
+          </AdminEmptyState>
+        </div>
+      ) : (
+        heats.map((heat) => (
+          <HeatCard
+            key={heat.id}
+            locale={locale}
+            slug={slug}
+            heat={heat}
+            pool={pool}
+            rows={byHeat.get(heat.id) ?? []}
+            toNotify={toNotifyByHeat.get(heat.id) ?? 0}
+            selected={selected}
+            onToggle={toggle}
+            onToggleAll={toggleAll}
+            filtering={filtering}
+          />
+        ))
+      )}
     </>
+  );
+}
+
+/**
+ * One heat, in three regions: what it is (number, start, state, fill), its field,
+ * and the two forms that change it.
+ *
+ * Edit and delete are sibling forms, and the runner grid sits outside both,
+ * because nesting forms is illegal — that constraint is what shapes the card.
+ */
+function HeatCard({
+  locale,
+  slug,
+  heat,
+  pool,
+  rows,
+  toNotify,
+  selected,
+  onToggle,
+  onToggleAll,
+  filtering,
+}: {
+  locale: string;
+  slug: string;
+  heat: HeatWithFill;
+  pool: number;
+  rows: SeedRow[];
+  toNotify: number;
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  onToggleAll: (rows: SeedRow[]) => void;
+  filtering: boolean;
+}) {
+  const over = heat.fill > heat.capacity;
+
+  return (
+    <section
+      data-admin-heat={heat.number}
+      data-heat-state={heat.state}
+      data-heat-fill={`${heat.fill}/${heat.capacity}`}
+      className={adminCard(cn("mt-4", over ? "border-admin-accent" : undefined))}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-x-5 gap-y-4 p-4 sm:p-5">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h3 className="font-sans text-[17px] font-semibold normal-case not-italic leading-none tracking-[-0.01em] text-admin-ink">
+              Heat {heat.number}
+            </h3>
+            <HeatStateBadge state={heat.state} />
+            {toNotify > 0 ? (
+              <AdminPill
+                tone="warn"
+                dot
+                title="Runners this heat would email on the next publish press"
+              >
+                {toNotify} to notify
+              </AdminPill>
+            ) : null}
+          </div>
+          <p className="mt-2 font-mono text-[12px] leading-none tracking-[0.06em] text-admin-ink-2">
+            {formatHeatTime(heat.scheduledAt)}
+            <span className="text-admin-muted"> · start</span>
+          </p>
+        </div>
+
+        <FillMeter fill={heat.fill} capacity={heat.capacity} />
+      </div>
+
+      <div className="border-t border-admin-line p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-admin-muted">
+            Field
+          </p>
+          <SelectShown rows={rows} selected={selected} onToggleAll={() => onToggleAll(rows)} />
+        </div>
+        <RunnerGrid
+          className="mt-3"
+          rows={rows}
+          selected={selected}
+          onToggle={onToggle}
+          emptyText={
+            filtering ? "No matches in this heat." : "Empty — select runners above and move them in."
+          }
+        />
+      </div>
+
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 border-t border-admin-line p-4 sm:px-5">
+        <form action={updateHeat} className="flex flex-wrap items-end gap-2.5">
+          <input type="hidden" name="locale" value={locale} />
+          <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="heatId" value={heat.id} />
+          <AdminField label="Start" className="w-full sm:w-[210px]">
+            <input
+              className={adminInput()}
+              type="datetime-local"
+              name="scheduledAt"
+              defaultValue={instantToWarsawLocal(heat.scheduledAt)}
+            />
+          </AdminField>
+          <AdminField label="Cap." className="w-[84px]">
+            <input
+              className={adminInput()}
+              type="number"
+              name="capacity"
+              min={1}
+              max={pool}
+              defaultValue={heat.capacity}
+            />
+          </AdminField>
+          <button type="submit" className={adminButton("stroke")}>
+            Save
+          </button>
+        </form>
+        <form action={deleteHeat}>
+          <input type="hidden" name="locale" value={locale} />
+          <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="heatId" value={heat.id} />
+          <ConfirmSubmit
+            label="Delete heat"
+            title={`Delete heat ${heat.number}?`}
+            message="Its runners go back to Unassigned. Registrations are not deleted, and the remaining heats keep their numbers."
+            confirmLabel="Delete heat"
+            triggerClassName={adminButton(
+              "quiet",
+              "text-admin-accent hover:bg-admin-accent-soft hover:text-admin-accent",
+            )}
+          />
+        </form>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Fill against capacity, as a number and as a bar — the thing an admin scans a
+ * card of heats for. Over capacity is the loud state: the timing system cannot
+ * chip a lane that does not exist.
+ *
+ * The bar's width is the one inline style left in the builder, because a
+ * percentage computed per heat is not something a class can express.
+ */
+function FillMeter({ fill, capacity }: { fill: number; capacity: number }) {
+  const over = fill > capacity;
+  const full = fill === capacity;
+  const pct = capacity > 0 ? Math.min(100, Math.round((fill / capacity) * 100)) : 0;
+
+  return (
+    <div className="w-full sm:w-[190px]">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="font-sans text-[20px] font-semibold normal-case not-italic leading-none tracking-[-0.02em] text-admin-ink">
+          {fill}
+          <span className="text-admin-muted">/{capacity}</span>
+        </p>
+        <p
+          className={cn(
+            "font-mono text-[10px] font-medium uppercase tracking-[0.14em]",
+            over ? "text-admin-accent" : "text-admin-muted",
+          )}
+        >
+          {over ? "over capacity" : full ? "full" : `${capacity - fill} free`}
+        </p>
+      </div>
+      <div className="mt-2.5 h-1.5 overflow-hidden rounded-pill bg-admin-surface-2">
+        <div
+          className={cn(
+            "h-full rounded-pill",
+            over ? "bg-admin-accent" : full ? "bg-admin-ok" : "bg-admin-ink-2",
+          )}
+          style={{ width: `${over ? 100 : pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Draft / published / finished, in the order the card moves through them. The
+ * three read as three different things on purpose: draft is unreleased work,
+ * published is live and emailed, finished has been run.
+ *
+ * A heat's state is exactly what `AdminPill` is for — a vocabulary that means
+ * something inside the card it sits in, rather than one of the two panel-wide
+ * ones (`EventStatusBadge`, `ParticipationBadge`).
+ */
+const HEAT_STATE_TONE: Record<HeatWithFill["state"], AdminPillTone> = {
+  draft: "warn",
+  published: "ok",
+  finished: "muted",
+};
+
+function HeatStateBadge({ state }: { state: HeatWithFill["state"] }) {
+  return (
+    <AdminPill tone={HEAT_STATE_TONE[state]} dot>
+      {state}
+    </AdminPill>
   );
 }
 
@@ -289,16 +481,24 @@ function SelectShown({
 }) {
   const allOn = rows.length > 0 && rows.every((r) => selected.has(r.id));
   return (
-    <button type="button" className="iv-linkbtn" onClick={onToggleAll} disabled={rows.length === 0}>
-      {allOn ? "Clear shown" : "Select shown"}
+    <button
+      type="button"
+      className={adminButton("quiet", "h-7 text-[12px]")}
+      onClick={onToggleAll}
+      disabled={rows.length === 0}
+    >
+      {allOn ? "Clear shown" : `Select shown${rows.length > 0 ? ` (${rows.length})` : ""}`}
     </button>
   );
 }
 
 /**
- * Runners as a wrapping grid of selectable cards, so a full-width heat row shows
+ * Runners as a wrapping grid of selectable chips, so a full-width heat card shows
  * its whole field at once instead of hiding it in a narrow scroller. Only the
  * Unassigned list scrolls — a heat is capped at the bib pool, the pool is not.
+ *
+ * Selection is a border and a tinted ground, both class-driven, so a chip's state
+ * is legible without reading its checkbox.
  */
 function RunnerGrid({
   rows,
@@ -306,74 +506,86 @@ function RunnerGrid({
   onToggle,
   emptyText,
   scroll = false,
+  className,
 }: {
   rows: SeedRow[];
   selected: Set<string>;
   onToggle: (id: string) => void;
   emptyText: string;
   scroll?: boolean;
+  className?: string;
 }) {
   if (rows.length === 0) {
-    return <p className="iv-note">{emptyText}</p>;
+    return <p className={cn(ADMIN_NOTE, className)}>{emptyText}</p>;
   }
 
   return (
     <div
-      style={{
-        display: "grid",
-        gap: 8,
-        gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))",
-        ...(scroll ? { maxHeight: 320, overflowY: "auto" as const, paddingRight: 4 } : {}),
-      }}
+      className={cn(
+        "grid grid-cols-[repeat(auto-fill,minmax(min(100%,200px),1fr))] gap-2",
+        scroll && "admin-scroll max-h-[320px] overflow-y-auto pr-1",
+        className,
+      )}
     >
-      {rows.map((r) => {
-        const on = selected.has(r.id);
-        return (
-          <label
-            key={r.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "8px 10px",
-              borderRadius: 8,
-              cursor: "pointer",
-              border: `1px solid ${on ? "rgba(255,255,255,.34)" : "rgba(255,255,255,.12)"}`,
-              background: on ? "rgba(255,255,255,.08)" : "transparent",
-            }}
-          >
-            <input type="checkbox" checked={on} onChange={() => onToggle(r.id)} />
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span
-                style={{
-                  display: "block",
-                  fontWeight: 600,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {r.name}
-              </span>
-              <span
-                style={{
-                  display: "block",
-                  fontSize: 12,
-                  opacity: 0.7,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {r.sex ?? "—"}
-                {r.club ? ` · ${r.club}` : ""}
-              </span>
-            </span>
-            {r.status === "confirmed" ? null : <StatusPill status={r.status} />}
-          </label>
-        );
-      })}
+      {rows.map((r) => (
+        <RunnerChip key={r.id} row={r} on={selected.has(r.id)} onToggle={onToggle} />
+      ))}
     </div>
   );
 }
 
+function RunnerChip({
+  row,
+  on,
+  onToggle,
+}: {
+  row: SeedRow;
+  on: boolean;
+  onToggle: (id: string) => void;
+}) {
+  // Only `stale` is marked per runner: in a never-published heat *everyone* is
+  // unnotified, so a dot on every chip would say nothing. A moved runner holding
+  // an email that is now wrong is the case worth catching by eye — the count in
+  // the card header covers the rest.
+  const moved = row.notifyState === "stale" && row.status !== "no_show";
+
+  return (
+    <label
+      data-admin-runner={row.id}
+      data-selected={on ? "true" : "false"}
+      className={cn(
+        "flex cursor-pointer items-center gap-2.5 rounded-admin border px-2.5 py-2 transition-colors",
+        on
+          ? "border-admin-accent bg-admin-accent-soft"
+          : "border-admin-line bg-admin-surface-2 hover:border-admin-line-2",
+      )}
+    >
+      <input
+        type="checkbox"
+        checked={on}
+        onChange={() => onToggle(row.id)}
+        className="h-3.5 w-3.5 shrink-0 accent-admin-accent"
+      />
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5">
+          <span className="truncate font-sans text-[13px] font-medium normal-case not-italic leading-tight text-admin-ink">
+            {row.name}
+          </span>
+          {moved ? (
+            <span
+              title="Their heat or start time has moved since they were emailed"
+              className="h-1.5 w-1.5 shrink-0 rounded-full bg-admin-warn"
+            />
+          ) : null}
+        </span>
+        <span className="mt-1 block truncate text-[11.5px] leading-none text-admin-muted">
+          {row.sex ?? "—"}
+          {row.club ? ` · ${row.club}` : ""}
+        </span>
+      </span>
+      {/* `confirmed` is the norm in this pool and says nothing; the other three
+          are each a reason to look twice. */}
+      {row.status === "confirmed" ? null : <ParticipationBadge status={row.status} />}
+    </label>
+  );
+}

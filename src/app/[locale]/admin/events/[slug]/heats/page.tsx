@@ -1,13 +1,16 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 
-import "@/app/landing.css";
-
 import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminFlash } from "@/features/admin/components/admin-flash";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { HeatBuilder } from "@/features/admin/components/heat-builder";
-import { Stat } from "@/features/admin/components/stat";
+import { adminButton } from "@/features/admin/components/shell/admin-button";
+import { ADMIN_NOTE, ADMIN_TITLE, adminCard } from "@/features/admin/components/shell/admin-card";
+import { AdminEmptyState } from "@/features/admin/components/shell/admin-empty-state";
+import { AdminField, adminInput } from "@/features/admin/components/shell/admin-field";
+import { AdminNotice } from "@/features/admin/components/shell/admin-notice";
+import { AdminStat } from "@/features/admin/components/shell/admin-stat";
 import { plural } from "@/features/admin/format";
 import { generateHeats, publishHeats } from "@/features/admin/heat-actions";
 import {
@@ -23,6 +26,7 @@ import {
   getFirstHeatTime,
   getHeatIntervalMinutes,
 } from "@/lib/events/registry";
+import { cn } from "@/lib/utils";
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
@@ -38,6 +42,14 @@ type PageProps = {
   }>;
 };
 
+/**
+ * The Heats tab: generate the card, seed it, release it.
+ *
+ * Restyled onto the Tailwind admin layer in slice #42 — the actions, the reads
+ * and every count on this page are exactly what they were. The shell (dark root,
+ * sidebar) comes from the admin layout and the event header and tabs from the
+ * event layout, so this page is only its own stats, forms and builder.
+ */
 export default async function AdminEventHeatsPage({ params, searchParams }: PageProps) {
   const { locale, slug } = await params;
   const query = await searchParams;
@@ -77,114 +89,109 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
   return (
     <>
       <AdminFlash query={query} context={{ slug }} />
+
       {outOfOrder.length > 0 ? (
-        <div className="iv-notice iv-notice--error">
+        <AdminNotice className="mb-4">
           Start times are out of order at heat {outOfOrder.join(", ")} — each heat should start after
           the one before it. Publishing is still allowed; check the times first.
-        </div>
+        </AdminNotice>
       ) : null}
 
-      <div className="iv-grid">
-        <Stat label="Heats" value={heats.length} />
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 xl:grid-cols-7">
+        <AdminStat label="Heats" value={heats.length} />
         {/* The pool is confirmed runners *plus* anyone already seeded, so it is
             not the same number as the roster's "Confirmed" stat. */}
-        <Stat label="Seedable" value={seeds.length} />
-        <Stat label="Seeded" value={seeded} />
-        <Stat label="Unassigned" value={seeds.length - seeded} />
-        <Stat label="To notify" value={pendingNotify} />
-        <Stat label="Capacity" value={totalCapacity} />
-        <Stat label="Bib pool" value={pool} />
+        <AdminStat label="Seedable" value={seeds.length} />
+        <AdminStat label="Seeded" value={seeded} />
+        <AdminStat label="Unassigned" value={seeds.length - seeded} />
+        <AdminStat label="To notify" value={pendingNotify} />
+        <AdminStat label="Capacity" value={totalCapacity} />
+        <AdminStat label="Bib pool" value={pool} />
       </div>
 
       {/* ---- generate ---- */}
-      <section className="iv-card" style={{ marginTop: 18 }}>
-        <h2 className="iv-section-title">{heats.length === 0 ? "Generate heats" : "Add heats"}</h2>
-        <p className="iv-note" style={{ marginTop: 4 }}>
+      <section className={adminCard("mt-4 p-4 sm:p-5")}>
+        <h2 className={ADMIN_TITLE}>{heats.length === 0 ? "Generate heats" : "Add heats"}</h2>
+        <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[78ch]")}>
           {heats.length === 0
             ? `Start times are prefilled from the event's racing window at ${interval}-minute spacing. Capacity is capped at the ${pool}-bib pool.`
             : `New heats are numbered on from heat ${heats[heats.length - 1].number} — existing heats and their times are left alone.`}
         </p>
-        <form action={generateHeats} style={{ marginTop: 12 }}>
+        <form action={generateHeats} className="mt-4 flex flex-wrap items-end gap-2.5">
           <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="slug" value={slug} />
-          <div className="iv-inline" style={{ alignItems: "flex-end", gap: 12 }}>
-            <label className="block">
-              <span className="iv-fieldlabel">Heats</span>
-              <input
-                className="iv-input"
-                type="number"
-                name="count"
-                min={1}
-                max={MAX_GENERATE_HEATS}
-                defaultValue={heats.length === 0 ? 9 : 1}
-                style={{ width: 90 }}
-              />
-            </label>
-            <label className="block">
-              <span className="iv-fieldlabel">Capacity</span>
-              <input
-                className="iv-input"
-                type="number"
-                name="capacity"
-                min={1}
-                max={pool}
-                defaultValue={Math.min(12, pool)}
-                style={{ width: 110 }}
-              />
-            </label>
-            <label className="block">
-              <span className="iv-fieldlabel">First start</span>
-              <input
-                className="iv-input"
-                type="datetime-local"
-                name="firstStart"
-                defaultValue={firstStartValue}
-              />
-            </label>
-            <label className="block">
-              <span className="iv-fieldlabel">Interval (min)</span>
-              <input
-                className="iv-input"
-                type="number"
-                name="intervalMinutes"
-                min={1}
-                defaultValue={interval}
-                style={{ width: 110 }}
-              />
-            </label>
-            <button type="submit" className="btn btn-red">
-              {heats.length === 0 ? "Generate" : "Add"}
-            </button>
-          </div>
+          <AdminField label="Heats" className="w-[88px]">
+            <input
+              className={adminInput()}
+              type="number"
+              name="count"
+              min={1}
+              max={MAX_GENERATE_HEATS}
+              defaultValue={heats.length === 0 ? 9 : 1}
+            />
+          </AdminField>
+          <AdminField label="Capacity" className="w-[104px]">
+            <input
+              className={adminInput()}
+              type="number"
+              name="capacity"
+              min={1}
+              max={pool}
+              defaultValue={Math.min(12, pool)}
+            />
+          </AdminField>
+          <AdminField label="First start" className="w-full sm:w-[210px]">
+            <input
+              className={adminInput()}
+              type="datetime-local"
+              name="firstStart"
+              defaultValue={firstStartValue}
+            />
+          </AdminField>
+          <AdminField label="Interval (min)" className="w-[120px]">
+            <input
+              className={adminInput()}
+              type="number"
+              name="intervalMinutes"
+              min={1}
+              defaultValue={interval}
+            />
+          </AdminField>
+          <button type="submit" className={adminButton("primary")}>
+            {heats.length === 0 ? "Generate" : "Add"}
+          </button>
         </form>
       </section>
 
       {/* ---- publish ---- */}
       {heats.length > 0 ? (
-        <section className="iv-card" style={{ marginTop: 16 }}>
-          <div className="iv-section-head">
-            <h2 className="iv-section-title">
+        <section className={adminCard("mt-4 p-4 sm:p-5")}>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h2 className={ADMIN_TITLE}>
               {unpublished === heats.length ? "Publish the card" : "Re-publish"}
             </h2>
-            <span className="iv-sub">
-              {unpublished === 0
-                ? "All heats published"
-                : `${plural(unpublished, "heat")} still draft`}
-            </span>
+            <p
+              className={cn(
+                "font-mono text-[10px] font-medium uppercase tracking-[0.16em]",
+                unpublished === 0 ? "text-admin-ok" : "text-admin-warn",
+              )}
+            >
+              {unpublished === 0 ? "All heats published" : `${plural(unpublished, "heat")} still draft`}
+            </p>
           </div>
-          <p className="iv-note" style={{ marginTop: 4 }}>
+          <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[78ch]")}>
             Publishing releases the whole card at once and emails every seeded runner their heat
             number and approximate start time. It is safe to press again after edits — only runners
             whose heat or time has moved, plus anyone never told, are emailed.
           </p>
-          <p className="iv-note" style={{ marginTop: 8 }}>
+          <p className={cn(ADMIN_NOTE, "mt-2 max-w-[78ch] text-admin-ink-2")}>
             {notifiable.length === 0
               ? "Nobody is seeded yet, so this only releases the heats — no email goes out."
               : pendingNotify === 0
                 ? `All ${plural(notifiable.length, "seeded runner")} already hold a current notice — pressing this emails nobody.`
                 : `This will email ${plural(pendingNotify, "runner")} of the ${notifiable.length} seeded.`}
           </p>
-          <form action={publishHeats} style={{ marginTop: 12 }}>
+          <form action={publishHeats} className="mt-4">
             <input type="hidden" name="locale" value={locale} />
             <input type="hidden" name="slug" value={slug} />
             <ConfirmSubmit
@@ -197,21 +204,22 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
               }
               confirmLabel="Publish"
               danger={false}
-              triggerClassName="btn btn-red"
+              triggerClassName={adminButton("primary")}
             />
           </form>
         </section>
       ) : null}
 
       {heats.length === 0 && seeds.length === 0 ? (
-        <section className="iv-card" style={{ marginTop: 16 }}>
-          <p className="iv-note">
-            No heats and nobody confirmed yet. Generate the heats now if you like — runners appear
-            here as they confirm they are coming.
-          </p>
-        </section>
+        <div className="mt-4">
+          <AdminEmptyState title="No heats generated yet">
+            Nobody has confirmed they are coming yet either. Lay the card out now if you like — use{" "}
+            <strong className="font-semibold text-admin-ink-2">Generate heats</strong> above — and
+            runners appear here to be seeded as they confirm.
+          </AdminEmptyState>
+        </div>
       ) : (
-        <div style={{ marginTop: 16 }}>
+        <div className="mt-4">
           <HeatBuilder locale={locale} slug={slug} heats={heats} seeds={seeds} pool={pool} />
         </div>
       )}
