@@ -3,10 +3,9 @@ import {
   markHeatFinished,
   unmarkHeatFinished,
 } from "@/features/admin/checkin-actions";
-import { plural } from "@/features/admin/checkin-copy";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { holdsBib, type RosterRow } from "@/features/admin/events-data";
-import { formatAdminDateTime } from "@/features/admin/format";
+import { formatAdminDateTime, plural } from "@/features/admin/format";
 import type { HeatWithFill } from "@/features/admin/heats-data";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { Link } from "@/i18n/navigation";

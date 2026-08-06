@@ -14,7 +14,11 @@ import { FlashBanner } from "./flash-banner";
  * The banner's `key` is fresh per request on purpose. Client state survives a
  * server-action round-trip, and pressing the same button twice redirects to a
  * URL identical to the current one — without a new key the second press would
- * land on a banner the admin had already dismissed and show nothing.
+ * land on a banner the admin had already dismissed and show nothing. The cost
+ * is that *any* re-render of this server component brings a dismissed banner
+ * back; nothing in the admin re-renders a page without a fresh action (there is
+ * no `router.refresh()` anywhere under `/admin`), so a repeated press is the
+ * case worth optimising for.
  */
 export function AdminFlash({
   query,

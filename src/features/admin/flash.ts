@@ -18,6 +18,17 @@
  * itself and there is no code to look up. It stays supported (the actions and
  * their redirect contracts are unchanged) and renders as neutral info.
  *
+ * **Not yet centralised: the check-in desk.** `checkin-copy.ts` still words the
+ * race-morning family, because that surface's `?ok=` is not a code at all — it
+ * carries the bib that was just leased (`ok=12`), which a code→sentence map
+ * cannot express — and the same module words the admin panel on the public
+ * ticket page, which is not an admin surface and gets no banner. Folding it in
+ * belongs to the check-in slice (#43); until then this registry is deliberately
+ * incomplete, and a desk code landing here resolves to nothing rather than to
+ * the wrong sentence. Two consequences to fix when it folds in: `input` is
+ * worded generically here so it stays true on both surfaces, and the desk's
+ * `heat_missing` says what this registry's `missing` says.
+ *
  * Server-only: the entries read event config and the heat-generation bound, so
  * this must not be pulled into a client bundle. {@link AdminFlash} resolves on
  * the server and hands the finished sentence to the client banner.
