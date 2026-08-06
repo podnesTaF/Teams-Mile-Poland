@@ -8,11 +8,6 @@
  * surface.
  */
 
-/** "1 bib" / "3 bibs" — the desk copy reads as sentences about things. */
-export function plural(n: number, one: string, many = `${one}s`): string {
-  return `${n} ${n === 1 ? one : many}`;
-}
-
 /**
  * How a walk-up's placement landed, appended to a check-in confirmation.
  * `heat` is a heat number, or `none` when no published heat had room.

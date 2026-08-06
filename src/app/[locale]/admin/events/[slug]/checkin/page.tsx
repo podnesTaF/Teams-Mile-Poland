@@ -4,14 +4,14 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import {
   assignBibAndCheckIn,
   assignPendingBib,
   markNoShow,
   revertToRegistered,
 } from "@/features/admin/checkin-actions";
-import { checkedInText, checkinErrorText, plural } from "@/features/admin/checkin-copy";
+import { checkedInText, checkinErrorText } from "@/features/admin/checkin-copy";
+import { plural } from "@/features/admin/format";
 import { awaitingBib, HeatDesk, RaceMorningLists } from "@/features/admin/components/race-morning";
 import { StatusPill } from "@/features/admin/components/status-pill";
 import {
@@ -25,7 +25,6 @@ import { getEventHeats } from "@/features/admin/heats-data";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
-import { Link } from "@/i18n/navigation";
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
@@ -114,20 +113,7 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
   const confirmation = okText(ok ?? "", { heat, returned, released });
 
   return (
-    <AdminPage
-      eyebrow={`Check-in · ${event.shortDate}`}
-      title={event.name}
-      actions={
-        <>
-          <Link href={`/admin/events/${slug}`} className="btn btn-stroke btn-sm">
-            Roster
-          </Link>
-          <Link href={`/admin/events/${slug}/heats`} className="btn btn-stroke btn-sm">
-            Heats
-          </Link>
-        </>
-      }
-    >
+    <>
       {confirmation ? <div className="iv-notice iv-notice--info">{confirmation}</div> : null}
       {notice ? <div className="iv-notice iv-notice--error">{notice}</div> : null}
 
@@ -179,7 +165,7 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
       />
 
       <HeatDesk locale={locale} slug={slug} heats={heats} />
-    </AdminPage>
+    </>
   );
 }
 

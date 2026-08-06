@@ -1,3 +1,4 @@
+import { cache } from "react";
 import ExcelJS from "exceljs";
 import { and, asc, eq, ilike, isNotNull, isNull, notExists, or, sql } from "drizzle-orm";
 
@@ -135,8 +136,16 @@ export async function getRegistrationEventSlug(registrationId: string): Promise<
   return row?.eventSlug ?? null;
 }
 
-/** Count of registrations per status for an event (roster header stats). */
-export async function getRosterStats(eventSlug: string): Promise<Record<ParticipationStatus, number>> {
+/**
+ * Count of registrations per status for an event (roster header stats).
+ *
+ * Request-cached: the event layout's header and the roster page below it both
+ * want these counts, and `cache()` keeps that one query per request rather than
+ * one per asker.
+ */
+export const getRosterStats = cache(async (
+  eventSlug: string,
+): Promise<Record<ParticipationStatus, number>> => {
   const db = getDb();
   const rows = await db
     .select({ status: eventRegistrations.status, count: sql<number>`count(*)::int` })
@@ -155,7 +164,7 @@ export async function getRosterStats(eventSlug: string): Promise<Record<Particip
     if (r.status !== "cancelled") out[r.status] = r.count;
   }
   return out;
-}
+});
 
 /** Whether a registration currently holds its bib lease (ADR 0003). */
 export function holdsBib(row: Pick<RosterRow, "bib" | "bibReturnedAt">): boolean {

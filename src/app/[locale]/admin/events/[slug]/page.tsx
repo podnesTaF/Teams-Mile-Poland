@@ -4,10 +4,8 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminPage } from "@/features/admin/components/shell/admin-page";
+import { AdminFlash } from "@/features/admin/components/admin-flash";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
-import { DownloadLink } from "@/features/admin/components/download-link";
-import { Stat } from "@/features/admin/components/stat";
 import { StatusPill } from "@/features/admin/components/status-pill";
 import {
   ageCategoryForDob,
@@ -18,7 +16,6 @@ import {
 } from "@/features/admin/events-data";
 import { formatAdminDateTime as fmt } from "@/features/admin/format";
 import { removeRegistration } from "@/features/admin/roster-actions";
-import { sendMediaLiveMailingAction } from "@/features/event-mailings/media-live-actions";
 import { getEventBySlug } from "@/lib/events/registry";
 import { Link } from "@/i18n/navigation";
 
@@ -35,7 +32,8 @@ type PageProps = {
 
 export default async function AdminEventRosterPage({ params, searchParams }: PageProps) {
   const { locale, slug } = await params;
-  const { status, msg } = await searchParams;
+  const query = await searchParams;
+  const { status } = query;
   setRequestLocale(locale);
   await requireAdmin(locale);
 
@@ -44,56 +42,19 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
 
   const statusFilter = parseStatus(status);
   const eventDate = new Date(event.date);
-  // The media-live mailing only makes sense once the gallery is published: a
-  // completed event with a `media` folder configured (PRD #14, slice #18).
-  const canSendMediaLive = event.status === "completed" && Boolean(event.media);
 
   const [roster, stats] = await Promise.all([
     getEventRoster(slug, { status: statusFilter }),
     getRosterStats(slug),
   ]);
-  const total = STATUSES.reduce((sum, s) => sum + stats[s], 0);
 
   return (
-    <AdminPage
-      eyebrow={`Admin · ${event.shortDate}`}
-      title={`${event.name} roster`}
-      actions={
-        <>
-          <Link href={`/admin/events/${slug}/heats`} className="btn btn-stroke btn-sm">
-            Heats
-          </Link>
-          <Link href={`/admin/events/${slug}/checkin`} className="btn btn-red btn-sm">
-            Check-in
-          </Link>
-          <DownloadLink href={`/api/admin/events/${slug}/export`}>Export Excel</DownloadLink>
-          {canSendMediaLive ? (
-            <form action={sendMediaLiveMailingAction}>
-              <input type="hidden" name="locale" value={locale} />
-              <input type="hidden" name="slug" value={slug} />
-              <ConfirmSubmit
-                label="Send photos-live email"
-                title="Send the photos-live email?"
-                message="Emails every registered participant of this event that their gallery is live, with a link to it. Anyone already emailed for this event is skipped, so nobody is double-mailed."
-                confirmLabel="Send email"
-                danger={false}
-              />
-            </form>
-          ) : null}
-        </>
-      }
-    >
-      {msg ? <div className="iv-notice iv-notice--info">{msg}</div> : null}
+    <>
+      <AdminFlash query={query} context={{ slug }} />
 
-      <div className="iv-grid">
-        <Stat label="Registered" value={stats.registered} />
-        <Stat label="Confirmed" value={stats.confirmed} />
-        <Stat label="Checked in" value={stats.checked_in} />
-        <Stat label="No-show" value={stats.no_show} />
-        <Stat label="Total" value={total} />
-      </div>
-
-      <div className="iv-inline" style={{ margin: "18px 0" }}>
+      {/* The per-status totals live in the event header now (slice #39); the
+          filter chips keep their own counts because they are the control. */}
+      <div className="iv-inline" style={{ marginBottom: 18 }}>
         <FilterLink href={`/admin/events/${slug}`} active={!statusFilter}>
           All
         </FilterLink>
@@ -144,7 +105,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
           </div>
         )}
       </section>
-    </AdminPage>
+    </>
   );
 }
 

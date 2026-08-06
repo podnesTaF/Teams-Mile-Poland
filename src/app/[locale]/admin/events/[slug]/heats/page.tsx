@@ -4,11 +4,11 @@ import { setRequestLocale } from "next-intl/server";
 import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { AdminPage } from "@/features/admin/components/shell/admin-page";
+import { AdminFlash } from "@/features/admin/components/admin-flash";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
-import { DownloadLink } from "@/features/admin/components/download-link";
 import { HeatBuilder } from "@/features/admin/components/heat-builder";
 import { Stat } from "@/features/admin/components/stat";
+import { plural } from "@/features/admin/format";
 import { generateHeats, publishHeats } from "@/features/admin/heat-actions";
 import {
   getEventHeats,
@@ -23,7 +23,6 @@ import {
   getFirstHeatTime,
   getHeatIntervalMinutes,
 } from "@/lib/events/registry";
-import { Link } from "@/i18n/navigation";
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
@@ -39,80 +38,9 @@ type PageProps = {
   }>;
 };
 
-/** Desk-facing copy for a refused edit. */
-function errorText(code: string, pool: number): string | null {
-  switch (code) {
-    case "count":
-      return `Enter how many heats to generate (1–${MAX_GENERATE_HEATS}).`;
-    case "capacity":
-      return `Capacity must be between 1 and ${pool} — a heat cannot be larger than the bib pool.`;
-    case "interval":
-      return "Enter the spacing between heats in minutes.";
-    case "time":
-      return "Enter a valid start time.";
-    case "missing":
-      return "That heat no longer exists — it may have been deleted in another tab.";
-    case "nochange":
-      return "Nothing to save — fill in a start time or a capacity.";
-    case "noselection":
-      return "Select some runners first.";
-    case "noheat":
-      return "Pick a heat to move them into.";
-    case "input":
-      return "Missing event or heat.";
-    case "publish":
-      return "Publishing failed — nothing was emailed. Try again; runners already notified are not re-emailed.";
-    default:
-      return null;
-  }
-}
-
-/** "1 runner" / "3 runners" — the flashes all read as sentences about people. */
-function plural(n: string, one: string, many = `${one}s`): string {
-  return `${n} ${n === "1" ? one : many}`;
-}
-
-/**
- * Confirmation copy for a completed edit. `n` is the row count where relevant;
- * `publishHeats` carries its own four counts instead.
- */
-function okText(
-  code: string,
-  q: { n?: string; published?: string; notified?: string; skipped?: string; failed?: string },
-): string | null {
-  const count = q.n ?? "0";
-  switch (code) {
-    case "generated":
-      return `Generated ${plural(count, "heat")}.`;
-    case "updated":
-      return "Heat updated.";
-    case "deleted":
-      return "Heat deleted — its runners are back in Unassigned.";
-    case "assigned":
-      return `Moved ${plural(count, "runner")}.`;
-    case "unassigned":
-      return `Unassigned ${plural(count, "runner")}.`;
-    case "published": {
-      const published = q.published ?? "0";
-      const failed = q.failed ?? "0";
-      const head =
-        published === "0"
-          ? "Card re-published — it was already live."
-          : `Published ${plural(published, "heat")}.`;
-      const tail = `${q.notified ?? "0"} notified, ${q.skipped ?? "0"} unchanged${
-        failed === "0" ? "" : `, ${failed} failed`
-      }.`;
-      return `${head} ${tail}`;
-    }
-    default:
-      return null;
-  }
-}
-
 export default async function AdminEventHeatsPage({ params, searchParams }: PageProps) {
   const { locale, slug } = await params;
   const query = await searchParams;
-  const { ok, error } = query;
   setRequestLocale(locale);
   await requireAdmin(locale);
 
@@ -139,9 +67,6 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
       ? `${event.date}T${firstHeat}`
       : "";
 
-  const notice = errorText(error ?? "", pool);
-  const confirmation = okText(ok ?? "", query);
-
   // How many seeded runners this press would actually email, so the button can
   // say so before it is pressed rather than after. Mirrors the mailing's own
   // filter: a seeded no-show stays on the card to be taken off, but is not mailed.
@@ -150,23 +75,8 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
   const unpublished = heats.filter((h) => h.state === "draft").length;
 
   return (
-    <AdminPage
-      eyebrow={`Heats · ${event.shortDate}`}
-      title={`${event.name} heats`}
-      actions={
-        <>
-          <Link href={`/admin/events/${slug}`} className="btn btn-stroke btn-sm">
-            Roster
-          </Link>
-          <Link href={`/admin/events/${slug}/checkin`} className="btn btn-stroke btn-sm">
-            Check-in
-          </Link>
-          <DownloadLink href={`/api/admin/events/${slug}/heats/export`}>Export Excel</DownloadLink>
-        </>
-      }
-    >
-      {confirmation ? <div className="iv-notice iv-notice--info">{confirmation}</div> : null}
-      {notice ? <div className="iv-notice iv-notice--error">{notice}</div> : null}
+    <>
+      <AdminFlash query={query} context={{ slug }} />
       {outOfOrder.length > 0 ? (
         <div className="iv-notice iv-notice--error">
           Start times are out of order at heat {outOfOrder.join(", ")} — each heat should start after
@@ -259,7 +169,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
             <span className="iv-sub">
               {unpublished === 0
                 ? "All heats published"
-                : `${plural(String(unpublished), "heat")} still draft`}
+                : `${plural(unpublished, "heat")} still draft`}
             </span>
           </div>
           <p className="iv-note" style={{ marginTop: 4 }}>
@@ -271,8 +181,8 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
             {notifiable.length === 0
               ? "Nobody is seeded yet, so this only releases the heats — no email goes out."
               : pendingNotify === 0
-                ? `All ${plural(String(notifiable.length), "seeded runner")} already hold a current notice — pressing this emails nobody.`
-                : `This will email ${plural(String(pendingNotify), "runner")} of the ${notifiable.length} seeded.`}
+                ? `All ${plural(notifiable.length, "seeded runner")} already hold a current notice — pressing this emails nobody.`
+                : `This will email ${plural(pendingNotify, "runner")} of the ${notifiable.length} seeded.`}
           </p>
           <form action={publishHeats} style={{ marginTop: 12 }}>
             <input type="hidden" name="locale" value={locale} />
@@ -283,7 +193,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
               message={
                 pendingNotify === 0
                   ? "Every heat becomes published. No email goes out — nobody's heat or time has changed since they were last told."
-                  : `${plural(String(pendingNotify), "runner")} will be emailed their heat and approximate start time. Runners whose heat and time are unchanged are left alone.`
+                  : `${plural(pendingNotify, "runner")} will be emailed their heat and approximate start time. Runners whose heat and time are unchanged are left alone.`
               }
               confirmLabel="Publish"
               danger={false}
@@ -305,6 +215,6 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
           <HeatBuilder locale={locale} slug={slug} heats={heats} seeds={seeds} pool={pool} />
         </div>
       )}
-    </AdminPage>
+    </>
   );
 }

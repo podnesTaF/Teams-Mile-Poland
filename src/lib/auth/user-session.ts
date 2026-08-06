@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { headers } from "next/headers";
 
 import { auth } from "./better-auth";
@@ -12,11 +13,18 @@ export type SessionUser = NonNullable<
   Awaited<ReturnType<typeof auth.api.getSession>>
 >["user"];
 
-/** The signed-in user, or null. */
-export async function getUser(): Promise<SessionUser | null> {
+/**
+ * The signed-in user, or null.
+ *
+ * Request-cached: a single render commonly asks more than once — a page's
+ * `requireAdmin`, the layout above it, and the topbar's `getAdminUser` — and
+ * `cache()` collapses those into one session lookup per request without any
+ * call site having to thread the user through.
+ */
+export const getUser = cache(async (): Promise<SessionUser | null> => {
   const session = await auth.api.getSession({ headers: await headers() });
   return session?.user ?? null;
-}
+});
 
 /**
  * The signed-in user, or `null` when unauthenticated. Callers decide where to
