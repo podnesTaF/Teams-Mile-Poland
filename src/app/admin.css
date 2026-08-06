@@ -43,12 +43,32 @@
   --admin-warn: #e2a53c;
   --admin-info: #59a5e8;
 
+  /* The sticky topbar's resting height — its `min-h`, and the offset anything
+     else that sticks below it starts from (the check-in desk's search field).
+     A topbar whose page actions wrap is taller than this, so a sticky consumer
+     that has to be exact measures the real element; this is the value its
+     server-rendered HTML uses until it does. */
+  --admin-topbar-h: 60px;
+
   background: var(--admin-bg);
   color: var(--admin-ink);
   /* `.ace-landing` hides horizontal overflow, which turns the root into a
      scroll container and breaks the sticky topbar. Admin has no bleeding hero
      to clip, so overflow goes back to visible. */
   overflow: visible;
+}
+
+/* Native form controls in the admin layer (`adminInput`). The chrome the browser
+   draws itself — a datetime-local picker, a select's option list — takes its
+   colours from `color-scheme`, not from the control's background, so without
+   these the date picker is light-on-light and the options are white-on-white. */
+.ace-landing.admin-root .admin-control {
+  color-scheme: dark;
+}
+.ace-landing.admin-root select.admin-control option,
+.ace-landing.admin-root select.admin-control optgroup {
+  background: var(--admin-surface-2);
+  color: var(--admin-ink);
 }
 
 /* Thin, unobtrusive scrollbar for the sidebar's nav column. */

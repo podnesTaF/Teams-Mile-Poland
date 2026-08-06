@@ -18,16 +18,21 @@
  * itself and there is no code to look up. It stays supported (the actions and
  * their redirect contracts are unchanged) and renders as neutral info.
  *
- * **Not yet centralised: the check-in desk.** `checkin-copy.ts` still words the
- * race-morning family, because that surface's `?ok=` is not a code at all — it
- * carries the bib that was just leased (`ok=12`), which a code→sentence map
- * cannot express — and the same module words the admin panel on the public
- * ticket page, which is not an admin surface and gets no banner. Folding it in
- * belongs to the check-in slice (#43); until then this registry is deliberately
- * incomplete, and a desk code landing here resolves to nothing rather than to
- * the wrong sentence. Two consequences to fix when it folds in: `input` is
- * worded generically here so it stays true on both surfaces, and the desk's
- * `heat_missing` says what this registry's `missing` says.
+ * **The check-in desk words itself** (slice #43). Its codes are not all codes:
+ * `?ok=` carries the bib that was just leased (`ok=12`), which a code→sentence
+ * map cannot express, and the same sentences word the admin panel on the public
+ * ticket page — not an admin surface, and it gets no banner. So `checkin-copy.ts`
+ * stays the place the race-morning family is said, and this module *falls
+ * through* to it for anything its own tables do not answer. A code unknown to
+ * both still resolves to nothing rather than to an empty banner.
+ *
+ * The fall-through is **not scoped to the desk**, and deliberately so: this
+ * module resolves by code, not by surface, so `?ok=7` says "Checked in · bib #7"
+ * on whatever page it arrives at. That is the rule above ("one code means one
+ * sentence everywhere"), not an exception to it — but it does mean the desk's
+ * vocabulary is now the panel's, so a future action on another surface must not
+ * take `ok=<digits>`, `pending`, or any `checkin-copy` code to mean something
+ * else. Only the desk emits them today.
  *
  * Server-only: the entries read event config and the heat-generation bound, so
  * this must not be pulled into a client bundle. {@link AdminFlash} resolves on
@@ -36,6 +41,7 @@
 
 import { getBibPool } from "@/lib/events/registry";
 
+import { checkedInText, checkinErrorText } from "./checkin-copy";
 import { plural } from "./format";
 import { MAX_GENERATE_HEATS } from "./heats-data";
 
@@ -58,7 +64,12 @@ export type FlashContext = {
   slug?: string;
 };
 
-type FlashCopy = (query: FlashQuery, context: FlashContext) => string;
+/**
+ * One code's sentence. It may decline (`null`) — that is how a family that owns
+ * several codes can be registered as one entry and still say nothing about a
+ * code that is not its own.
+ */
+type FlashCopy = (query: FlashQuery, context: FlashContext) => string | null;
 
 /** First value of a repeated param, trimmed; `""` when absent. */
 function param(query: FlashQuery, key: string): string {
@@ -92,6 +103,11 @@ const OK_CODES: Record<string, FlashCopy> = {
     }.`;
     return `${head} ${tail}`;
   },
+  // The desk's two heat presses. Named codes, unlike its check-in confirmation
+  // below, so they belong in the table like any other.
+  finished: (q) => `Heat finished — ${plural(count(q, "returned"), "bib")} back in the pool.`,
+  unfinished: (q) =>
+    `Heat re-opened — ${plural(count(q, "released"), "bib")} re-leased to its runners.`,
 };
 
 /** Refusal copy, keyed by the `?error=` code the action redirected with. */
@@ -116,6 +132,42 @@ const ERROR_CODES: Record<string, FlashCopy> = {
     "Publishing failed — nothing was emailed. Try again; runners already notified are not re-emailed.",
 };
 
+/** A `?heat=` longer than this is not a heat number; see {@link MAX_MSG_LENGTH}. */
+const MAX_HEAT_LENGTH = 12;
+
+/**
+ * The check-in desk's confirmation. Not a code: `?ok=` is the number the runner
+ * has just been handed (`ok=12`), or `pending` when the pool was empty and they
+ * were marked present bib-less (ADR 0003). Anything else is not the desk
+ * talking, so this declines rather than guessing.
+ */
+const deskCheckedIn: FlashCopy = (query) => {
+  const ok = param(query, "ok");
+  if (ok !== "pending" && !/^\d+$/.test(ok)) return null;
+  // The placement is named in the sentence, so it is bounded for the same reason
+  // `?msg=` is: a heat number is three characters, and a hand-edited URL should
+  // not be able to write a paragraph into the banner.
+  return checkedInText(ok, param(query, "heat").slice(0, MAX_HEAT_LENGTH));
+};
+
+/**
+ * The check-in desk's refusals, worded by `checkin-copy.ts` — the module the
+ * ticket page's admin panel words itself from, so the desk and the panel cannot
+ * drift into explaining the same outcome two ways.
+ *
+ * Reached only for codes {@link ERROR_CODES} does not itself answer, which
+ * settles the two overlaps the desk brings with it: `input` keeps the registry's
+ * generic sentence (true on every surface, where the desk's own was
+ * desk-specific), and `heat_missing` is worded here — the same sentence as this
+ * registry's `missing`, because it is the same accident reported by two codes
+ * from two surfaces.
+ */
+const deskError: FlashCopy = (query, context) =>
+  checkinErrorText(param(query, "error"), {
+    pool: context.slug ? getBibPool(context.slug) : 0,
+    bibs: param(query, "bibs"),
+  });
+
 /** A `?msg=` sentence longer than this is not feedback; it is someone's URL. */
 const MAX_MSG_LENGTH = 300;
 
@@ -130,14 +182,14 @@ const MAX_MSG_LENGTH = 300;
 export function resolveFlash(query: FlashQuery, context: FlashContext = {}): Flash | null {
   const error = param(query, "error");
   if (error) {
-    const copy = ERROR_CODES[error];
-    return copy ? { tone: "error", message: copy(query, context) } : null;
+    const message = (ERROR_CODES[error] ?? deskError)(query, context);
+    return message ? { tone: "error", message } : null;
   }
 
   const ok = param(query, "ok");
   if (ok) {
-    const copy = OK_CODES[ok];
-    return copy ? { tone: "ok", message: copy(query, context) } : null;
+    const message = (OK_CODES[ok] ?? deskCheckedIn)(query, context);
+    return message ? { tone: "ok", message } : null;
   }
 
   const msg = param(query, "msg").slice(0, MAX_MSG_LENGTH);

@@ -15,6 +15,11 @@ import { AdminMenuButton } from "./admin-menu-button";
  * children. The identity is read here instead of being threaded through every
  * page: this is presentation, never a gate — each page still calls
  * `requireAdmin` itself.
+ *
+ * `--admin-topbar-h` is its resting height, and `data-admin-topbar` marks it for
+ * the one thing that has to stick directly below it and cannot be a row short:
+ * the check-in desk's search field, which measures this element because page
+ * actions wrap on a narrow screen and make the bar two rows tall.
  */
 export async function AdminTopbar({
   title,
@@ -29,8 +34,11 @@ export async function AdminTopbar({
   const who = admin?.name?.trim() || admin?.email || "";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-admin-line bg-admin-surface">
-      <div className="flex min-h-[60px] flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 sm:px-6">
+    <header
+      data-admin-topbar
+      className="sticky top-0 z-30 border-b border-admin-line bg-admin-surface"
+    >
+      <div className="flex min-h-[var(--admin-topbar-h)] flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 sm:px-6">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <AdminMenuButton />
           <div className="min-w-0">

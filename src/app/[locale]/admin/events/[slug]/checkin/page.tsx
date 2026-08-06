@@ -1,30 +1,38 @@
+import { AlertTriangle } from "lucide-react";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 
-import "@/app/landing.css";
-
 import { requireAdmin } from "@/features/admin/action-helpers";
+import { AdminFlash } from "@/features/admin/components/admin-flash";
+import { DeskSearch } from "@/features/admin/components/checkin/desk-search";
+import { deskButton } from "@/features/admin/components/checkin/desk-ui";
 import {
-  assignBibAndCheckIn,
-  assignPendingBib,
-  markNoShow,
-  revertToRegistered,
-} from "@/features/admin/checkin-actions";
-import { checkedInText, checkinErrorText } from "@/features/admin/checkin-copy";
-import { plural } from "@/features/admin/format";
-import { awaitingBib, HeatDesk, RaceMorningLists } from "@/features/admin/components/race-morning";
-import { StatusPill } from "@/features/admin/components/status-pill";
-import {
-  getEventRoster,
-  getRosterRowById,
-  holdsBib,
-  suggestNextBib,
-  type RosterRow,
-} from "@/features/admin/events-data";
+  HEAT_DESK_ID,
+  HeatDesk,
+  RaceMorningLists,
+} from "@/features/admin/components/checkin/race-morning";
+import { RunnerCard } from "@/features/admin/components/checkin/runner-card";
+import { AdminEmptyState } from "@/features/admin/components/shell/admin-empty-state";
+import { getEventRoster, getRosterRowById, suggestNextBib, type RosterRow } from "@/features/admin/events-data";
 import { getEventHeats } from "@/features/admin/heats-data";
 import { verifyEventTicket } from "@/features/ticket/sign";
-import { formatHeatTime } from "@/lib/events/heat-time";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
+
+/**
+ * The check-in desk, designed for the way it is used: standing in the start area
+ * on race morning with a phone.
+ *
+ * So the page is a single column of full-width cards with 48px controls, the
+ * search field stays on screen while everything below it scrolls, and the two
+ * runner states — about to be checked in, already wearing a bib — are told apart
+ * by colour and by the size of the bib before a word is read.
+ *
+ * The mechanics are untouched (PRD #34, slice #43): the same GET search over name
+ * / email / bib with the same signature check on a pasted ticket link, the same
+ * check-in / no-show / undo / assign-pending-bib forms, the same heat finish and
+ * un-finish, and the same copy — which now reaches the admin through the shared
+ * flash banner rather than through this page's own notice divs.
+ */
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
@@ -53,44 +61,23 @@ function parseScannedTicket(value: string): { registrationId: string; sig: strin
   };
 }
 
-/**
- * Confirmation copy for a completed action. Check-in itself is worded by
- * {@link checkedInText}, shared with the ticket-page panel; the heat presses are
- * desk-only and worded here.
- */
-function okText(
-  code: string,
-  q: { heat?: string; returned?: string; released?: string },
-): string | null {
-  switch (code) {
-    case "":
-      return null;
-    case "finished":
-      return `Heat finished — ${plural(Number(q.returned ?? 0), "bib")} back in the pool.`;
-    case "unfinished":
-      return `Heat re-opened — ${plural(Number(q.released ?? 0), "bib")} re-leased to its runners.`;
-    default:
-      return checkedInText(code, q.heat);
-  }
-}
-
 export default async function AdminCheckinPage({ params, searchParams }: PageProps) {
   const { locale, slug } = await params;
-  const { q, ok, error, heat, returned, released, bibs } = await searchParams;
+  const query = await searchParams;
   setRequestLocale(locale);
   await requireAdmin(locale);
 
   const event = getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
 
-  const query = q?.trim() ?? "";
+  const q = query.q?.trim() ?? "";
 
   // Resolve results: a scanned/pasted ticket URL resolves to one verified
   // runner; otherwise free-text search over name / email / bib.
   let results: RosterRow[] = [];
   let scanError = false;
-  if (query) {
-    const scanned = parseScannedTicket(query);
+  if (q) {
+    const scanned = parseScannedTicket(q);
     if (scanned) {
       if (verifyEventTicket(scanned.registrationId, scanned.sig)) {
         const row = await getRosterRowById(slug, scanned.registrationId);
@@ -99,7 +86,7 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
         scanError = true;
       }
     } else {
-      results = await getEventRoster(slug, { q: query });
+      results = await getEventRoster(slug, { q });
     }
   }
 
@@ -109,190 +96,94 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
     getEventHeats(slug),
     getEventRoster(slug, { status: "checked_in" }),
   ]);
-  const notice = checkinErrorText(scanError ? "scan" : (error ?? ""), { pool, bibs });
-  const confirmation = okText(ok ?? "", { heat, returned, released });
 
   return (
-    <>
-      {confirmation ? <div className="iv-notice iv-notice--info">{confirmation}</div> : null}
-      {notice ? <div className="iv-notice iv-notice--error">{notice}</div> : null}
+    <div className="flex flex-col gap-4">
+      {/* A failed signature on a pasted link is not an action's redirect, so it is
+          handed to the banner as the code the desk's copy already words. */}
+      <AdminFlash query={scanError ? { ...query, error: "scan" } : query} context={{ slug }} />
 
-      {nextBib === null ? (
-        <div className="iv-notice iv-notice--error">
-          All {pool} bibs are out. Check-in still works — mark a finished heat complete to free
-          bibs.
-        </div>
+      {nextBib === null ? <BibsExhausted pool={pool} /> : null}
+
+      <DeskSearch query={q} />
+
+      {results.length > 0 ? (
+        <ul className="flex flex-col gap-4">
+          {results.map((row) => (
+            <RunnerCard
+              key={row.id}
+              row={row}
+              slug={slug}
+              locale={locale}
+              q={q}
+              nextBib={nextBib}
+              pool={pool}
+            />
+          ))}
+        </ul>
       ) : null}
 
-      <form method="get" className="iv-card">
-        <span className="iv-fieldlabel">Search name / email / bib, or scan a ticket QR</span>
-        <input
-          className="iv-input"
-          name="q"
-          defaultValue={query}
-          placeholder="e.g. Kowalski, ola@…, 12, or paste ticket link"
-          autoFocus
-        />
-        <div className="iv-actions">
-          <button type="submit" className="btn btn-red">
-            Find
-          </button>
-        </div>
-      </form>
-
-      {query && results.length === 0 && !scanError ? (
-        <p className="iv-note">No matching runners.</p>
+      {q && results.length === 0 && !scanError ? (
+        <AdminEmptyState title={`Nothing matches “${q}”`}>
+          Try a surname, an email address, or a bib number — a recycled number finds only the
+          runner wearing it right now. A ticket link has to be pasted whole, signature and all.
+        </AdminEmptyState>
       ) : null}
 
-      {results.map((row) => (
-        <RunnerCard
-          key={row.id}
-          row={row}
-          slug={slug}
+      {/* Pre-race is *both* halves of the condition: no search yet **and** nobody
+          through the desk. Once either is true the working lists are what the desk
+          wants below the results — including their own "nobody is waiting" lines,
+          which are information at 08:00 and not an empty screen. */}
+      {!q && checkedIn.length === 0 ? (
+        <AdminEmptyState title="Nobody has checked in yet">
+          Find a runner in the search field above — surname, email, bib, or the link pasted
+          straight out of their ticket email — and hand them the bib it suggests. The waiting list
+          and the unplaced list fill in as people come through.
+        </AdminEmptyState>
+      ) : (
+        <RaceMorningLists
           locale={locale}
-          q={query}
-          nextBib={nextBib}
-          pool={pool}
+          slug={slug}
+          q={q}
+          checkedIn={checkedIn}
+          bibAvailable={nextBib !== null}
         />
-      ))}
-
-      <RaceMorningLists
-        locale={locale}
-        slug={slug}
-        q={query}
-        checkedIn={checkedIn}
-        bibAvailable={nextBib !== null}
-      />
+      )}
 
       <HeatDesk locale={locale} slug={slug} heats={heats} />
-    </>
+    </div>
   );
 }
 
-function RunnerCard({
-  row,
-  slug,
-  locale,
-  q,
-  nextBib,
-  pool,
-}: {
-  row: RosterRow;
-  slug: string;
-  locale: string;
-  q: string;
-  nextBib: number | null;
-  pool: number;
-}) {
-  const name = [row.firstName, row.lastName].filter(Boolean).join(" ") || row.name;
-  const checkedIn = row.status === "checked_in";
-  // Holding no bib is not the same as needing one — a runner whose heat has been
-  // marked finished has run, and must not be handed a fresh number (ADR 0003).
-  const waiting = awaitingBib(row);
-
+/**
+ * Every number in the pool is out on loan.
+ *
+ * Loud, because it changes what the next press does — check-in still succeeds, but
+ * the runner leaves the desk without a bib (ADR 0003) — and because the fix is
+ * somewhere else on the page, so it carries the jump to it.
+ */
+function BibsExhausted({ pool }: { pool: number }) {
   return (
-    <section className="iv-card" style={{ marginTop: 16 }}>
-      <div className="iv-section-head">
-        <div>
-          <h2 className="iv-section-title">{name}</h2>
-          <div className="iv-cellsub">
-            {row.email}
-            {row.club ? ` · ${row.club}` : ""}
-          </div>
-        </div>
-        <div className="iv-inline" style={{ gap: 8 }}>
-          {/* The desk reads the heat off the card, so a runner can be told where
-              to stand at the moment they are chipped. */}
-          <span className="iv-pill">
-            {row.heatNumber === null
-              ? "no heat"
-              : `heat ${row.heatNumber}${
-                  row.heatScheduledAt ? ` · ${formatHeatTime(row.heatScheduledAt)}` : ""
-                }`}
-          </span>
-          <StatusPill status={row.status} />
+    <div
+      role="status"
+      data-desk-bibs-exhausted
+      className="rounded-admin-lg border border-admin-accent bg-admin-accent-soft p-4 sm:p-5"
+    >
+      <div className="flex items-start gap-3">
+        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-admin-accent" aria-hidden />
+        <div className="min-w-0">
+          <p className="font-sans text-[16px] font-semibold normal-case not-italic leading-tight text-admin-ink">
+            All {pool} bibs are out
+          </p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-admin-ink-2">
+            Check-in still works — runners are marked present with a bib pending and join the
+            waiting list. Mark a finished heat complete to free bibs.
+          </p>
+          <a href={`#${HEAT_DESK_ID}`} className={deskButton("primary", "mt-3.5")}>
+            Free bibs at the heat desk
+          </a>
         </div>
       </div>
-
-      {checkedIn ? (
-        <div className="iv-inline" style={{ marginTop: 12, gap: 12 }}>
-          <span className="iv-sub">
-            {holdsBib(row)
-              ? `Bib #${row.bib} leased.`
-              : waiting
-                ? "Present · bib pending."
-                : `Ran in heat ${row.heatNumber} · bib ${row.bib ?? "—"} returned to the pool.`}
-          </span>
-          {waiting ? (
-            <ActionForm action={assignPendingBib} slug={slug} locale={locale} q={q} regId={row.id}>
-              <button type="submit" className="btn btn-red btn-sm" disabled={nextBib === null}>
-                {nextBib === null ? "No bib free" : `Assign bib ${nextBib}`}
-              </button>
-            </ActionForm>
-          ) : null}
-          <ActionForm action={revertToRegistered} slug={slug} locale={locale} q={q} regId={row.id}>
-            <button type="submit" className="iv-linkbtn">
-              Undo check-in
-            </button>
-          </ActionForm>
-        </div>
-      ) : (
-        <div className="iv-inline" style={{ marginTop: 12, alignItems: "flex-end", gap: 12 }}>
-          <form action={assignBibAndCheckIn} className="iv-inline" style={{ alignItems: "flex-end", gap: 12 }}>
-            <input type="hidden" name="locale" value={locale} />
-            <input type="hidden" name="slug" value={slug} />
-            <input type="hidden" name="registrationId" value={row.id} />
-            <input type="hidden" name="q" value={q} />
-            <label className="block">
-              <span className="iv-fieldlabel">Bib</span>
-              <input
-                className="iv-input"
-                name="bib"
-                type="number"
-                min={1}
-                max={pool}
-                placeholder={nextBib === null ? "none free" : undefined}
-                defaultValue={nextBib ?? ""}
-                style={{ width: 120 }}
-              />
-            </label>
-            <button type="submit" className="btn btn-red">
-              Check in
-            </button>
-          </form>
-          <ActionForm action={markNoShow} slug={slug} locale={locale} q={q} regId={row.id}>
-            <button type="submit" className="btn btn-stroke">
-              No-show
-            </button>
-          </ActionForm>
-        </div>
-      )}
-    </section>
-  );
-}
-
-function ActionForm({
-  action,
-  slug,
-  locale,
-  q,
-  regId,
-  children,
-}: {
-  action: (formData: FormData) => void | Promise<void>;
-  slug: string;
-  locale: string;
-  q: string;
-  regId: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <form action={action}>
-      <input type="hidden" name="locale" value={locale} />
-      <input type="hidden" name="slug" value={slug} />
-      <input type="hidden" name="registrationId" value={regId} />
-      <input type="hidden" name="q" value={q} />
-      {children}
-    </form>
+    </div>
   );
 }

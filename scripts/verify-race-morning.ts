@@ -26,7 +26,7 @@ import {
   setRegistrationStatus,
   suggestNextBib,
 } from "../src/features/admin/events-data";
-import { awaitingBib } from "../src/features/admin/components/race-morning";
+import { awaitingBib } from "../src/features/admin/components/checkin/race-morning";
 import {
   createHeats,
   findHeatWithRoom,
