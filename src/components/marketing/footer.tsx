@@ -38,7 +38,7 @@ const SECTIONS = [
 
 const SOCIAL_LINKS = [
   { label: "YouTube", href: "https://www.youtube.com/@acebattlerun/videos" },
-  { label: "Instagram", href: "https://www.instagram.com/acebattle_run/" },
+  { label: "Instagram", href: "https://www.instagram.com/ace_battle_poland/" },
 ] as const;
 
 export function Footer() {

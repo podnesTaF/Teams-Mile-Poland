@@ -1,6 +1,7 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 
 import { eventEmailLog, eventHeats, eventRegistrations, users } from "@/db/schema";
+import { eventFooterMeta } from "@/emails/components";
 import { EventHeatAssignmentEmail } from "@/emails/event-heat-assignment";
 import { heatNotifyState, publishEventHeats } from "@/features/admin/heats-data";
 import { makeEventTicketUrl } from "@/features/event-registration/ticket";
@@ -162,6 +163,7 @@ export async function publishHeatsAndNotify(eventSlug: string): Promise<PublishH
           startTime,
           ticketUrl: makeEventTicketUrl(r.registrationId, { locale: r.locale }),
           changed,
+          footerMeta: eventFooterMeta(event),
         }),
       });
       if (error) throw new Error(error.message);

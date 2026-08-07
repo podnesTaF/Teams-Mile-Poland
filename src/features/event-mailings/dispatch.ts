@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 
 import { eventEmailLog } from "@/db/schema";
+import { eventFooterMeta } from "@/emails/components";
 import { EventLifecycleEmail, type EventWhenWhere } from "@/emails/event-lifecycle";
 import { makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { getDb } from "@/lib/db";
@@ -128,6 +129,7 @@ export async function sendEventKind(
             confirm: `${ticket}#confirm`,
           },
           whenWhere: whenWhereFor(event, r.locale),
+          footerMeta: eventFooterMeta(event),
           // Only the reminders ask, and only of someone who has not answered.
           showConfirm: asksForConfirmation(kind) && r.status === "registered",
         }),

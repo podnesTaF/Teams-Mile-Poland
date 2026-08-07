@@ -14,17 +14,20 @@ export function EventMediaLiveEmail({
   fullName,
   eventName,
   galleryUrl,
+  footerMeta,
 }: {
   locale: MailLocale;
   fullName: string;
   eventName: string;
   galleryUrl: string;
+  /** Event-specific footer line — see {@link eventFooterMeta}. */
+  footerMeta?: string;
 }) {
   const c = mediaLiveMailContent(locale, fullName);
   const para = { margin: "0 0 12px", fontSize: "14px", lineHeight: "1.6", color: C.text } as const;
 
   return (
-    <EmailShell preview={c.preview}>
+    <EmailShell preview={c.preview} footerMeta={footerMeta}>
       <HeroBand eyebrow={c.eyebrow} title={c.title} sub={eventName} />
       <SectionPad>
         <Text style={{ ...para, color: C.white, fontWeight: 700 }}>{c.greeting}</Text>

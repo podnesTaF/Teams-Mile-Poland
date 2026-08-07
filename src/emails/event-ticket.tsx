@@ -14,7 +14,10 @@ type Props = {
 
 export function EventTicketEmail({ view, ticketUrl, qrCid, setPassword }: Props) {
   return (
-    <EmailShell preview={eventTicketSubject(view)}>
+    <EmailShell
+      preview={eventTicketSubject(view)}
+      footerMeta={[view.eventVenue, view.eventDateLabel].filter(Boolean).join(" · ")}
+    >
       <HeroBand
         eyebrow={view.eventName}
         title="Your race ticket"

@@ -332,6 +332,21 @@
   text-transform: uppercase;
   margin-top: 6px;
 }
+/* Clickable fact value (the venue → Google Maps). Keeps the fact's type
+   treatment; only the underline marks it as a link. */
+.ace-landing .fact__link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--line-d);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+.ace-landing .fact__link:hover,
+.ace-landing .fact__link:focus-visible {
+  color: var(--red);
+  text-decoration-color: currentColor;
+}
 .ace-landing .detail-terms {
   padding: clamp(18px, 2.4vw, 24px);
   display: flex;

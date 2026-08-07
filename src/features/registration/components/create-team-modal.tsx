@@ -13,6 +13,7 @@ import { PhoneField } from "@/components/ui/phone-field";
 import { Link } from "@/i18n/navigation";
 
 import { trackFormSubmit } from "@/lib/analytics";
+import { isValidPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
 import { submitRegistration } from "../actions";
@@ -46,7 +47,13 @@ export function CreateTeamModal() {
 
   const sizeNum = Number(data.teamSize);
   const sizeOk = Number.isInteger(sizeNum) && sizeNum >= 7 && sizeNum <= 12;
-  const ready = data.fullName && data.email && data.phone && data.teamName && sizeOk && data.terms;
+  const ready =
+    data.fullName &&
+    data.email &&
+    isValidPhone(data.phone) &&
+    data.teamName &&
+    sizeOk &&
+    data.terms;
 
   function onSubmit() {
     if (!ready || pending) return;

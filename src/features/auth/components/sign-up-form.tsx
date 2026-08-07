@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import { PhoneField } from "@/components/ui/phone-field";
 import { Link, useRouter } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth/auth-client";
-import { isPhoneEmpty } from "@/lib/phone";
+import { isValidPhone } from "@/lib/phone";
 
 import { GoogleButton } from "./google-button";
 
@@ -34,8 +34,7 @@ export function SignUpForm({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const ready =
-    name.trim() && email.trim() && !isPhoneEmpty(phone) && password.length >= 8 && terms;
+  const ready = name.trim() && email.trim() && isValidPhone(phone) && password.length >= 8 && terms;
 
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();

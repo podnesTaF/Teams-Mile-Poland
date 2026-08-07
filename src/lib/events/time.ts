@@ -19,6 +19,19 @@ export function formatEventLongDate(locale: string, date: string): string {
   }).format(new Date(`${date}T12:00:00+02:00`));
 }
 
+/**
+ * Day + month without the year — "8 August" / "8 sierpnia" / "8 серпня" — for
+ * compact surfaces like the hero's "Next event" stat. Same noon anchoring as
+ * {@link formatEventLongDate}.
+ */
+export function formatEventDayMonth(locale: string, date: string): string {
+  return new Intl.DateTimeFormat(DATE_TAG[locale] ?? "en-GB", {
+    day: "numeric",
+    month: "long",
+    timeZone: "Europe/Warsaw",
+  }).format(new Date(`${date}T12:00:00+02:00`));
+}
+
 /** Format a time stored in hundredths of a second as `MM:SS.cc`. */
 export function formatTime(timeCs: number): string {
   const pad = (n: number) => String(n).padStart(2, "0");

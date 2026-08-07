@@ -1,7 +1,8 @@
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
+import { formatEventDayMonth } from "@/lib/events/time";
 
 import { FooterActions } from "./footer-actions";
 import { Wordmark } from "./wordmark";
@@ -12,10 +13,22 @@ import { Wordmark } from "./wordmark";
  * registrations the register button is demoted to a "registration is closed"
  * note pointing at the results.
  */
-export function FinalCta({ registrationOpen = false }: { registrationOpen?: boolean }) {
+export function FinalCta({
+  registrationOpen = false,
+  nextEventDate,
+  registerHref = "/register",
+}: {
+  registrationOpen?: boolean;
+  /** ISO date of the featured event — drives the date stat, as in the hero. */
+  nextEventDate?: string | null;
+  /** Where "Register" leads — the events list for an individual featured
+   * event, the legacy /register modal for a team one. See `LandingView`. */
+  registerHref?: string;
+}) {
   const t = useTranslations("landing.finalCta");
   const f = useTranslations("landing.footer");
   const hero = useTranslations("landing.hero");
+  const locale = useLocale();
 
   return (
     <section className="section final" data-screen-label="Final CTA">
@@ -28,12 +41,14 @@ export function FinalCta({ registrationOpen = false }: { registrationOpen?: bool
             {registrationOpen ? t("title") : hero("registrationClosed")}
           </h2>
           <div className="stats">
-            <Stat k={hero("stats.dateLabel")} v={hero("stats.dateValue")} />
+            {nextEventDate ? (
+              <Stat k={hero("stats.dateLabel")} v={formatEventDayMonth(locale, nextEventDate)} />
+            ) : null}
             <Stat k={hero("stats.freeLabel")} v={hero("stats.freeValue")} />
             <Stat k={hero("stats.prizeLabel")} v={hero("stats.prizeValue")} />
           </div>
           {registrationOpen ? (
-            <Link href="/register" className="btn btn-white btn-white--ink">
+            <Link href={registerHref} className="btn btn-white btn-white--ink">
               {t("cta")}
             </Link>
           ) : (

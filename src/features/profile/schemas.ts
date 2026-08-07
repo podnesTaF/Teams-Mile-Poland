@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { dateOfBirthFormatSchema } from "@/lib/age";
+import { phoneFieldSchema } from "@/lib/phone";
 
 /** Profile fields for individual-event registration. `club` is optional. */
 export const profileSchema = z.object({
@@ -13,7 +14,7 @@ export const profileSchema = z.object({
   dateOfBirth: dateOfBirthFormatSchema(),
   sex: z.enum(["M", "F"], { error: "Select one" }),
   club: z.string().trim().max(120).optional().or(z.literal("")),
-  phone: z.string().trim().min(6, "Phone is required").max(32),
+  phone: phoneFieldSchema(),
 });
 
 export type ProfileInput = z.infer<typeof profileSchema>;

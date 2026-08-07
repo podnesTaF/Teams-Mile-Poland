@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { phoneFieldSchema } from "@/lib/phone";
+
 export const FLOW_IDS = ["start", "join", "free"] as const;
 export type RegistrationFlow = (typeof FLOW_IDS)[number];
 
@@ -15,7 +17,7 @@ export type RegistrationFlow = (typeof FLOW_IDS)[number];
 export const personSchema = z.object({
   fullName: z.string().trim().min(2, "Full name is required").max(120),
   email: z.email("Enter a valid email").transform((value) => value.toLowerCase()),
-  phone: z.string().trim().min(6, "Phone is required").max(32),
+  phone: phoneFieldSchema(),
 });
 
 export const termsSchema = z.literal(true, { error: "You must accept the terms" });

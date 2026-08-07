@@ -26,12 +26,22 @@ export const EVENT = {
     phoneTel: "+48576696078",
     email: "info@poland.acebattle.run",
     whatsappUrl: "https://chat.whatsapp.com/KynzdMczMoPE7Trr3CWGNH?mode=gi_t",
-    instagramUrl: "https://www.instagram.com/acebattle_run/",
+    instagramUrl: "https://www.instagram.com/ace_battle_poland/",
     telegramUrl: "https://t.me/acebattlerun",
   },
   mapsUrl:
     "https://www.google.com/maps/search/?api=1&query=Stadion%20Podskarbi%C5%84ska%2C%20Warsaw",
 } as const;
+
+/**
+ * Google Maps search link for a venue. Every event in the registry currently
+ * shares {@link EVENT.venue}, so this returns the same URL as `EVENT.mapsUrl` —
+ * but deriving it from the event's own venue/city keeps the link right the day
+ * a race night moves somewhere else.
+ */
+export function venueMapsUrl(venue: string, city: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venue}, ${city}`)}`;
+}
 
 export type AgeCategory = {
   code: string;

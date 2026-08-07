@@ -1,14 +1,17 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { COUNTRY_OPTIONS, countryByDial, countryByIso } from "@/lib/country-calling-codes";
 import {
   DEFAULT_COUNTRY_ISO,
   buildPhone,
+  examplePhoneForCountry,
   formatNationalDigits,
   isPhoneEmpty,
   parsePhone,
+  phoneIssue,
 } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
@@ -34,27 +37,41 @@ function isoForDial(dialCode: string, preferredIso?: string): string {
 /**
  * Phone input with a country-code selector and a masked national number field.
  * Defaults to Poland (+48) and stores values like "+48 512 345 678".
+ *
+ * The mask is per-country: digits are grouped and capped the way the selected
+ * country writes them (see `formatNationalDigits`), so non-digits and overlong
+ * input can't be typed at all. Whether the number actually exists is a separate
+ * check, reported on blur — the same `phoneIssue` the server schema uses.
  */
 export function PhoneField({ label, value, onChange, error, className, variant }: Props) {
+  const t = useTranslations("common.phone");
   const parsed = parsePhone(value);
   // Last explicit country pick — only disambiguates countries sharing a dial
   // code; the effective country is derived from `value` on every render.
   const [iso, setIso] = useState(() => isoForDial(parsed.dialCode));
+  // Validity is only reported once the field has been left, so the message
+  // doesn't fire on every keystroke of a number still being typed.
+  const [touched, setTouched] = useState(false);
 
   const selected =
     countryByIso(isoForDial(parsed.dialCode, iso)) ?? countryByIso(DEFAULT_COUNTRY_ISO)!;
-  const nationalDisplay = formatNationalDigits(parsed.national);
+  const nationalDisplay = formatNationalDigits(parsed.national, selected.iso);
+
+  const issue = touched ? phoneIssue(value) : null;
+  // A server-side field error outranks the local check.
+  const message =
+    error ??
+    (issue === "invalid" ? t("invalid") : issue === "landline" ? t("mobileOnly") : undefined);
 
   function updateCountry(nextIso: string) {
     const next = countryByIso(nextIso);
     if (!next) return;
     setIso(next.iso);
-    onChange(buildPhone(next.dial, parsed.national));
+    onChange(buildPhone(next.iso, parsed.national));
   }
 
   function updateNational(raw: string) {
-    const digits = raw.replace(/\D/g, "");
-    onChange(buildPhone(selected.dial, digits));
+    onChange(buildPhone(selected.iso, raw));
   }
 
   return (
@@ -62,7 +79,7 @@ export function PhoneField({ label, value, onChange, error, className, variant }
       className={cn(
         "ff phone-field",
         variant && `phone-field--${variant}`,
-        error && "ff-err",
+        message && "ff-err",
         className,
       )}
     >
@@ -74,7 +91,7 @@ export function PhoneField({ label, value, onChange, error, className, variant }
           <select
             className="phone-field__code"
             value={selected.iso}
-            aria-label="Country code"
+            aria-label={t("countryCode")}
             onChange={(event) => updateCountry(event.target.value)}
           >
             {COUNTRY_OPTIONS.map((country) => (
@@ -89,15 +106,21 @@ export function PhoneField({ label, value, onChange, error, className, variant }
           type="tel"
           inputMode="tel"
           autoComplete="tel-national"
-          placeholder={label}
+          // In the modals `label` is the only visible label (it doubles as the
+          // placeholder), so it wins; the forms that render their own <span>
+          // label pass none and get the country's example number instead.
+          placeholder={label ?? examplePhoneForCountry(selected.iso)}
+          aria-label={label}
+          aria-invalid={message ? true : undefined}
           value={nationalDisplay}
           onBlur={() => {
+            setTouched(true);
             if (isPhoneEmpty(value)) onChange("");
           }}
           onChange={(event) => updateNational(event.target.value)}
         />
       </div>
-      {error ? <span className="ff-error-msg">{error}</span> : null}
+      {message ? <span className="ff-error-msg">{message}</span> : null}
     </label>
   );
 }

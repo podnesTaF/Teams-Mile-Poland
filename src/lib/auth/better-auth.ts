@@ -9,6 +9,7 @@ import { VerifyEmail } from "@/emails/verify-email";
 import { getAppUrl, vercelDeploymentOrigins } from "@/lib/app-url";
 import { db } from "@/lib/db";
 import { FROM_EMAIL, getResend, resend } from "@/lib/email";
+import { phoneFieldSchema } from "@/lib/phone";
 
 /**
  * Better Auth instance for the individual mile series (email+password + Google,
@@ -129,7 +130,16 @@ export const auth = betterAuth({
       dateOfBirth: { type: "date", required: false, input: true },
       sex: { type: ["M", "F"], required: false, input: true },
       club: { type: "string", required: false, input: true },
-      phone: { type: "string", required: false, input: true },
+      // Sign-up posts straight to Better Auth, bypassing the form schemas, so
+      // the phone rule has to be attached here too. Better Auth only runs the
+      // validator when the field is present, so Google sign-up (which sends no
+      // phone) is unaffected.
+      phone: {
+        type: "string",
+        required: false,
+        input: true,
+        validator: { input: phoneFieldSchema() },
+      },
       locale: { type: "string", required: false, input: true, defaultValue: "pl" },
     },
   },

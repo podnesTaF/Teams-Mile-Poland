@@ -12,6 +12,7 @@ import { PhoneField } from "@/components/ui/phone-field";
 import { Link } from "@/i18n/navigation";
 
 import { trackFormSubmit } from "@/lib/analytics";
+import { isValidPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
 import { getJoinPreview, submitRegistration } from "../actions";
@@ -65,7 +66,7 @@ export function JoinModal({ code }: { code: string }) {
   const preview: PreviewState = fetched ?? { status: "loading" };
   const teamOk = preview.status === "ok";
   const team = teamOk ? preview.team : null;
-  const ready = teamOk && data.fullName && data.email && data.phone && data.terms;
+  const ready = teamOk && data.fullName && data.email && isValidPhone(data.phone) && data.terms;
 
   function onSubmit() {
     if (!ready || pending) return;

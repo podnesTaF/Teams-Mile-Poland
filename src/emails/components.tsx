@@ -10,6 +10,19 @@ import {
   Text,
 } from "@react-email/components";
 
+import type { EventSummary } from "@/lib/events/types";
+
+/**
+ * Footer meta line for event-bound emails: "venue, city · date". Every email
+ * about a specific event should pass this to {@link EmailShell} so the footer
+ * names that event's date, not a hardcoded one.
+ */
+export function eventFooterMeta(
+  event: Pick<EventSummary, "venue" | "city" | "shortDate">,
+): string {
+  return `${event.venue}, ${event.city} · ${event.shortDate}`;
+}
+
 /** Shared ACE BATTLE email palette — dark, branded, "looks like the site". */
 export const C = {
   bg: "#15160f",
@@ -29,9 +42,14 @@ const fontStack = "'Helvetica Neue', Helvetica, Arial, sans-serif";
 
 export function EmailShell({
   preview,
+  footerMeta,
   children,
 }: {
   preview: string;
+  /** Event-specific footer line ("venue · date") — see {@link eventFooterMeta}.
+   * Omitted (auth and other non-event emails) it falls back to the venue alone,
+   * so no email ever carries another event's date. */
+  footerMeta?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -57,7 +75,7 @@ export function EmailShell({
 
           <Section style={{ padding: "18px 4px 0" }}>
             <Text style={{ margin: 0, fontSize: "11px", lineHeight: "1.6", color: C.muted }}>
-              ACE BATTLE RUN · Stadion Podskarbińska, Warsaw · 27 June 2026
+              ACE BATTLE RUN · {footerMeta ?? "Stadion Podskarbińska, Warsaw"}
             </Text>
             <Text style={{ margin: "2px 0 0", fontSize: "11px", color: C.muted }}>
               © 2026 ACE BATTLE POLAND · Licensed event under ACE BATTLE ASSOCIATION

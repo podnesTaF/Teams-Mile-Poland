@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { dateOfBirthFormatSchema } from "@/lib/age";
+import { phoneFieldSchema } from "@/lib/phone";
 
 /**
  * Guest (passwordless) event-registration input. Collects the runner profile
@@ -17,7 +18,7 @@ export const guestRegisterSchema = z.object({
   dateOfBirth: dateOfBirthFormatSchema(),
   sex: z.enum(["M", "F"], { error: "Select one" }),
   club: z.string().trim().max(120).optional().or(z.literal("")),
-  phone: z.string().trim().min(6, "Phone is required").max(32),
+  phone: phoneFieldSchema(),
 });
 
 export type GuestRegisterInput = z.infer<typeof guestRegisterSchema>;

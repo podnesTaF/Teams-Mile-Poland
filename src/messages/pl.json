@@ -6,6 +6,11 @@
     "download": "Pobierz",
     "soon": "Wkrótce",
     "polishOnly": "Tylko po polsku",
+    "phone": {
+      "countryCode": "Kod kraju",
+      "invalid": "Podaj poprawny numer telefonu dla wybranego kraju",
+      "mobileOnly": "Podaj numer komórkowy — wyślemy SMS z przydziałem do biegu"
+    },
     "language": "Język",
     "english": "English",
     "polish": "Polski",
@@ -19,7 +24,7 @@
     "reject": "Tylko niezbędne"
   },
   "metadata": {
-    "title": "ACE BATTLE RUN — Warszawa · 27 czerwca 2026",
+    "title": "ACE BATTLE RUN — Warszawa",
     "description": "ACE BATTLE RUN — nowy format taktycznego biegu drużynowego. Role, taktyka i oficjalny ranking."
   },
   "header": {
@@ -84,7 +89,6 @@
       "venue": "Stadion Podskarbińska",
       "stats": {
         "dateLabel": "Najbliższe wydarzenie",
-        "dateValue": "8 sierpnia",
         "freeLabel": "Udział",
         "freeValue": "BEZPŁATNY",
         "prizeLabel": "💰 Pula nagród",
@@ -501,13 +505,6 @@
     },
     "legalLine": "© 2026 ACE BATTLE POLAND Ltd · Wydarzenie licencjonowane przez ACE BATTLE ASSOCIATION · Luksemburg",
     "version": "v1.0 · edycja warszawska"
-  },
-  "cta": {
-    "eyebrow": "Gotowy?",
-    "line1": "27 czerwca 2026.",
-    "line2": "Stadion Podskarbińska.",
-    "line3": "Stań na starcie.",
-    "button": "Rozpocznij rejestrację"
   },
   "registration": {
     "modals": {

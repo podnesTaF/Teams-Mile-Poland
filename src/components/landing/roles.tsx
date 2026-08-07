@@ -21,7 +21,7 @@ const CARDS = [
  * vectors behind a two-column intro (copy + composition card) and a
  * three-card role grid.
  */
-export function Roles() {
+export function Roles({ registerHref }: { registerHref?: string }) {
   const t = useTranslations("landing.roles");
 
   return (
@@ -87,7 +87,7 @@ export function Roles() {
           ))}
         </div>
       </div>
-      <Invite />
+      <Invite registerHref={registerHref} />
     </section>
   );
 }

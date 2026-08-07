@@ -6,6 +6,7 @@ import { magicLinks, runners, teams } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { appAbsoluteUrl } from "@/lib/app-url";
 import { isCaptainRunner } from "@/features/team/data";
+import { makeTicketUrl } from "@/features/ticket";
 import { setTeamSession } from "@/lib/auth/team-session";
 import { defaultLocale, locales } from "@/lib/i18n/config";
 
@@ -82,8 +83,12 @@ export async function GET(
     }
   }
 
-  // Solo / free-agent runner → their ticket page.
-  return NextResponse.redirect(
-    appAbsoluteUrl(withLocale(locale, `/ticket/${runner.id}`)),
-  );
+  // Solo / free-agent runner → their ticket page. That page is signature-gated
+  // (`?s=`) and calls `notFound()` without it, so the redirect has to go through
+  // `makeTicketUrl` — a bare `/ticket/<id>` here 404s, which is what made the
+  // "Open team dashboard" button in the registration email a dead end for every
+  // runner who had no team. `makeTicketUrl` is already absolute and built from
+  // `getAppUrl()`, so it keeps the same custom-domain guarantee as the redirects
+  // above.
+  return NextResponse.redirect(makeTicketUrl(runner.id, { locale }));
 }

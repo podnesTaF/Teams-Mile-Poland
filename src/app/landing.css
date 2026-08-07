@@ -349,44 +349,84 @@
   }
 }
 
-/* ===== SITE HEADER (fixed white bar) ===== */
+/* ===== SITE HEADER (fixed; transparent over hero → frosted glass on scroll) ===== */
 .ace-landing .site-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
-  color: var(--acl-ink);
-  transform: translateY(-100%);
-  opacity: 0;
-  pointer-events: none;
+  color: var(--acl-white);
   transition:
-    transform 0.28s ease,
-    opacity 0.28s ease;
+    transform 0.3s ease,
+    color 0.3s ease;
 }
-.ace-landing .site-header.is-visible {
-  transform: translateY(0);
-  opacity: 1;
-  pointer-events: auto;
+.ace-landing .site-header.is-scrolled {
+  color: var(--acl-ink);
+}
+.ace-landing .site-header.is-hidden {
+  transform: translateY(-100%);
+  pointer-events: none;
 }
 .ace-landing .site-header__bar {
-  background: var(--acl-white);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+/* Frosted-glass layer. Faded via opacity so the blur cross-fades smoothly —
+   transitioning backdrop-filter itself repaints poorly. */
+.ace-landing .site-header__bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(16px) saturate(1.8);
+  backdrop-filter: blur(16px) saturate(1.8);
+  border-bottom: 1px solid rgba(25, 26, 24, 0.08);
+  box-shadow: 0 10px 30px rgba(8, 8, 7, 0.07);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ace-landing .site-header__bar::before {
+    background: rgba(255, 255, 255, 0.96);
+  }
+}
+.ace-landing .site-header.is-scrolled .site-header__bar::before {
+  opacity: 1;
 }
 .ace-landing .site-header__inner {
+  position: relative;
   max-width: var(--acl-wrap);
   margin: 0 auto;
   padding: 0 clamp(16px, 3vw, 24px);
-  height: var(--site-header-h);
+  /* A touch taller while transparent at the top; compresses as it frosts. */
+  height: calc(var(--site-header-h) + 14px);
+  transition: height 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: clamp(12px, 2vw, 24px);
 }
+.ace-landing .site-header.is-scrolled .site-header__inner {
+  height: var(--site-header-h);
+}
 .ace-landing .site-header__brand {
-  display: inline-flex;
+  display: grid;
   align-items: center;
   flex-shrink: 0;
+}
+.ace-landing .site-header__brand .logo-wm {
+  grid-area: 1 / 1;
+  transition: opacity 0.3s ease;
+}
+.ace-landing .site-header__logo--dark {
+  opacity: 0;
+}
+.ace-landing .site-header.is-scrolled .site-header__logo--light {
+  opacity: 0;
+}
+.ace-landing .site-header.is-scrolled .site-header__logo--dark {
+  opacity: 1;
 }
 .ace-landing .site-header__nav {
   display: flex;
@@ -397,18 +437,34 @@
   min-width: 0;
 }
 .ace-landing .site-header__link {
+  position: relative;
   font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
   font-weight: 700;
   font-style: italic;
   font-size: clamp(11px, 1.1vw, 14px);
   line-height: 1.2;
   text-transform: uppercase;
-  color: var(--acl-ink);
+  color: inherit;
   white-space: nowrap;
   transition: color 0.15s ease;
 }
+.ace-landing .site-header__link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  background: var(--acl-red);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s ease;
+}
 .ace-landing .site-header__link:hover {
   color: var(--acl-red);
+}
+.ace-landing .site-header__link:hover::after {
+  transform: scaleX(1);
 }
 .ace-landing .site-header__actions {
   display: flex;
@@ -422,6 +478,12 @@
   padding: 4px 12px;
   min-width: 44px;
 }
+/* Ghost pill while the header floats transparent over the hero. */
+.ace-landing .site-header:not(.is-scrolled) .site-header__actions .lang {
+  color: var(--acl-white);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
+}
 .ace-landing .site-header__cta {
   padding: 6px 14px;
 }
@@ -432,12 +494,16 @@
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1px solid var(--acl-grey-line);
-  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
   background: transparent;
-  color: var(--acl-ink);
+  color: inherit;
   cursor: pointer;
   flex-shrink: 0;
+  transition: border-color 0.3s ease;
+}
+.ace-landing .site-header.is-scrolled .site-header__menu-btn {
+  border-color: var(--acl-grey-line);
 }
 .ace-landing .site-header__menu-btn svg {
   width: 22px;
@@ -445,9 +511,16 @@
 }
 .ace-landing .site-header__drawer {
   display: none;
-  background: var(--acl-white);
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  backdrop-filter: blur(20px) saturate(1.8);
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ace-landing .site-header__drawer {
+    background: var(--acl-white);
+  }
 }
 .ace-landing .site-header__drawer-nav {
   display: flex;
@@ -520,20 +593,8 @@
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-}
-.ace-landing .nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 36px 0 0;
-  position: relative;
-}
-.ace-landing .nav .lang {
-  position: absolute;
-  right: 24px;
-  top: 32px;
-  font-size: var(--fs-btn-m); /* Button M */
-  padding: 6px 12px;
+  /* Clearance under the fixed transparent header (its taller at-top height). */
+  padding-top: calc(var(--site-header-h) + 14px);
 }
 .ace-landing .hero__content {
   flex: 1;
@@ -2288,9 +2349,6 @@
   .ace-landing .path-grid {
     grid-template-columns: 1fr;
   }
-  .ace-landing .nav .lang {
-    top: 28px;
-  }
   .ace-landing .format-card {
     border-radius: 14px;
     padding: 28px 22px;
@@ -2574,6 +2632,10 @@
 }
 @media (max-width: 520px) {
   .ace-landing .site-header__actions .lang {
+    display: none;
+  }
+  /* Auth + logout live in the drawer on small screens; the bar keeps CTA + menu. */
+  .ace-landing .site-header__actions .site-header__link {
     display: none;
   }
   .ace-landing .site-header__cta {

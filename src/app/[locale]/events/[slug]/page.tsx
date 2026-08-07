@@ -15,6 +15,7 @@ import { getEventBySlug, getIndividualEvents } from "@/lib/events/registry";
 import { formatEventLongDate } from "@/lib/events/time";
 import type { EventStatus } from "@/lib/events/types";
 import { defaultLocale } from "@/lib/i18n/config";
+import { venueMapsUrl } from "@/lib/marketing/event";
 
 import { EventMediaTeaser } from "./event-media-teaser";
 
@@ -98,7 +99,11 @@ export default async function EventDetailPage({ params }: PageProps) {
               <div className="detail-facts">
                 <Fact k={t("detail.facts.date")} v={`${d} ${MONTHS[Number(m) - 1] ?? m}`} />
                 <Fact k={t("detail.facts.gun")} v={event.timeRange?.start ?? "—"} />
-                <Fact k={t("detail.facts.venue")} v={event.venue} />
+                <Fact
+                  k={t("detail.facts.venue")}
+                  v={event.venue}
+                  href={venueMapsUrl(event.venue, event.city)}
+                />
                 <Fact k={t("detail.facts.distance")} v={t("detail.distanceValue")} />
               </div>
 
@@ -221,11 +226,21 @@ export default async function EventDetailPage({ params }: PageProps) {
   );
 }
 
-function Fact({ k, v }: { k: string; v: string }) {
+/** A key/value cell. With `href` the value becomes an external link (the venue
+ *  opens the venue on Google Maps). */
+function Fact({ k, v, href }: { k: string; v: string; href?: string }) {
   return (
     <div className="fact">
       <div className="fact__k">{k}</div>
-      <div className="fact__v">{v}</div>
+      <div className="fact__v">
+        {href ? (
+          <a className="fact__link" href={href} target="_blank" rel="noopener noreferrer">
+            {v}
+          </a>
+        ) : (
+          v
+        )}
+      </div>
     </div>
   );
 }

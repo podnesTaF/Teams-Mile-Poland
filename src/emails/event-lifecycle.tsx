@@ -43,6 +43,7 @@ export function EventLifecycleEmail({
   fullName,
   urls,
   whenWhere,
+  footerMeta,
   showConfirm = false,
 }: {
   kind: EventScheduledKind;
@@ -50,6 +51,8 @@ export function EventLifecycleEmail({
   fullName: string;
   urls: EventMailUrls;
   whenWhere: EventWhenWhere;
+  /** Event-specific footer line — see {@link eventFooterMeta}. */
+  footerMeta?: string;
   showConfirm?: boolean;
 }) {
   const c = eventMailContent(kind, locale, fullName);
@@ -68,7 +71,7 @@ export function EventLifecycleEmail({
   };
 
   return (
-    <EmailShell preview={c.preview}>
+    <EmailShell preview={c.preview} footerMeta={footerMeta}>
       <HeroBand eyebrow={c.eyebrow} title={c.title} />
       <SectionPad>
         <Text style={{ ...para, color: C.white, fontWeight: 700 }}>{c.greeting}</Text>

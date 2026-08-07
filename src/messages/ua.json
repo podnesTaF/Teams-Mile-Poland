@@ -6,6 +6,11 @@
     "download": "Завантажити",
     "soon": "Скоро",
     "polishOnly": "Тільки польською",
+    "phone": {
+      "countryCode": "Код країни",
+      "invalid": "Введіть правильний номер телефону для вибраної країни",
+      "mobileOnly": "Введіть номер мобільного — ми надішлемо SMS із вашим забігом"
+    },
     "language": "Мова",
     "english": "English",
     "polish": "Polski",
@@ -19,7 +24,7 @@
     "reject": "Лише необхідні"
   },
   "metadata": {
-    "title": "ACE BATTLE RUN — Warsaw · 27 червня 2026",
+    "title": "ACE BATTLE RUN — Warsaw",
     "description": "ACE BATTLE RUN — нова тактична гра у форматі командного бігу. Ролі, тактика та офіційний рейтинг."
   },
   "header": {
@@ -84,7 +89,6 @@
       "venue": "Stadion Podskarbińska",
       "stats": {
         "dateLabel": "Найближча подія",
-        "dateValue": "8 серпня",
         "freeLabel": "Участь",
         "freeValue": "БЕЗКОШТОВНА",
         "prizeLabel": "💰 Призовий фонд",
@@ -501,13 +505,6 @@
     },
     "legalLine": "© 2026 ACE BATTLE POLAND Ltd · Ліцензований захід ACE BATTLE ASSOCIATION · Люксембург",
     "version": "v1.0 · Варшавська редакція"
-  },
-  "cta": {
-    "eyebrow": "Коли будеш готовий",
-    "line1": "27 червня 2026.",
-    "line2": "Stadion Podskarbińska.",
-    "line3": "Будь на старті.",
-    "button": "Розпочати реєстрацію"
   },
   "registration": {
     "modals": {

@@ -13,6 +13,8 @@ import {
 } from "next/font/google";
 
 import { routing } from "@/i18n/routing";
+import { getFeaturedEvent } from "@/lib/events/registry";
+import { formatEventLongDate } from "@/lib/events/time";
 import {
   GoogleTagManager,
   GoogleTagManagerNoScript,
@@ -76,8 +78,15 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "metadata" });
 
+  // The tab title carries the next event's date, so it follows the registry
+  // instead of going stale between race nights. No scheduled event → no date.
+  const featured = getFeaturedEvent();
+  const title = featured
+    ? `${t("title")} · ${formatEventLongDate(locale, featured.date)}`
+    : t("title");
+
   return {
-    title: t("title"),
+    title,
     description: t("description"),
   };
 }

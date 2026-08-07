@@ -1,9 +1,9 @@
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
+import { formatEventDayMonth } from "@/lib/events/time";
 
-import { LangPill } from "./lang-pill";
 import { PinIcon, ScrollArrowIcon } from "./icons";
 import { VideoPlay } from "./video-play";
 import { Wordmark } from "./wordmark";
@@ -35,13 +35,17 @@ export function Hero({
   registrationOpen,
   hasResults,
   registerHref = "/register",
+  nextEventDate,
 }: {
   registrationOpen: boolean;
   hasResults: boolean;
   registerHref?: string;
+  /** ISO date of the featured event — drives the "Next event" stat. */
+  nextEventDate?: string | null;
 }) {
   const t = useTranslations("landing.hero");
   const fb = useTranslations("landing.formatBand");
+  const locale = useLocale();
 
   const quickNav = QUICK_NAV.filter((item) => !("resultsOnly" in item) || hasResults);
 
@@ -50,11 +54,7 @@ export function Hero({
       <div className="hero__bg" />
       <div className="hero__inner">
         <div className="wrap">
-          <nav className="nav">
-            <Wordmark variant="nav" />
-            <LangPill />
-          </nav>
-
+          {/* Top nav lives in the fixed <LandingHeader/>, transparent over the hero. */}
           <div className="hero__content">
             <p className="hero__kicker">
               <Image src="/landing/icons/foot.svg" alt="" width={30} height={30} aria-hidden />
@@ -92,7 +92,9 @@ export function Hero({
               </nav>
             )}
             <div className="stats">
-              <Stat k={t("stats.dateLabel")} v={t("stats.dateValue")} />
+              {nextEventDate ? (
+                <Stat k={t("stats.dateLabel")} v={formatEventDayMonth(locale, nextEventDate)} />
+              ) : null}
               <Stat k={t("stats.freeLabel")} v={t("stats.freeValue")} />
               <Stat k={t("stats.prizeLabel")} v={t("stats.prizeValue")} />
             </div>

@@ -63,6 +63,7 @@ export function LandingView() {
         registrationOpen={registrationOpen}
         hasResults={resultsEvents.length > 0}
         registerHref={registerHref}
+        nextEventDate={featuredEvent?.date ?? null}
       />
       <EventSeries />
       <LatestNews />
@@ -72,7 +73,7 @@ export function LandingView() {
       <RatingPath />
       {registrationOpen && <RegisterCta href={registerHref} />}
       <HowItGoes />
-      <Roles />
+      <Roles registerHref={registerHref} />
       <Audience />
       <Location />
       <PathForward />
@@ -82,7 +83,11 @@ export function LandingView() {
       <InternationalAssociation />
       <Contact />
       <Faq />
-      <FinalCta registrationOpen={registrationOpen} />
+      <FinalCta
+        registrationOpen={registrationOpen}
+        nextEventDate={featuredEvent?.date ?? null}
+        registerHref={registerHref}
+      />
       <CookieConsent />
     </div>
   );

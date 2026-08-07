@@ -10,6 +10,7 @@ import { PhoneField } from "@/components/ui/phone-field";
 import { Link } from "@/i18n/navigation";
 
 import { trackFormSubmit } from "@/lib/analytics";
+import { isValidPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
 import { submitContact } from "../action";
@@ -44,7 +45,7 @@ export function ContactForm({ onSent }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const ready = data.name && data.email && data.phone && data.terms;
+  const ready = data.name && data.email && isValidPhone(data.phone) && data.terms;
 
   function onSubmit() {
     if (!ready || pending) return;

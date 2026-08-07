@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 
 import { eventEmailLog } from "@/db/schema";
+import { eventFooterMeta } from "@/emails/components";
 import { EventMediaLiveEmail } from "@/emails/event-media-live";
 import { getAppUrl } from "@/features/registration/data";
 import { getDb } from "@/lib/db";
@@ -102,6 +103,7 @@ export async function sendMediaLiveMailing(eventSlug: string): Promise<MediaLive
           fullName: r.fullName,
           eventName: event.name,
           galleryUrl: galleryUrl(eventSlug, r.locale),
+          footerMeta: eventFooterMeta(event),
         }),
       });
       await db

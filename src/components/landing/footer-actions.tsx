@@ -17,7 +17,7 @@ const SOCIALS = [
     id: "instagram",
     label: "Instagram",
     icon: "social-instagram",
-    href: "https://www.instagram.com/acebattle_run/",
+    href: "https://www.instagram.com/ace_battle_poland/",
   },
   {
     id: "youtube",

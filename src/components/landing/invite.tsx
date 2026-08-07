@@ -16,7 +16,7 @@ const CHIPS = [
 const INVITE_VIDEO_ID = "X8wbdTMgxJ0";
 
 /** White interlude: video play button + chips + headline + CTA. */
-export function Invite() {
+export function Invite({ registerHref = "/register" }: { registerHref?: string }) {
   const t = useTranslations("landing.invite");
 
   return (
@@ -39,7 +39,7 @@ export function Invite() {
         </div>
      
        <h2 className="head t-sec">{t("title")}</h2>
-        <Link href="/register" className="btn btn-red">
+        <Link href={registerHref} className="btn btn-red">
           {t("cta")}
         </Link>
       </div>

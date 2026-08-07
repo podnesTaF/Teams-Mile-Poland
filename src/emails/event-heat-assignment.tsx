@@ -23,6 +23,7 @@ export function EventHeatAssignmentEmail({
   startTime,
   ticketUrl,
   changed,
+  footerMeta,
 }: {
   locale: MailLocale;
   fullName: string;
@@ -32,12 +33,14 @@ export function EventHeatAssignmentEmail({
   startTime: string;
   ticketUrl: string;
   changed: boolean;
+  /** Event-specific footer line — see {@link eventFooterMeta}. */
+  footerMeta?: string;
 }) {
   const c = heatAssignmentMailContent(locale, fullName, { changed });
   const para = { margin: "0 0 12px", fontSize: "14px", lineHeight: "1.6", color: C.text } as const;
 
   return (
-    <EmailShell preview={c.preview}>
+    <EmailShell preview={c.preview} footerMeta={footerMeta}>
       <HeroBand eyebrow={c.eyebrow} title={c.title} sub={eventName} />
       <SectionPad>
         <Text style={{ ...para, color: C.white, fontWeight: 700 }}>{c.greeting}</Text>

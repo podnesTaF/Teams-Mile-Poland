@@ -22,8 +22,9 @@ const NAV_LINKS = [
 ] as const;
 
 /**
- * Fixed white landing header — hidden at the very top, then reveals on scroll
- * up and hides on scroll down. Force-hidden while a prize-table modal is open
+ * Fixed landing header, always visible. Transparent over the dark hero (light
+ * lockup, white links); once the page scrolls it frosts into a blurred glass
+ * bar with the dark lockup. Force-hidden while a prize-table modal is open
  * (the modal broadcasts an `ace:modal` event).
  */
 export function LandingHeader({
@@ -39,27 +40,15 @@ export function LandingHeader({
   const authHref = session ? "/profile" : "/auth/sign-in";
   const authLabel = session ? tAuth("nav.profile") : tAuth("nav.signIn");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [shownByScroll, setShownByScroll] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
-  const visible = (shownByScroll || menuOpen) && !modalOpen;
 
   useEffect(() => {
-    const threshold = 80;
-    const delta = 6;
-    let lastY = window.scrollY;
     let ticking = false;
     const update = () => {
-      const y = window.scrollY;
-      if (y <= threshold) {
-        setShownByScroll(false); // near the top, stay hidden over the hero
-      } else if (y > lastY + delta) {
-        setShownByScroll(false); // scrolling down → hide
-      } else if (y < lastY - delta) {
-        setShownByScroll(true); // scrolling up → reveal
-      }
-      lastY = y;
+      setScrolled(window.scrollY > 12);
       ticking = false;
     };
     const onScroll = () => {
@@ -68,19 +57,20 @@ export function LandingHeader({
         window.requestAnimationFrame(update);
       }
     };
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
-    const onModal = (e: Event) => setModalOpen(Boolean((e as CustomEvent).detail));
+    const onModal = (e: Event) => {
+      const open = Boolean((e as CustomEvent).detail);
+      setModalOpen(open);
+      if (open) setMenuOpen(false);
+    };
     window.addEventListener("ace:modal", onModal);
     return () => window.removeEventListener("ace:modal", onModal);
   }, []);
-
-  useEffect(() => {
-    if (!visible) setMenuOpen(false);
-  }, [visible]);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -99,13 +89,20 @@ export function LandingHeader({
 
   return (
     <header
-      className={cn("site-header", visible && "is-visible", menuOpen && "is-open")}
-      aria-hidden={!visible}
+      className={cn(
+        "site-header",
+        (scrolled || menuOpen) && "is-scrolled",
+        menuOpen && "is-open",
+        modalOpen && "is-hidden",
+      )}
+      aria-hidden={modalOpen}
     >
       <div className="site-header__bar">
         <div className="site-header__inner">
           <Link href="/" className="site-header__brand" aria-label="ACE BATTLE — home">
-            <Wordmark variant="header" />
+            {/* Both lockups stacked; CSS cross-fades white ↔ dark with the frost. */}
+            <Wordmark variant="nav" className="site-header__logo site-header__logo--light" />
+            <Wordmark variant="header" className="site-header__logo site-header__logo--dark" />
           </Link>
 
           <nav className="site-header__nav" aria-label={t("navLabel")}>
