@@ -34,6 +34,8 @@ const empty: FormState = {
   terms: false,
 };
 
+const MESSAGE_MIN = 10;
+
 type Props = {
   onSent?: () => void;
 };
@@ -43,19 +45,31 @@ export function ContactForm({ onSent }: Props) {
   const [data, setData] = useState<FormState>(empty);
   const [status, setStatus] = useState<"idle" | "sent">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [messageTouched, setMessageTouched] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  const messageTrimmed = data.message.trim();
+  const messageTooShort = messageTrimmed.length < MESSAGE_MIN;
+  // Show under the field once the user has left it or tried to send — never
+  // only by greying out the button (that reads as a "ghosted" dead control).
+  const messageError =
+    messageTouched && messageTooShort ? t("errors.messageMin") : undefined;
 
   const ready = data.name && data.email && isValidPhone(data.phone) && data.terms;
 
   function onSubmit() {
     if (!ready || pending) return;
+    if (messageTooShort) {
+      setMessageTouched(true);
+      return;
+    }
     setError(null);
     startTransition(async () => {
       const result = await submitContact({
         name: data.name.trim(),
         email: data.email.trim(),
         phone: data.phone.trim(),
-        message: data.message.trim() || undefined,
+        message: messageTrimmed,
         method: data.method,
         terms: true,
       });
@@ -66,6 +80,7 @@ export function ContactForm({ onSent }: Props) {
       trackFormSubmit("contact", { method: data.method });
       setStatus("sent");
       setData(empty);
+      setMessageTouched(false);
       onSent?.();
     });
   }
@@ -94,6 +109,8 @@ export function ContactForm({ onSent }: Props) {
         as="textarea"
         label={t("message")}
         value={data.message}
+        error={messageError}
+        onBlur={() => setMessageTouched(true)}
         onChange={(event) => setData((d) => ({ ...d, message: event.target.value }))}
       />
       <div className="contact-method">

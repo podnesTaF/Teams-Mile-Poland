@@ -9,7 +9,11 @@ export const contactPayloadSchema = z.object({
   name: z.string().trim().min(2, "Name is required").max(120),
   email: z.email("Enter a valid email").transform((value) => value.toLowerCase()),
   phone: phoneFieldSchema(),
-  message: z.string().trim().max(2000).optional().or(z.literal("")),
+  message: z
+    .string()
+    .trim()
+    .min(10, "Message must be at least 10 characters")
+    .max(2000),
   method: z.enum(CONTACT_METHODS),
   terms: z.literal(true, { error: "You must accept the terms" }),
 });

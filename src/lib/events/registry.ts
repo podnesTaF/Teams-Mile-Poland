@@ -67,12 +67,11 @@ export const EVENTS: EventSummary[] = [
   // still happening with entries shut, which is exactly the confusion the
   // removal is meant to avoid. Its 11 registrations were re-slugged to 08-15
   // first, so no row keys a slug the registry no longer knows; `/events/
-  // mile-2026-08-08` now 404s. The rest are announced ("opens soon") until
-  // their registration windows open.
+  // mile-2026-08-08` now 404s.
   { ...mileEvent("2026-08-01", MORNING, "completed"), results: mile20260801Results },
   mileEvent("2026-08-15", MORNING, "registration_open"),
-  mileEvent("2026-08-22", EVENING),
-  mileEvent("2026-08-29", MORNING),
+  mileEvent("2026-08-22", EVENING, "registration_open"),
+  mileEvent("2026-08-29", MORNING, "registration_open"),
 ];
 
 /**

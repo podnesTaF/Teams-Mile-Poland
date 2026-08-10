@@ -23,10 +23,11 @@ import {
   slugsWithPublishedHeats,
 } from "@/features/event-registration/confirmation";
 import { makeEventTicketUrl } from "@/features/event-registration/ticket";
+import { SeriesList, type RaceRow } from "@/features/event-registration/components/series-list";
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { formatHeatTime } from "@/lib/events/heat-time";
-import { getEventBySlug } from "@/lib/events/registry";
+import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
 import { defaultLocale } from "@/lib/i18n/config";
 import { getUser, isProfileComplete } from "@/lib/auth/user-session";
 
@@ -89,6 +90,26 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const heats = await publishedHeatsByRegistration(registrations.map((r) => r.id));
   const now = new Date();
   const notice = confirmNotice(c);
+
+  // Race nights the user could still join — any registration row (even a
+  // cancelled one) excludes the event, since registerForEvent rejects those
+  // as duplicates and a dead-end Register CTA is worse than no row.
+  const registeredSlugs = new Set(registrations.map((r) => r.eventSlug));
+  const otherEvents: RaceRow[] = getSeriesEvents()
+    .filter((event) => !registeredSlugs.has(event.slug))
+    .map((event) => {
+      const [y, m, d] = event.date.split("-");
+      return {
+        slug: event.slug,
+        d,
+        m: MONTHS[Number(m) - 1] ?? m,
+        y,
+        title: event.name,
+        status: event.status,
+        time: event.timeRange ? event.timeRange.start : null,
+        venue: event.venue,
+      };
+    });
 
   return (
     <div className="ace-landing iv">
@@ -229,6 +250,15 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                 })}
               </div>
             )}
+
+            {otherEvents.length > 0 ? (
+              <div className="regs-more">
+                <h3 className="iv-title" style={{ fontSize: "clamp(1.15rem, 2.2vw, 1.4rem)", marginTop: 32 }}>
+                  {t("registrations.moreHeading")}
+                </h3>
+                <SeriesList rows={otherEvents} />
+              </div>
+            ) : null}
           </section>
         </div>
       </main>

@@ -29,7 +29,7 @@ export async function submitContact(payload: ContactPayload): Promise<ContactRes
         name,
         email,
         phone,
-        message: message ? message : null,
+        message,
         method,
       });
       stored = true;
