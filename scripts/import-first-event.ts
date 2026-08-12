@@ -37,33 +37,13 @@ import { nanoid } from "nanoid";
 import postgres from "postgres";
 
 import { legacyParticipations, runners, teams, users } from "../src/db/schema";
+import { nameKey } from "../src/lib/events/name-key";
 import { getEventOrThrow } from "../src/lib/events/registry";
 import { formatTime } from "../src/lib/events/time";
 
 const EVENT_SLUG = "warsaw-2026";
 
 const WRITE = process.argv.includes("--write");
-
-/**
- * Normalize a person name for matching: lowercase, diacritics stripped —
- * including letters with no NFD decomposition (ł, đ, ø, …) — non-letters
- * collapsed to spaces, tokens sorted so "Klim Łukasz" and "Lukasz Klim"
- * collide.
- */
-const NON_DECOMPOSING: Record<string, string> = { ł: "l", đ: "d", ð: "d", ø: "o", æ: "ae", ß: "ss" };
-
-function nameKey(raw: string): string {
-  return raw
-    .toLowerCase()
-    .replace(/[łđðøæß]/g, (c) => NON_DECOMPOSING[c] ?? c)
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^\p{L}]+/gu, " ")
-    .trim()
-    .split(/\s+/)
-    .sort()
-    .join(" ");
-}
 
 function normalizeEmail(raw: string): string {
   return raw.trim().toLowerCase();

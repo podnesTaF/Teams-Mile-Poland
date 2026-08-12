@@ -25,9 +25,12 @@ import {
 import { makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { SeriesList, type RaceRow } from "@/features/event-registration/components/series-list";
 import { ProfileForm } from "@/features/profile/components/profile-form";
+import { getAttendedLegacySlugs } from "@/features/profile/data";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
+import { formatTime } from "@/lib/events/time";
+import { findUserResults } from "@/lib/events/user-results";
 import { defaultLocale } from "@/lib/i18n/config";
 import { getUser, isProfileComplete } from "@/lib/auth/user-session";
 
@@ -91,6 +94,18 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const now = new Date();
   const notice = confirmNotice(c);
 
+  // Results are config sheets keyed by free-text name (no user id, no reliable
+  // bib join) — recover this user's rows by name-matching within the events
+  // they participated in: live registrations plus imported legacy attendance.
+  const legacySlugs = await getAttendedLegacySlugs(user.id);
+  const fullName = [u.firstName, u.lastName].filter(Boolean).join(" ") || user.name;
+  const myResults = findUserResults(fullName, [
+    ...registrations.map((r) => ({ eventSlug: r.eventSlug, bib: r.bib })),
+    ...legacySlugs.map((eventSlug) => ({ eventSlug })),
+  ]);
+  const bestTimeCs =
+    myResults.length > 1 ? Math.min(...myResults.map((r) => r.entry.timeCs)) : null;
+
   // Race nights the user could still join — any registration row (even a
   // cancelled one) excludes the event, since registerForEvent rejects those
   // as duplicates and a dead-end Register CTA is worse than no row.
@@ -151,6 +166,53 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
           <section id="security" style={{ marginTop: 24 }}>
             <ChangePasswordForm />
           </section>
+
+          {myResults.length > 0 ? (
+            <section className="regs-section" id="results">
+              <div className="section-label">
+                <span className="iv-eyebrow">{t("results.title")}</span>
+              </div>
+              <h2 className="iv-title" style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)" }}>
+                {t("results.heading")}
+              </h2>
+
+              <div className="reg-list">
+                {myResults.map((res) => {
+                  const [y, m, d] = res.event.date.split("-");
+                  return (
+                    <div
+                      key={`${res.event.slug}:${res.heatNumber}:${res.entry.bib}`}
+                      className="reg-card res-card"
+                    >
+                      <div className="race-date">
+                        <span className="race-date__d">{String(parseInt(d, 10))}</span>
+                        <span className="race-date__m">{MONTHS[parseInt(m, 10) - 1] ?? ""}</span>
+                        <span className="race-date__y">{y}</span>
+                      </div>
+                      <div className="reg-card__body">
+                        <span className="reg-card__title">{res.event.name}</span>
+                        <div className="reg-card__meta">
+                          <span>
+                            {t("results.place")}{" "}
+                            <b>{t("results.placeValue", { rank: res.rank, total: res.total })}</b>
+                          </span>
+                          <span>{t("results.heat", { number: res.heatNumber })}</span>
+                          <span>{t(`results.category.${res.entry.gender}`)}</span>
+                        </div>
+                      </div>
+                      <div className="res-card__perf">
+                        {res.entry.timeCs === bestTimeCs ? (
+                          <span className="res-card__best">{t("results.best")}</span>
+                        ) : null}
+                        <span className="res-card__time">{formatTime(res.entry.timeCs)}</span>
+                        <span className="res-card__lvl">{t("results.level", { n: res.level })}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
 
           <section className="regs-section" id="registrations">
             <div className="section-label">

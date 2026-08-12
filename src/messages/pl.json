@@ -1110,6 +1110,19 @@
         "failed": "Nie udało się potwierdzić tej rejestracji. Otwórz link z e-maila z biletem i spróbuj ponownie.",
         "ineligible": "Ta rejestracja jest oznaczona jako nieobecność. Skontaktuj się z organizatorami."
       }
+    },
+    "results": {
+      "title": "Moje wyniki",
+      "heading": "Twoje wyniki",
+      "place": "Miejsce",
+      "placeValue": "{rank} / {total}",
+      "heat": "Seria {number}",
+      "level": "Poz. {n}",
+      "best": "Najlepszy czas",
+      "category": {
+        "M": "Mężczyźni",
+        "F": "Kobiety"
+      }
     }
   },
   "register": {

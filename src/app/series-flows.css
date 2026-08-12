@@ -1033,6 +1033,39 @@
 .ace-landing .status--registered .status__dot {
   background: var(--ok);
 }
+/* My results — result cards (reuse the .reg-card frame; perf column right) */
+.ace-landing .res-card {
+  border-left-color: var(--acl-red);
+}
+.ace-landing .res-card__perf {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.ace-landing .res-card__time {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.6rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ace-landing .res-card__lvl {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #d8d8d6;
+  border: 1px solid var(--line-d2);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.ace-landing .res-card__best {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
 .ace-landing .regs-empty {
   background: var(--card);
   border: 1px dashed var(--line-d2);
@@ -1068,6 +1101,13 @@
     gap: 12px 14px;
   }
   .ace-landing .reg-card__actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .ace-landing .res-card__perf {
     grid-column: 1 / -1;
     flex-direction: row;
     align-items: center;

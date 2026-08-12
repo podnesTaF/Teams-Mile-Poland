@@ -1110,6 +1110,19 @@
         "failed": "We could not confirm that registration. Open the link from your ticket email and try again.",
         "ineligible": "This registration is marked as a no-show. Please contact the organizers."
       }
+    },
+    "results": {
+      "title": "My results",
+      "heading": "Your results",
+      "place": "Place",
+      "placeValue": "{rank} / {total}",
+      "heat": "Heat {number}",
+      "level": "Lvl {n}",
+      "best": "Best time",
+      "category": {
+        "M": "Men",
+        "F": "Women"
+      }
     }
   },
   "register": {
