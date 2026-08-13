@@ -13,12 +13,14 @@ import { AdminNotice } from "@/features/admin/components/shell/admin-notice";
 import { AdminStat } from "@/features/admin/components/shell/admin-stat";
 import { plural } from "@/features/admin/format";
 import { generateHeats, publishHeats } from "@/features/admin/heat-actions";
+import { SeedFinalCard } from "@/features/admin/components/seed-final-card";
 import {
   getEventHeats,
   getSeedPool,
   MAX_GENERATE_HEATS,
   outOfOrderHeats,
 } from "@/features/admin/heats-data";
+import { getResultsState, topQualifiers } from "@/features/admin/results-import/data";
 import { instantToWarsawLocal } from "@/lib/events/heat-time";
 import {
   getBibPool,
@@ -59,9 +61,24 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
   const event = getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
 
-  const [heats, seeds] = await Promise.all([getEventHeats(slug), getSeedPool(slug)]);
+  const [heats, seeds, resultsState] = await Promise.all([
+    getEventHeats(slug),
+    getSeedPool(slug),
+    getResultsState(slug),
+  ]);
 
   const pool = getBibPool(slug);
+
+  // The seed-final bridge appears once the timing system has reported
+  // finishers and there is a card to seed into. The preview is the standings
+  // at the default field size — the same prefix the button's default press
+  // would move.
+  const importedFinishers = resultsState.reduce((sum, h) => sum + h.finishers, 0);
+  const defaultFinalSize = Math.min(12, pool);
+  const qualifiers =
+    importedFinishers > 0 && heats.length > 0
+      ? await topQualifiers(slug, { limit: defaultFinalSize })
+      : [];
   const interval = getHeatIntervalMinutes(slug);
   const firstHeat = getFirstHeatTime(slug);
   const seeded = seeds.filter((s) => s.heatId).length;
@@ -208,6 +225,17 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
             />
           </form>
         </section>
+      ) : null}
+
+      {qualifiers.length > 0 ? (
+        <SeedFinalCard
+          locale={locale}
+          slug={slug}
+          heats={heats}
+          qualifiers={qualifiers}
+          defaultCount={defaultFinalSize}
+          pool={pool}
+        />
       ) : null}
 
       {heats.length === 0 && seeds.length === 0 ? (

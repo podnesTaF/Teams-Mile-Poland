@@ -1,9 +1,9 @@
-import { asc, inArray } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 
-import { eventResults } from "@/db/schema";
+import { eventResults, type ResultStatus } from "@/db/schema";
 import { db } from "@/lib/db";
 import { getEventBySlug, getPastEvents } from "./registry";
-import type { EventResults, EventSummary, ResultHeat } from "./types";
+import type { EventResults, EventSummary, Gender, ResultHeat } from "./types";
 
 /**
  * Results, DB-first: rows imported from the timing system (`event_results`)
@@ -82,6 +82,94 @@ export async function getMergedResults(slugs: string[]): Promise<Map<string, Eve
     if (results && results.heats.some((h) => h.entries.length > 0)) merged.set(slug, results);
   }
   return merged;
+}
+
+/* ── the per-event results page's projection ────────────────────────── */
+
+/**
+ * One imported result as the public per-event page shows it — unlike
+ * `ResultEntry`, non-finishers are first-class: a "DNF" row is the honest
+ * mid-event answer to "where did I place?", where the finishers-only landing
+ * leaderboard would silently pretend the runner was never there. A deliberate
+ * new type rather than nullable fields bolted onto `ResultEntry`, so the
+ * leaderboard/profile model keeps its "every entry has a time" invariant.
+ */
+export type PublicResultRow = {
+  status: ResultStatus;
+  /** Finishing place within the heat; null for DNF/DNS/DSQ. */
+  place: number | null;
+  bib: number;
+  gender: Gender;
+  name: string;
+  /** Net time in hundredths of a second; null for DNF/DNS/DSQ. */
+  timeCs: number | null;
+};
+
+export type PublicResultsHeat = { number: number; rows: PublicResultRow[] };
+
+export type PublicEventResults = { heats: PublicResultsHeat[] };
+
+/** Non-finishers sort below finishers, in this order within a heat. */
+const STATUS_ORDER: Record<ResultStatus, number> = { finished: 0, dnf: 1, dsq: 2, dns: 3 };
+
+/**
+ * Everything imported for one event, grouped per heat: finishers in place
+ * order, then DNF/DSQ/DNS. Falls back to the config sheet (all finishers, by
+ * definition of that model) for legacy events never imported, and — like
+ * `getMergedResults` — degrades to that fallback rather than throwing when
+ * the database is missing or unreachable.
+ */
+export async function getPublicResults(slug: string): Promise<PublicEventResults | null> {
+  if (db) {
+    try {
+      const rows = await db
+        .select({
+          heatNumber: eventResults.heatNumber,
+          status: eventResults.status,
+          place: eventResults.place,
+          bib: eventResults.bib,
+          gender: eventResults.gender,
+          name: eventResults.name,
+          timeCs: eventResults.timeCs,
+        })
+        .from(eventResults)
+        .where(eq(eventResults.eventSlug, slug))
+        .orderBy(asc(eventResults.heatNumber));
+
+      if (rows.length > 0) {
+        const byHeat = new Map<number, PublicResultRow[]>();
+        for (const { heatNumber, ...row } of rows) {
+          const list = byHeat.get(heatNumber);
+          if (list) list.push(row);
+          else byHeat.set(heatNumber, [row]);
+        }
+        return {
+          heats: [...byHeat.entries()]
+            .sort(([a], [b]) => a - b)
+            .map(([number, unsorted]) => ({
+              number,
+              rows: unsorted.sort(
+                (a, b) =>
+                  STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
+                  (a.place ?? Infinity) - (b.place ?? Infinity) ||
+                  a.bib - b.bib,
+              ),
+            })),
+        };
+      }
+    } catch (error) {
+      console.error("[results] public results read failed; falling back to config sheet:", error);
+    }
+  }
+
+  const sheet = getEventBySlug(slug)?.results;
+  if (!sheet || !sheet.heats.some((h) => h.entries.length > 0)) return null;
+  return {
+    heats: sheet.heats.map((h) => ({
+      number: h.number,
+      rows: h.entries.map((e) => ({ status: "finished" as const, ...e })),
+    })),
+  };
 }
 
 /**

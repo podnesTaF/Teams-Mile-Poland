@@ -955,6 +955,22 @@
         "title": "No start list",
         "txt": "There is no start list for this race night."
       }
+    },
+    "results": {
+      "eyebrow": "Results",
+      "back": "← Back to event",
+      "cta": "Results",
+      "provisionalNote": "Results are provisional and update live during the event — heats appear as the timing crew reports them.",
+      "heat": "Heat {number}",
+      "finishers": "{count, plural, one {# finisher} other {# finishers}}",
+      "colPlace": "Place",
+      "colName": "Runner",
+      "colTime": "Time",
+      "legend": "DNF — did not finish · DNS — did not start · DSQ — disqualified",
+      "empty": {
+        "title": "No results yet",
+        "txt": "Results appear here during and after the race night, as soon as the timing crew's files are imported."
+      }
     }
   },
   "auth": {

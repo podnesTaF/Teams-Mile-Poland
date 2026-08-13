@@ -955,6 +955,22 @@
         "title": "Brak listy startowej",
         "txt": "Dla tej nocy biegowej nie ma listy startowej."
       }
+    },
+    "results": {
+      "eyebrow": "Wyniki",
+      "back": "← Powrót do wydarzenia",
+      "cta": "Wyniki",
+      "provisionalNote": "Wyniki są nieoficjalne i aktualizowane na bieżąco w trakcie wydarzenia — serie pojawiają się, gdy tylko obsługa pomiaru czasu je prześle.",
+      "heat": "Seria {number}",
+      "finishers": "{count} na mecie",
+      "colPlace": "Miejsce",
+      "colName": "Zawodnik",
+      "colTime": "Czas",
+      "legend": "DNF — nie ukończył(a) · DNS — nie wystartował(a) · DSQ — dyskwalifikacja",
+      "empty": {
+        "title": "Wyników jeszcze nie ma",
+        "txt": "Wyniki pojawią się tutaj w trakcie i po nocy biegowej, gdy tylko pliki z pomiaru czasu zostaną zaimportowane."
+      }
     }
   },
   "auth": {

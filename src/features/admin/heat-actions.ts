@@ -21,6 +21,7 @@ import {
   setHeatForRegistrations,
   updateHeatRow,
 } from "./heats-data";
+import { seedTopQualifiers } from "./results-import/data";
 
 function heatsPath(locale: string, slug: string, query = "") {
   return adminPath(locale, `/events/${slug}/heats${query}`);
@@ -219,6 +220,50 @@ export async function publishHeats(formData: FormData) {
     `ok=published&published=${summary.published}&notified=${summary.notified}` +
       `&skipped=${summary.skipped}&failed=${summary.failed}`,
   );
+}
+
+/**
+ * Seed a finals heat from imported qualification results: move the top-N
+ * qualifiers (by net time, across every imported heat except the target's own)
+ * into the chosen heat.
+ *
+ * Only rows the import linked to a registration are moved — an unlinked result
+ * has nobody to assign, so it is reported back in the flash instead of guessed
+ * at. Nobody is emailed here: the delta lands in inboxes when the admin presses
+ * the existing (re-)publish button, exactly like a hand-seeded card.
+ */
+export async function seedFinalFromResults(formData: FormData) {
+  const locale = safeLocale(formData.get("locale"));
+  await requireAdmin(locale);
+
+  const slug = String(formData.get("slug") ?? "");
+  const heatId = String(formData.get("heatId") ?? "");
+  const event = getEventBySlug(slug);
+  if (!event || event.eventType !== "individual") {
+    back(locale, slug, "error=input");
+  }
+  if (!heatId) {
+    back(locale, slug, "error=noheat");
+  }
+
+  // A final larger than the bib pool cannot be chipped (ADR 0003) — same bound
+  // the heat-capacity inputs enforce.
+  const count = readInt(formData, "count");
+  const pool = getBibPool(slug);
+  if (count === null || count < 1 || count > pool) {
+    back(locale, slug, "error=capacity");
+  }
+
+  const result = await seedTopQualifiers(slug, heatId, count);
+  if (result.outcome === "missing-heat") {
+    back(locale, slug, "error=missing");
+  }
+  if (result.outcome === "no-qualifiers") {
+    back(locale, slug, `error=noqualifiers&unlinked=${result.unlinked}`);
+  }
+
+  revalidateHeatSurfaces(locale, slug);
+  back(locale, slug, `ok=finalseeded&n=${result.seeded}&unlinked=${result.unlinked}`);
 }
 
 /** Bulk-remove the selected registrations from whatever heat they are in. */

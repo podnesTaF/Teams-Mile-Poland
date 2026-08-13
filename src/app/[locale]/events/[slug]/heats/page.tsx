@@ -11,6 +11,7 @@ import { getEventStartList, type StartList } from "@/features/event-heats/start-
 import { Link } from "@/i18n/navigation";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug } from "@/lib/events/registry";
+import { getMergedResults } from "@/lib/events/results-data";
 import { formatEventLongDate } from "@/lib/events/time";
 
 /**
@@ -70,6 +71,12 @@ export default async function EventStartListPage({ params }: PageProps) {
     ? { totalHeats: 0, heats: [] }
     : await getEventStartList(slug);
 
+  // Whether to point the runner onward to the results page. A new dependency
+  // for this cached page, and a deliberate one: the import commit revalidates
+  // the start list (results-actions.ts), so the link appears with the first
+  // mid-event import — the moment "check your results" becomes a true sentence.
+  const hasResults = (await getMergedResults([slug])).has(slug);
+
   const state =
     startList.heats.length > 0
       ? "published"
@@ -93,6 +100,14 @@ export default async function EventStartListPage({ params }: PageProps) {
           <p className="iv-sub">
             {formatEventLongDate(locale, event.date)} · {event.venue}, {event.city}
           </p>
+
+          {hasResults ? (
+            <p className="sl-approx">
+              <Link href={`/events/${slug}/results`} className="btn btn-stroke-dark">
+                {t("results.cta")}
+              </Link>
+            </p>
+          ) : null}
 
           {state === "published" ? (
             <>

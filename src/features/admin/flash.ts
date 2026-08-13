@@ -108,6 +108,15 @@ const OK_CODES: Record<string, FlashCopy> = {
   finished: (q) => `Heat finished — ${plural(count(q, "returned"), "bib")} back in the pool.`,
   unfinished: (q) =>
     `Heat re-opened — ${plural(count(q, "released"), "bib")} re-leased to its runners.`,
+  // Seeding a final reports what it could not move as loudly as what it did:
+  // an unlinked qualifier is a real person the admin has to place by hand.
+  finalseeded: (q) => {
+    const unlinked = count(q, "unlinked");
+    const head = `Seeded ${plural(count(q, "n"), "qualifier")} into the heat — press re-publish to notify them.`;
+    return unlinked === 0
+      ? head
+      : `${head} ${plural(unlinked, "qualifying result")} skipped — not linked to any runner; seed them by hand from the builder.`;
+  },
   // The results import replaces whole heats, so the heat count matters as much
   // as the row count; skipped rows are the ones the parser refused.
   resultsimported: (q) => {
@@ -139,6 +148,12 @@ const ERROR_CODES: Record<string, FlashCopy> = {
     "Publishing failed — nothing was emailed. Try again; runners already notified are not re-emailed.",
   resultsfile: () =>
     "That file could not be read as timing results — nothing was imported. Preview it to see why.",
+  noqualifiers: (q) => {
+    const unlinked = count(q, "unlinked");
+    return unlinked === 0
+      ? "No finished results to seed from — import qualification results first."
+      : `Nothing seeded — the ${plural(unlinked, "qualifying result")} in range are not linked to any runner. Seed them by hand from the builder.`;
+  },
 };
 
 /** A `?heat=` longer than this is not a heat number; see {@link MAX_MSG_LENGTH}. */

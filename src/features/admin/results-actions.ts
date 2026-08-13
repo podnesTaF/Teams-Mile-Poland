@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { revalidateStartList } from "@/features/event-heats/start-list";
 import { getEventBySlug } from "@/lib/events/registry";
 import { formatTime } from "@/lib/events/time";
 
@@ -146,6 +147,14 @@ export async function commitResultsImport(eventSlug: string, formData: FormData)
   // profile pages are per-session dynamic and need no invalidation.
   revalidatePath("/[locale]", "page");
   revalidatePath(resultsPage);
+  // The public per-event results page is force-dynamic (fresh on every
+  // request), but the two cached pages that *link* to it — the event detail
+  // page and the start list — flip their "Results" link on the first import,
+  // so both re-render now. The results route itself is included for the day
+  // it gains a cache profile: today the call is a harmless no-op.
+  revalidatePath("/[locale]/events/[slug]", "page");
+  revalidatePath("/[locale]/events/[slug]/results", "page");
+  revalidateStartList();
 
   const skipped = outcome.errors.length;
   redirect(`${resultsPage}?ok=resultsimported&rows=${rows}&heats=${heats}&skipped=${skipped}`);

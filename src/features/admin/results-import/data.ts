@@ -1,9 +1,10 @@
-import { and, asc, eq, inArray, max, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, max, notInArray, sql } from "drizzle-orm";
 
 import { eventHeats, eventRegistrations, eventResults, users } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { nameKey } from "@/lib/events/name-key";
 
+import { setHeatForRegistrations } from "../heats-data";
 import type { ParsedResultRow } from "./parse";
 
 /**
@@ -112,6 +113,121 @@ export async function unknownHeatNumbers(
     .where(eq(eventHeats.eventSlug, eventSlug));
   const knownSet = new Set(known.map((h) => h.number));
   return heatNumbers.filter((n) => !knownSet.has(n));
+}
+
+/* ── seeding finals from imported results ───────────────────────────── */
+
+/** One finisher in the qualification standings, best time first. */
+export type Qualifier = {
+  heatNumber: number;
+  bib: number;
+  name: string;
+  gender: "M" | "F";
+  timeCs: number;
+  /**
+   * The registration the import linked this row to — the only handle seeding
+   * has. `null` means the row is real but has nobody to assign (manual timing
+   * edit, walk-up the file spelled differently): surfaced, never guessed.
+   */
+  registrationId: string | null;
+};
+
+/**
+ * The top `limit` finishers across the event's imported heats, ordered by net
+ * time. Rows from `excludeHeatNumbers` are left out — a final's own imported
+ * results must never feed a re-seed of that same final.
+ *
+ * Unlinked rows are *kept in the window* rather than skipped past: skipping
+ * would silently promote the (limit+1)-th time into the final while the true
+ * qualifier — who exists, just unmatched — is dropped. The caller seeds the
+ * linked rows and shows the unlinked ones as the warning they are.
+ */
+export async function topQualifiers(
+  eventSlug: string,
+  opts: { limit: number; excludeHeatNumbers?: number[] },
+): Promise<Qualifier[]> {
+  if (opts.limit < 1) return [];
+  const db = getDb();
+  const exclude = opts.excludeHeatNumbers ?? [];
+  const rows = await db
+    .select({
+      heatNumber: eventResults.heatNumber,
+      bib: eventResults.bib,
+      name: eventResults.name,
+      gender: eventResults.gender,
+      timeCs: eventResults.timeCs,
+      registrationId: eventResults.registrationId,
+    })
+    .from(eventResults)
+    .where(
+      and(
+        eq(eventResults.eventSlug, eventSlug),
+        eq(eventResults.status, "finished"),
+        isNotNull(eventResults.timeCs),
+        ...(exclude.length > 0 ? [notInArray(eventResults.heatNumber, exclude)] : []),
+      ),
+    )
+    .orderBy(asc(eventResults.timeCs), asc(eventResults.heatNumber), asc(eventResults.bib));
+
+  // One slot per runner: a registration that finished twice (re-ran after a
+  // timing mishap) qualifies once, on its best time. Unlinked rows have no
+  // identity to collapse on, so each stays its own slot.
+  const seen = new Set<string>();
+  const out: Qualifier[] = [];
+  for (const r of rows) {
+    if (r.registrationId) {
+      if (seen.has(r.registrationId)) continue;
+      seen.add(r.registrationId);
+    }
+    out.push({ ...r, timeCs: r.timeCs as number });
+    if (out.length === opts.limit) break;
+  }
+  return out;
+}
+
+export type SeedFinalOutcome =
+  | { outcome: "seeded"; seeded: number; unlinked: number }
+  /** No linked finished results outside the target heat — nothing to seed from. */
+  | { outcome: "no-qualifiers"; unlinked: number }
+  | { outcome: "missing-heat" };
+
+/**
+ * Seed the top `count` qualifiers into the target heat — the bridge from
+ * imported qualification results to the finals card.
+ *
+ * Moves registrations only (`setHeatForRegistrations`), so everything else
+ * about the card keeps its existing rules: nobody is emailed until the admin
+ * presses publish, and the already-idempotent re-publish path carries the
+ * delta. Re-seeding after a corrected re-import is likewise idempotent — the
+ * same runners end up in the same heat.
+ */
+export async function seedTopQualifiers(
+  eventSlug: string,
+  targetHeatId: string,
+  count: number,
+): Promise<SeedFinalOutcome> {
+  const db = getDb();
+  const [target] = await db
+    .select({ id: eventHeats.id, number: eventHeats.number })
+    .from(eventHeats)
+    .where(and(eq(eventHeats.id, targetHeatId), eq(eventHeats.eventSlug, eventSlug)))
+    .limit(1);
+  if (!target) return { outcome: "missing-heat" };
+
+  const qualifiers = await topQualifiers(eventSlug, {
+    limit: count,
+    excludeHeatNumbers: [target.number],
+  });
+  const seedable = qualifiers.filter((q) => q.registrationId !== null);
+  const unlinked = qualifiers.length - seedable.length;
+  if (seedable.length === 0) return { outcome: "no-qualifiers", unlinked };
+
+  const seeded = await setHeatForRegistrations(
+    eventSlug,
+    targetHeatId,
+    seedable.map((q) => q.registrationId as string),
+  );
+  return { outcome: "seeded", seeded, unlinked };
 }
 
 /**

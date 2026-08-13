@@ -12,6 +12,7 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { getEventDocuments, resolveDocumentFile } from "@/lib/events/documents";
 import { getEventBySlug, getIndividualEvents } from "@/lib/events/registry";
+import { getMergedResults } from "@/lib/events/results-data";
 import { formatEventLongDate } from "@/lib/events/time";
 import type { EventStatus } from "@/lib/events/types";
 import { defaultLocale } from "@/lib/i18n/config";
@@ -63,6 +64,11 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   const t = await getTranslations("events");
   const state = detailState(event.status);
+  // Whether the per-event results page has anything to show — imported rows or
+  // a legacy config sheet. Read at build/revalidate time: this page is SSG, and
+  // the import commit revalidates it, so the link appears with the first
+  // mid-event import rather than waiting for a redeploy.
+  const hasResults = (await getMergedResults([slug])).has(slug);
   const docLocale = hasLocale(routing.locales, locale) ? locale : defaultLocale;
   const docs = getEventDocuments(slug).flatMap((doc) => {
     const resolved = resolveDocumentFile(doc, docLocale);
@@ -196,6 +202,17 @@ export default async function EventDetailPage({ params }: PageProps) {
                     className="btn btn-stroke-dark btn-block slots-link"
                   >
                     {t("heats.cta")}
+                  </Link>
+                ) : null}
+
+                {/* Results, once any exist — mid-event (`closed`, heats are
+                    being imported between rounds) or after (`completed`). */}
+                {hasResults && (state === "closed" || state === "completed") ? (
+                  <Link
+                    href={`/events/${slug}/results`}
+                    className="btn btn-stroke-dark btn-block slots-link"
+                  >
+                    {t("results.cta")}
                   </Link>
                 ) : null}
               </div>

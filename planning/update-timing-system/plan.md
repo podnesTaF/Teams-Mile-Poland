@@ -6,6 +6,19 @@
 > `src/features/admin/results-actions.ts` + `results-import/{parse,data}.ts`,
 > readers in `src/lib/events/results-data.ts` (`getMergedResults`,
 > `getResultsEventsWithDb`, `getDirectResultRefs`).
+>
+> **Slice 2 (2026-08-13): implemented** (see `next-task.md`). The mid-event
+> loop: `topQualifiers`/`seedTopQualifiers` (`results-import/data.ts`) +
+> `seedFinalFromResults` action + Seed-final card on the Heats tab; public
+> `/[locale]/events/[slug]/results` (force-dynamic — deliberately not the
+> start list's cached model), non-finishers shown via the new
+> `PublicResultRow` projection (`getPublicResults`), linked from the event
+> detail page and start list, both revalidated on import commit.
+> `scripts/verify-results-seeding.ts` 16/16 on the live DB;
+> verify-results-import still 20/20; public page HTTP-gated with content
+> markers in pl/en/ua incl. the delete-shows-next-request freshness check.
+> Admin HTTP drive of the seed action was skipped — the temp-session route
+> needs owner sign-off per use; the action core is the verified path.
 
 Goal: results flow `RaceResult export file → admin upload → event_results table →
 profile + landing`, replacing the retype-a-TS-file-and-redeploy loop. Target:
