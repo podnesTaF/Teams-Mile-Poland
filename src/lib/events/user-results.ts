@@ -1,14 +1,16 @@
 import { computeLevel } from "./levels";
 import { nameKey } from "./name-key";
 import { getEventBySlug } from "./registry";
-import type { EventSummary, ResultEntry } from "./types";
+import type { EventSummary, ResultEntry, EventResults } from "./types";
 
 /**
- * One event a user took part in, as the DB knows it. Results themselves are
- * config (see `results/`), carry only a free-text name, and never reference a
- * user id — so a user's results are recovered at read time by matching their
- * profile name against the result sheets of exactly the events they are
- * recorded as participating in (event_registrations or legacy_participations).
+ * One event a user took part in, as the DB knows it. Result sheets carry only a
+ * free-text name — never a user id — so a user's results are recovered by
+ * matching within exactly the events they are recorded as participating in
+ * (event_registrations or legacy_participations). Imported results
+ * (`event_results`) may additionally carry a registration link resolved from
+ * the (heat, bib) lease at import time; the caller passes those in as direct
+ * refs, which outrank name matching.
  */
 export type ParticipationRef = {
   eventSlug: string;
@@ -32,19 +34,25 @@ export type UserResultMatch = {
 /**
  * A user's results across their participations, newest event first.
  *
- * Matching is by normalized name within a single event's sheet, scoped to
- * events the user actually participated in — a same-named stranger who never
- * registered can't pick up a result. When one sheet holds several entries
- * with the same name, the registration's bib may disambiguate; otherwise the
- * event is skipped rather than guessed, the same rule the legacy import
- * enforced.
+ * `resultsBySlug` is the merged DB-first/config view the caller loaded (see
+ * `results-data.ts`); this function stays pure. Per event, the entry is chosen
+ * by, in order:
+ *
+ * 1. a **direct ref** — the imported row linked to the user's registration at
+ *    import time, located by its (heat, bib) identity;
+ * 2. a normalized-name match within that event's sheet — a same-named stranger
+ *    who never registered can't pick up a result. When one sheet holds several
+ *    entries with the same name, the registration's bib may disambiguate;
+ *    otherwise the event is skipped rather than guessed, the same rule the
+ *    legacy import enforced.
  */
 export function findUserResults(
   fullName: string,
   participations: ParticipationRef[],
+  resultsBySlug: Map<string, EventResults>,
+  directRefs: Map<string, { heatNumber: number; bib: number }> = new Map(),
 ): UserResultMatch[] {
   const key = nameKey(fullName);
-  if (!key) return [];
 
   // One entry per event; a bib from any duplicate participation row wins.
   const bibBySlug = new Map<string, number | null>();
@@ -57,17 +65,25 @@ export function findUserResults(
   const matches: UserResultMatch[] = [];
   for (const [slug, bib] of bibBySlug) {
     const event = getEventBySlug(slug);
-    if (!event?.results) continue;
+    const results = resultsBySlug.get(slug);
+    if (!event || !results) continue;
 
-    const field = event.results.heats
+    const field = results.heats
       .flatMap((heat) => heat.entries.map((entry) => ({ heatNumber: heat.number, entry })))
       .sort((a, b) => a.entry.timeCs - b.entry.timeCs);
 
-    const candidates = field.filter((row) => nameKey(row.entry.name) === key);
-    let chosen = candidates.length === 1 ? candidates[0] : undefined;
-    if (!chosen && candidates.length > 1 && bib != null) {
-      const byBib = candidates.filter((row) => row.entry.bib === bib);
-      if (byBib.length === 1) chosen = byBib[0];
+    const direct = directRefs.get(slug);
+    let chosen = direct
+      ? field.find((row) => row.heatNumber === direct.heatNumber && row.entry.bib === direct.bib)
+      : undefined;
+
+    if (!chosen && key) {
+      const candidates = field.filter((row) => nameKey(row.entry.name) === key);
+      if (candidates.length === 1) chosen = candidates[0];
+      if (!chosen && candidates.length > 1 && bib != null) {
+        const byBib = candidates.filter((row) => row.entry.bib === bib);
+        if (byBib.length === 1) chosen = byBib[0];
+      }
     }
     if (!chosen) continue;
 

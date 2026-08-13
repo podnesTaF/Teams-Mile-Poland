@@ -12,6 +12,7 @@ export * from "./email-log";
 export * from "./auth";
 export * from "./event-heats";
 export * from "./event-registrations";
+export * from "./event-results";
 export * from "./event-email-log";
 export * from "./legacy-participations";
 export * from "./user-broadcasts";

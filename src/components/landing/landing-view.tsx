@@ -24,7 +24,8 @@ import { Results } from "@/components/landing/results";
 import { Roles } from "@/components/landing/roles";
 import { ScrollReveal } from "@/components/landing/scroll-reveal";
 import { WhatIs } from "@/components/landing/what-is";
-import { getFeaturedEvent, getResultsEvents, isRegistrationOpen } from "@/lib/events/registry";
+import { getFeaturedEvent, isRegistrationOpen } from "@/lib/events/registry";
+import { getResultsEventsWithDb } from "@/lib/events/results-data";
 
 /**
  * The full landing section tree. Rendered both by the locale page
@@ -33,9 +34,10 @@ import { getFeaturedEvent, getResultsEvents, isRegistrationOpen } from "@/lib/ev
  * behind the registration modal when its route is intercepted by the
  * `@modal` parallel slot.
  */
-export function LandingView() {
+export async function LandingView() {
   const featuredEvent = getFeaturedEvent();
-  const resultsEvents = getResultsEvents();
+  // DB-first: timing imports overlay (or replace) the config results sheets.
+  const resultsEvents = await getResultsEventsWithDb();
   const registrationOpen = isRegistrationOpen(featuredEvent);
   // Individual events register on their own detail page; the legacy team event
   // keeps the /register modal flow. Drives the hero + mid-page CTAs.

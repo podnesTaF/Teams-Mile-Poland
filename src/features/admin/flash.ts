@@ -108,6 +108,13 @@ const OK_CODES: Record<string, FlashCopy> = {
   finished: (q) => `Heat finished — ${plural(count(q, "returned"), "bib")} back in the pool.`,
   unfinished: (q) =>
     `Heat re-opened — ${plural(count(q, "released"), "bib")} re-leased to its runners.`,
+  // The results import replaces whole heats, so the heat count matters as much
+  // as the row count; skipped rows are the ones the parser refused.
+  resultsimported: (q) => {
+    const skipped = count(q, "skipped");
+    const head = `Imported ${plural(count(q, "rows"), "result")} across ${plural(count(q, "heats"), "heat")}.`;
+    return skipped === 0 ? head : `${head} ${plural(skipped, "row")} skipped — see the file check.`;
+  },
 };
 
 /** Refusal copy, keyed by the `?error=` code the action redirected with. */
@@ -130,6 +137,8 @@ const ERROR_CODES: Record<string, FlashCopy> = {
   input: () => "Something required was missing from that form — nothing was changed.",
   publish: () =>
     "Publishing failed — nothing was emailed. Try again; runners already notified are not re-emailed.",
+  resultsfile: () =>
+    "That file could not be read as timing results — nothing was imported. Preview it to see why.",
 };
 
 /** A `?heat=` longer than this is not a heat number; see {@link MAX_MSG_LENGTH}. */

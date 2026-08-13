@@ -6,8 +6,8 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 /**
- * The Roster / Heats / Check-in tab bar shared by the three per-event pages,
- * replacing the cross-link button clusters each of them used to carry.
+ * The Roster / Heats / Check-in / Results tab bar shared by the per-event
+ * pages, replacing the cross-link button clusters each of them used to carry.
  *
  * Active state comes from `useSelectedLayoutSegment`, which reports the child
  * segment of the event layout this bar lives in — `null` on the roster (the
@@ -24,6 +24,7 @@ const TABS = [
   { key: "roster", label: "Roster", segment: null, suffix: "" },
   { key: "heats", label: "Heats", segment: "heats", suffix: "/heats" },
   { key: "checkin", label: "Check-in", segment: "checkin", suffix: "/checkin" },
+  { key: "results", label: "Results", segment: "results", suffix: "/results" },
 ] as const;
 
 export function AdminEventTabs({ slug }: { slug: string }) {

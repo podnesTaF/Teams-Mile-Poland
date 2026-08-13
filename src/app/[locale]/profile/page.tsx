@@ -30,6 +30,7 @@ import type { ProfileInput } from "@/features/profile/schemas";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
 import { formatTime } from "@/lib/events/time";
+import { getDirectResultRefs, getMergedResults } from "@/lib/events/results-data";
 import { findUserResults } from "@/lib/events/user-results";
 import { defaultLocale } from "@/lib/i18n/config";
 import { getUser, isProfileComplete } from "@/lib/auth/user-session";
@@ -94,15 +95,22 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const now = new Date();
   const notice = confirmNotice(c);
 
-  // Results are config sheets keyed by free-text name (no user id, no reliable
-  // bib join) — recover this user's rows by name-matching within the events
-  // they participated in: live registrations plus imported legacy attendance.
+  // Results are DB-first (timing imports) with config sheets as fallback.
+  // Imported rows may carry a registration link resolved from the (heat, bib)
+  // lease — those outrank name matching; everything else is recovered by
+  // name-matching within the events the user participated in: live
+  // registrations plus imported legacy attendance.
   const legacySlugs = await getAttendedLegacySlugs(user.id);
   const fullName = [u.firstName, u.lastName].filter(Boolean).join(" ") || user.name;
-  const myResults = findUserResults(fullName, [
+  const participations = [
     ...registrations.map((r) => ({ eventSlug: r.eventSlug, bib: r.bib })),
     ...legacySlugs.map((eventSlug) => ({ eventSlug })),
+  ];
+  const [resultsBySlug, directRefs] = await Promise.all([
+    getMergedResults(participations.map((p) => p.eventSlug)),
+    getDirectResultRefs(registrations.map((r) => r.id)),
   ]);
+  const myResults = findUserResults(fullName, participations, resultsBySlug, directRefs);
   const bestTimeCs =
     myResults.length > 1 ? Math.min(...myResults.map((r) => r.entry.timeCs)) : null;
 
