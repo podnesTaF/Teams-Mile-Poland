@@ -30,7 +30,9 @@ const HEAD_CELL =
 const CELL = "px-3 py-2 align-middle text-[13px] text-admin-ink-2";
 
 /** How the row found its runner, as the preview badges it. */
-const MATCH_LABEL: Record<string, { text: string; className: string }> = {
+// Exhaustive over PreviewRow["matchedBy"] (with null spelt "none") — a new
+// match source must add its label here or fail to compile, not throw at render.
+const MATCH_LABEL: Record<"lease" | "name" | "none", { text: string; className: string }> = {
   lease: { text: "bib lease", className: "text-admin-ok" },
   name: { text: "name", className: "text-admin-ok" },
   none: { text: "unlinked", className: "text-admin-warn" },

@@ -9,6 +9,9 @@
  * It sends no email and touches no real registrations: fixture users are
  * `resfix-*`, fixture heats are numbered 91–92 on the fixture event, and the
  * event is not `completed`, so the public landing never renders these rows.
+ * (The force-dynamic `/events/<slug>/results` page *would* show them for the
+ * seconds this script runs — fixture heats sit at 91+ precisely so a stray
+ * refresh reads as obviously synthetic.)
  */
 import ExcelJS from "exceljs";
 import { and, eq, inArray } from "drizzle-orm";

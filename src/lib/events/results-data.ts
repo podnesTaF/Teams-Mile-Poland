@@ -1,4 +1,4 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 
 import { eventResults, type ResultStatus } from "@/db/schema";
 import { db } from "@/lib/db";
@@ -190,6 +190,11 @@ export async function getResultsEventsWithDb(): Promise<EventSummary[]> {
  * import linked to their registrations at commit time. A direct ref outranks
  * name matching in `findUserResults`: it was resolved from the (heat, bib)
  * lease, so a same-named stranger cannot shadow it.
+ *
+ * Mid-event, one registration can legitimately hold several linked rows — a
+ * qualification and a final — so the pick is deterministic: the fastest
+ * finished row (the profile card shows the runner's best of the night, and a
+ * ref to a non-finisher would only fall back to name matching anyway).
  */
 export async function getDirectResultRefs(
   registrationIds: string[],
@@ -204,7 +209,12 @@ export async function getDirectResultRefs(
         bib: eventResults.bib,
       })
       .from(eventResults)
-      .where(inArray(eventResults.registrationId, registrationIds));
+      .where(inArray(eventResults.registrationId, registrationIds))
+      .orderBy(
+        sql`(${eventResults.status} = 'finished') desc`,
+        sql`${eventResults.timeCs} asc nulls last`,
+        asc(eventResults.heatNumber),
+      );
     for (const row of rows) {
       if (!refs.has(row.eventSlug)) {
         refs.set(row.eventSlug, { heatNumber: row.heatNumber, bib: row.bib });
