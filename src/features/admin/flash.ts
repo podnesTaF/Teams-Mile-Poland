@@ -117,6 +117,10 @@ const OK_CODES: Record<string, FlashCopy> = {
       ? head
       : `${head} ${plural(unlinked, "qualifying result")} skipped — not linked to any runner; seed them by hand from the builder.`;
   },
+  // The builder's manual bib lease (pre-race). Named codes — `ok=<digits>` is
+  // the desk's check-in confirmation and must stay the desk's alone.
+  bibset: (q) => `Bib #${count(q, "n")} assigned — it is theirs until their heat is finished.`,
+  bibcleared: () => "Bib cleared — the number is back in the pool.",
   // The results import replaces whole heats, so the heat count matters as much
   // as the row count; skipped rows are the ones the parser refused.
   resultsimported: (q) => {
@@ -148,6 +152,12 @@ const ERROR_CODES: Record<string, FlashCopy> = {
     "Publishing failed — nothing was emailed. Try again; runners already notified are not re-emailed.",
   resultsfile: () =>
     "That file could not be read as timing results — nothing was imported. Preview it to see why.",
+  // The builder's manual bib lease. Its invalid-number and taken-number cases
+  // reuse the desk's `bib` / `bib_held` sentences via the fall-through below.
+  bibclear: () =>
+    "Nothing to clear — the runner holds no bib, or they are checked in and their lease belongs to the desk.",
+  bibassign: () =>
+    "Could not assign — the runner's heat has already run, or the registration no longer exists.",
   noqualifiers: (q) => {
     const unlinked = count(q, "unlinked");
     return unlinked === 0

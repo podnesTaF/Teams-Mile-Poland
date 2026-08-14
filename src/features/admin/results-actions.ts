@@ -87,7 +87,7 @@ export async function previewResultsImport(
   formData: FormData,
 ): Promise<ImportPreview> {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const event = getEventBySlug(eventSlug);
   if (!event || event.eventType !== "individual") {
     return { ok: false, errors: [{ sourceRow: 0, message: "Unknown event." }] };
@@ -129,7 +129,7 @@ export async function previewResultsImport(
  */
 export async function commitResultsImport(eventSlug: string, formData: FormData): Promise<void> {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const event = getEventBySlug(eventSlug);
   const resultsPage = adminPath(locale, `/events/${eventSlug}/results`);
   if (!event || event.eventType !== "individual") {

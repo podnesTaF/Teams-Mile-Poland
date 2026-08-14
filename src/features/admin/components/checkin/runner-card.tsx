@@ -102,10 +102,11 @@ export function RunnerCard({
 /**
  * The pre-press face: the bib to be leased, and the press.
  *
- * The bib is pre-filled with the lowest free one and stays editable — leaving it
- * as suggested is the common case, and typing over it is the "this runner already
- * has 42 pinned on" case. No-show is deliberately on its own line, away from the
- * thumb that is aiming at Check in.
+ * The bib is pre-filled with the number pre-assigned in the heat builder when
+ * the runner holds one, and the lowest free bib otherwise; it stays editable
+ * either way — typing over it is the "this runner already has 42 pinned on"
+ * case. No-show is deliberately on its own line, away from the thumb that is
+ * aiming at Check in.
  */
 function NotCheckedIn({
   row,
@@ -139,8 +140,8 @@ function NotCheckedIn({
             type="number"
             min={1}
             max={pool}
-            placeholder={nextBib === null ? "none" : undefined}
-            defaultValue={nextBib ?? ""}
+            placeholder={!holdsBib(row) && nextBib === null ? "none" : undefined}
+            defaultValue={holdsBib(row) ? (row.bib ?? "") : (nextBib ?? "")}
           />
         </AdminField>
         <button type="submit" className={deskButton("primary", "flex-1 sm:flex-none sm:px-8")}>

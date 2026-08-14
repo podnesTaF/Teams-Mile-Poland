@@ -1,6 +1,7 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 
 import { accounts, users } from "@/db/schema";
+import { ADMIN_ROLES, type AdminRole } from "@/lib/auth/roles";
 import { getDb } from "@/lib/db";
 
 export type AdminRow = {
@@ -8,6 +9,8 @@ export type AdminRow = {
   name: string;
   email: string;
   emailVerified: boolean;
+  /** Access level: full / check-in / view-only (see `src/lib/auth/roles.ts`). */
+  role: AdminRole;
   /**
    * Whether a `credential` account row with a password exists. `false` means
    * the invite is still outstanding — the person cannot sign in until they use
@@ -18,7 +21,7 @@ export type AdminRow = {
 };
 
 /**
- * Every account holding the `admin` role, oldest first (so the bootstrap admin
+ * Every account holding any admin role, oldest first (so the bootstrap admin
  * stays at the top). `hasPassword` is what distinguishes a working admin from a
  * pending invite; Better Auth stores the hash on the `credential` account row,
  * and a Google-only or guest-created account legitimately has none.
@@ -38,12 +41,13 @@ export async function listAdmins(): Promise<AdminRow[]> {
       name: users.name,
       email: users.email,
       emailVerified: users.emailVerified,
+      role: sql<AdminRole>`${users.role}`,
       hasPassword: sql<boolean>`${credential.userId} is not null`,
       createdAt: users.createdAt,
     })
     .from(users)
     .leftJoin(credential, eq(credential.userId, users.id))
-    .where(eq(users.role, "admin"))
+    .where(inArray(users.role, [...ADMIN_ROLES]))
     .orderBy(asc(users.createdAt));
 }
 

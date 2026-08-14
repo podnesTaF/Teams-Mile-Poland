@@ -16,6 +16,7 @@ import { AdminEmptyState } from "@/features/admin/components/shell/admin-empty-s
 import { getEventRoster, getRosterRowById, suggestNextBib, type RosterRow } from "@/features/admin/events-data";
 import { getEventHeats } from "@/features/admin/heats-data";
 import { verifyEventTicket } from "@/features/ticket/sign";
+import { Link } from "@/i18n/navigation";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 
 /**
@@ -106,6 +107,12 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
       {nextBib === null ? <BibsExhausted pool={pool} /> : null}
 
       <DeskSearch query={q} />
+
+      <div className="flex justify-end">
+        <Link href="/admin/scan" className={deskButton("stroke")}>
+          Scan a ticket QR
+        </Link>
+      </div>
 
       {results.length > 0 ? (
         <ul className="flex flex-col gap-4">

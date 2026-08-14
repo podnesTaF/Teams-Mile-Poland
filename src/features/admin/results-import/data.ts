@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, isNotNull, max, notInArray, sql } from "drizzle-orm";
 
-import { eventHeats, eventRegistrations, eventResults, users } from "@/db/schema";
+import { eventHeats, eventRegistrations, eventResults, users, type ResultStatus } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { nameKey } from "@/lib/events/name-key";
 
@@ -98,6 +98,65 @@ export async function getResultsState(eventSlug: string): Promise<HeatResultsSta
     .orderBy(asc(eventResults.heatNumber));
 
   return rows.map((r) => ({ ...r, importedAt: r.importedAt ?? new Date(0) }));
+}
+
+/** One imported row as the admin results table shows it. */
+export type ImportedResultRow = {
+  heatNumber: number;
+  /** Finishing place within the heat; null for DNF/DNS/DSQ. */
+  place: number | null;
+  bib: number;
+  status: ResultStatus;
+  /** Net time in hundredths of a second; null for DNF/DNS/DSQ. */
+  timeCs: number | null;
+  /** Name exactly as the timing system recorded it. */
+  name: string;
+  gender: "M" | "F";
+  /** Account name of the linked runner; null when the row is unlinked. */
+  linkedTo: string | null;
+};
+
+/** Non-finishers sort below finishers within a heat, in this order. */
+const STATUS_ORDER: Record<ResultStatus, number> = { finished: 0, dnf: 1, dsq: 2, dns: 3 };
+
+/**
+ * Every imported row for an event with its linked account resolved — the admin
+ * page's full table, unlike the public reader deliberately including who each
+ * row is (or is not) linked to. Heats ascending; finishers by place, then
+ * DNF/DSQ/DNS.
+ */
+export async function getImportedResults(eventSlug: string): Promise<ImportedResultRow[]> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      heatNumber: eventResults.heatNumber,
+      place: eventResults.place,
+      bib: eventResults.bib,
+      status: eventResults.status,
+      timeCs: eventResults.timeCs,
+      name: eventResults.name,
+      gender: eventResults.gender,
+      linkedFirst: users.firstName,
+      linkedLast: users.lastName,
+      linkedFallback: users.name,
+    })
+    .from(eventResults)
+    .leftJoin(eventRegistrations, eq(eventResults.registrationId, eventRegistrations.id))
+    .leftJoin(users, eq(eventRegistrations.userId, users.id))
+    .where(eq(eventResults.eventSlug, eventSlug));
+
+  return rows
+    .map(({ linkedFirst, linkedLast, linkedFallback, ...row }) => ({
+      ...row,
+      linkedTo: [linkedFirst, linkedLast].filter(Boolean).join(" ") || linkedFallback || null,
+    }))
+    .sort(
+      (a, b) =>
+        a.heatNumber - b.heatNumber ||
+        STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
+        (a.place ?? Infinity) - (b.place ?? Infinity) ||
+        a.bib - b.bib,
+    );
 }
 
 /** Heat numbers in the file that have no `event_heats` row — a preview warning. */

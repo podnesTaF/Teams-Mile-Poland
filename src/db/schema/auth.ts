@@ -10,6 +10,10 @@ import {
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
+// Relative on purpose: drizzle-kit loads schema files outside the Next.js
+// toolchain, where the `@/` alias may not resolve.
+import type { AdminRole } from "../../lib/auth/roles";
+
 /**
  * Better Auth tables — hand-written so drizzle-kit stays the only migration
  * tool (no `better-auth migrate`). Shapes mirror the canonical output of
@@ -25,17 +29,20 @@ import {
 export const userSexEnum = pgEnum("user_sex", ["M", "F"]);
 
 /**
- * Account role. `admin` is the only thing that opens `/admin` — there is no
- * shared admin password any more. Declared as a Better Auth additionalField
- * with `input: false` so it rides along on the session user but can never be
- * set by a client payload (sign-up, update-user); it moves only through
- * `src/features/admin/admins-actions.ts` or `scripts/grant-admin.ts`.
+ * Account role. Any admin role opens `/admin` — there is no shared admin
+ * password any more. The three admin levels and what each may do live in
+ * `src/lib/auth/roles.ts` (full / check-in / view-only). Declared as a Better
+ * Auth additionalField with `input: false` so it rides along on the session
+ * user but can never be set by a client payload (sign-up, update-user); it
+ * moves only through `src/features/admin/admins-actions.ts` or
+ * `scripts/grant-admin.ts`.
  *
  * Plain `text` rather than a pgEnum on purpose: enum values can only be added
  * by `ALTER TYPE`, which is exactly the migration shape that stranded 0012 on
- * the live DB. A role set is a value, not a type.
+ * the live DB. A role set is a value, not a type — which is also what let the
+ * admin levels ship with no migration at all.
  */
-export type UserRole = "user" | "admin";
+export type UserRole = "user" | AdminRole;
 
 export const users = pgTable(
   "users",

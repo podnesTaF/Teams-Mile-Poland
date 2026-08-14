@@ -10,6 +10,7 @@ import { AdminField, adminInput } from "@/features/admin/components/shell/admin-
 import { AdminPill, type AdminPillTone } from "@/features/admin/components/shell/admin-pill";
 import { ParticipationBadge } from "@/features/admin/components/shell/participation-badge";
 import {
+  assignBib,
   assignToHeat,
   deleteHeat,
   unassignFromHeat,
@@ -241,6 +242,9 @@ export function HeatBuilder({
           selected={selected}
           onToggle={toggle}
           emptyText={filtering ? "No matches here." : "Everyone confirmed is placed."}
+          locale={locale}
+          slug={slug}
+          pool={pool}
           scroll
         />
       </section>
@@ -354,6 +358,9 @@ function HeatCard({
           emptyText={
             filtering ? "No matches in this heat." : "Empty — select runners above and move them in."
           }
+          locale={locale}
+          slug={slug}
+          pool={pool}
         />
       </div>
 
@@ -505,6 +512,9 @@ function RunnerGrid({
   selected,
   onToggle,
   emptyText,
+  locale,
+  slug,
+  pool,
   scroll = false,
   className,
 }: {
@@ -512,6 +522,9 @@ function RunnerGrid({
   selected: Set<string>;
   onToggle: (id: string) => void;
   emptyText: string;
+  locale: string;
+  slug: string;
+  pool: number;
   scroll?: boolean;
   className?: string;
 }) {
@@ -528,20 +541,42 @@ function RunnerGrid({
       )}
     >
       {rows.map((r) => (
-        <RunnerChip key={r.id} row={r} on={selected.has(r.id)} onToggle={onToggle} />
+        <RunnerChip
+          key={r.id}
+          row={r}
+          on={selected.has(r.id)}
+          onToggle={onToggle}
+          locale={locale}
+          slug={slug}
+          pool={pool}
+        />
       ))}
     </div>
   );
 }
 
+/**
+ * One runner: the selectable label on top, and the bib lease below it — a form
+ * of its own, because chips sit outside every other form on the page and a
+ * lease is a per-runner act, not part of the bulk selection. Submitting the
+ * number leases it ahead of check-in; submitting it blank takes a
+ * pre-assignment back. The container is a div rather than the old label so the
+ * form's controls do not toggle the checkbox.
+ */
 function RunnerChip({
   row,
   on,
   onToggle,
+  locale,
+  slug,
+  pool,
 }: {
   row: SeedRow;
   on: boolean;
   onToggle: (id: string) => void;
+  locale: string;
+  slug: string;
+  pool: number;
 }) {
   // Only `stale` is marked per runner: in a never-published heat *everyone* is
   // unnotified, so a dot on every chip would say nothing. A moved runner holding
@@ -550,42 +585,68 @@ function RunnerChip({
   const moved = row.notifyState === "stale" && row.status !== "no_show";
 
   return (
-    <label
+    <div
       data-admin-runner={row.id}
       data-selected={on ? "true" : "false"}
       className={cn(
-        "flex cursor-pointer items-center gap-2.5 rounded-admin border px-2.5 py-2 transition-colors",
+        "rounded-admin border px-2.5 py-2 transition-colors",
         on
           ? "border-admin-accent bg-admin-accent-soft"
           : "border-admin-line bg-admin-surface-2 hover:border-admin-line-2",
       )}
     >
-      <input
-        type="checkbox"
-        checked={on}
-        onChange={() => onToggle(row.id)}
-        className="h-3.5 w-3.5 shrink-0 accent-admin-accent"
-      />
-      <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1.5">
-          <span className="truncate font-sans text-[13px] font-medium normal-case not-italic leading-tight text-admin-ink">
-            {row.name}
+      <label className="flex cursor-pointer items-center gap-2.5">
+        <input
+          type="checkbox"
+          checked={on}
+          onChange={() => onToggle(row.id)}
+          className="h-3.5 w-3.5 shrink-0 accent-admin-accent"
+        />
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-1.5">
+            <span className="truncate font-sans text-[13px] font-medium normal-case not-italic leading-tight text-admin-ink">
+              {row.name}
+            </span>
+            {moved ? (
+              <span
+                title="Their heat or start time has moved since they were emailed"
+                className="h-1.5 w-1.5 shrink-0 rounded-full bg-admin-warn"
+              />
+            ) : null}
           </span>
-          {moved ? (
-            <span
-              title="Their heat or start time has moved since they were emailed"
-              className="h-1.5 w-1.5 shrink-0 rounded-full bg-admin-warn"
-            />
-          ) : null}
+          <span className="mt-1 block truncate text-[11.5px] leading-none text-admin-muted">
+            {row.sex ?? "—"}
+            {row.club ? ` · ${row.club}` : ""}
+          </span>
         </span>
-        <span className="mt-1 block truncate text-[11.5px] leading-none text-admin-muted">
-          {row.sex ?? "—"}
-          {row.club ? ` · ${row.club}` : ""}
+        {/* `confirmed` is the norm in this pool and says nothing; the other three
+            are each a reason to look twice. */}
+        {row.status === "confirmed" ? null : <ParticipationBadge status={row.status} />}
+      </label>
+
+      <form
+        action={assignBib}
+        className="mt-2 flex items-center gap-1.5 border-t border-admin-line/60 pt-2"
+      >
+        <input type="hidden" name="locale" value={locale} />
+        <input type="hidden" name="slug" value={slug} />
+        <input type="hidden" name="registrationId" value={row.id} />
+        <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-admin-muted">
+          Bib
         </span>
-      </span>
-      {/* `confirmed` is the norm in this pool and says nothing; the other three
-          are each a reason to look twice. */}
-      {row.status === "confirmed" ? null : <ParticipationBadge status={row.status} />}
-    </label>
+        <input
+          type="number"
+          name="bib"
+          min={1}
+          max={pool}
+          defaultValue={row.bib ?? ""}
+          placeholder="—"
+          className={adminInput("h-7 w-16 px-1.5 text-center text-[12px]")}
+        />
+        <button type="submit" className={adminButton("quiet", "h-7 px-2 text-[12px]")}>
+          Set
+        </button>
+      </form>
+    </div>
   );
 }

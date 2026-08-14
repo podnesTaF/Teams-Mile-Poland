@@ -22,7 +22,7 @@ import { buildEventTicketView, makeEventTicketUrl } from "@/features/event-regis
 import { generateTicketQrPng } from "@/features/ticket/qr";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { DownloadTicketButton } from "@/features/ticket/components/download-ticket-button";
-import { getAdminUser } from "@/lib/auth/user-session";
+import { getAdminUser, userCan } from "@/lib/auth/user-session";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug } from "@/lib/events/registry";
 
@@ -80,8 +80,10 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
   // Race morning (PRD #26, slice #32): an admin turns this page into the
   // check-in surface, because the QR baked into sent tickets points here and
   // cannot be retargeted. Everyone else — the ticket's owner included — sees
-  // exactly the page they saw before. The panel enforces nothing; its actions do.
-  const isAdmin = Boolean(await getAdminUser());
+  // exactly the page they saw before. The panel enforces nothing; its actions
+  // do — and they require the check-in capability, so a view-only admin gets
+  // the plain ticket rather than buttons that would 404.
+  const canCheckIn = userCan(await getAdminUser(), "checkin");
 
   return (
     <div className="ace-landing iv tk-page">
@@ -132,7 +134,7 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
             </div>
           </div>
 
-          {isAdmin ? (
+          {canCheckIn ? (
             <TicketAdminPanel
               registrationId={registrationId}
               sig={s}

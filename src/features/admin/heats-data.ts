@@ -62,6 +62,8 @@ export type SeedRow = {
   email: string;
   club: string | null;
   sex: "M" | "F" | null;
+  /** The bib they are currently holding — pre-assigned or leased at check-in. */
+  bib: number | null;
   /** Whether a publish press would email this runner (see {@link heatNotifyState}). */
   notifyState: HeatNotifyState;
 };
@@ -119,6 +121,8 @@ export async function getSeedPool(eventSlug: string): Promise<SeedRow[]> {
       email: users.email,
       club: users.club,
       sex: users.sex,
+      bib: eventRegistrations.bib,
+      bibReturnedAt: eventRegistrations.bibReturnedAt,
       notifiedHeatId: eventRegistrations.notifiedHeatId,
       notifiedHeatTime: eventRegistrations.notifiedHeatTime,
       scheduledAt: eventHeats.scheduledAt,
@@ -148,6 +152,8 @@ export async function getSeedPool(eventSlug: string): Promise<SeedRow[]> {
     email: r.email,
     club: r.club,
     sex: r.sex,
+    // A returned bib is history, not a lease — the builder shows held numbers only.
+    bib: r.bibReturnedAt === null ? r.bib : null,
     notifyState: heatNotifyState(r),
   }));
 }

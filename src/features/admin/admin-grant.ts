@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 
 import { accounts, users } from "@/db/schema";
 import { auth } from "@/lib/auth/better-auth";
+import { isAdminRole, type AdminRole } from "@/lib/auth/roles";
 import { getDb } from "@/lib/db";
 
 /**
@@ -54,8 +55,12 @@ export type GrantAdminResult =
  */
 export async function grantAdmin(input: {
   email: string;
+  /** Access level to grant; defaults to full access (the pre-levels behavior). */
+  role?: AdminRole;
   /** Force the set-password email even if a password already exists. */
   forceInvite?: boolean;
+  /** Never send the set-password email — a pure level change, not an invite. */
+  skipInvite?: boolean;
 }): Promise<GrantAdminResult> {
   const email = normalizeEmail(input.email);
   if (!looksLikeEmail(email)) return { ok: false, error: "Enter a valid email address." };
@@ -66,6 +71,12 @@ export async function grantAdmin(input: {
     .from(users)
     .where(eq(users.email, email))
     .limit(1);
+
+  // No explicit level keeps an existing admin's level (so a re-sent invite is
+  // never a silent promotion) and grants full access everywhere else — the
+  // pre-levels behavior the bootstrap CLI still relies on.
+  const role =
+    input.role ?? (existing && isAdminRole(existing.role) ? existing.role : "admin");
 
   let outcome: "created" | "promoted" | "already-admin";
   let userId: string;
@@ -78,22 +89,27 @@ export async function grantAdmin(input: {
       name: email.split("@")[0],
       email,
       emailVerified: true,
-      role: "admin",
+      role,
     });
     outcome = "created";
   } else {
     userId = existing.id;
-    outcome = existing.role === "admin" ? "already-admin" : "promoted";
+    outcome = existing.role === role ? "already-admin" : "promoted";
     if (outcome === "promoted") {
+      // Moving levels counts as a promotion path too; the same last-full-admin
+      // guard as revokeAdmin applies when it would demote the last full admin.
+      if (existing.role === "admin" && role !== "admin" && (await countFullAdmins(db)) <= 1) {
+        return { ok: false, error: "This is the last full-access admin — promote someone else first." };
+      }
       await db
         .update(users)
-        .set({ role: "admin", updatedAt: new Date() })
+        .set({ role, updatedAt: new Date() })
         .where(eq(users.id, userId));
     }
   }
 
   const needsPassword = outcome === "created" || !(await hasPassword(userId));
-  const invited = Boolean(input.forceInvite) || needsPassword;
+  const invited = !input.skipInvite && (Boolean(input.forceInvite) || needsPassword);
 
   if (invited) {
     // Better Auth runs `sendResetPassword` through `runInBackgroundOrAwait`, so
@@ -118,9 +134,19 @@ async function hasPassword(userId: string): Promise<boolean> {
   return Boolean(row);
 }
 
+/** How many accounts hold *full* access — the only level that can manage admins. */
+async function countFullAdmins(db: ReturnType<typeof getDb>): Promise<number> {
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(users)
+    .where(eq(users.role, "admin"));
+  return count;
+}
+
 /**
- * Drop `email` back to a plain user. Refuses to remove the last admin — that
- * would lock everyone out of the panel and leave only the CLI as a way back in.
+ * Drop `email` back to a plain user. Refuses to remove the last full-access
+ * admin — that would lock everyone out of admin management and leave only the
+ * CLI as a way back in. Check-in and view-only admins can always be removed.
  */
 export async function revokeAdmin(userId: string): Promise<{ ok: false; error: string } | { ok: true; email: string }> {
   const db = getDb();
@@ -131,14 +157,10 @@ export async function revokeAdmin(userId: string): Promise<{ ok: false; error: s
     .limit(1);
 
   if (!target) return { ok: false, error: "User not found." };
-  if (target.role !== "admin") return { ok: false, error: "That user is not an admin." };
+  if (!isAdminRole(target.role)) return { ok: false, error: "That user is not an admin." };
 
-  const [{ count }] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(users)
-    .where(eq(users.role, "admin"));
-  if (count <= 1) {
-    return { ok: false, error: "This is the last admin — promote someone else first." };
+  if (target.role === "admin" && (await countFullAdmins(db)) <= 1) {
+    return { ok: false, error: "This is the last full-access admin — promote someone else first." };
   }
 
   await db.update(users).set({ role: "user", updatedAt: new Date() }).where(eq(users.id, userId));

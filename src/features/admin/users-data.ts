@@ -38,6 +38,14 @@ export type UserListRow = {
   /** true = attended, false = no-show, null = no first-event participation. */
   firstEventAttended: boolean | null;
   augRegistrationCount: number;
+  /**
+   * Races actually run: legacy participations attended + series registrations
+   * that reached `checked_in` — the same "participated" definition the
+   * referral stats use.
+   */
+  raceCount: number;
+  /** Account registration date. */
+  createdAt: Date;
 };
 
 /**
@@ -64,6 +72,19 @@ export async function listUsers(filters: UserListFilters = {}): Promise<UserList
     )
     .groupBy(eventRegistrations.userId)
     .as("aug_agg");
+
+  // Per-user count of series races actually run (status reached `checked_in`,
+  // any event slug). The legacy first event is added per-row below — one user
+  // has at most one legacy participation.
+  const ranAgg = db
+    .select({
+      userId: eventRegistrations.userId,
+      count: sql<number>`count(*)::int`.as("ran_count"),
+    })
+    .from(eventRegistrations)
+    .where(eq(eventRegistrations.status, "checked_in"))
+    .groupBy(eventRegistrations.userId)
+    .as("ran_agg");
 
   const clauses = [];
 
@@ -103,6 +124,8 @@ export async function listUsers(filters: UserListFilters = {}): Promise<UserList
       lastName: users.lastName,
       firstEventAttended: legacyParticipations.attended,
       augRegistrationCount: sql<number>`coalesce(${augAgg.count}, 0)`,
+      raceCount: sql<number>`coalesce(${ranAgg.count}, 0) + (${legacyParticipations.attended} is true)::int`,
+      createdAt: users.createdAt,
     })
     .from(users)
     .leftJoin(
@@ -113,8 +136,27 @@ export async function listUsers(filters: UserListFilters = {}): Promise<UserList
       ),
     )
     .leftJoin(augAgg, eq(augAgg.userId, users.id))
+    .leftJoin(ranAgg, eq(ranAgg.userId, users.id))
     .where(clauses.length ? and(...clauses) : undefined)
     .orderBy(asc(users.name));
+}
+
+export type UserStats = {
+  /** Every account in the system, verified or not. */
+  total: number;
+  /** Accounts with a verified email (`users.emailVerified`). */
+  verified: number;
+};
+
+/** The headline totals shown above the users table, unaffected by filters. */
+export async function getUserStats(): Promise<UserStats> {
+  const [row] = await getDb()
+    .select({
+      total: sql<number>`count(*)::int`,
+      verified: sql<number>`count(*) filter (where ${users.emailVerified})::int`,
+    })
+    .from(users);
+  return row ?? { total: 0, verified: 0 };
 }
 
 export type UserProfile = typeof users.$inferSelect;

@@ -16,7 +16,7 @@ function back(locale: string, msg: string): never {
 
 export async function sendUserBroadcastAction(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const subject = String(formData.get("subject") ?? "").trim();
   const bodyHtml = String(formData.get("body") ?? "").trim();
@@ -38,7 +38,7 @@ export async function sendUserBroadcastAction(formData: FormData) {
 
 export async function resendUserBroadcastAction(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const broadcastId = String(formData.get("broadcastId") ?? "").trim();
   if (!broadcastId) {

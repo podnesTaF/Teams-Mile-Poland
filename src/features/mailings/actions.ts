@@ -34,7 +34,7 @@ function back(locale: string, msg: string) {
 
 export async function runDueMailingsAction(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const summaries = await runDueMailings(new Date());
   const msg = summaries.length
     ? summaries.map((s) => `${s.kind}: ${s.sent} sent, ${s.skipped} skipped, ${s.failed} failed`).join(" · ")
@@ -44,7 +44,7 @@ export async function runDueMailingsAction(formData: FormData) {
 
 export async function sendKindNowAction(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const kind = String(formData.get("kind") ?? "");
   if (!LIFECYCLE_KINDS.includes(kind as LifecycleKind)) {
     back(locale, "Unknown email kind.");
@@ -55,7 +55,7 @@ export async function sendKindNowAction(formData: FormData) {
 
 export async function sendBroadcastAction(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const subject = String(formData.get("subject") ?? "").trim();
   const bodyHtml = String(formData.get("body") ?? "").trim();
@@ -75,7 +75,7 @@ export async function sendBroadcastAction(formData: FormData) {
 
 export async function sendTestEmailAction(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const kind = String(formData.get("kind") ?? "");
   const runnerIds = formData

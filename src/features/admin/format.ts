@@ -8,6 +8,13 @@ export function formatAdminDateTime(date: Date | null): string {
   return date ? ADMIN_DATE_TIME.format(date) : "—";
 }
 
+/** Date-only variant, for columns where the time of day is noise (e.g. signed up). */
+const ADMIN_DATE = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" });
+
+export function formatAdminDate(date: Date | null): string {
+  return date ? ADMIN_DATE.format(date) : "—";
+}
+
 /**
  * "1 bib" / "3 bibs" — admin feedback reads as sentences about things, so the
  * count and its noun are formatted together wherever they appear (the desk

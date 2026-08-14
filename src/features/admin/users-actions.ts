@@ -37,7 +37,7 @@ function eventsCallbackUrl(locale: string): string {
  */
 export async function deleteUser(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const id = String(formData.get("id") ?? "");
   if (!id) back(locale, "", "No user specified.");
 
@@ -53,7 +53,7 @@ export async function deleteUser(formData: FormData) {
  */
 export async function resendUserVerification(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const id = String(formData.get("id") ?? "");
   const redirectTo = String(formData.get("redirectTo") ?? "");
   if (!id) back(locale, redirectTo, "No user specified.");
@@ -88,7 +88,7 @@ export async function resendUserVerification(formData: FormData) {
  */
 export async function adminRegisterUserForEvent(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const id = String(formData.get("id") ?? "");
   const eventSlug = String(formData.get("eventSlug") ?? "");
   const suffix = id ? `/${id}` : "";

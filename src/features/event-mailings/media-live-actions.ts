@@ -15,7 +15,7 @@ import { MediaLiveNotEligibleError, sendMediaLiveMailing } from "./media-live";
  */
 export async function sendMediaLiveMailingAction(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const slug = String(formData.get("slug") ?? "").trim();
   const path = adminPath(locale, `/events/${slug}`);

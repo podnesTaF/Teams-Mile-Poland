@@ -12,6 +12,7 @@ import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 import {
   checkInWithBib,
   checkInWithoutBib,
+  getHeldBib,
   getRegistrationEventSlug,
   isUniqueViolation,
   leaseBibForCheckedIn,
@@ -66,6 +67,14 @@ type LeaseResult =
  * and joins the waiting list.
  */
 async function leaseAndCheckIn(slug: string, registrationId: string): Promise<LeaseResult> {
+  // A bib pre-assigned in the heat builder is already this runner's lease —
+  // checking in confirms it rather than stacking a second number on top.
+  const held = await getHeldBib(registrationId);
+  if (held !== null) {
+    await checkInWithBib(registrationId, held);
+    return { ok: "bib", bib: held };
+  }
+
   for (let attempt = 0; attempt < LEASE_ATTEMPTS; attempt += 1) {
     const bib = await suggestNextBib(slug);
     if (bib === null) {
@@ -130,7 +139,7 @@ async function resolveSurface(formData: FormData): Promise<{
   back: (params: string) => string;
 }> {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "checkin");
 
   const registrationId = String(formData.get("registrationId") ?? "");
   const surface: Surface = formData.get("surface") === "ticket" ? "ticket" : "desk";
@@ -262,7 +271,7 @@ export async function assignPendingBib(formData: FormData) {
  */
 export async function markHeatFinished(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "checkin");
 
   const slug = String(formData.get("slug") ?? "");
   const heatId = String(formData.get("heatId") ?? "");
@@ -296,7 +305,7 @@ export async function markHeatFinished(formData: FormData) {
  */
 export async function unmarkHeatFinished(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "checkin");
 
   const slug = String(formData.get("slug") ?? "");
   const heatId = String(formData.get("heatId") ?? "");
@@ -335,7 +344,7 @@ export async function unmarkHeatFinished(formData: FormData) {
 /** Mark a runner a no-show. */
 export async function markNoShow(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "checkin");
   const slug = String(formData.get("slug") ?? "");
   const registrationId = String(formData.get("registrationId") ?? "");
   if (slug && registrationId) {
@@ -347,7 +356,7 @@ export async function markNoShow(formData: FormData) {
 /** Revert a runner back to registered (undo check-in / no-show). */
 export async function revertToRegistered(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "checkin");
   const slug = String(formData.get("slug") ?? "");
   const registrationId = String(formData.get("registrationId") ?? "");
   if (slug && registrationId) {

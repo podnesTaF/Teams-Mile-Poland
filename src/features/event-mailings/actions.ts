@@ -17,7 +17,7 @@ function back(locale: string, msg: string): never {
 
 export async function runDueEventMailingsAction(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const summaries = await runDueEventMailings(new Date());
   const msg = summaries.length
     ? summaries
@@ -32,7 +32,7 @@ export async function runDueEventMailingsAction(formData: FormData) {
 
 export async function sendEventKindNowAction(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const slug = String(formData.get("eventSlug") ?? "").trim();
   const kind = String(formData.get("kind") ?? "") as EventScheduledKind;

@@ -130,9 +130,11 @@ export async function TicketAdminPanel({
               </button>
             </TicketActionForm>
             <span className="tk-admin__sub">
-              {nextBib === null
-                ? `All ${pool} bibs are out — they will be checked in with a bib pending.`
-                : `Next free bib: ${nextBib}. Use the check-in desk to pick a different one.`}
+              {holds
+                ? `Bib ${row.bib} was pre-assigned in the heat builder — checking in confirms it.`
+                : nextBib === null
+                  ? `All ${pool} bibs are out — they will be checked in with a bib pending.`
+                  : `Next free bib: ${nextBib}. Use the check-in desk to pick a different one.`}
             </span>
           </>
         )}

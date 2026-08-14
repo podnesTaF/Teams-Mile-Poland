@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { newsArticles } from "@/db/schema";
-import { getAdminUser } from "@/lib/auth/user-session";
+import { getAdminUser, userCan } from "@/lib/auth/user-session";
 import { getDb } from "@/lib/db";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
@@ -74,7 +74,7 @@ export type UploadNewsImageResult = { url: string } | { error: string };
  * blob deletion/GC in v1, so replaced or removed images are simply orphaned.
  */
 export async function uploadNewsImage(formData: FormData): Promise<UploadNewsImageResult> {
-  if (!(await getAdminUser())) return { error: "Not authorized." };
+  if (!userCan(await getAdminUser(), "edit")) return { error: "Not authorized." };
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return { error: "Image uploads are not configured (missing BLOB_READ_WRITE_TOKEN)." };
@@ -122,7 +122,7 @@ function revalidateNews(locale: string) {
  */
 export async function createArticle(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   function back(suffix: string, msg: string): never {
     revalidateNews(locale);
@@ -155,7 +155,7 @@ export async function createArticle(formData: FormData) {
  */
 export async function updateArticle(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const id = String(formData.get("id") ?? "");
 
   function back(suffix: string, msg: string): never {
@@ -215,7 +215,7 @@ export async function updateArticle(formData: FormData) {
  */
 export async function publishArticle(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const id = String(formData.get("id") ?? "");
 
   function back(suffix: string, msg: string): never {
@@ -259,7 +259,7 @@ export async function publishArticle(formData: FormData) {
  */
 export async function unpublishArticle(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const id = String(formData.get("id") ?? "");
 
   function back(suffix: string, msg: string): never {
@@ -279,7 +279,7 @@ export async function unpublishArticle(formData: FormData) {
 /** Delete an article. Confirm dialog upstream. */
 export async function deleteArticle(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const id = String(formData.get("id") ?? "");
 
   function back(msg: string): never {

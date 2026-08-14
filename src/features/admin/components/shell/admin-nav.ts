@@ -69,7 +69,16 @@ export function buildAdminNav(): AdminNav {
   }));
 
   return [
-    { label: null, items: [{ label: "Overview", href: "/admin", exact: true }] },
+    {
+      label: null,
+      items: [
+        { label: "Overview", href: "/admin", exact: true },
+        // The volunteer's entry point: not per-event, because the ticket QR
+        // carries the registration id and the check-in panel resolves the
+        // event from the row.
+        { label: "Scan ticket", href: "/admin/scan" },
+      ],
+    },
     {
       label: "Events",
       items: [{ label: "All events", href: "/admin/events", exact: true }],

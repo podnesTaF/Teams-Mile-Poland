@@ -5,8 +5,10 @@ import "@/app/landing.css";
 import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
+import { formatAdminDate } from "@/features/admin/format";
 import { resendUserVerification } from "@/features/admin/users-actions";
 import {
+  getUserStats,
   listUsers,
   type ParticipationFilter,
   type RegisteredFilter,
@@ -14,6 +16,7 @@ import {
   type UserListRow,
   type VerifiedFilter,
 } from "@/features/admin/users-data";
+import { userCan } from "@/lib/auth/user-session";
 import { Link } from "@/i18n/navigation";
 
 type SearchParams = {
@@ -44,7 +47,7 @@ export default async function AdminUsersPage({
   const { locale } = await params;
   const sp = await searchParams;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  const actor = await requireAdmin(locale);
 
   const filters: UserListFilters = {
     q: sp.q?.trim() || undefined,
@@ -58,7 +61,7 @@ export default async function AdminUsersPage({
       {sp.msg ? <div className="iv-notice iv-notice--info">{sp.msg}</div> : null}
 
       {process.env.DATABASE_URL ? (
-        <UsersBody locale={locale} filters={filters} sp={sp} />
+        <UsersBody locale={locale} filters={filters} sp={sp} canEdit={userCan(actor, "edit")} />
       ) : (
         <NoDatabaseNotice>manage users</NoDatabaseNotice>
       )}
@@ -70,19 +73,29 @@ async function UsersBody({
   locale,
   filters,
   sp,
+  canEdit,
 }: {
   locale: string;
   filters: UserListFilters;
   sp: SearchParams;
+  canEdit: boolean;
 }) {
-  const rows = await listUsers(filters);
+  const [rows, stats] = await Promise.all([listUsers(filters), getUserStats()]);
   const isFiltered = Boolean(
     filters.q || filters.verified || filters.participation || filters.registered,
   );
 
   return (
     <>
-      <form method="get" className="iv-card" style={{ marginTop: 20 }}>
+      {/* Headline totals — the whole system, deliberately unaffected by the
+          filters below so the line always answers "how many do we have". */}
+      <p className="iv-note" style={{ marginTop: 20 }}>
+        <strong>{stats.total}</strong> {stats.total === 1 ? "person" : "people"} in the system ·{" "}
+        <strong>{stats.verified}</strong> verified
+        {rows.length !== stats.total ? <> · {rows.length} matching the filters</> : null}
+      </p>
+
+      <form method="get" className="iv-card" style={{ marginTop: 12 }}>
         <div className="iv-inline" style={{ gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
           <label style={{ flex: "1 1 220px" }}>
             <span className="iv-fieldlabel">Search name or email</span>
@@ -142,15 +155,17 @@ async function UsersBody({
                 <tr>
                   <th>Name</th>
                   <th>Email</th>
+                  <th>Signed up</th>
                   <th>Verified</th>
                   <th>First event</th>
                   <th>Aug regs</th>
+                  <th>Races run</th>
                   <th />
                 </tr>
               </thead>
               <tbody>
                 {rows.map((u) => (
-                  <UserRowView key={u.id} user={u} locale={locale} />
+                  <UserRowView key={u.id} user={u} locale={locale} canEdit={canEdit} />
                 ))}
               </tbody>
             </table>
@@ -170,7 +185,15 @@ function FirstEventBadge({ attended }: { attended: boolean | null }) {
   );
 }
 
-function UserRowView({ user, locale }: { user: UserListRow; locale: string }) {
+function UserRowView({
+  user,
+  locale,
+  canEdit,
+}: {
+  user: UserListRow;
+  locale: string;
+  canEdit: boolean;
+}) {
   const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name;
   return (
     <tr>
@@ -180,6 +203,7 @@ function UserRowView({ user, locale }: { user: UserListRow; locale: string }) {
         </Link>
       </td>
       <td>{user.email}</td>
+      <td>{formatAdminDate(user.createdAt)}</td>
       <td>
         <span className={`iv-pill ${user.emailVerified ? "iv-pill--ok" : "iv-pill--due"}`}>
           {user.emailVerified ? "verified" : "unverified"}
@@ -189,12 +213,13 @@ function UserRowView({ user, locale }: { user: UserListRow; locale: string }) {
         <FirstEventBadge attended={user.firstEventAttended} />
       </td>
       <td>{user.augRegistrationCount}</td>
+      <td>{user.raceCount}</td>
       <td>
         <div className="iv-inline">
           <Link href={`/admin/users/${user.id}`} className="iv-linkbtn">
             View
           </Link>
-          {!user.emailVerified ? (
+          {canEdit && !user.emailVerified ? (
             <form action={resendUserVerification}>
               <input type="hidden" name="locale" value={locale} />
               <input type="hidden" name="id" value={user.id} />

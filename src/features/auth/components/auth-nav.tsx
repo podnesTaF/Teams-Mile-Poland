@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth/auth-client";
+import { isAdminRole } from "@/lib/auth/roles";
 
 import { LogOutButton } from "./log-out-button";
 
@@ -33,7 +34,7 @@ export function AuthNav() {
 
   return (
     <>
-      {data.user.role === "admin" ? (
+      {isAdminRole(data.user.role) ? (
         <Link href="/admin" className="iv-header__auth">
           {t("nav.adminPanel")}
         </Link>

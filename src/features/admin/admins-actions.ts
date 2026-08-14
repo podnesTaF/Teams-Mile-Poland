@@ -3,7 +3,9 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-import { grantAdmin, revokeAdmin } from "./admin-grant";
+import { adminRoleLabel, parseAdminRole } from "@/lib/auth/roles";
+
+import { grantAdmin, normalizeEmail, revokeAdmin } from "./admin-grant";
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 
 /** Redirect back to the admins list with a status message. */
@@ -19,13 +21,16 @@ function back(locale: string, msg: string): never {
  */
 export async function inviteAdmin(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
-  const result = await grantAdmin({ email: String(formData.get("email") ?? "") });
+  const result = await grantAdmin({
+    email: String(formData.get("email") ?? ""),
+    role: parseAdminRole(formData.get("access")),
+  });
   if (!result.ok) back(locale, result.error);
 
   if (result.outcome === "already-admin" && !result.invited) {
-    back(locale, `${result.email} is already an admin.`);
+    back(locale, `${result.email} already has this access.`);
   }
   if (result.invited) {
     const lead =
@@ -46,7 +51,7 @@ export async function inviteAdmin(formData: FormData) {
  */
 export async function resendAdminInvite(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const result = await grantAdmin({
     email: String(formData.get("email") ?? ""),
@@ -63,7 +68,7 @@ export async function resendAdminInvite(formData: FormData) {
  */
 export async function removeAdmin(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  const actor = await requireAdmin(locale);
+  const actor = await requireAdmin(locale, "edit");
 
   const id = String(formData.get("id") ?? "");
   if (!id) back(locale, "No admin specified.");
@@ -74,4 +79,27 @@ export async function removeAdmin(formData: FormData) {
   const result = await revokeAdmin(id);
   if (!result.ok) back(locale, result.error);
   back(locale, `${result.email} is no longer an admin.`);
+}
+
+/**
+ * Move an admin to another access level (full / check-in / view-only). Blocked
+ * for your own account for the same reason as {@link removeAdmin}; the
+ * last-full-admin guard lives in {@link grantAdmin}.
+ */
+export async function changeAdminAccess(formData: FormData) {
+  const locale = safeLocale(formData.get("locale"));
+  const actor = await requireAdmin(locale, "edit");
+
+  const email = String(formData.get("email") ?? "");
+  const role = parseAdminRole(formData.get("access"));
+  if (email && normalizeEmail(email) === normalizeEmail(actor.email)) {
+    back(locale, "You can't change your own access level — ask another admin to do it.");
+  }
+
+  const result = await grantAdmin({ email, role, skipInvite: true });
+  if (!result.ok) back(locale, result.error);
+  if (result.outcome === "already-admin") {
+    back(locale, `${result.email} already has ${adminRoleLabel(role)} access.`);
+  }
+  back(locale, `${result.email} now has ${adminRoleLabel(role)} access.`);
 }

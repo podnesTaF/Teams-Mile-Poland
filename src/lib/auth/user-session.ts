@@ -2,6 +2,7 @@ import { cache } from "react";
 import { headers } from "next/headers";
 
 import { auth } from "./better-auth";
+import { isAdminRole, roleHasCapability, type AdminCapability } from "./roles";
 
 /**
  * Server-side session access for RSC pages and server actions. Route protection
@@ -35,15 +36,29 @@ export async function requireUser(): Promise<SessionUser | null> {
 }
 
 /**
- * Whether the account holds the `admin` role — the single gate on `/admin`,
- * the admin API routes, and the admin-only bits of the ticket page. `role`
- * rides on the session user as a Better Auth additionalField declared
- * `input: false`, so it reflects the `users.role` column and cannot be set by
- * any client payload.
+ * Whether the account holds any admin role (full / check-in / view-only) — the
+ * single gate on `/admin`, the admin API routes, and the admin-only bits of
+ * the ticket page. Level checks are separate: {@link userCan}. `role` rides on
+ * the session user as a Better Auth additionalField declared `input: false`,
+ * so it reflects the `users.role` column and cannot be set by any client
+ * payload.
  */
 export function isAdmin(user: SessionUser | null | undefined): boolean {
-  if (!user) return false;
-  return (user as SessionUser & { role?: string | null }).role === "admin";
+  return isAdminRole(userRole(user));
+}
+
+/** The account's role string off the session user, or null. */
+export function userRole(user: SessionUser | null | undefined): string | null {
+  if (!user) return null;
+  return (user as SessionUser & { role?: string | null }).role ?? null;
+}
+
+/** Whether the account's admin level grants `capability` (view / checkin / edit). */
+export function userCan(
+  user: SessionUser | null | undefined,
+  capability: AdminCapability,
+): boolean {
+  return roleHasCapability(userRole(user), capability);
 }
 
 /** The signed-in user when they are an admin, else `null`. */

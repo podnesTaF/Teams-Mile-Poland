@@ -7,7 +7,14 @@ import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { listAdmins, type AdminRow } from "@/features/admin/admins-data";
-import { inviteAdmin, removeAdmin, resendAdminInvite } from "@/features/admin/admins-actions";
+import {
+  changeAdminAccess,
+  inviteAdmin,
+  removeAdmin,
+  resendAdminInvite,
+} from "@/features/admin/admins-actions";
+import { ADMIN_ROLES, adminRoleLabel, type AdminRole } from "@/lib/auth/roles";
+import { userCan } from "@/lib/auth/user-session";
 
 export default async function AdminAdminsPage({
   params,
@@ -20,13 +27,14 @@ export default async function AdminAdminsPage({
   const sp = await searchParams;
   setRequestLocale(locale);
   const actor = await requireAdmin(locale);
+  const canEdit = userCan(actor, "edit");
 
   return (
     <AdminPage title="Admins">
       {sp.msg ? <div className="iv-notice iv-notice--info">{sp.msg}</div> : null}
 
       {process.env.DATABASE_URL ? (
-        <AdminsBody locale={locale} actorId={actor.id} />
+        <AdminsBody locale={locale} actorId={actor.id} canEdit={canEdit} />
       ) : (
         <NoDatabaseNotice>manage admins</NoDatabaseNotice>
       )}
@@ -34,39 +42,56 @@ export default async function AdminAdminsPage({
   );
 }
 
-async function AdminsBody({ locale, actorId }: { locale: string; actorId: string }) {
+async function AdminsBody({
+  locale,
+  actorId,
+  canEdit,
+}: {
+  locale: string;
+  actorId: string;
+  canEdit: boolean;
+}) {
   const rows = await listAdmins();
 
   return (
     <>
-      <form action={inviteAdmin} className="iv-card" style={{ marginTop: 20 }}>
-        <input type="hidden" name="locale" value={locale} />
-        <h2 className="iv-section-title">Add an admin</h2>
-        <p className="iv-note">
-          Enter an email address. If it has no account yet, one is created and a set-password email
-          goes out; the person then signs in at the normal login and sees an <strong>Admin
-          panel</strong> tab. An existing runner keeps the password they already have.
-        </p>
-        <div
-          className="iv-inline"
-          style={{ gap: 12, flexWrap: "wrap", alignItems: "flex-end", marginTop: 16 }}
-        >
-          <label style={{ flex: "1 1 260px" }}>
-            <span className="iv-fieldlabel">Email</span>
-            <input
-              className="iv-input"
-              type="email"
-              name="email"
-              required
-              placeholder="name@email.com"
-              autoComplete="off"
-            />
-          </label>
-          <button type="submit" className="btn btn-red btn-sm">
-            Send invite
-          </button>
-        </div>
-      </form>
+      {canEdit ? (
+        <form action={inviteAdmin} className="iv-card" style={{ marginTop: 20 }}>
+          <input type="hidden" name="locale" value={locale} />
+          <h2 className="iv-section-title">Add an admin</h2>
+          <p className="iv-note">
+            Enter an email address. If it has no account yet, one is created and a set-password
+            email goes out; the person then signs in at the normal login and sees an <strong>Admin
+            panel</strong> tab. An existing runner keeps the password they already have. Access:
+            {" "}<strong>Full access</strong> can do everything, <strong>Check-in</strong> is the
+            race-morning volunteer level (check-in, bibs, heat finish), <strong>View only</strong>
+            {" "}reads everything and changes nothing.
+          </p>
+          <div
+            className="iv-inline"
+            style={{ gap: 12, flexWrap: "wrap", alignItems: "flex-end", marginTop: 16 }}
+          >
+            <label style={{ flex: "1 1 260px" }}>
+              <span className="iv-fieldlabel">Email</span>
+              <input
+                className="iv-input"
+                type="email"
+                name="email"
+                required
+                placeholder="name@email.com"
+                autoComplete="off"
+              />
+            </label>
+            <label>
+              <span className="iv-fieldlabel">Access</span>
+              <AccessSelect defaultValue="admin" />
+            </label>
+            <button type="submit" className="btn btn-red btn-sm">
+              Send invite
+            </button>
+          </div>
+        </form>
+      ) : null}
 
       <section className="iv-card" style={{ marginTop: 18 }}>
         {rows.length === 0 ? (
@@ -78,13 +103,20 @@ async function AdminsBody({ locale, actorId }: { locale: string; actorId: string
                 <tr>
                   <th>Name</th>
                   <th>Email</th>
+                  <th>Access</th>
                   <th>Status</th>
                   <th />
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <AdminRowView key={row.id} row={row} locale={locale} actorId={actorId} />
+                  <AdminRowView
+                    key={row.id}
+                    row={row}
+                    locale={locale}
+                    actorId={actorId}
+                    canEdit={canEdit}
+                  />
                 ))}
               </tbody>
             </table>
@@ -95,14 +127,29 @@ async function AdminsBody({ locale, actorId }: { locale: string; actorId: string
   );
 }
 
+/** The access-level select, shared by the invite form and the per-row change form. */
+function AccessSelect({ defaultValue }: { defaultValue: AdminRole }) {
+  return (
+    <select className="iv-input" name="access" defaultValue={defaultValue}>
+      {ADMIN_ROLES.map((role) => (
+        <option key={role} value={role}>
+          {adminRoleLabel(role)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 function AdminRowView({
   row,
   locale,
   actorId,
+  canEdit,
 }: {
   row: AdminRow;
   locale: string;
   actorId: string;
+  canEdit: boolean;
 }) {
   const isSelf = row.id === actorId;
   return (
@@ -112,6 +159,22 @@ function AdminRowView({
         {isSelf ? <span className="iv-cellsub"> (you)</span> : null}
       </td>
       <td>{row.email}</td>
+      <td>
+        {/* Your own level and a read-only viewer's page stay plain text: the
+            server actions refuse both anyway, so no dead controls. */}
+        {canEdit && !isSelf ? (
+          <form action={changeAdminAccess} className="iv-inline" style={{ gap: 8 }}>
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="email" value={row.email} />
+            <AccessSelect defaultValue={row.role} />
+            <button type="submit" className="iv-linkbtn">
+              Change
+            </button>
+          </form>
+        ) : (
+          adminRoleLabel(row.role)
+        )}
+      </td>
       <td>
         {/*
           "Pending" is the honest state for an invite: the row exists and the
@@ -124,27 +187,29 @@ function AdminRowView({
         </span>
       </td>
       <td>
-        <div className="iv-inline">
-          <form action={resendAdminInvite}>
-            <input type="hidden" name="locale" value={locale} />
-            <input type="hidden" name="email" value={row.email} />
-            <button type="submit" className="iv-linkbtn">
-              {row.hasPassword ? "Send reset link" : "Resend invite"}
-            </button>
-          </form>
-          {isSelf ? null : (
-            <form action={removeAdmin}>
+        {canEdit ? (
+          <div className="iv-inline">
+            <form action={resendAdminInvite}>
               <input type="hidden" name="locale" value={locale} />
-              <input type="hidden" name="id" value={row.id} />
-              <ConfirmSubmit
-                label="Remove admin"
-                title="Remove admin access?"
-                confirmLabel="Remove admin"
-                message={`${row.email} will lose the admin panel. Their account, profile and registrations stay untouched.`}
-              />
+              <input type="hidden" name="email" value={row.email} />
+              <button type="submit" className="iv-linkbtn">
+                {row.hasPassword ? "Send reset link" : "Resend invite"}
+              </button>
             </form>
-          )}
-        </div>
+            {isSelf ? null : (
+              <form action={removeAdmin}>
+                <input type="hidden" name="locale" value={locale} />
+                <input type="hidden" name="id" value={row.id} />
+                <ConfirmSubmit
+                  label="Remove admin"
+                  title="Remove admin access?"
+                  confirmLabel="Remove admin"
+                  message={`${row.email} will lose the admin panel. Their account, profile and registrations stay untouched.`}
+                />
+              </form>
+            )}
+          </div>
+        ) : null}
       </td>
     </tr>
   );

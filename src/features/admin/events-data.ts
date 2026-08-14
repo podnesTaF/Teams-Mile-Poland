@@ -467,6 +467,96 @@ export async function leaseBibForCheckedIn(
 }
 
 /**
+ * Lease a bib ahead of check-in — the heat builder's manual pre-assignment. The
+ * number is held from this moment (same partial unique index as every lease,
+ * ADR 0003), so the desk's suggestions skip it and the results import can
+ * resolve the (heat, bib) identity even for a runner nobody pressed Check in
+ * for. Status is deliberately untouched: holding a number is not being present.
+ *
+ * Refused when the runner's heat has already run — its bibs went back to the
+ * pool when it finished, and a fresh lease would take one out again for
+ * somebody who is done racing. Throws a unique violation when another runner
+ * holds the number; callers surface it rather than retrying, because the admin
+ * chose this bib on purpose.
+ */
+export async function preassignBib(
+  eventSlug: string,
+  registrationId: string,
+  bib: number,
+): Promise<boolean> {
+  const db = getDb();
+  const rows = await db
+    .update(eventRegistrations)
+    .set({ bib, bibReturnedAt: null })
+    .where(
+      and(
+        eq(eventRegistrations.id, registrationId),
+        eq(eventRegistrations.eventSlug, eventSlug),
+        notExists(
+          db
+            .select({ one: sql`1` })
+            .from(eventHeats)
+            .where(
+              and(
+                eq(eventHeats.id, eventRegistrations.heatId),
+                isNotNull(eventHeats.finishedAt),
+              ),
+            ),
+        ),
+      ),
+    )
+    .returning({ id: eventRegistrations.id });
+  return rows.length > 0;
+}
+
+/**
+ * Take back a pre-assigned bib that has not been worn: the lease is cleared
+ * outright (`bib = null`) rather than stamped returned — before the race the
+ * number has no history to retain, and a retained value would hand the results
+ * import a stale (heat, bib) identity to trip over.
+ *
+ * Refused for checked-in runners: the desk owns live-morning leases, and
+ * reverting or no-showing a runner is the way theirs comes back.
+ */
+export async function clearPreassignedBib(
+  eventSlug: string,
+  registrationId: string,
+): Promise<boolean> {
+  const db = getDb();
+  const rows = await db
+    .update(eventRegistrations)
+    .set({ bib: null })
+    .where(
+      and(
+        eq(eventRegistrations.id, registrationId),
+        eq(eventRegistrations.eventSlug, eventSlug),
+        isNotNull(eventRegistrations.bib),
+        isNull(eventRegistrations.bibReturnedAt),
+        ne(eventRegistrations.status, "checked_in"),
+      ),
+    )
+    .returning({ id: eventRegistrations.id });
+  return rows.length > 0;
+}
+
+/** The bib a registration is currently holding, or null when it has no lease. */
+export async function getHeldBib(registrationId: string): Promise<number | null> {
+  const db = getDb();
+  const [row] = await db
+    .select({ bib: eventRegistrations.bib })
+    .from(eventRegistrations)
+    .where(
+      and(
+        eq(eventRegistrations.id, registrationId),
+        isNotNull(eventRegistrations.bib),
+        isNull(eventRegistrations.bibReturnedAt),
+      ),
+    )
+    .limit(1);
+  return row?.bib ?? null;
+}
+
+/**
  * Mark checked in with no bib — the pool is empty. A runner standing at the desk
  * is never blocked by inventory (ADR 0003); they are present with a bib pending
  * and get one as soon as a finished heat is marked complete. Any previous `bib`

@@ -20,7 +20,7 @@ function rosterPath(locale: string, slug: string, query = "") {
  */
 export async function removeRegistration(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
   const slug = String(formData.get("slug") ?? "");
   const registrationId = String(formData.get("registrationId") ?? "");
   const status = String(formData.get("status") ?? "");

@@ -13,6 +13,7 @@ import { warsawLocalToInstant } from "@/lib/events/heat-time";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
+import { clearPreassignedBib, isUniqueViolation, preassignBib } from "./events-data";
 import {
   createHeats,
   deleteHeatRow,
@@ -66,7 +67,7 @@ function readInt(formData: FormData, key: string): number | null {
  */
 export async function generateHeats(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const slug = String(formData.get("slug") ?? "");
   const event = getEventBySlug(slug);
@@ -105,7 +106,7 @@ export async function generateHeats(formData: FormData) {
  */
 export async function updateHeat(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const slug = String(formData.get("slug") ?? "");
   const heatId = String(formData.get("heatId") ?? "");
@@ -143,7 +144,7 @@ export async function updateHeat(formData: FormData) {
 /** Delete a heat; its members fall back into the Unassigned list. */
 export async function deleteHeat(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const slug = String(formData.get("slug") ?? "");
   const heatId = String(formData.get("heatId") ?? "");
@@ -167,7 +168,7 @@ function selectedIds(formData: FormData): string[] {
 /** Bulk-move the selected registrations into one heat. */
 export async function assignToHeat(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const slug = String(formData.get("slug") ?? "");
   const heatId = String(formData.get("heatId") ?? "");
@@ -199,7 +200,7 @@ export async function assignToHeat(formData: FormData) {
  */
 export async function publishHeats(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const slug = String(formData.get("slug") ?? "");
   if (!slug) {
@@ -234,7 +235,7 @@ export async function publishHeats(formData: FormData) {
  */
 export async function seedFinalFromResults(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const slug = String(formData.get("slug") ?? "");
   const heatId = String(formData.get("heatId") ?? "");
@@ -266,10 +267,72 @@ export async function seedFinalFromResults(formData: FormData) {
   back(locale, slug, `ok=finalseeded&n=${result.seeded}&unlinked=${result.unlinked}`);
 }
 
+/**
+ * Manually lease a bib to one runner from the heat builder, ahead of race
+ * morning — or take a pre-assignment back when the bib field is submitted
+ * blank. Check-in stays the normal path (ADR 0003): the desk pre-fills whatever
+ * is leased here, so a pre-assigned runner keeps their number when they arrive.
+ *
+ * An explicit number is used verbatim, one attempt — the admin chose it, so a
+ * conflict is surfaced ("bib held") rather than retried onto a different number.
+ *
+ * The public start list is deliberately not revalidated: it carries no bibs
+ * (PRD #26), same as check-in.
+ */
+export async function assignBib(formData: FormData) {
+  const locale = safeLocale(formData.get("locale"));
+  await requireAdmin(locale, "edit");
+
+  const slug = String(formData.get("slug") ?? "");
+  const registrationId = String(formData.get("registrationId") ?? "");
+  if (!slug || !registrationId) {
+    back(locale, slug, "error=input");
+  }
+
+  const revalidate = () => {
+    revalidatePath(heatsPath(locale, slug));
+    revalidatePath(adminPath(locale, `/events/${slug}`));
+    // The desk pre-fills held bibs, so it must see this lease.
+    revalidatePath(adminPath(locale, `/events/${slug}/checkin`));
+  };
+
+  const bibRaw = String(formData.get("bib") ?? "").trim();
+  if (!bibRaw) {
+    const cleared = await clearPreassignedBib(slug, registrationId);
+    if (!cleared) {
+      back(locale, slug, "error=bibclear");
+    }
+    revalidate();
+    back(locale, slug, "ok=bibcleared");
+  }
+
+  const bib = Number.parseInt(bibRaw, 10);
+  const pool = getBibPool(slug);
+  if (!Number.isInteger(bib) || bib < 1 || bib > pool) {
+    back(locale, slug, "error=bib");
+  }
+
+  let leased: boolean;
+  try {
+    leased = await preassignBib(slug, registrationId, bib);
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      back(locale, slug, "error=bib_held");
+    }
+    throw error;
+  }
+  if (!leased) {
+    back(locale, slug, "error=bibassign");
+  }
+
+  revalidate();
+  back(locale, slug, `ok=bibset&n=${bib}`);
+}
+
 /** Bulk-remove the selected registrations from whatever heat they are in. */
 export async function unassignFromHeat(formData: FormData) {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale);
+  await requireAdmin(locale, "edit");
 
   const slug = String(formData.get("slug") ?? "");
   const ids = selectedIds(formData);
