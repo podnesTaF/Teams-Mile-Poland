@@ -8,14 +8,23 @@ import { authClient } from "@/lib/auth/auth-client";
 
 import { GoogleButton } from "./google-button";
 
-export function SignInForm({ redirectTo = "/profile" }: { redirectTo?: string }) {
+export function SignInForm({
+  redirectTo = "/profile",
+  oauthError = false,
+}: {
+  redirectTo?: string;
+  /** An OAuth callback failed and bounced back here with `?error=` (see GoogleButton). */
+  oauthError?: boolean;
+}) {
   const t = useTranslations("auth");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    oauthError ? t("errors.oauthCallback") : null,
+  );
   const [needsVerify, setNeedsVerify] = useState(false);
   const [pending, startTransition] = useTransition();
 

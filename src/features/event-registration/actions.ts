@@ -194,8 +194,11 @@ export async function registerAsGuest(
   // `requireEmailVerification` / `sendOnSignUp`, so no session is created and
   // the verification link is mailed. The placeholder password is unusable until
   // the runner sets a real one via the ticket email's set-password CTA.
+  // Browser headers are forwarded so the `user.create.after` hook can read the
+  // referral cookie — a server-side api call carries none by default.
   try {
     await auth.api.signUpEmail({
+      headers: await headers(),
       body: {
         email,
         password: randomUUID(),

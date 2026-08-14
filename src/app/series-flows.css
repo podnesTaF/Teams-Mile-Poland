@@ -1244,6 +1244,210 @@
   cursor: pointer;
 }
 
+/* ================================================================
+ * PROFILE V2 — mobile-first profile page: identity hero, stats strip,
+ * sticky anchor-pill nav, and settings accordions. Layout only — the
+ * cards and forms reuse the FLOW 3 skin above.
+ * ================================================================ */
+.ace-landing .pf-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px 18px;
+  flex-wrap: wrap;
+}
+.ace-landing .pf-hero__avatar {
+  width: 64px;
+  height: 64px;
+  font-size: 1.7rem;
+  flex: 0 0 auto;
+}
+.ace-landing .pf-hero__id {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ace-landing .pf-hero__name {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(1.5rem, 5.5vw, 2.5rem);
+  line-height: 1;
+  margin: 2px 0 0;
+  word-break: break-word;
+}
+.ace-landing .pf-hero__out {
+  flex: 0 0 auto;
+  margin-left: auto;
+  align-self: flex-start;
+}
+
+.ace-landing .pf-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: clamp(18px, 3vw, 28px);
+}
+.ace-landing .pf-stat {
+  background: var(--card);
+  border: 1px solid var(--line-d);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.ace-landing .pf-stat__v {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(1.25rem, 4.5vw, 1.9rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ace-landing .pf-stat__k {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Sticky pill nav — sits flush under the sticky .iv-header, whose height is
+ * 28px padding + 1px border + the clamp()ed logo. Full-bleed to the wrap
+ * edges so the pills scroll edge-to-edge on mobile. */
+.ace-landing .pf-nav {
+  position: sticky;
+  top: calc(clamp(20px, 2.4vw, 30px) + 29px);
+  z-index: 40;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: clamp(20px, 3vw, 28px) -24px 0;
+  padding: 10px 24px;
+  background: rgba(25, 26, 24, 0.92);
+  backdrop-filter: blur(8px);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.ace-landing .pf-nav::-webkit-scrollbar {
+  display: none;
+}
+.ace-landing .pf-nav__link {
+  flex: 0 0 auto;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d8d8d6;
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 1px solid var(--line-d);
+  border-radius: 999px;
+  background: var(--card);
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.ace-landing .pf-nav__link:hover,
+.ace-landing .pf-nav__link:focus-visible {
+  border-color: var(--line-d2);
+  color: #fff;
+  background: var(--card-2);
+}
+
+/* Anchor targets stop below the sticky header + nav instead of under them. */
+.ace-landing .pf-section {
+  scroll-margin-top: 128px;
+}
+.ace-landing .pf-h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+/* Settings accordions — the <details> card is the chrome; the nested
+ * .profile-form drops its own card skin (like the register modal does). */
+.ace-landing .pf-acc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+.ace-landing .pf-acc {
+  background: var(--card);
+  border: 1px solid var(--line-d);
+  border-radius: 6px;
+}
+.ace-landing .pf-acc__head {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px clamp(16px, 2.4vw, 24px);
+  user-select: none;
+}
+.ace-landing .pf-acc__head::-webkit-details-marker {
+  display: none;
+}
+.ace-landing .pf-acc__tw {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.ace-landing .pf-acc__t {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+.ace-landing .pf-acc__hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.ace-landing .pf-acc__chev {
+  flex: 0 0 auto;
+  display: flex;
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+.ace-landing .pf-acc[open] > .pf-acc__head .pf-acc__chev {
+  transform: rotate(180deg);
+}
+.ace-landing .pf-acc[open] > .pf-acc__head {
+  border-bottom: 1px solid var(--line-d);
+}
+.ace-landing .pf-acc .profile-form {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: clamp(18px, 2.6vw, 28px) clamp(16px, 2.4vw, 24px);
+}
+
+/* Referral funnel tiles (was an inline grid on the page). */
+.ace-landing .pf-ref-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+@media (min-width: 861px) {
+  .ace-landing .pf-hero__avatar {
+    width: 84px;
+    height: 84px;
+    font-size: 2.2rem;
+  }
+}
+
 /* Event-detail logged-out CTA (create account / sign in) inside the slots-card */
 .ace-landing .ev-auth-cta {
   display: flex;

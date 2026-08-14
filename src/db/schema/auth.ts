@@ -1,4 +1,14 @@
-import { boolean, date, index, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  date,
+  index,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  type AnyPgColumn,
+} from "drizzle-orm/pg-core";
 
 /**
  * Better Auth tables — hand-written so drizzle-kit stays the only migration
@@ -27,31 +37,46 @@ export const userSexEnum = pgEnum("user_sex", ["M", "F"]);
  */
 export type UserRole = "user" | "admin";
 
-export const users = pgTable("users", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified").default(false).notNull(),
-  image: text("image"),
-  role: text("role").$type<UserRole>().default("user").notNull(),
-  // --- profile additionalFields (see better-auth config user.additionalFields)
-  firstName: text("first_name"),
-  lastName: text("last_name"),
-  // SQL DATE (calendar day, no tz) but mode:"date" so the Better Auth adapter
-  // can pass/receive JS Date objects (additionalField type "date").
-  dateOfBirth: date("date_of_birth", { mode: "date" }),
-  sex: userSexEnum("sex"),
-  club: text("club"),
-  phone: text("phone"),
-  locale: text("locale").default("pl").notNull(),
-  // Marketing consent flag set by the public signed unsubscribe link; the
-  // broadcast segment resolver excludes opted-out users centrally.
-  // Transactional email (tickets, verification) ignores it. Not a Better Auth
-  // additionalField — written by direct DB update, never through the auth API.
-  marketingOptOut: boolean("marketing_opt_out").default(false).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    emailVerified: boolean("email_verified").default(false).notNull(),
+    image: text("image"),
+    role: text("role").$type<UserRole>().default("user").notNull(),
+    // --- profile additionalFields (see better-auth config user.additionalFields)
+    firstName: text("first_name"),
+    lastName: text("last_name"),
+    // SQL DATE (calendar day, no tz) but mode:"date" so the Better Auth adapter
+    // can pass/receive JS Date objects (additionalField type "date").
+    dateOfBirth: date("date_of_birth", { mode: "date" }),
+    sex: userSexEnum("sex"),
+    club: text("club"),
+    phone: text("phone"),
+    locale: text("locale").default("pl").notNull(),
+    // Marketing consent flag set by the public signed unsubscribe link; the
+    // broadcast segment resolver excludes opted-out users centrally.
+    // Transactional email (tickets, verification) ignores it. Not a Better Auth
+    // additionalField — written by direct DB update, never through the auth API.
+    marketingOptOut: boolean("marketing_opt_out").default(false).notNull(),
+    // --- referral program (stats-only). Neither is a Better Auth
+    // additionalField: the code is generated lazily by getOrCreateReferralCode
+    // and attribution is written once by applyReferralAttribution — both direct
+    // DB updates, never through the auth API.
+    referralCode: text("referral_code"),
+    referredBy: text("referred_by").references((): AnyPgColumn => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("users_referral_code_uq").on(table.referralCode),
+    index("users_referred_by_idx").on(table.referredBy),
+  ],
+);
 
 export const sessions = pgTable(
   "sessions",

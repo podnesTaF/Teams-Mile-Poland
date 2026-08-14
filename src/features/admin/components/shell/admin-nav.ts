@@ -79,6 +79,7 @@ export function buildAdminNav(): AdminNav {
       label: "People",
       items: [
         { label: "Users", href: "/admin/users" },
+        { label: "Referrals", href: "/admin/referrals" },
         { label: "Admins", href: "/admin/admins" },
       ],
     },

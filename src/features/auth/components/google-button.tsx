@@ -1,9 +1,10 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { authClient } from "@/lib/auth/auth-client";
+import { localePath } from "@/lib/i18n/config";
 
 import { GoogleIcon } from "./auth-shell";
 
@@ -17,9 +18,16 @@ import { GoogleIcon } from "./auth-shell";
  * silently does nothing is indistinguishable from a dead one. The provider's
  * own message is logged, not rendered: it is untranslated and usually says
  * nothing a runner can act on.
+ *
+ * Both redirect targets are locale-prefixed by hand: Better Auth redirects the
+ * browser server-side, so the locale-aware router never gets a say. Without
+ * `errorCallbackURL`, a failure *after* the Google leg (e.g. a linking refusal)
+ * strands the runner on Better Auth's raw `/api/auth/error` page; instead it
+ * returns to sign-in, which renders `?error=` as a translated banner.
  */
 export function GoogleButton({ callbackURL = "/profile" }: { callbackURL?: string }) {
   const t = useTranslations("auth");
+  const locale = useLocale();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +35,11 @@ export function GoogleButton({ callbackURL = "/profile" }: { callbackURL?: strin
     setPending(true);
     setError(null);
     try {
-      const { error: err } = await authClient.signIn.social({ provider: "google", callbackURL });
+      const { error: err } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: localePath(locale, callbackURL),
+        errorCallbackURL: localePath(locale, "/auth/sign-in"),
+      });
       if (err) {
         console.error("[auth] Google sign-in failed:", err);
         setError(t("errors.googleUnavailable"));

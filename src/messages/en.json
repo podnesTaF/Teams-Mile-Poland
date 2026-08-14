@@ -989,7 +989,8 @@
       "badCredentials": "Incorrect email or password.",
       "notVerified": "Verify your email before signing in.",
       "passwordMismatch": "Passwords don't match.",
-      "googleUnavailable": "Google sign-in isn't available right now. Use your email and password instead."
+      "googleUnavailable": "Google sign-in isn't available right now. Use your email and password instead.",
+      "oauthCallback": "Google sign-in didn't complete. Try again, or use your email and password."
     },
     "fields": {
       "firstName": "First name",
@@ -1063,6 +1064,26 @@
     "title": "Profile",
     "subtitle": "Keep your details up to date for race day.",
     "completePrompt": "Complete your profile to register for events.",
+    "nav": {
+      "label": "Profile sections",
+      "races": "Races",
+      "results": "Results",
+      "invite": "Invite",
+      "settings": "Settings"
+    },
+    "stats": {
+      "races": "Race nights",
+      "best": "Best mile",
+      "invited": "Friends joined"
+    },
+    "settings": {
+      "title": "Account",
+      "heading": "Account settings",
+      "profileSummary": "Personal & runner details",
+      "profileHint": "Name, date of birth, club, phone",
+      "passwordSummary": "Password",
+      "passwordHint": "Change the password you sign in with"
+    },
     "sections": {
       "detailsTitle": "Your details",
       "detailsSub": "Your name as it appears on results.",
@@ -1139,6 +1160,16 @@
         "M": "Men",
         "F": "Women"
       }
+    },
+    "referrals": {
+      "title": "Invite friends",
+      "heading": "Your referral link",
+      "hint": "Share this link — anyone who creates an account through it counts toward your referrals.",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "signups": "Sign-ups",
+      "raceRegistrations": "Race registrations",
+      "participations": "Took part"
     }
   },
   "register": {

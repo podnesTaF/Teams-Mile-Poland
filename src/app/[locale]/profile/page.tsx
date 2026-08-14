@@ -26,6 +26,12 @@ import { makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { SeriesList, type RaceRow } from "@/features/event-registration/components/series-list";
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import { getAttendedLegacySlugs } from "@/features/profile/data";
+import {
+  getOrCreateReferralCode,
+  getReferralStats,
+  makeReferralUrl,
+} from "@/features/referral/data";
+import { InviteLink } from "@/features/team/components/invite-link";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
@@ -51,6 +57,16 @@ function toDateInput(value: unknown): string {
     return value.slice(0, 10);
   }
   return "";
+}
+
+function AccordionChevron() {
+  return (
+    <span className="pf-acc__chev" aria-hidden>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
 }
 
 export default async function ProfilePage({ params, searchParams }: PageProps) {
@@ -85,6 +101,10 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const t = await getTranslations("profile");
   const registrations = await getUserRegistrations(user.id);
   const incomplete = !isProfileComplete(user);
+  // The finish-profile round-trip (registration sends people here to fill the
+  // form) and an incomplete profile both make settings the main event: the
+  // section moves to the top and the details accordion starts open.
+  const settingsFirst = incomplete || Boolean(redirectTo);
 
   // Confirmation closes once the heat card is published — one query for the
   // whole list rather than one per registration.
@@ -112,7 +132,15 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   ]);
   const myResults = findUserResults(fullName, participations, resultsBySlug, directRefs);
   const bestTimeCs =
-    myResults.length > 1 ? Math.min(...myResults.map((r) => r.entry.timeCs)) : null;
+    myResults.length > 0 ? Math.min(...myResults.map((r) => r.entry.timeCs)) : null;
+
+  // Referral link + funnel counts (sign-ups → race registrations → checked in).
+  // The code is issued lazily on first profile view.
+  const [referralCode, referralStats] = await Promise.all([
+    getOrCreateReferralCode(user.id),
+    getReferralStats(user.id),
+  ]);
+  const referralUrl = makeReferralUrl(referralCode, locale);
 
   // Race nights the user could still join — any registration row (even a
   // cancelled one) excludes the event, since registerForEvent rejects those
@@ -134,29 +162,98 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
       };
     });
 
+  const raceCount = registrations.filter((r) => r.status !== "cancelled").length;
+  const initials =
+    (
+      [u.firstName?.[0], u.lastName?.[0]].filter(Boolean).join("") ||
+      (fullName || user.email)[0] ||
+      "?"
+    ).toUpperCase();
+
+  const settingsSection = (
+    <section className="regs-section pf-section" id="settings">
+      <div className="section-label">
+        <span className="iv-eyebrow">{t("settings.title")}</span>
+      </div>
+      <h2 className="iv-title pf-h2">{t("settings.heading")}</h2>
+
+      <div className="pf-acc-list">
+        <details className="pf-acc" open={settingsFirst}>
+          <summary className="pf-acc__head">
+            <span className="pf-acc__tw">
+              <span className="pf-acc__t">{t("settings.profileSummary")}</span>
+              <span className="pf-acc__hint">{t("settings.profileHint")}</span>
+            </span>
+            <AccordionChevron />
+          </summary>
+          <ProfileForm initial={initial} redirectTo={redirectTo} />
+        </details>
+
+        <details className="pf-acc">
+          <summary className="pf-acc__head">
+            <span className="pf-acc__tw">
+              <span className="pf-acc__t">{t("settings.passwordSummary")}</span>
+              <span className="pf-acc__hint">{t("settings.passwordHint")}</span>
+            </span>
+            <AccordionChevron />
+          </summary>
+          <ChangePasswordForm />
+        </details>
+      </div>
+    </section>
+  );
+
   return (
     <div className="ace-landing iv">
       <InteriorHeader />
       <main className="iv-main">
         <div className="iv-wrap">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: 16,
-              flexWrap: "wrap",
-            }}
-          >
-            <div className="page-head">
-              <span className="iv-eyebrow">{t("eyebrow")}</span>
-              <h1 className="iv-title">{t("title")}</h1>
+          <header className="pf-hero">
+            <div className="avatar pf-hero__avatar" aria-hidden>
+              {initials}
             </div>
-            <LogOutButton className="btn btn-stroke-dark btn-sm" />
+            <div className="pf-hero__id">
+              <span className="iv-eyebrow">{t("eyebrow")}</span>
+              <h1 className="pf-hero__name">{fullName || t("title")}</h1>
+              <span className="profile-email">{user.email}</span>
+            </div>
+            <LogOutButton className="btn btn-stroke-dark btn-sm pf-hero__out" />
+          </header>
+
+          <div className="pf-stats">
+            <div className="pf-stat">
+              <span className="pf-stat__v">{raceCount}</span>
+              <span className="pf-stat__k">{t("stats.races")}</span>
+            </div>
+            <div className="pf-stat">
+              <span className="pf-stat__v">{bestTimeCs !== null ? formatTime(bestTimeCs) : "—"}</span>
+              <span className="pf-stat__k">{t("stats.best")}</span>
+            </div>
+            <div className="pf-stat">
+              <span className="pf-stat__v">{referralStats.signups}</span>
+              <span className="pf-stat__k">{t("stats.invited")}</span>
+            </div>
           </div>
 
+          <nav className="pf-nav" aria-label={t("nav.label")}>
+            <a className="pf-nav__link" href="#registrations">
+              {t("nav.races")}
+            </a>
+            {myResults.length > 0 ? (
+              <a className="pf-nav__link" href="#results">
+                {t("nav.results")}
+              </a>
+            ) : null}
+            <a className="pf-nav__link" href="#referrals">
+              {t("nav.invite")}
+            </a>
+            <a className="pf-nav__link" href="#settings">
+              {t("nav.settings")}
+            </a>
+          </nav>
+
           {incomplete ? (
-            <div className="banner banner--info" style={{ marginTop: 20, marginBottom: 20 }}>
+            <div className="banner banner--info" style={{ marginTop: 20 }}>
               <span className="banner__ic">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="9" />
@@ -169,66 +266,13 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             </div>
           ) : null}
 
-            <ProfileForm initial={initial} redirectTo={redirectTo} />
+          {settingsFirst ? settingsSection : null}
 
-          <section id="security" style={{ marginTop: 24 }}>
-            <ChangePasswordForm />
-          </section>
-
-          {myResults.length > 0 ? (
-            <section className="regs-section" id="results">
-              <div className="section-label">
-                <span className="iv-eyebrow">{t("results.title")}</span>
-              </div>
-              <h2 className="iv-title" style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)" }}>
-                {t("results.heading")}
-              </h2>
-
-              <div className="reg-list">
-                {myResults.map((res) => {
-                  const [y, m, d] = res.event.date.split("-");
-                  return (
-                    <div
-                      key={`${res.event.slug}:${res.heatNumber}:${res.entry.bib}`}
-                      className="reg-card res-card"
-                    >
-                      <div className="race-date">
-                        <span className="race-date__d">{String(parseInt(d, 10))}</span>
-                        <span className="race-date__m">{MONTHS[parseInt(m, 10) - 1] ?? ""}</span>
-                        <span className="race-date__y">{y}</span>
-                      </div>
-                      <div className="reg-card__body">
-                        <span className="reg-card__title">{res.event.name}</span>
-                        <div className="reg-card__meta">
-                          <span>
-                            {t("results.place")}{" "}
-                            <b>{t("results.placeValue", { rank: res.rank, total: res.total })}</b>
-                          </span>
-                          <span>{t("results.heat", { number: res.heatNumber })}</span>
-                          <span>{t(`results.category.${res.entry.gender}`)}</span>
-                        </div>
-                      </div>
-                      <div className="res-card__perf">
-                        {res.entry.timeCs === bestTimeCs ? (
-                          <span className="res-card__best">{t("results.best")}</span>
-                        ) : null}
-                        <span className="res-card__time">{formatTime(res.entry.timeCs)}</span>
-                        <span className="res-card__lvl">{t("results.level", { n: res.level })}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          ) : null}
-
-          <section className="regs-section" id="registrations">
+          <section className="regs-section pf-section" id="registrations">
             <div className="section-label">
               <span className="iv-eyebrow">{t("registrations.title")}</span>
             </div>
-            <h2 className="iv-title" style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)" }}>
-              {t("registrations.heading")}
-            </h2>
+            <h2 className="iv-title pf-h2">{t("registrations.heading")}</h2>
 
             {notice ? (
               <div
@@ -330,6 +374,84 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
               </div>
             ) : null}
           </section>
+
+          {myResults.length > 0 ? (
+            <section className="regs-section pf-section" id="results">
+              <div className="section-label">
+                <span className="iv-eyebrow">{t("results.title")}</span>
+              </div>
+              <h2 className="iv-title pf-h2">{t("results.heading")}</h2>
+
+              <div className="reg-list">
+                {myResults.map((res) => {
+                  const [y, m, d] = res.event.date.split("-");
+                  return (
+                    <div
+                      key={`${res.event.slug}:${res.heatNumber}:${res.entry.bib}`}
+                      className="reg-card res-card"
+                    >
+                      <div className="race-date">
+                        <span className="race-date__d">{String(parseInt(d, 10))}</span>
+                        <span className="race-date__m">{MONTHS[parseInt(m, 10) - 1] ?? ""}</span>
+                        <span className="race-date__y">{y}</span>
+                      </div>
+                      <div className="reg-card__body">
+                        <span className="reg-card__title">{res.event.name}</span>
+                        <div className="reg-card__meta">
+                          <span>
+                            {t("results.place")}{" "}
+                            <b>{t("results.placeValue", { rank: res.rank, total: res.total })}</b>
+                          </span>
+                          <span>{t("results.heat", { number: res.heatNumber })}</span>
+                          <span>{t(`results.category.${res.entry.gender}`)}</span>
+                        </div>
+                      </div>
+                      <div className="res-card__perf">
+                        {myResults.length > 1 && res.entry.timeCs === bestTimeCs ? (
+                          <span className="res-card__best">{t("results.best")}</span>
+                        ) : null}
+                        <span className="res-card__time">{formatTime(res.entry.timeCs)}</span>
+                        <span className="res-card__lvl">{t("results.level", { n: res.level })}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          <section className="regs-section pf-section" id="referrals">
+            <div className="section-label">
+              <span className="iv-eyebrow">{t("referrals.title")}</span>
+            </div>
+            <h2 className="iv-title pf-h2">{t("referrals.heading")}</h2>
+
+            <section className="iv-share" style={{ marginTop: 16 }}>
+              <p className="iv-share__hint">{t("referrals.hint")}</p>
+              <InviteLink
+                url={referralUrl}
+                copyLabel={t("referrals.copy")}
+                copiedLabel={t("referrals.copied")}
+              />
+            </section>
+
+            <div className="pf-ref-stats">
+              <div className="iv-info">
+                <div className="iv-info__label">{t("referrals.signups")}</div>
+                <div className="iv-info__value">{referralStats.signups}</div>
+              </div>
+              <div className="iv-info">
+                <div className="iv-info__label">{t("referrals.raceRegistrations")}</div>
+                <div className="iv-info__value">{referralStats.raceRegistrations}</div>
+              </div>
+              <div className="iv-info">
+                <div className="iv-info__label">{t("referrals.participations")}</div>
+                <div className="iv-info__value">{referralStats.participations}</div>
+              </div>
+            </div>
+          </section>
+
+          {settingsFirst ? null : settingsSection}
         </div>
       </main>
     </div>

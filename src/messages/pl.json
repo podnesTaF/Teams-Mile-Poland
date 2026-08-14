@@ -989,7 +989,8 @@
       "badCredentials": "Nieprawidłowy e-mail lub hasło.",
       "notVerified": "Potwierdź adres e-mail przed zalogowaniem.",
       "passwordMismatch": "Hasła nie są takie same.",
-      "googleUnavailable": "Logowanie przez Google jest teraz niedostępne. Użyj e-maila i hasła."
+      "googleUnavailable": "Logowanie przez Google jest teraz niedostępne. Użyj e-maila i hasła.",
+      "oauthCallback": "Logowanie przez Google nie powiodło się. Spróbuj ponownie lub użyj e-maila i hasła."
     },
     "fields": {
       "firstName": "Imię",
@@ -1063,6 +1064,26 @@
     "title": "Profil",
     "subtitle": "Aktualizuj dane przed dniem zawodów.",
     "completePrompt": "Uzupełnij profil, aby zapisać się na wydarzenia.",
+    "nav": {
+      "label": "Sekcje profilu",
+      "races": "Starty",
+      "results": "Wyniki",
+      "invite": "Zaproś",
+      "settings": "Ustawienia"
+    },
+    "stats": {
+      "races": "Biegi",
+      "best": "Najlepsza mila",
+      "invited": "Zaproszeni znajomi"
+    },
+    "settings": {
+      "title": "Konto",
+      "heading": "Ustawienia konta",
+      "profileSummary": "Dane osobowe i zawodnika",
+      "profileHint": "Imię, data urodzenia, klub, telefon",
+      "passwordSummary": "Hasło",
+      "passwordHint": "Zmień hasło, którym się logujesz"
+    },
     "sections": {
       "detailsTitle": "Twoje dane",
       "detailsSub": "Twoje imię i nazwisko widoczne w wynikach.",
@@ -1139,6 +1160,16 @@
         "M": "Mężczyźni",
         "F": "Kobiety"
       }
+    },
+    "referrals": {
+      "title": "Zaproś znajomych",
+      "heading": "Twój link polecający",
+      "hint": "Udostępnij ten link — każdy, kto założy przez niego konto, liczy się do Twoich poleceń.",
+      "copy": "Kopiuj link",
+      "copied": "Skopiowano",
+      "signups": "Rejestracje konta",
+      "raceRegistrations": "Zapisy na biegi",
+      "participations": "Wzięli udział"
     }
   },
   "register": {

@@ -6,6 +6,7 @@ import type { ReactElement } from "react";
 import { accounts, sessions, users, verifications } from "@/db/schema";
 import { ResetPasswordEmail } from "@/emails/reset-password";
 import { VerifyEmail } from "@/emails/verify-email";
+import { applyReferralAttribution, REF_COOKIE } from "@/features/referral/data";
 import { getAppUrl, vercelDeploymentOrigins } from "@/lib/app-url";
 import { db } from "@/lib/db";
 import { FROM_EMAIL, getResend, resend } from "@/lib/email";
@@ -117,6 +118,50 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      // Without this, a Google sign-up stores only `name` and the runner
+      // immediately hits the profile-completeness wall with empty name fields
+      // even though the ID token carries them.
+      mapProfileToUser: (profile) => ({
+        firstName: profile.given_name,
+        lastName: profile.family_name,
+      }),
+    },
+  },
+  account: {
+    /**
+     * Let "Continue with Google" attach to an existing local account with the
+     * same email instead of dead-ending on `account_not_linked`. This app
+     * manufactures *unverified* local accounts routinely (guest event
+     * registration, every email sign-up before the verify click), so the
+     * default `requireLocalEmailVerified: true` rejected exactly those people.
+     * Google asserts email ownership (`email_verified`), which is the same
+     * guarantee our own verification link provides; on link Better Auth marks
+     * the local email verified. Accepted edge: a password set on a never-
+     * verified account stays valid after the owner links via Google — guest
+     * accounts carry unusable random passwords, so this is theoretical here.
+     * NOTE: `requireLocalEmailVerified` is deprecated upstream (the gate is
+     * slated to become unconditional) — re-check this flow on Better Auth
+     * upgrades.
+     */
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+      requireLocalEmailVerified: false,
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        // Referral attribution: every account-creation path funnels through
+        // here (email sign-up, Google OAuth callback, and `registerAsGuest`,
+        // which forwards the browser headers for this reason). The `ref`
+        // cookie is set by `/r/[code]`; the helper ignores unknown codes and
+        // never throws.
+        after: async (user, ctx) => {
+          const code = ctx?.getCookie(REF_COOKIE);
+          if (code) await applyReferralAttribution(user.id, code);
+        },
+      },
     },
   },
   user: {
