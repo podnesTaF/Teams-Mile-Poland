@@ -60,8 +60,8 @@ export const EVENTS: EventSummary[] = [
     city: EVENT.venue.city,
     results: warsaw2026Results,
   },
-  // Aug-2026 individual mile series. The first race morning has been run; 08-15
-  // is open. The 2026-08-08 night was **cancelled and removed from the registry
+  // Aug-2026 individual mile series. The 08-01 and 08-15 mornings have been
+  // run. The 2026-08-08 night was **cancelled and removed from the registry
   // outright** rather than parked in a lifecycle state — the model has no
   // `cancelled` status, and leaving it as `registration_closed` read as a race
   // still happening with entries shut, which is exactly the confusion the
@@ -69,7 +69,9 @@ export const EVENTS: EventSummary[] = [
   // first, so no row keys a slug the registry no longer knows; `/events/
   // mile-2026-08-08` now 404s.
   { ...mileEvent("2026-08-01", MORNING, "completed"), results: mile20260801Results },
-  mileEvent("2026-08-15", MORNING, "registration_open"),
+  // 08-15 has no config `results` sheet: its results were imported from the
+  // timing system into `event_results`, which the DB-first readers prefer.
+  mileEvent("2026-08-15", MORNING, "completed"),
   mileEvent("2026-08-22", EVENING, "registration_open"),
   mileEvent("2026-08-29", MORNING, "registration_open"),
 ];
