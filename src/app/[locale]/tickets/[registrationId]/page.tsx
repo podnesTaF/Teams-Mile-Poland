@@ -22,6 +22,7 @@ import { buildEventTicketView, makeEventTicketUrl } from "@/features/event-regis
 import { generateTicketQrPng } from "@/features/ticket/qr";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { DownloadTicketButton } from "@/features/ticket/components/download-ticket-button";
+import { Link } from "@/i18n/navigation";
 import { getAdminUser, userCan } from "@/lib/auth/user-session";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug } from "@/lib/events/registry";
@@ -84,6 +85,19 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
   // do — and they require the check-in capability, so a view-only admin gets
   // the plain ticket rather than buttons that would 404.
   const canCheckIn = userCan(await getAdminUser(), "checkin");
+
+  // The other half of race morning: a volunteer who scanned with the phone's own
+  // camera app lands here in a browser with no admin session, sees the plain
+  // ticket, and is stuck. This is their way back in — sign in, return to *this*
+  // ticket, panel open. Locale-relative, because the sign-in form pushes
+  // `redirectTo` through the next-intl router (see `requireAdmin`).
+  //
+  // It is shown to everyone with a valid signature, the ticket's owner included,
+  // so it must stay page chrome: a footer link, no admin vocabulary beyond the
+  // word "staff", and nothing about the runner it wasn't already showing.
+  const staffSignInHref = `/auth/sign-in?redirectTo=${encodeURIComponent(
+    `/tickets/${encodeURIComponent(registrationId)}?s=${encodeURIComponent(s)}#admin`,
+  )}`;
 
   return (
     <div className="ace-landing iv tk-page">
@@ -174,6 +188,11 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
           <p className="iv-note iv-no-print" style={{ textAlign: "center" }}>
             Keep this page private. The QR is your ticket.
           </p>
+          {canCheckIn ? null : (
+            <p className="tk-staff iv-no-print">
+              <Link href={staffSignInHref}>Staff sign-in</Link>
+            </p>
+          )}
         </div>
       </main>
     </div>

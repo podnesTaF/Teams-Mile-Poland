@@ -65,7 +65,19 @@ export async function TicketAdminPanel({
         </Link>
       </div>
 
-      {flash ? <p className="tk-admin__flash">{flash}</p> : null}
+      {flash ? (
+        <div className="tk-admin__flashrow">
+          <p className="tk-admin__flash">{flash}</p>
+          {/* The loop: a check-in ends on this page, and the next runner is
+              already holding out a phone. `ok` is only ever set by a successful
+              action, so the button appears exactly on the success state. */}
+          {ok ? (
+            <Link href="/admin/scan" className="btn btn-red btn-sm">
+              Scan next runner
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="tk-admin__who">
         <strong>{name}</strong>
