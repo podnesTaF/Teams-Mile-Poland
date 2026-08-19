@@ -6,6 +6,7 @@ import { EventMediaLiveEmail } from "@/emails/event-media-live";
 import { getAppUrl } from "@/features/registration/data";
 import { getDb } from "@/lib/db";
 import { FROM_EMAIL, resend } from "@/lib/email";
+import { getEventMediaConfig } from "@/lib/events/media-config";
 import { getEventBySlug } from "@/lib/events/registry";
 import { defaultLocale } from "@/lib/i18n/config";
 
@@ -51,11 +52,12 @@ async function alreadySent(registrationIds: string[]): Promise<Set<string>> {
 /**
  * Send the one-per-event "your photos are live" mailing to an event's eligible
  * registrations (PRD #14, slice #18). Guards the event is a completed individual
- * event with `media` published — throwing {@link MediaLiveNotEligibleError}
- * otherwise, so a stale button or a hand-crafted call can never mail a
- * non-published event. Logged idempotently per `(event_registration_id,
- * 'media_live')`, so retries and double-clicks re-send to nobody. Callers must
- * enforce the admin gate (see `media-live-actions.ts`).
+ * event with media published (an `event_media` row) — throwing
+ * {@link MediaLiveNotEligibleError} otherwise, so a stale button or a
+ * hand-crafted call can never mail a non-published event. Logged idempotently
+ * per `(event_registration_id, 'media_live')`, so retries and double-clicks
+ * re-send to nobody. Callers must enforce the admin gate (see
+ * `media-live-actions.ts`).
  */
 export async function sendMediaLiveMailing(eventSlug: string): Promise<MediaLiveSummary> {
   const event = getEventBySlug(eventSlug);
@@ -63,7 +65,7 @@ export async function sendMediaLiveMailing(eventSlug: string): Promise<MediaLive
     !event ||
     event.eventType !== "individual" ||
     event.status !== "completed" ||
-    !event.media
+    !(await getEventMediaConfig(eventSlug))
   ) {
     throw new MediaLiveNotEligibleError(
       "This event isn't a completed event with published media.",
@@ -94,7 +96,12 @@ export async function sendMediaLiveMailing(eventSlug: string): Promise<MediaLive
     }
     const content = mediaLiveMailContent(r.locale, r.fullName);
     try {
-      await resend.emails.send({
+      // Resend reports API failures in `error` rather than throwing, so an
+      // unchecked call would log `sent` for mail that never left — and the
+      // idempotency check would then skip that runner on every retry. Turn it
+      // into a throw so the one catch below governs both failure modes (the
+      // heat-assignment mailing's fix, applied here too).
+      const { error } = await resend.emails.send({
         from: FROM_EMAIL,
         to: r.email,
         subject: content.title,
@@ -106,6 +113,7 @@ export async function sendMediaLiveMailing(eventSlug: string): Promise<MediaLive
           footerMeta: eventFooterMeta(event),
         }),
       });
+      if (error) throw new Error(error.message);
       await db
         .insert(eventEmailLog)
         .values({ eventRegistrationId: r.registrationId, kind: MEDIA_LIVE_KIND, status: "sent" })

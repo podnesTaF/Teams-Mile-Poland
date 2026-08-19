@@ -74,10 +74,12 @@ export const DEFAULT_HEAT_INTERVAL_MINUTES = 10;
 export type EventMediaKind = "photo" | "video";
 
 /**
- * One media file in a completed event's public Drive gallery folder, as read at
- * build time. All thumbnail / large / download / preview URLs derive from `id`
- * (see `drive-urls.ts`); nothing else about the file is persisted. `name` is the
- * filename and doubles as the sort key (photographer shooting order).
+ * One media file in a completed event's public Drive gallery folder, as listed
+ * via the Drive API. All thumbnail / large / download / preview URLs derive
+ * from `id` (see `drive-urls.ts`); nothing else about the file is persisted.
+ * `name` is the filename and doubles as the sort key (photographer shooting
+ * order). Which folder to list lives in the `event_media` DB table
+ * (`media-config.ts`), published from the admin panel.
  */
 export type EventMediaItem = {
   id: string;
@@ -116,11 +118,4 @@ export type EventSummary = {
    */
   heatIntervalMinutes?: number;
   results?: EventResults;
-  /**
-   * Post-event media gallery. Present = media is published: the completed event
-   * gets a public `/events/<slug>/gallery` page built from the referenced Drive
-   * folder. Adding this field + redeploying *is* the publication act; absent =
-   * no gallery route. The folder must be shared "anyone with link".
-   */
-  media?: { driveFolderId: string };
 };

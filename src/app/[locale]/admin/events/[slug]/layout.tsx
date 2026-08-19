@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
-import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { DownloadLink } from "@/features/admin/components/download-link";
 import { adminButton } from "@/features/admin/components/shell/admin-button";
 import { AdminPage } from "@/features/admin/components/shell/admin-page";
@@ -15,7 +14,6 @@ import {
 } from "@/features/admin/components/shell/event-header";
 import { AdminEventTabs } from "@/features/admin/components/shell/event-tabs";
 import { getRosterStats } from "@/features/admin/events-data";
-import { sendMediaLiveMailingAction } from "@/features/event-mailings/media-live-actions";
 import { getEventBySlug } from "@/lib/events/registry";
 
 /**
@@ -53,10 +51,6 @@ export default async function AdminEventLayout({
   const event = getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
 
-  // The media-live mailing only makes sense once the gallery is published: a
-  // completed event with a `media` folder configured (PRD #14, slice #18).
-  const canSendMediaLive = event.status === "completed" && Boolean(event.media);
-
   return (
     <AdminPage eyebrow="Events" title={event.name}>
       <AdminEventHeader
@@ -69,24 +63,8 @@ export default async function AdminEventLayout({
             <DownloadLink href={`/api/admin/events/${slug}/heats/export`} className={adminButton()}>
               Export heat cards
             </DownloadLink>
-            {canSendMediaLive ? (
-              // Unchanged action, and it still ends on the Roster tab: the send
-              // redirects to `/admin/events/<slug>?msg=…`, which is where the
-              // flash renders. Only completed events reach this button, so
-              // nobody is pulled off a live heats or check-in screen.
-              <form action={sendMediaLiveMailingAction}>
-                <input type="hidden" name="locale" value={locale} />
-                <input type="hidden" name="slug" value={slug} />
-                <ConfirmSubmit
-                  label="Send photos-live email"
-                  title="Send the photos-live email?"
-                  message="Emails every registered participant of this event that their gallery is live, with a link to it. Anyone already emailed for this event is skipped, so nobody is double-mailed."
-                  confirmLabel="Send email"
-                  danger={false}
-                  triggerClassName={adminButton()}
-                />
-              </form>
-            ) : null}
+            {/* The photos-live mailing button lives on the Media tab, next to
+                the gallery publication it depends on. */}
           </>
         }
         stats={

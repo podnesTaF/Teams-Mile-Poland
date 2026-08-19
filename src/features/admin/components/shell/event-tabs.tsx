@@ -25,6 +25,7 @@ const TABS = [
   { key: "heats", label: "Heats", segment: "heats", suffix: "/heats" },
   { key: "checkin", label: "Check-in", segment: "checkin", suffix: "/checkin" },
   { key: "results", label: "Results", segment: "results", suffix: "/results" },
+  { key: "media", label: "Media", segment: "media", suffix: "/media" },
 ] as const;
 
 export function AdminEventTabs({ slug }: { slug: string }) {

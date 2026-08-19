@@ -127,6 +127,13 @@
       "when": 1786685409406,
       "tag": "0017_broad_lady_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1787115824633,
+      "tag": "0018_greedy_klaw",
+      "breakpoints": true
     }
   ]
 }

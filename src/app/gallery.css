@@ -119,6 +119,16 @@
 .ace-landing .media-soon {
   margin-top: clamp(28px, 4vw, 44px);
 }
+
+/* Inline results block on the completed event page (the archive view) — sits
+   between the detail grid and the media section, same rhythm as both. */
+.ace-landing .detail-results {
+  margin-top: clamp(28px, 4vw, 44px);
+}
+.ace-landing .detail-results .ev-eyebrow {
+  display: block;
+  margin-bottom: 16px;
+}
 .ace-landing .media-teaser {
   display: flex;
   flex-direction: column;

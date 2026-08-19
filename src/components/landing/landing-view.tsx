@@ -1,6 +1,7 @@
 import "@/app/landing.css";
 import "@/app/series-flows.css";
 
+import { Archive } from "@/components/landing/archive";
 import { Atmosphere } from "@/components/landing/atmosphere";
 import { Audience } from "@/components/landing/audience";
 import { Contact } from "@/components/landing/contact";
@@ -24,6 +25,7 @@ import { Results } from "@/components/landing/results";
 import { Roles } from "@/components/landing/roles";
 import { ScrollReveal } from "@/components/landing/scroll-reveal";
 import { WhatIs } from "@/components/landing/what-is";
+import { getArchiveEvents, getPublishedMedia } from "@/lib/events/media-config";
 import { getFeaturedEvent, isRegistrationOpen } from "@/lib/events/registry";
 import { getResultsEventsWithDb } from "@/lib/events/results-data";
 
@@ -38,6 +40,10 @@ export async function LandingView() {
   const featuredEvent = getFeaturedEvent();
   // DB-first: timing imports overlay (or replace) the config results sheets.
   const resultsEvents = await getResultsEventsWithDb();
+  // The archive: completed individual events, with published-gallery covers
+  // overlaid from the `event_media` table (one batch read, no Drive calls).
+  const archiveEvents = getArchiveEvents();
+  const archiveMedia = await getPublishedMedia(archiveEvents.map((e) => e.slug));
   const registrationOpen = isRegistrationOpen(featuredEvent);
   // Individual events register on their own detail page; the legacy team event
   // keeps the /register modal flow. Drives the hero + mid-page CTAs.
@@ -70,6 +76,7 @@ export async function LandingView() {
       <EventSeries />
       <LatestNews />
       {resultsEvents.length > 0 && <Results events={resultsEvents} />}
+      {archiveEvents.length > 0 && <Archive events={archiveEvents} media={archiveMedia} />}
       {showTeamFormats && <Formats />}
       <WhatIs />
       <RatingPath />

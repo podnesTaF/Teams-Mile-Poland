@@ -461,6 +461,13 @@
       "shareCopied": "skopiowano link ✓",
       "terms": "Regulamin i warunki"
     },
+    "archive": {
+      "eyebrow": "Archiwum wydarzeń",
+      "title": "Minione noce biegowe",
+      "subtitle": "Każde zakończone wydarzenie z wynikami i galerią zdjęć — znajdź swój bieg, swój czas i swoje ujęcia.",
+      "details": "Wyniki i szczegóły",
+      "gallery": "Galeria"
+    },
     "results": {
       "eyebrow": "Wyniki biegu",
       "title": "Wyniki",
@@ -934,7 +941,8 @@
       "teaserHeading": "Zdjęcia i wideo",
       "viewAll": "Zobacz pełną galerię →",
       "videoCount": "{count, plural, one {# film} few {# filmy} many {# filmów} other {# filmu}}",
-      "comingSoon": "Zdjęcia i wideo z tej nocy biegowej pojawią się wkrótce — zajrzyj tu, aby zobaczyć i pobrać swoje ujęcia."
+      "comingSoon": "Zdjęcia i wideo z tej nocy biegowej pojawią się wkrótce — zajrzyj tu, aby zobaczyć i pobrać swoje ujęcia.",
+      "unavailable": "Nie udało się teraz wczytać zdjęć — spróbuj za chwilę albo otwórz pełny album na Dysku Google powyżej."
     },
     "heats": {
       "eyebrow": "Lista startowa",

@@ -14,40 +14,47 @@ import {
   driveThumbUrl,
 } from "@/lib/events/drive-urls";
 import { listEventMedia } from "@/lib/events/media";
-import { getEventBySlug, getGalleryEvents } from "@/lib/events/registry";
+import { getEventMediaConfig } from "@/lib/events/media-config";
+import { getEventBySlug } from "@/lib/events/registry";
 import { formatEventLongDate } from "@/lib/events/time";
+import type { EventMediaItem } from "@/lib/events/types";
 
 import { GalleryLightbox } from "./gallery-lightbox";
 
 export function generateStaticParams() {
-  // Only completed individual events with published media get a gallery page.
-  // A completed event without `media` builds fine with no gallery route.
-  return getGalleryEvents().map((event) => ({ slug: event.slug }));
+  // Deliberately empty, not omitted (the start-list pattern, issue #31): which
+  // events have a gallery lives in the `event_media` DB table now, so paths
+  // can't be known at build time. An empty array renders each path on first
+  // visit and then caches it — which is what lets the admin publish action's
+  // `revalidatePath` actually flip a gallery live without a deploy. Omitting
+  // the export would re-render every request and make that a no-op.
+  return [];
 }
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
 /**
  * Social-share metadata so a pasted gallery link unfurls as a branded landing
- * card (user story #21): event name in the title, the first photo as the OG
- * image. The `listEventMedia` fetch here is deduped with the page's own call
- * within a render, so this costs no extra Drive request.
+ * card (user story #21): event name in the title, the cover photo (captured at
+ * publish time) as the OG image — no Drive call needed here.
  */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   const event = getEventBySlug(slug);
-  if (!event?.media || event.eventType !== "individual" || event.status !== "completed") {
+  if (!event || event.eventType !== "individual" || event.status !== "completed") {
     return {};
   }
+  const media = await getEventMediaConfig(slug);
+  if (!media) return {};
   const t = await getTranslations({ locale, namespace: "events" });
   const title = `${event.name} — ${t("media.eyebrow")}`;
-  const items = await listEventMedia(event.media.driveFolderId);
-  const cover = items.find((item) => item.kind === "photo");
   return {
     title,
     openGraph: {
       title,
-      images: cover ? [driveThumbUrl(cover.id, GALLERY_LARGE_SIZE)] : undefined,
+      images: media.coverFileId
+        ? [driveThumbUrl(media.coverFileId, GALLERY_LARGE_SIZE)]
+        : undefined,
     },
   };
 }
@@ -58,19 +65,27 @@ export default async function GalleryPage({ params }: PageProps) {
 
   const event = getEventBySlug(slug);
   // Fully public — no auth gate. 404 for anything that isn't a completed
-  // individual event with published media (mirrors the static params).
-  if (
-    !event ||
-    event.eventType !== "individual" ||
-    event.status !== "completed" ||
-    !event.media
-  ) {
+  // individual event (mirrors the admin publish guard) …
+  if (!event || event.eventType !== "individual" || event.status !== "completed") {
+    notFound();
+  }
+  // … or whose media isn't published. `getEventMediaConfig` is request-cached,
+  // so metadata and page share one read.
+  const media = await getEventMediaConfig(slug);
+  if (!media) {
     notFound();
   }
 
   const t = await getTranslations("events");
-  // Build-time listing; throws (fails the build) if the folder can't be read.
-  const items = await listEventMedia(event.media.driveFolderId);
+  // The publish action verified this folder lists cleanly; a failure here is a
+  // transient Drive error on a page that was fine — degrade to the album link
+  // rather than 500ing a published gallery.
+  let items: EventMediaItem[] | null = null;
+  try {
+    items = await listEventMedia(media.driveFolderId);
+  } catch (error) {
+    console.error(`[media] gallery listing for ${slug} failed; showing album link only:`, error);
+  }
 
   const longDate = formatEventLongDate(locale, event.date);
 
@@ -92,7 +107,7 @@ export default async function GalleryPage({ params }: PageProps) {
               </p>
             </div>
             <a
-              href={driveAlbumUrl(event.media.driveFolderId)}
+              href={driveAlbumUrl(media.driveFolderId)}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-stroke-dark btn-sm gallery-album"
@@ -101,18 +116,24 @@ export default async function GalleryPage({ params }: PageProps) {
             </a>
           </header>
 
-          <GalleryLightbox
-            items={items}
-            labels={{
-              photos: t("media.photos"),
-              videos: t("media.videos"),
-              download: t("media.download"),
-              close: t("media.close"),
-              prev: t("media.prev"),
-              next: t("media.next"),
-              playVideo: t("media.playVideo"),
-            }}
-          />
+          {items ? (
+            <GalleryLightbox
+              items={items}
+              labels={{
+                photos: t("media.photos"),
+                videos: t("media.videos"),
+                download: t("media.download"),
+                close: t("media.close"),
+                prev: t("media.prev"),
+                next: t("media.next"),
+                playVideo: t("media.playVideo"),
+              }}
+            />
+          ) : (
+            <section className="media-soon" data-gallery-unavailable>
+              <p className="media-soon__txt">{t("media.unavailable")}</p>
+            </section>
+          )}
         </div>
       </main>
     </div>

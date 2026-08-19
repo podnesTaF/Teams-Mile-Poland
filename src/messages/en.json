@@ -461,6 +461,13 @@
       "shareCopied": "link copied ✓",
       "terms": "Terms & Conditions"
     },
+    "archive": {
+      "eyebrow": "Event archive",
+      "title": "Past race nights",
+      "subtitle": "Every completed event with its results and photo gallery — find your race, your time and your shots.",
+      "details": "Results & details",
+      "gallery": "Gallery"
+    },
     "results": {
       "eyebrow": "Race results",
       "title": "Results",
@@ -934,7 +941,8 @@
       "teaserHeading": "Photos & video",
       "viewAll": "View full gallery →",
       "videoCount": "{count, plural, one {# video} other {# videos}}",
-      "comingSoon": "Photos & video from this race night are coming soon — check back to see and download your shots."
+      "comingSoon": "Photos & video from this race night are coming soon — check back to see and download your shots.",
+      "unavailable": "The photos can't be loaded right now — try again in a moment, or open the full album on Drive above."
     },
     "heats": {
       "eyebrow": "Start list",

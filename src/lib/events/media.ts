@@ -1,16 +1,18 @@
 import type { EventMediaItem, EventMediaKind } from "./types";
 
 /**
- * Build-time Google Drive media source. Reads a completed event's public
- * ("anyone with link") Drive folder via Drive API v3 `files.list` with a plain
- * API key (`GOOGLE_DRIVE_API_KEY`) — no OAuth, no service account. Called only
- * from the statically-generated gallery page, so the listing is baked into the
- * build and never runs at request time.
+ * Google Drive media source. Reads a completed event's public ("anyone with
+ * link") Drive folder via Drive API v3 `files.list` with a plain API key
+ * (`GOOGLE_DRIVE_API_KEY`) — no OAuth, no service account. Which folder to
+ * list comes from the `event_media` DB row (`media-config.ts`), so the listing
+ * runs when a cached page (gallery, event detail teaser) renders after a
+ * revalidation — never per request, and never at build time.
  *
- * Fail-loud policy (PRD #14): any listing failure for a configured folder
- * throws and aborts the build, so a misconfigured share can never silently ship
- * an empty gallery. A completed event with no `media` field is the only
- * "no gallery" state, and that never reaches this function.
+ * Fail-loud policy (PRD #14), relocated from build time to publish time: the
+ * admin publish action calls this before accepting a folder, so a misconfigured
+ * share is rejected with a flash error and can never be published. Render-time
+ * callers catch instead — a transient Drive error on an already-published
+ * gallery degrades the page, it must not 500 it.
  */
 
 const DRIVE_FILES_ENDPOINT = "https://www.googleapis.com/drive/v3/files";
@@ -57,8 +59,8 @@ export async function listEventMedia(driveFolderId: string): Promise<EventMediaI
     url.searchParams.set("pageSize", "1000");
     if (pageToken) url.searchParams.set("pageToken", pageToken);
 
-    // Default caching keeps the fetch build-time (SSG); `no-store` would force
-    // the gallery route dynamic, which we explicitly do not want.
+    // Default caching keeps the fetch prerender-friendly; `no-store` would
+    // force the gallery route dynamic, which we explicitly do not want.
     let res: Response;
     try {
       res = await fetch(url);

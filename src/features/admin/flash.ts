@@ -128,6 +128,12 @@ const OK_CODES: Record<string, FlashCopy> = {
     const head = `Imported ${plural(count(q, "rows"), "result")} across ${plural(count(q, "heats"), "heat")}.`;
     return skipped === 0 ? head : `${head} ${plural(skipped, "row")} skipped — see the file check.`;
   },
+  // Publishing carries the counts back so the admin can sanity-check the folder
+  // held what they expected before pressing the photos-live mailing.
+  mediapublished: (q) =>
+    `Gallery published — ${plural(count(q, "photos"), "photo")} and ${plural(count(q, "videos"), "video")} listed from Drive. The event page and landing now show it.`,
+  mediaunpublished: () =>
+    "Gallery unpublished — the event page shows the coming-soon note again and the gallery link is gone.",
 };
 
 /** Refusal copy, keyed by the `?error=` code the action redirected with. */
@@ -158,6 +164,8 @@ const ERROR_CODES: Record<string, FlashCopy> = {
     "Nothing to clear — the runner holds no bib, or they are checked in and their lease belongs to the desk.",
   bibassign: () =>
     "Could not assign — the runner's heat has already run, or the registration no longer exists.",
+  mediafolder: () =>
+    "That Drive folder could not be read, or holds no photos or videos — nothing was published. Check the ID and that the folder is shared “anyone with the link”.",
   noqualifiers: (q) => {
     const unlinked = count(q, "unlinked");
     return unlinked === 0

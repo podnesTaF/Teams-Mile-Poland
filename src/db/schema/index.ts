@@ -11,6 +11,7 @@ export * from "./broadcasts";
 export * from "./email-log";
 export * from "./auth";
 export * from "./event-heats";
+export * from "./event-media";
 export * from "./event-registrations";
 export * from "./event-results";
 export * from "./event-email-log";

@@ -149,18 +149,6 @@ export function getIndividualEvents(): EventSummary[] {
   );
 }
 
-/**
- * Completed individual events whose media has been published (a `media` folder
- * is configured). Drives the gallery route's static params: only these get a
- * `/events/<slug>/gallery` page. A completed event without `media` builds fine
- * with no gallery route. Newest first.
- */
-export function getGalleryEvents(): EventSummary[] {
-  return EVENTS.filter(
-    (e) => e.eventType === "individual" && e.status === "completed" && e.media,
-  ).sort((a, b) => b.date.localeCompare(a.date));
-}
-
 /** Look up a single event by slug. */
 export function getEventBySlug(slug: string): EventSummary | undefined {
   return EVENTS.find((e) => e.slug === slug);

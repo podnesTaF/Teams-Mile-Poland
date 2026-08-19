@@ -7,10 +7,11 @@ import "@/app/series-flows.css";
 import "../heats/heats.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
+import { ResultsTables } from "@/features/event-results/results-tables";
 import { Link } from "@/i18n/navigation";
 import { getEventBySlug } from "@/lib/events/registry";
 import { getPublicResults } from "@/lib/events/results-data";
-import { formatEventLongDate, formatTime } from "@/lib/events/time";
+import { formatEventLongDate } from "@/lib/events/time";
 
 /**
  * Fresh on every request — deliberately NOT the start list's
@@ -78,48 +79,7 @@ export default async function EventResultsPage({ params }: PageProps) {
               {event.status !== "completed" ? (
                 <p className="iv-meta sl-approx">{t("results.provisionalNote")}</p>
               ) : null}
-              <div className="sl-heats">
-                {results.heats.map((heat) => {
-                  const finishers = heat.rows.filter((r) => r.status === "finished").length;
-                  return (
-                    <article className="sl-heat" key={heat.number} data-results-heat={heat.number}>
-                      <header className="sl-heat__head">
-                        <h2 className="sl-heat__no">{t("results.heat", { number: heat.number })}</h2>
-                        <span className="sl-heat__count">
-                          {t("results.finishers", { count: finishers })}
-                        </span>
-                      </header>
-                      <div className="iv-tablewrap">
-                        <table className="iv-table sl-table">
-                          <thead>
-                            <tr>
-                              <th>{t("results.colPlace")}</th>
-                              <th>{t("results.colName")}</th>
-                              <th>{t("results.colTime")}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {heat.rows.map((row) => (
-                              // Bibs are per-heat leases (ADR 0003): within one
-                              // heat the bib alone is unique.
-                              <tr key={row.bib}>
-                                <td>{row.place ?? "—"}</td>
-                                <td className="sl-table__name">{row.name}</td>
-                                <td className={row.status === "finished" ? undefined : "sl-table__club"}>
-                                  {row.timeCs !== null && row.status === "finished"
-                                    ? formatTime(row.timeCs)
-                                    : row.status.toUpperCase()}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-              <p className="iv-meta sl-approx">{t("results.legend")}</p>
+              <ResultsTables results={results} />
             </>
           ) : (
             <div className="iv-card sl-state" data-results-empty>

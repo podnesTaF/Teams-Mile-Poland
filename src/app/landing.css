@@ -3254,6 +3254,31 @@
   text-transform: uppercase;
   color: rgb(255, 140, 150);
 }
+/* Flash + the loop back to the scanner, side by side on a phone-width panel. */
+.ace-landing .tk-admin__flashrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Staff sign-in: the volunteer's way back into an admin session after scanning
+   with the phone's own camera app. Every runner sees this on their own ticket,
+   so it is deliberately quiet — page chrome, not an admin surface. */
+.ace-landing .tk-staff {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.72rem;
+}
+.ace-landing .tk-staff a {
+  color: rgba(255, 255, 255, 0.32);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ace-landing .tk-staff a:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
 
 /* Print: isolate the white ticket card, drop all page chrome. */
 @media print {
@@ -4325,6 +4350,101 @@
   .ace-landing .news-sec__grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* =========================================================
+ * Archive — past race nights as cards (cover from the published
+ * gallery, links into the event's detail/archive page). Shares
+ * the news card's proportions so the two sections read as kin.
+ * ========================================================= */
+.ace-landing .archive-sec__head {
+  max-width: 640px;
+  margin: 0 auto clamp(28px, 4vw, 44px);
+  text-align: center;
+}
+.ace-landing .archive-sec__head .sub-lead {
+  margin-top: 12px;
+}
+.ace-landing .archive-sec__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+@media (max-width: 900px) {
+  .ace-landing .archive-sec__grid {
+    grid-template-columns: 1fr;
+  }
+}
+.ace-landing .archive-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: clamp(18px, 2.6vw, 26px);
+}
+.ace-landing .archive-card__cover {
+  display: block;
+  margin: calc(-1 * clamp(18px, 2.6vw, 26px)) calc(-1 * clamp(18px, 2.6vw, 26px)) 4px;
+  border-radius: 10px 10px 0 0;
+  overflow: hidden;
+}
+.ace-landing .archive-card__cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+/* The date is the card's kicker: the series shares one event name, so the
+   night's date is what identifies a card — with or without a cover photo. */
+.ace-landing .archive-card__date {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--acl-red);
+}
+.ace-landing .archive-card__title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-h3);
+  line-height: 1.1;
+  margin: 0;
+}
+.ace-landing .archive-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+.ace-landing .archive-card__title a:hover {
+  color: var(--acl-red);
+}
+.ace-landing .archive-card__meta {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.55;
+  font-size: var(--fs-body-m);
+}
+.ace-landing .archive-card__links {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+.ace-landing .archive-card__more {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--acl-red);
+  text-decoration: none;
+}
+.ace-landing .archive-card__more:hover {
+  text-decoration: underline;
 }
 
 .ace-landing .ev-series__head {
