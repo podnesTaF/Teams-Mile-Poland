@@ -1,4 +1,4 @@
-import { and, asc, eq, ilike, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 
 import { eventRegistrations, legacyParticipations, users } from "@/db/schema";
 import { getDb } from "@/lib/db";
@@ -20,13 +20,30 @@ function augEventSlugs(): string[] {
 export type VerifiedFilter = "verified" | "unverified";
 export type ParticipationFilter = "attended" | "no_show";
 export type RegisteredFilter = "registered" | "not_registered";
+export type CompleteFilter = "complete" | "incomplete";
 
 export type UserListFilters = {
   q?: string;
   verified?: VerifiedFilter;
   participation?: ParticipationFilter;
   registered?: RegisteredFilter;
+  complete?: CompleteFilter;
 };
+
+/** Which users column the table is ordered by. */
+export type UserSortKey = "name" | "signed-up";
+
+export type UserSort = { key: UserSortKey; dir: "asc" | "desc" };
+
+/**
+ * Newest accounts first — the question the list is opened with is "who has
+ * joined", and an alphabetical default buries today's signups in the middle of
+ * the alphabet.
+ */
+export const DEFAULT_USER_SORT: UserSort = { key: "signed-up", dir: "desc" };
+
+/** Which slice of the filtered list to return; omit for all of it. */
+export type UserWindow = { sort?: UserSort; limit?: number; offset?: number };
 
 export type UserListRow = {
   id: string;
@@ -35,6 +52,13 @@ export type UserListRow = {
   emailVerified: boolean;
   firstName: string | null;
   lastName: string | null;
+  phone: string | null;
+  /**
+   * Whether the account carries every field {@link isProfileComplete} requires
+   * (first name, last name, date of birth, sex, phone) — the same gate that
+   * decides whether the runner can enter an event at all.
+   */
+  profileComplete: boolean;
   /** true = attended, false = no-show, null = no first-event participation. */
   firstEventAttended: boolean | null;
   augRegistrationCount: number;
@@ -49,12 +73,44 @@ export type UserListRow = {
 };
 
 /**
- * All accounts with first-event participation and Aug-registration count,
- * filtered by search (name/email), verified state, first-event attendance, and
- * whether they hold any Aug-series registration. Newest accounts first.
+ * The SQL twin of `isProfileComplete` (`src/lib/auth/user-session.ts`): the five
+ * fields an event entry needs, each of them actually filled in.
+ *
+ * `nullif(btrim(…), '')` rather than a bare `is not null` because the TypeScript
+ * predicate trims too — a profile whose phone is a space is not complete there,
+ * and the admin count must not disagree with the gate the runner hits.
  */
-export async function listUsers(filters: UserListFilters = {}): Promise<UserListRow[]> {
-  const db = getDb();
+const PROFILE_COMPLETE = sql`(
+  nullif(btrim(${users.firstName}), '') is not null
+  and nullif(btrim(${users.lastName}), '') is not null
+  and ${users.dateOfBirth} is not null
+  and ${users.sex} is not null
+  and nullif(btrim(${users.phone}), '') is not null
+)`;
+
+/** What a person sorts under: surname, or the single-field name. */
+const SORT_NAME = sql`coalesce(${users.lastName}, ${users.name})`;
+
+/**
+ * The `ORDER BY` for a sort choice, always ending in a total order: without the
+ * id tiebreaker Postgres may place two accounts that tie on the sort key
+ * differently between the query for page 1 and the query for page 2, so one is
+ * shown twice and the other never.
+ */
+function userOrder(sort: UserSort): SQL[] {
+  const dir = sort.dir === "desc" ? sql`desc` : sql`asc`;
+  const primary: Record<UserSortKey, SQL> = {
+    name: sql`${SORT_NAME} ${dir} nulls last`,
+    "signed-up": sql`${users.createdAt} ${dir}`,
+  };
+  return [primary[sort.key], sql`${users.id} asc`];
+}
+
+/**
+ * The per-user aggregates the list joins against, built once so the row read and
+ * its count can filter on exactly the same shape.
+ */
+function userAggregates(db: ReturnType<typeof getDb>) {
   const augSlugs = augEventSlugs();
 
   // Per-user Aug-series registration count (deprecated `cancelled` excluded).
@@ -86,17 +142,38 @@ export async function listUsers(filters: UserListFilters = {}): Promise<UserList
     .groupBy(eventRegistrations.userId)
     .as("ran_agg");
 
-  const clauses = [];
+  return { augAgg, ranAgg };
+}
+
+/** The `WHERE` a filter set means — shared by the page read and its count. */
+function userFilters(
+  filters: UserListFilters,
+  augAgg: ReturnType<typeof userAggregates>["augAgg"],
+): SQL[] {
+  const clauses: SQL[] = [];
 
   const q = filters.q?.trim();
   if (q) {
     const like = `%${q}%`;
-    const search = or(ilike(users.name, like), ilike(users.email, like));
+    // Phone matches the stored value as typed; normalising both sides to E.164
+    // is task 08, and until then a fragment search is what the desk has.
+    const search = or(
+      ilike(users.name, like),
+      ilike(users.email, like),
+      ilike(users.phone, like),
+    );
     if (search) clauses.push(search);
   }
 
   if (filters.verified) {
-    clauses.push(eq(users.emailVerified, filters.verified === "verified"));
+    const verified = eq(users.emailVerified, filters.verified === "verified");
+    clauses.push(verified);
+  }
+
+  if (filters.complete === "complete") {
+    clauses.push(sql`${PROFILE_COMPLETE}`);
+  } else if (filters.complete === "incomplete") {
+    clauses.push(sql`not ${PROFILE_COMPLETE}`);
   }
 
   // Left-joined `attended` is NULL when the user has no first-event row, so an
@@ -114,7 +191,28 @@ export async function listUsers(filters: UserListFilters = {}): Promise<UserList
     clauses.push(isNull(augAgg.userId));
   }
 
-  return db
+  return clauses;
+}
+
+/**
+ * All accounts with first-event participation and Aug-registration count,
+ * filtered by search (name/email/phone), verified state, profile completeness,
+ * first-event attendance, and whether they hold any Aug-series registration.
+ *
+ * Ordered by {@link DEFAULT_USER_SORT} — newest accounts first — unless the
+ * caller passes a sort, and optionally windowed to one page. Filtering, sorting
+ * and paging all happen in the database: the admin table is URL state over this
+ * read, not a client-side table.
+ */
+export async function listUsers(
+  filters: UserListFilters = {},
+  window: UserWindow = {},
+): Promise<UserListRow[]> {
+  const db = getDb();
+  const { augAgg, ranAgg } = userAggregates(db);
+  const clauses = userFilters(filters, augAgg);
+
+  const query = db
     .select({
       id: users.id,
       name: users.name,
@@ -122,6 +220,8 @@ export async function listUsers(filters: UserListFilters = {}): Promise<UserList
       emailVerified: users.emailVerified,
       firstName: users.firstName,
       lastName: users.lastName,
+      phone: users.phone,
+      profileComplete: sql<boolean>`${PROFILE_COMPLETE}`,
       firstEventAttended: legacyParticipations.attended,
       augRegistrationCount: sql<number>`coalesce(${augAgg.count}, 0)`,
       raceCount: sql<number>`coalesce(${ranAgg.count}, 0) + (${legacyParticipations.attended} is true)::int`,
@@ -138,7 +238,40 @@ export async function listUsers(filters: UserListFilters = {}): Promise<UserList
     .leftJoin(augAgg, eq(augAgg.userId, users.id))
     .leftJoin(ranAgg, eq(ranAgg.userId, users.id))
     .where(clauses.length ? and(...clauses) : undefined)
-    .orderBy(asc(users.name));
+    .orderBy(...userOrder(window.sort ?? DEFAULT_USER_SORT));
+
+  return window.limit === undefined
+    ? query
+    : query.limit(window.limit).offset(window.offset ?? 0);
+}
+
+/**
+ * How many rows {@link listUsers} would return for the same filters, ignoring
+ * any window — i.e. how many pages the table has.
+ *
+ * Separate from the read rather than a window function on it so the read keeps
+ * returning plain `UserListRow[]`, and so an empty page costs one cheap count
+ * instead of dragging every matching row back to decide there are none. The
+ * joins are the read's, because the filters are over the joined columns.
+ */
+export async function countUsers(filters: UserListFilters = {}): Promise<number> {
+  const db = getDb();
+  const { augAgg } = userAggregates(db);
+  const clauses = userFilters(filters, augAgg);
+
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(users)
+    .leftJoin(
+      legacyParticipations,
+      and(
+        eq(legacyParticipations.userId, users.id),
+        eq(legacyParticipations.eventSlug, FIRST_EVENT_SLUG),
+      ),
+    )
+    .leftJoin(augAgg, eq(augAgg.userId, users.id))
+    .where(clauses.length ? and(...clauses) : undefined);
+  return row?.count ?? 0;
 }
 
 export type UserStats = {
@@ -146,6 +279,12 @@ export type UserStats = {
   total: number;
   /** Accounts with a verified email (`users.emailVerified`). */
   verified: number;
+  /**
+   * Accounts that could enter an event today — every field `isProfileComplete`
+   * requires is filled in. A verified email is a different fact and the two
+   * counts overlap freely: an unverified account can have a complete profile.
+   */
+  profileComplete: number;
 };
 
 /** The headline totals shown above the users table, unaffected by filters. */
@@ -154,9 +293,10 @@ export async function getUserStats(): Promise<UserStats> {
     .select({
       total: sql<number>`count(*)::int`,
       verified: sql<number>`count(*) filter (where ${users.emailVerified})::int`,
+      profileComplete: sql<number>`count(*) filter (where ${PROFILE_COMPLETE})::int`,
     })
     .from(users);
-  return row ?? { total: 0, verified: 0 };
+  return row ?? { total: 0, verified: 0, profileComplete: 0 };
 }
 
 export type UserProfile = typeof users.$inferSelect;
