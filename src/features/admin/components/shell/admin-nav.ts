@@ -107,6 +107,12 @@ export function buildAdminNav(role: string | null | undefined): AdminNav {
       label: "People",
       items: [
         { label: "Users", href: "/admin/users" },
+        // The duplicates report (task 09). A sibling item rather than something
+        // reachable only from the list, because "do we have two accounts for one
+        // person" is a question the desk asks on its own, not always while
+        // looking at the list. `Users` stays prefix-matched so a user *detail*
+        // page keeps it lit; the cost is that both items light up here.
+        { label: "Duplicates", href: "/admin/users/duplicates" },
         { label: "Referrals", href: "/admin/referrals" },
         { label: "Admins", href: "/admin/admins" },
       ],

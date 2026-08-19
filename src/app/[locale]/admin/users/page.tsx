@@ -5,6 +5,7 @@ import "@/app/landing.css";
 import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
+import { countDuplicateGroups } from "@/features/admin/duplicates-data";
 import { formatAdminDate } from "@/features/admin/format";
 import { resendUserVerification } from "@/features/admin/users-actions";
 import {
@@ -185,7 +186,15 @@ async function UsersBody({
   canEdit: boolean;
 }) {
   const { filters } = state;
-  const [matches, stats] = await Promise.all([countUsers(filters), getUserStats()]);
+  // The duplicates count rides along with the other two header reads rather than
+  // being awaited before them, and it is deliberately allowed to come back
+  // `null` (see `countDuplicateGroups`): a store without `phone_e164` yet must
+  // cost this list nothing more than the link.
+  const [matches, stats, duplicateGroups] = await Promise.all([
+    countUsers(filters),
+    getUserStats(),
+    countDuplicateGroups(),
+  ]);
 
   // An out-of-range page lands on the last real one rather than on a void: a
   // `?page=` outlives the rows it was written for as soon as the search is
@@ -213,6 +222,17 @@ async function UsersBody({
         with a complete profile
         {filtered ? <> · {matches} matching the filters</> : null}
       </p>
+
+      {/* Only when there is something to look at: a zero would be a standing
+          line of chrome, and a `null` means the count could not be established
+          (no `phone_e164` column yet) — neither is worth a link. */}
+      {duplicateGroups ? (
+        <p className="iv-note" style={{ marginTop: 6 }} data-duplicate-groups={duplicateGroups}>
+          <Link href="/admin/users/duplicates" className="iv-linkbtn">
+            Possible duplicates: {duplicateGroups}
+          </Link>
+        </p>
+      ) : null}
 
       {/* A GET form submits only its own fields, so the sort — which is not a
           field here — travels as a hidden input. `page` deliberately does not:
