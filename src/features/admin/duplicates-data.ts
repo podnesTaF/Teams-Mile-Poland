@@ -359,6 +359,43 @@ function newest(members: DuplicateMember[]): number {
   return Math.max(...members.map((m) => m.createdAt.getTime()));
 }
 
+/** Another account holding the same phone, as the user detail's flag names it. */
+export type PhonePeer = { id: string; name: string; email: string };
+
+/**
+ * The other accounts holding exactly this `phone_e164` key — the user detail
+ * page's registration-time duplicate flag (task 10). Admin-facing only by
+ * design: runners are never told a phone "already exists" (that would let
+ * anyone probe which numbers are registered), so the signal surfaces here and
+ * in the duplicates report, and nothing in the sign-up flow changes.
+ *
+ * Returns `null` — not `[]` — when the store cannot answer (no database, or
+ * migration 0019 not applied yet), so "couldn't check" never renders as "no
+ * duplicates". The detail page hides the flag on `null`.
+ */
+export async function findUsersByPhoneE164(
+  e164: string,
+  excludeUserId: string,
+): Promise<PhonePeer[] | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const rows = await getDb()
+      .select({
+        id: users.id,
+        name: users.name,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+      })
+      .from(users)
+      .where(and(eq(users.phoneE164, e164), ne(users.id, excludeUserId)));
+    return rows.map((row) => ({ id: row.id, name: personName(row), email: row.email }));
+  } catch (error) {
+    console.warn("[duplicates] phone peer lookup unavailable:", error);
+    return null;
+  }
+}
+
 /**
  * How many duplicate groups the report would show, for the users list's
  * "Possible duplicates: N" link.

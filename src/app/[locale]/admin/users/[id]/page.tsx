@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 
@@ -7,7 +8,9 @@ import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
+import { findUsersByPhoneE164 } from "@/features/admin/duplicates-data";
 import { formatAdminDateTime as fmt } from "@/features/admin/format";
+import { getReferralLinks } from "@/features/admin/referrals-data";
 import {
   adminRegisterUserForEvent,
   deleteUser,
@@ -47,6 +50,11 @@ export default async function AdminUserDetailPage({
   const detail = await getUserDetail(id);
   if (!detail) notFound();
   const { user, history, results } = detail;
+  // Duplicate flag (task 10): other accounts on the same E.164 phone key.
+  // `null` means the store couldn't answer (e.g. migration 0019 unapplied) —
+  // the flag hides rather than asserting there are no duplicates.
+  const phonePeers = user.phoneE164 ? await findUsersByPhoneE164(user.phoneE164, user.id) : [];
+  const referral = await getReferralLinks(user.id);
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name;
   // Non-completed individual events — the registry set an admin may register a
   // user for. `registration_closed` events remain in this set as admin overrides.
@@ -63,8 +71,46 @@ export default async function AdminUserDetailPage({
       }
     >
       {msg ? <div className="iv-notice iv-notice--info">{msg}</div> : null}
+      {phonePeers && phonePeers.length > 0 ? (
+        <div className="iv-notice iv-notice--warn">
+          Phone shared with{" "}
+          {phonePeers.map((peer, i) => (
+            <Fragment key={peer.id}>
+              {i > 0 ? ", " : null}
+              <Link href={`/admin/users/${peer.id}`}>
+                {peer.name} ({peer.email})
+              </Link>
+            </Fragment>
+          ))}{" "}
+          — possibly the same person twice. See{" "}
+          <Link href="/admin/users/duplicates">the duplicates report</Link>.
+        </div>
+      ) : null}
 
       <ProfileCard user={user} />
+      {referral.referredBy || referral.invitedCount > 0 ? (
+        <section className="iv-card" style={{ marginTop: 18 }}>
+          <h2 className="iv-section-title">Referrals</h2>
+          <p className="iv-note" style={{ marginTop: 8 }}>
+            {referral.referredBy ? (
+              <>
+                Referred by{" "}
+                <Link href={`/admin/users/${referral.referredBy.id}`}>
+                  {referral.referredBy.name}
+                </Link>
+                .{" "}
+              </>
+            ) : null}
+            {referral.invitedCount > 0 ? (
+              <>
+                Invited {referral.invitedCount}{" "}
+                {referral.invitedCount === 1 ? "person" : "people"} —{" "}
+                <Link href={`/admin/referrals/${user.id}`}>see who</Link>.
+              </>
+            ) : null}
+          </p>
+        </section>
+      ) : null}
       <ResultsCard results={results} />
       <HistoryCard history={history} />
       <RegisterForEventCard user={user} locale={locale} events={registrableEvents} />
