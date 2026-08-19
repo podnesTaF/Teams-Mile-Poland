@@ -27,3 +27,12 @@ Every task also implicitly inherits the repo ground rules: read `node_modules/ne
 Parallelizable now: 01–06, 08, 11, 15 have no dependencies on each other (01+02 touch the same scripts — sequence or same agent; 06+07 same files — sequence).
 
 Wallet build tasks (ledger, Stripe purchase) are deliberately not split yet — they get their own task files once task 15's questions are answered.
+
+## Status (2026-08-19)
+
+All tasks except 01 are implemented and committed (02–15, one commit each; `git log --grep "task 0"` finds them). Task 01 (Aug-29 cleanup) still needs a live `DATABASE_URL` session. Outstanding owner actions:
+- Task 01: run the cleanup (`ALLOW_FIXTURES=1 … seed-heats-fixture.ts --teardown`) and pull the participant list.
+- Task 08 runbook: email-case precheck → migrate 0019 on a Neon branch → backfill dry-run → `--write` (details in the migration header).
+- Manual browser checks: Google linking (task 03, checklist in the phase log) and the volunteer scan flow (task 06, `docs/volunteer-checkin.md`).
+- Send `planning/wallet-prd.md` questions to the client (task 15); answers unblock the wallet build tasks.
+- Decide: delete the deprecated `/api/ticket/check-in` route (task 05) once confirmed no external scanner holds `CHECKIN_API_KEY`.
