@@ -11,10 +11,20 @@ import { GoogleButton } from "./google-button";
 export function SignInForm({
   redirectTo = "/profile",
   oauthError = false,
+  oauthErrorCode = null,
 }: {
   redirectTo?: string;
   /** An OAuth callback failed and bounced back here with `?error=` (see GoogleButton). */
   oauthError?: boolean;
+  /**
+   * Better Auth's machine-readable code for that failure, already validated as
+   * a bare identifier by the page. Rendered verbatim next to the translated
+   * banner: it is the only thing that separates a linking refusal from a
+   * misconfigured OAuth client, and a runner reporting "it says
+   * account_not_linked" is the difference between a five-minute fix and a
+   * guessing game. The page logs it server-side too.
+   */
+  oauthErrorCode?: string | null;
 }) {
   const t = useTranslations("auth");
   const router = useRouter();
@@ -25,6 +35,9 @@ export function SignInForm({
   const [error, setError] = useState<string | null>(
     oauthError ? t("errors.oauthCallback") : null,
   );
+  // Shown verbatim under the translated banner. Untranslated on purpose: it is
+  // a support handle, not prose, and it must read the same in every locale.
+  const [errorCode, setErrorCode] = useState<string | null>(oauthError ? oauthErrorCode : null);
   const [needsVerify, setNeedsVerify] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -34,6 +47,7 @@ export function SignInForm({
     event.preventDefault();
     if (!ready || pending) return;
     setError(null);
+    setErrorCode(null);
     setNeedsVerify(false);
     startTransition(async () => {
       const { error: err } = await authClient.signIn.email({
@@ -53,8 +67,12 @@ export function SignInForm({
         } else if (err.code === "INVALID_EMAIL_OR_PASSWORD") {
           setError(t("errors.badCredentials"));
         } else {
-          console.error("[auth] sign-in failed:", err);
+          console.error(
+            `[auth] sign-in failed (code=${err.code ?? "?"} status=${err.status}):`,
+            err,
+          );
           setError(t("errors.generic"));
+          setErrorCode(err.code ?? null);
         }
         return;
       }
@@ -74,7 +92,17 @@ export function SignInForm({
       <div className="auth-alt">{t("or")}</div>
 
       <form className="auth-form" onSubmit={onSubmit}>
-        {error ? <div className="banner banner--red">{error}</div> : null}
+        {error ? (
+          <div className="banner banner--red">
+            {error}
+            {errorCode ? (
+              <>
+                {" "}
+                <code style={{ fontSize: ".85em", opacity: 0.75 }}>({errorCode})</code>
+              </>
+            ) : null}
+          </div>
+        ) : null}
         {needsVerify ? (
           <p className="auth-sub" style={{ textAlign: "left" }}>
             <Link

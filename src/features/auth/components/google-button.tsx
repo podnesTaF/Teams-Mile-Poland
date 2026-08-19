@@ -23,7 +23,8 @@ import { GoogleIcon } from "./auth-shell";
  * browser server-side, so the locale-aware router never gets a say. Without
  * `errorCallbackURL`, a failure *after* the Google leg (e.g. a linking refusal)
  * strands the runner on Better Auth's raw `/api/auth/error` page; instead it
- * returns to sign-in, which renders `?error=` as a translated banner.
+ * returns to sign-in, which logs the `?error=` code server-side and shows it
+ * beside the translated banner.
  */
 export function GoogleButton({ callbackURL = "/profile" }: { callbackURL?: string }) {
   const t = useTranslations("auth");
@@ -41,7 +42,11 @@ export function GoogleButton({ callbackURL = "/profile" }: { callbackURL?: strin
         errorCallbackURL: localePath(locale, "/auth/sign-in"),
       });
       if (err) {
-        console.error("[auth] Google sign-in failed:", err);
+        console.error(
+          "[auth] Google sign-in failed before redirect " +
+            `(code=${err.code ?? "?"} status=${err.status ?? "?"}):`,
+          err,
+        );
         setError(t("errors.googleUnavailable"));
       }
     } catch (err) {

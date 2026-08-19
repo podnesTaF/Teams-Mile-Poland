@@ -140,8 +140,14 @@ export const auth = betterAuth({
      * verified account stays valid after the owner links via Google — guest
      * accounts carry unusable random passwords, so this is theoretical here.
      * NOTE: `requireLocalEmailVerified` is deprecated upstream (the gate is
-     * slated to become unconditional) — re-check this flow on Better Auth
-     * upgrades.
+     * slated to become unconditional), so a version bump can re-break this with
+     * no change here and no type error. Two guards: `better-auth` is pinned to
+     * an exact version in `package.json` (not `^`) so it cannot move on a
+     * reinstall, and `scripts/verify-google-linking.ts` drives the *installed*
+     * `handleOAuthUserInfo` with these options and asserts an unverified
+     * passwordless user still links. Run it before accepting any Better Auth
+     * upgrade; if it goes red, this block — not the upgrade — is what needs
+     * rethinking.
      */
     accountLinking: {
       enabled: true,
