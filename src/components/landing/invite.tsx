@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
-import { Link } from "@/i18n/navigation";
+import { HashLink } from "@/components/ui/hash-link";
 
 import { VideoPlay } from "./video-play";
 
@@ -39,9 +39,9 @@ export function Invite({ registerHref = "/register" }: { registerHref?: string }
         </div>
      
        <h2 className="head t-sec">{t("title")}</h2>
-        <Link href={registerHref} className="btn btn-red">
+        <HashLink href={registerHref} className="btn btn-red">
           {t("cta")}
-        </Link>
+        </HashLink>
       </div>
   );
 }

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 
+import { HashLink } from "@/components/ui/hash-link";
 import { Link } from "@/i18n/navigation";
 import { formatEventDayMonth } from "@/lib/events/time";
 
@@ -48,9 +49,9 @@ export function FinalCta({
             <Stat k={hero("stats.prizeLabel")} v={hero("stats.prizeValue")} />
           </div>
           {registrationOpen ? (
-            <Link href={registerHref} className="btn btn-white btn-white--ink">
+            <HashLink href={registerHref} className="btn btn-white btn-white--ink">
               {t("cta")}
-            </Link>
+            </HashLink>
           ) : (
             <a href="#results" className="btn btn-white btn-white--ink">
               {hero("ctaResults")}

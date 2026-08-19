@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 
-import { Link } from "@/i18n/navigation";
+import { HashLink } from "@/components/ui/hash-link";
 import { formatEventDayMonth } from "@/lib/events/time";
 
 import { PinIcon, ScrollArrowIcon } from "./icons";
@@ -69,9 +69,9 @@ export function Hero({
             <p className="lead hero__sub">{t("sub")}</p>
             <div className="hero__actions">
               {registrationOpen ? (
-                <Link href={registerHref} className="btn btn-red">
+                <HashLink href={registerHref} className="btn btn-red">
                   {t("ctaPrimary")}
-                </Link>
+                </HashLink>
               ) : (
                 <a href="#results" className="btn btn-red">
                   {t("ctaResults")}

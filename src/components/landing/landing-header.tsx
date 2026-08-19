@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 
+import { HashLink } from "@/components/ui/hash-link";
 import { Link } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth/auth-client";
 import { LogOutButton } from "@/features/auth/components/log-out-button";
@@ -124,9 +125,9 @@ export function LandingHeader({
             ) : null}
             <LangPill tone="dark" />
             {registrationOpen ? (
-              <Link href={registerHref} className="btn btn-red btn-sm site-header__cta">
+              <HashLink href={registerHref} className="btn btn-red btn-sm site-header__cta">
                 {t("cta")}
-              </Link>
+              </HashLink>
             ) : (
               <a href="#results" className="btn btn-red btn-sm site-header__cta">
                 {t("ctaResults")}
@@ -170,9 +171,13 @@ export function LandingHeader({
           ) : null}
           <LangPill tone="dark" />
           {registrationOpen ? (
-            <Link href={registerHref} className="btn btn-red site-header__cta" onClick={closeMenu}>
+            <HashLink
+              href={registerHref}
+              className="btn btn-red site-header__cta"
+              onClick={closeMenu}
+            >
               {t("cta")}
-            </Link>
+            </HashLink>
           ) : (
             <a href="#results" className="btn btn-red site-header__cta" onClick={closeMenu}>
               {t("ctaResults")}

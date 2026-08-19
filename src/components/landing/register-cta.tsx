@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 
-import { Link } from "@/i18n/navigation";
+import { HashLink } from "@/components/ui/hash-link";
 
 /** Compact mid-page band — reuses the hero primary register label. */
 export function RegisterCta({ href = "/register" }: { href?: string }) {
@@ -9,9 +9,9 @@ export function RegisterCta({ href = "/register" }: { href?: string }) {
   return (
     <section className="section register-cta" aria-label="Register">
       <div className="wrap center">
-        <Link href={href} className="btn btn-red">
+        <HashLink href={href} className="btn btn-red">
           {t("ctaPrimary")}
-        </Link>
+        </HashLink>
       </div>
     </section>
   );
