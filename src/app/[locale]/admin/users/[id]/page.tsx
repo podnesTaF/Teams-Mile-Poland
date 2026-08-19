@@ -13,8 +13,14 @@ import {
   deleteUser,
   resendUserVerification,
 } from "@/features/admin/users-actions";
-import { getUserDetail, type UserHistoryEntry, type UserProfile } from "@/features/admin/users-data";
+import {
+  getUserDetail,
+  type UserHistoryEntry,
+  type UserProfile,
+  type UserResultsSummary,
+} from "@/features/admin/users-data";
 import { getSeriesEvents } from "@/lib/events/registry";
+import { formatTime } from "@/lib/events/time";
 import type { EventSummary } from "@/lib/events/types";
 import { Link } from "@/i18n/navigation";
 
@@ -40,7 +46,7 @@ export default async function AdminUserDetailPage({
 
   const detail = await getUserDetail(id);
   if (!detail) notFound();
-  const { user, history } = detail;
+  const { user, history, results } = detail;
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name;
   // Non-completed individual events — the registry set an admin may register a
   // user for. `registration_closed` events remain in this set as admin overrides.
@@ -59,6 +65,7 @@ export default async function AdminUserDetailPage({
       {msg ? <div className="iv-notice iv-notice--info">{msg}</div> : null}
 
       <ProfileCard user={user} />
+      <ResultsCard results={results} />
       <HistoryCard history={history} />
       <RegisterForEventCard user={user} locale={locale} events={registrableEvents} />
       <ActionsCard user={user} locale={locale} />
@@ -95,6 +102,72 @@ function ProfileCard({ user }: { user: UserProfile }) {
         <Field label="Marketing" value={user.marketingOptOut ? "Opted out" : "Subscribed"} />
         <Field label="Joined" value={fmt(user.createdAt)} />
       </div>
+    </section>
+  );
+}
+
+/**
+ * Races run / best time / level, plus one row per matched result — the same
+ * numbers the runner sees on their own profile, assembled by the same matcher
+ * (`findUserResults`) in `getUserDetail`.
+ *
+ * The stat row renders for everyone: a runner with registrations but no
+ * imported results still has a race count worth reading, and an em dash is the
+ * honest answer for a time they have never set.
+ */
+function ResultsCard({ results }: { results: UserResultsSummary }) {
+  const { raceCount, bestTimeCs, level, results: rows } = results;
+  return (
+    <section className="iv-card" style={{ marginTop: 18 }}>
+      <h2 className="iv-section-title">Races &amp; results</h2>
+      <div className="iv-grid" style={{ marginTop: 12 }}>
+        <Field label="Races run" value={String(raceCount)} />
+        <Field label="Best time" value={bestTimeCs !== null ? formatTime(bestTimeCs) : ""} />
+        <Field label="Level" value={level !== null ? `Level ${level}` : ""} />
+      </div>
+      {rows.length === 0 ? (
+        <p className="iv-note" style={{ marginTop: 12 }}>
+          No results recorded for this account yet.
+        </p>
+      ) : (
+        <div className="iv-tablewrap" style={{ marginTop: 12 }}>
+          <table className="iv-table">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Place</th>
+                <th>Heat</th>
+                <th>Bib</th>
+                <th>Category</th>
+                <th>Time</th>
+                <th>Level</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={`${r.eventSlug}-${r.heatNumber}-${r.bib}`}>
+                  <td>{r.eventName}</td>
+                  <td>
+                    {r.rank} / {r.total}
+                  </td>
+                  <td>{r.heatNumber}</td>
+                  <td>{r.bib}</td>
+                  <td>{r.gender === "F" ? "Women" : "Men"}</td>
+                  <td>
+                    {formatTime(r.timeCs)}
+                    {bestTimeCs !== null && rows.length > 1 && r.timeCs === bestTimeCs ? (
+                      <span className="iv-pill iv-pill--ok" style={{ marginLeft: 8 }}>
+                        best
+                      </span>
+                    ) : null}
+                  </td>
+                  <td>{r.level}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </section>
   );
 }
