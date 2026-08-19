@@ -65,6 +65,9 @@ async function ReferralsBody() {
                   <th>Sign-ups</th>
                   <th>Race registrations</th>
                   <th>Races run</th>
+                  <th>
+                    <span className="sr-only">Detail</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -79,6 +82,11 @@ async function ReferralsBody() {
                     <td>{r.signups}</td>
                     <td>{r.raceRegistrations}</td>
                     <td>{r.participations}</td>
+                    <td>
+                      <Link href={`/admin/referrals/${r.id}`} className="iv-linkbtn">
+                        Who they invited
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

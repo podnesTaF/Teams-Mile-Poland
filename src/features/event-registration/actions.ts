@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 import { users } from "@/db/schema";
 import { getDb } from "@/lib/db";
@@ -12,6 +12,7 @@ import { auth } from "@/lib/auth/better-auth";
 import { canRegister } from "@/lib/auth/user-session";
 import { defaultLocale } from "@/lib/i18n/config";
 import { toE164 } from "@/lib/phone";
+import { applyReferralAttribution, REF_COOKIE } from "@/features/referral/data";
 
 import { createFreeRegistration, hasRegistration } from "./data";
 import { guestRegisterSchema, type GuestRegisterInput } from "./schemas";
@@ -189,6 +190,11 @@ export async function registerAsGuest(
           locale,
         })
         .where(eq(users.id, existing.id));
+      // This branch updates an account in place, so the `user.create.after`
+      // hook that normally applies the referral cookie never fires — read it
+      // here or a referred runner who retries with the same email is lost to
+      // attribution. First-writer-wins semantics make the repeat call safe.
+      await applyReferralAttribution(existing.id, (await cookies()).get(REF_COOKIE)?.value);
       await auth.api.sendVerificationEmail({ body: { email, callbackURL } });
       return { ok: true, pending: true };
     } catch {
