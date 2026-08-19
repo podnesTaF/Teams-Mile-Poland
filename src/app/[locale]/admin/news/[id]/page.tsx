@@ -24,7 +24,10 @@ export default async function AdminNewsEditPage({
   const { locale, id } = await params;
   const { msg } = await searchParams;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  // An editor route: every control on it (save, publish, unpublish) is an
+  // `edit` action, so the page gates where they do. A view-only admin reads the
+  // article list and, for the article itself, the public page.
+  await requireAdmin(locale, "edit");
 
   if (!process.env.DATABASE_URL) {
     return (

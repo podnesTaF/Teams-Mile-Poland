@@ -28,6 +28,7 @@ import {
   getFirstHeatTime,
   getHeatIntervalMinutes,
 } from "@/lib/events/registry";
+import { userCan } from "@/lib/auth/user-session";
 import { cn } from "@/lib/utils";
 
 type PageProps = {
@@ -56,7 +57,11 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
   const { locale, slug } = await params;
   const query = await searchParams;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  const actor = await requireAdmin(locale);
+  // Every action on this tab — generate, publish, seed, edit a card — asks for
+  // `edit`, so a view-only admin gets the card and the counts and none of the
+  // forms rather than buttons that 404.
+  const canEdit = userCan(actor, "edit");
 
   const event = getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
@@ -76,7 +81,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
   const importedFinishers = resultsState.reduce((sum, h) => sum + h.finishers, 0);
   const defaultFinalSize = Math.min(12, pool);
   const qualifiers =
-    importedFinishers > 0 && heats.length > 0
+    canEdit && importedFinishers > 0 && heats.length > 0
       ? await topQualifiers(slug, { limit: defaultFinalSize })
       : [];
   const interval = getHeatIntervalMinutes(slug);
@@ -127,6 +132,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
       </div>
 
       {/* ---- generate ---- */}
+      {canEdit ? (
       <section className={adminCard("mt-4 p-4 sm:p-5")}>
         <h2 className={ADMIN_TITLE}>{heats.length === 0 ? "Generate heats" : "Add heats"}</h2>
         <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[78ch]")}>
@@ -179,9 +185,10 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
           </button>
         </form>
       </section>
+      ) : null}
 
       {/* ---- publish ---- */}
-      {heats.length > 0 ? (
+      {canEdit && heats.length > 0 ? (
         <section className={adminCard("mt-4 p-4 sm:p-5")}>
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <h2 className={ADMIN_TITLE}>
@@ -227,7 +234,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
         </section>
       ) : null}
 
-      {qualifiers.length > 0 ? (
+      {canEdit && qualifiers.length > 0 ? (
         <SeedFinalCard
           locale={locale}
           slug={slug}
@@ -241,14 +248,30 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
       {heats.length === 0 && seeds.length === 0 ? (
         <div className="mt-4">
           <AdminEmptyState title="No heats generated yet">
-            Nobody has confirmed they are coming yet either. Lay the card out now if you like — use{" "}
-            <strong className="font-semibold text-admin-ink-2">Generate heats</strong> above — and
-            runners appear here to be seeded as they confirm.
+            {canEdit ? (
+              <>
+                Nobody has confirmed they are coming yet either. Lay the card out now if you like —
+                use <strong className="font-semibold text-admin-ink-2">Generate heats</strong> above
+                — and runners appear here to be seeded as they confirm.
+              </>
+            ) : (
+              <>
+                Nobody has confirmed they are coming yet either. The card is laid out by a
+                full-access admin; runners appear here to be seeded as they confirm.
+              </>
+            )}
           </AdminEmptyState>
         </div>
       ) : (
         <div className="mt-4">
-          <HeatBuilder locale={locale} slug={slug} heats={heats} seeds={seeds} pool={pool} />
+          <HeatBuilder
+            locale={locale}
+            slug={slug}
+            heats={heats}
+            seeds={seeds}
+            pool={pool}
+            canEdit={canEdit}
+          />
         </div>
       )}
     </>

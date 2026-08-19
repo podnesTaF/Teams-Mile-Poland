@@ -30,7 +30,9 @@ import type { RosterRowView } from "@/features/admin/roster-view";
  * (the status filter travels, nothing else), so it lands back on the roster with
  * the centralized flash. No-show and revert are the desk's two actions, gated the
  * way the desk gates them, and they do not redirect at all — the page
- * re-renders in place, so the drawer stays open with the new status on it.
+ * re-renders in place, so the drawer stays open with the new status on it. Each
+ * is gated by the reader's admin level too, so a view-only admin gets the same
+ * panel with no dead buttons under it.
  *
  * Body scroll is deliberately *not* locked. `ConfirmSubmit` — which opens from
  * inside this panel — owns `body.modal-open` and clears it when it closes, so a
@@ -43,6 +45,8 @@ export function RosterDrawer({
   locale,
   statusFilter,
   onClose,
+  canEdit,
+  canCheckin,
 }: {
   row: RosterRowView;
   slug: string;
@@ -50,6 +54,10 @@ export function RosterDrawer({
   /** The roster's active status filter, which `removeRegistration` carries back. */
   statusFilter?: ParticipationStatus;
   onClose: () => void;
+  /** `removeRegistration` asks for `edit`. */
+  canEdit: boolean;
+  /** No-show and undo are the desk's actions, gated at `checkin`. */
+  canCheckin: boolean;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -132,26 +140,32 @@ export function RosterDrawer({
           </Section>
         </div>
 
-        <footer className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-admin-line px-5 py-4">
-          <StatusAction row={row} slug={slug} locale={locale} />
+        {/* A level that can do neither gets no footer at all, rather than an
+            empty rule under the last fact. */}
+        {canCheckin || canEdit ? (
+          <footer className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-admin-line px-5 py-4">
+            {canCheckin ? <StatusAction row={row} slug={slug} locale={locale} /> : <span />}
 
-          <form action={removeRegistration}>
-            <input type="hidden" name="locale" value={locale} />
-            <input type="hidden" name="slug" value={slug} />
-            <input type="hidden" name="registrationId" value={row.id} />
-            {statusFilter ? <input type="hidden" name="status" value={statusFilter} /> : null}
-            <ConfirmSubmit
-              label="Remove"
-              title="Remove this registration?"
-              message={`This permanently deletes ${row.name}'s registration for this event. Use it for duplicates and withdrawal requests. This cannot be undone.`}
-              confirmLabel="Remove"
-              triggerClassName={adminButton(
-                "quiet",
-                "hover:bg-admin-accent-soft hover:text-admin-accent",
-              )}
-            />
-          </form>
-        </footer>
+            {canEdit ? (
+              <form action={removeRegistration}>
+                <input type="hidden" name="locale" value={locale} />
+                <input type="hidden" name="slug" value={slug} />
+                <input type="hidden" name="registrationId" value={row.id} />
+                {statusFilter ? <input type="hidden" name="status" value={statusFilter} /> : null}
+                <ConfirmSubmit
+                  label="Remove"
+                  title="Remove this registration?"
+                  message={`This permanently deletes ${row.name}'s registration for this event. Use it for duplicates and withdrawal requests. This cannot be undone.`}
+                  confirmLabel="Remove"
+                  triggerClassName={adminButton(
+                    "quiet",
+                    "hover:bg-admin-accent-soft hover:text-admin-accent",
+                  )}
+                />
+              </form>
+            ) : null}
+          </footer>
+        ) : null}
       </aside>
     </>
   );

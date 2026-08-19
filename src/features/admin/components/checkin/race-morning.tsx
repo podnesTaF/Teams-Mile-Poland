@@ -42,10 +42,13 @@ export function HeatDesk({
   locale,
   slug,
   heats,
+  canCheckin,
 }: {
   locale: string;
   slug: string;
   heats: HeatWithFill[];
+  /** Finish / un-finish are `checkin` actions; without it the card is a read. */
+  canCheckin: boolean;
 }) {
   if (heats.length === 0) {
     return (
@@ -74,7 +77,13 @@ export function HeatDesk({
     >
       <ul className="flex flex-col gap-2.5">
         {heats.map((heat) => (
-          <HeatCard key={heat.id} locale={locale} slug={slug} heat={heat} />
+          <HeatCard
+            key={heat.id}
+            locale={locale}
+            slug={slug}
+            heat={heat}
+            canCheckin={canCheckin}
+          />
         ))}
       </ul>
     </DeskPanel>
@@ -92,10 +101,12 @@ function HeatCard({
   locale,
   slug,
   heat,
+  canCheckin,
 }: {
   locale: string;
   slug: string;
   heat: HeatWithFill;
+  canCheckin: boolean;
 }) {
   return (
     <li
@@ -126,7 +137,7 @@ function HeatCard({
         <AdminPill tone={HEAT_STATE_TONE[heat.state]} dot>
           {heat.state}
         </AdminPill>
-        <HeatAction locale={locale} slug={slug} heat={heat} />
+        {canCheckin ? <HeatAction locale={locale} slug={slug} heat={heat} /> : null}
       </div>
     </li>
   );
@@ -198,6 +209,7 @@ export function RaceMorningLists({
   q,
   checkedIn,
   bibAvailable,
+  canCheckin,
 }: {
   locale: string;
   slug: string;
@@ -205,6 +217,8 @@ export function RaceMorningLists({
   q: string;
   checkedIn: RosterRow[];
   bibAvailable: boolean;
+  /** Handing out a pending bib is a `checkin` action; the lists themselves read. */
+  canCheckin: boolean;
 }) {
   // Arrival order: `getEventRoster` sorts by bib for the roster table, but a
   // waiting list is first-come-first-served.
@@ -239,22 +253,24 @@ export function RaceMorningLists({
                   </>
                 }
                 action={
-                  <DeskActionForm
-                    action={assignPendingBib}
-                    locale={locale}
-                    slug={slug}
-                    q={q}
-                    registrationId={row.id}
-                    className="shrink-0"
-                  >
-                    <button
-                      type="submit"
-                      className={deskButton("primary", "w-full sm:w-auto")}
-                      disabled={!bibAvailable}
+                  canCheckin ? (
+                    <DeskActionForm
+                      action={assignPendingBib}
+                      locale={locale}
+                      slug={slug}
+                      q={q}
+                      registrationId={row.id}
+                      className="shrink-0"
                     >
-                      Assign bib
-                    </button>
-                  </DeskActionForm>
+                      <button
+                        type="submit"
+                        className={deskButton("primary", "w-full sm:w-auto")}
+                        disabled={!bibAvailable}
+                      >
+                        Assign bib
+                      </button>
+                    </DeskActionForm>
+                  ) : undefined
                 }
               />
             ))}

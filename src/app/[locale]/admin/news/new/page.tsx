@@ -19,7 +19,10 @@ export default async function AdminNewsNewPage({
   const { locale } = await params;
   const { msg } = await searchParams;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  // The whole page is one form on `createArticle`, so it gates where that
+  // action gates: below `edit` this route 404s rather than rendering a form
+  // whose submit would. Nothing links here from a view-only sidebar.
+  await requireAdmin(locale, "edit");
 
   return (
     <AdminPage

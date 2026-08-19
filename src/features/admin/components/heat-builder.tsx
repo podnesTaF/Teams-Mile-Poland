@@ -34,6 +34,12 @@ import { cn } from "@/lib/utils";
  * them inside it would nest them inside the per-heat edit forms too, which HTML
  * forbids.
  *
+ * Without `edit` the builder becomes the card as a *read*: the filter and every
+ * count stay, and the four mutating surfaces — the bulk-move bar, the selection
+ * checkboxes that feed it, the per-runner bib lease, and each card's
+ * save/delete — are not rendered. Their actions all ask for `edit`, so a
+ * view-only admin would only find that out by pressing them.
+ *
  * `data-admin-heat` / `data-heat-state` / `data-admin-runner` are stable markers
  * for end-to-end checks: a streamed page cannot be told apart by status code, so
  * the assertions grep for content (see the parent PRD's verification note).
@@ -44,12 +50,15 @@ export function HeatBuilder({
   heats,
   seeds,
   pool,
+  canEdit,
 }: {
   locale: string;
   slug: string;
   heats: HeatWithFill[];
   seeds: SeedRow[];
   pool: number;
+  /** Whether the reader holds `edit`; false renders the card read-only. */
+  canEdit: boolean;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
@@ -140,20 +149,23 @@ export function HeatBuilder({
       {/* ---- filter + bulk move bar ---- */}
       <section className={adminCard("p-4 sm:p-5")}>
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2 className={ADMIN_TITLE}>Seed runners</h2>
-          <p
-            data-admin-selected={selected.size}
-            className={cn(
-              "font-mono text-[10px] font-medium uppercase tracking-[0.16em]",
-              selected.size > 0 ? "text-admin-ink" : "text-admin-muted",
-            )}
-          >
-            {selected.size} selected
-          </p>
+          <h2 className={ADMIN_TITLE}>{canEdit ? "Seed runners" : "Find a runner"}</h2>
+          {canEdit ? (
+            <p
+              data-admin-selected={selected.size}
+              className={cn(
+                "font-mono text-[10px] font-medium uppercase tracking-[0.16em]",
+                selected.size > 0 ? "text-admin-ink" : "text-admin-muted",
+              )}
+            >
+              {selected.size} selected
+            </p>
+          ) : null}
         </div>
         <p className={cn(ADMIN_NOTE, "mt-1.5")}>
-          Tick runners in any list below — the selection spans cards — then move them into a heat or
-          take them off the card.
+          {canEdit
+            ? "Tick runners in any list below — the selection spans cards — then move them into a heat or take them off the card."
+            : "Filter the lists below to find a runner on the card. Building it is a full-access act."}
         </p>
 
         <div className="mt-4">
@@ -170,6 +182,7 @@ export function HeatBuilder({
 
         {/* One form, two actions: `formAction` on the second button overrides the
             form's own, so a single selection can be moved or cleared. */}
+        {canEdit ? (
         <form
           action={assignToHeat}
           className="mt-4 flex flex-wrap items-end gap-2.5 border-t border-admin-line pt-4"
@@ -220,6 +233,7 @@ export function HeatBuilder({
             Clear selection
           </button>
         </form>
+        ) : null}
       </section>
 
       {/* ---- unassigned, then one card per heat ---- */}
@@ -229,11 +243,13 @@ export function HeatBuilder({
             <h3 className={ADMIN_TITLE}>Unassigned</h3>
             <AdminPill tone={unassignedTotal > 0 ? "warn" : "muted"}>{unassignedTotal}</AdminPill>
           </div>
-          <SelectShown
-            rows={unassigned}
-            selected={selected}
-            onToggleAll={() => toggleAll(unassigned)}
-          />
+          {canEdit ? (
+            <SelectShown
+              rows={unassigned}
+              selected={selected}
+              onToggleAll={() => toggleAll(unassigned)}
+            />
+          ) : null}
         </div>
         <p className={cn(ADMIN_NOTE, "mt-1.5")}>Confirmed runners not yet in a heat.</p>
         <RunnerGrid
@@ -245,6 +261,7 @@ export function HeatBuilder({
           locale={locale}
           slug={slug}
           pool={pool}
+          canEdit={canEdit}
           scroll
         />
       </section>
@@ -252,9 +269,18 @@ export function HeatBuilder({
       {heats.length === 0 ? (
         <div className="mt-4">
           <AdminEmptyState title="No heats generated yet">
-            The runners above are waiting for a card. Lay one out with{" "}
-            <strong className="font-semibold text-admin-ink-2">Generate heats</strong> at the top of
-            this page — then select runners and move them in.
+            {canEdit ? (
+              <>
+                The runners above are waiting for a card. Lay one out with{" "}
+                <strong className="font-semibold text-admin-ink-2">Generate heats</strong> at the
+                top of this page — then select runners and move them in.
+              </>
+            ) : (
+              <>
+                The runners above are waiting for a card. Laying one out is a full-access act — this
+                page shows it as soon as it exists.
+              </>
+            )}
           </AdminEmptyState>
         </div>
       ) : (
@@ -271,6 +297,7 @@ export function HeatBuilder({
             onToggle={toggle}
             onToggleAll={toggleAll}
             filtering={filtering}
+            canEdit={canEdit}
           />
         ))
       )}
@@ -296,6 +323,7 @@ function HeatCard({
   onToggle,
   onToggleAll,
   filtering,
+  canEdit,
 }: {
   locale: string;
   slug: string;
@@ -307,6 +335,7 @@ function HeatCard({
   onToggle: (id: string) => void;
   onToggleAll: (rows: SeedRow[]) => void;
   filtering: boolean;
+  canEdit: boolean;
 }) {
   const over = heat.fill > heat.capacity;
 
@@ -348,7 +377,9 @@ function HeatCard({
           <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-admin-muted">
             Field
           </p>
-          <SelectShown rows={rows} selected={selected} onToggleAll={() => onToggleAll(rows)} />
+          {canEdit ? (
+            <SelectShown rows={rows} selected={selected} onToggleAll={() => onToggleAll(rows)} />
+          ) : null}
         </div>
         <RunnerGrid
           className="mt-3"
@@ -356,14 +387,20 @@ function HeatCard({
           selected={selected}
           onToggle={onToggle}
           emptyText={
-            filtering ? "No matches in this heat." : "Empty — select runners above and move them in."
+            filtering
+              ? "No matches in this heat."
+              : canEdit
+                ? "Empty — select runners above and move them in."
+                : "Empty — nobody is seeded into this heat yet."
           }
           locale={locale}
           slug={slug}
           pool={pool}
+          canEdit={canEdit}
         />
       </div>
 
+      {canEdit ? (
       <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 border-t border-admin-line p-4 sm:px-5">
         <form action={updateHeat} className="flex flex-wrap items-end gap-2.5">
           <input type="hidden" name="locale" value={locale} />
@@ -407,6 +444,7 @@ function HeatCard({
           />
         </form>
       </div>
+      ) : null}
     </section>
   );
 }
@@ -515,6 +553,7 @@ function RunnerGrid({
   locale,
   slug,
   pool,
+  canEdit,
   scroll = false,
   className,
 }: {
@@ -525,6 +564,7 @@ function RunnerGrid({
   locale: string;
   slug: string;
   pool: number;
+  canEdit: boolean;
   scroll?: boolean;
   className?: string;
 }) {
@@ -549,6 +589,7 @@ function RunnerGrid({
           locale={locale}
           slug={slug}
           pool={pool}
+          canEdit={canEdit}
         />
       ))}
     </div>
@@ -562,6 +603,9 @@ function RunnerGrid({
  * number leases it ahead of check-in; submitting it blank takes a
  * pre-assignment back. The container is a div rather than the old label so the
  * form's controls do not toggle the checkbox.
+ *
+ * Without `edit` both interactive halves fall away and the chip states the same
+ * two facts flat: who this is, and which bib they hold.
  */
 function RunnerChip({
   row,
@@ -570,6 +614,7 @@ function RunnerChip({
   locale,
   slug,
   pool,
+  canEdit,
 }: {
   row: SeedRow;
   on: boolean;
@@ -577,6 +622,7 @@ function RunnerChip({
   locale: string;
   slug: string;
   pool: number;
+  canEdit: boolean;
 }) {
   // Only `stale` is marked per runner: in a never-published heat *everyone* is
   // unnotified, so a dot on every chip would say nothing. A moved runner holding
@@ -624,29 +670,36 @@ function RunnerChip({
         {row.status === "confirmed" ? null : <ParticipationBadge status={row.status} />}
       </label>
 
-      <form
-        action={assignBib}
-        className="mt-2 flex items-center gap-1.5 border-t border-admin-line/60 pt-2"
-      >
-        <input type="hidden" name="locale" value={locale} />
-        <input type="hidden" name="slug" value={slug} />
-        <input type="hidden" name="registrationId" value={row.id} />
-        <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-admin-muted">
+      {canEdit ? (
+        <form
+          action={assignBib}
+          className="mt-2 flex items-center gap-1.5 border-t border-admin-line/60 pt-2"
+        >
+          <input type="hidden" name="locale" value={locale} />
+          <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="registrationId" value={row.id} />
+          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-admin-muted">
+            Bib
+          </span>
+          <input
+            type="number"
+            name="bib"
+            min={1}
+            max={pool}
+            defaultValue={row.bib ?? ""}
+            placeholder="—"
+            className={adminInput("h-7 w-16 px-1.5 text-center text-[12px]")}
+          />
+          <button type="submit" className={adminButton("quiet", "h-7 px-2 text-[12px]")}>
+            Set
+          </button>
+        </form>
+      ) : (
+        <p className="mt-2 flex items-center gap-1.5 border-t border-admin-line/60 pt-2 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-admin-muted">
           Bib
-        </span>
-        <input
-          type="number"
-          name="bib"
-          min={1}
-          max={pool}
-          defaultValue={row.bib ?? ""}
-          placeholder="—"
-          className={adminInput("h-7 w-16 px-1.5 text-center text-[12px]")}
-        />
-        <button type="submit" className={adminButton("quiet", "h-7 px-2 text-[12px]")}>
-          Set
-        </button>
-      </form>
+          <span className="text-[12px] tracking-normal text-admin-ink-2">{row.bib ?? "—"}</span>
+        </p>
+      )}
     </div>
   );
 }

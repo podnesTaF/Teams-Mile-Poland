@@ -37,6 +37,7 @@ import {
   type HeatOption,
   type RosterRowView,
 } from "@/features/admin/roster-view";
+import { userCan } from "@/lib/auth/user-session";
 import { getEventBySlug } from "@/lib/events/registry";
 import type { EventStatus } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
@@ -71,7 +72,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
   const { locale, slug } = await params;
   const query = await searchParams;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  const actor = await requireAdmin(locale);
 
   const event = getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
@@ -156,6 +157,8 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
             sort={list.sort}
             sortHrefs={sortHrefs(slug, list)}
             heats={heats}
+            canEdit={userCan(actor, "edit")}
+            canCheckin={userCan(actor, "checkin")}
           />
           <RosterPager
             slug={slug}

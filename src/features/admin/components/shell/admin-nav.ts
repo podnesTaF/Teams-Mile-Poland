@@ -1,3 +1,4 @@
+import { roleHasCapability, type AdminCapability } from "@/lib/auth/roles";
 import { getIndividualEvents } from "@/lib/events/registry";
 import type { EventStatus } from "@/lib/events/types";
 
@@ -21,6 +22,14 @@ export type AdminNavItem = {
    * page does not light up "All events" as well as its own event.
    */
   exact?: boolean;
+  /**
+   * What the destination page's own `requireAdmin` asks for. Items above the
+   * signed-in admin's level are dropped by {@link buildAdminNav} rather than
+   * rendered into a 404 — the sidebar never offers a door that is locked.
+   *
+   * Omitted means `"view"`, which every admin level holds.
+   */
+  capability?: AdminCapability;
 };
 
 export type AdminNavEvent = {
@@ -59,8 +68,18 @@ function eventLabel(date: string): string {
  * check-in pages) — the sidebar dims the completed ones rather than hiding
  * them. The frozen team event (`warsaw-2026`) is deliberately *not* in that
  * list: it has no per-event admin pages and gets its own Legacy item.
+ *
+ * `role` is the signed-in admin's level (`users.role`); the nav is filtered to
+ * what that level can actually open. Every admin page but one gates at `view`,
+ * so in practice this drops **Scan ticket** for `admin_viewer` — the one
+ * destination a view-only admin would otherwise be handed a 404 by. It is a
+ * filter on offers, never a gate: each page keeps its own `requireAdmin`.
+ *
+ * A `null`/unknown role (signed out, or a plain user rendering the layout on
+ * the way to the page's own redirect/404) holds no capability at all, so the
+ * sidebar comes back empty rather than advertising the panel.
  */
-export function buildAdminNav(): AdminNav {
+export function buildAdminNav(role: string | null | undefined): AdminNav {
   const events: AdminNavEvent[] = getIndividualEvents().map((event) => ({
     slug: event.slug,
     label: eventLabel(event.date),
@@ -68,7 +87,7 @@ export function buildAdminNav(): AdminNav {
     href: `/admin/events/${event.slug}`,
   }));
 
-  return [
+  const groups: AdminNav = [
     {
       label: null,
       items: [
@@ -76,7 +95,7 @@ export function buildAdminNav(): AdminNav {
         // The volunteer's entry point: not per-event, because the ticket QR
         // carries the registration id and the check-in panel resolves the
         // event from the row.
-        { label: "Scan ticket", href: "/admin/scan" },
+        { label: "Scan ticket", href: "/admin/scan", capability: "checkin" },
       ],
     },
     {
@@ -102,6 +121,19 @@ export function buildAdminNav(): AdminNav {
     { label: null, items: [{ label: "Mailings", href: "/admin/mailings" }] },
     { label: null, items: [{ label: "Legacy — Warsaw 2026", href: "/admin/legacy" }] },
   ];
+
+  const visible = roleHasCapability(role, "view");
+
+  return groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => roleHasCapability(role, item.capability ?? "view")),
+      // The per-event links all point at `view`-gated pages, so they ride on
+      // the same check as the group's own items.
+      events: visible ? group.events : undefined,
+    }))
+    // A group whose every item was filtered out would render as a bare heading.
+    .filter((group) => group.items.length > 0 || (group.events?.length ?? 0) > 0);
 }
 
 /** Human label for a lifecycle status, used as the status dot's tooltip. */

@@ -17,6 +17,7 @@ import { getEventRoster, getRosterRowById, suggestNextBib, type RosterRow } from
 import { getEventHeats } from "@/features/admin/heats-data";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { Link } from "@/i18n/navigation";
+import { userCan } from "@/lib/auth/user-session";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 
 /**
@@ -66,7 +67,11 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
   const { locale, slug } = await params;
   const query = await searchParams;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  const actor = await requireAdmin(locale);
+  // The desk renders for any admin level — a view-only admin watching the tab
+  // is a legitimate read — but every press on it is a `checkin` action, so
+  // without that level the page is the lists and none of the buttons.
+  const canCheckin = userCan(actor, "checkin");
 
   const event = getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
@@ -108,11 +113,15 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
 
       <DeskSearch query={q} />
 
-      <div className="flex justify-end">
-        <Link href="/admin/scan" className={deskButton("stroke")}>
-          Scan a ticket QR
-        </Link>
-      </div>
+      {/* The scanner is `checkin`-gated, so it is only offered to a level that
+          can open it. */}
+      {canCheckin ? (
+        <div className="flex justify-end">
+          <Link href="/admin/scan" className={deskButton("stroke")}>
+            Scan a ticket QR
+          </Link>
+        </div>
+      ) : null}
 
       {results.length > 0 ? (
         <ul className="flex flex-col gap-4">
@@ -125,6 +134,7 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
               q={q}
               nextBib={nextBib}
               pool={pool}
+              canCheckin={canCheckin}
             />
           ))}
         </ul>
@@ -154,10 +164,11 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
           q={q}
           checkedIn={checkedIn}
           bibAvailable={nextBib !== null}
+          canCheckin={canCheckin}
         />
       )}
 
-      <HeatDesk locale={locale} slug={slug} heats={heats} />
+      <HeatDesk locale={locale} slug={slug} heats={heats} canCheckin={canCheckin} />
     </div>
   );
 }

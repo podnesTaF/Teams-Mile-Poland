@@ -11,6 +11,7 @@ import {
   getResultsState,
   type ImportedResultRow,
 } from "@/features/admin/results-import/data";
+import { userCan } from "@/lib/auth/user-session";
 import { getEventBySlug } from "@/lib/events/registry";
 import { formatTime } from "@/lib/events/time";
 import { cn } from "@/lib/utils";
@@ -43,7 +44,7 @@ export default async function AdminEventResultsPage({ params, searchParams }: Pa
   const { locale, slug } = await params;
   const query = await searchParams;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  const actor = await requireAdmin(locale);
 
   const event = getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
@@ -76,9 +77,13 @@ export default async function AdminEventResultsPage({ params, searchParams }: Pa
         <AdminStat label="Linked to runner" value={totalLinked} />
       </div>
 
-      <div className="mt-4">
-        <ResultsImportPanel locale={locale} slug={slug} />
-      </div>
+      {/* The import is the only act on this tab and it asks for `edit`, so a
+          view-only admin gets the imported state and no upload box. */}
+      {userCan(actor, "edit") ? (
+        <div className="mt-4">
+          <ResultsImportPanel locale={locale} slug={slug} />
+        </div>
+      ) : null}
 
       {state.length > 0 ? (
         <section className={adminCard("mt-4 p-4 sm:p-5")}>

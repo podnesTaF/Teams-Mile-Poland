@@ -3,6 +3,25 @@ import { timingSafeEqual } from "node:crypto";
 
 import { loadTicketByRunnerId, markCheckedIn, verifyTicket } from "@/features/ticket";
 
+/**
+ * DEPRECATED — slated for removal.
+ *
+ * The legacy machine-to-machine check-in endpoint for the frozen team event
+ * (warsaw-2026): a `CHECKIN_API_KEY` bearer token plus a signed `runnerId`.
+ *
+ * **Nothing in this application calls it.** Race-morning check-in for the mile
+ * series goes through the admin desk and the QR scanner
+ * (`/admin/events/[slug]/checkin`, `/admin/scan`), which authenticate as a
+ * signed-in admin holding the `checkin` capability (`src/lib/auth/roles.ts`) —
+ * not as an API key — and act on `event_registrations`, which this route does
+ * not touch at all.
+ *
+ * It is left in place only because an external scanner or hardware integration
+ * may still hold the key. Confirm with the event owner that no such client
+ * exists, then delete this route and retire `CHECKIN_API_KEY` from the
+ * environment (it is referenced nowhere else). Do not build anything new on it.
+ */
+
 type CheckInBody = {
   runnerId?: unknown;
   sig?: unknown;

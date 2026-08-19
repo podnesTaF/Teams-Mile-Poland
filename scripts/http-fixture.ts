@@ -5,16 +5,18 @@
  *   npx tsx --env-file=.env.local scripts/http-fixture.ts --teardown
  *
  * Seeds one confirmed runner + one published heat with room on `mile-2026-08-15`
- * and prints the signed ticket path plus a locally-minted admin session cookie
- * (the same value `adminLogin` sets, signed with this machine's SESSION_SECRET),
- * so the ticket page can be driven both signed-out and as an admin.
+ * and prints the signed ticket path, so the ticket page can be driven
+ * signed-out.
+ *
+ * It used to print a `tm_admin_session` cookie too. That cookie is gone: admin
+ * access is a role on the Better Auth session (`src/lib/auth/roles.ts`), so
+ * driving an admin surface means signing in as an account holding one.
  */
 import { eq, inArray, like } from "drizzle-orm";
 
 import { eventHeats, eventRegistrations, users } from "../src/db/schema";
 import { getDb } from "../src/lib/db";
 import { signEventTicket } from "../src/features/ticket/sign";
-import { signSessionPayload } from "../src/lib/auth/session";
 import { createHeats, getEventHeats } from "../src/features/admin/heats-data";
 
 const SLUG = "mile-2026-08-15";
@@ -80,13 +82,11 @@ async function main() {
   const [heat] = await getEventHeats(SLUG);
   await db.update(eventHeats).set({ publishedAt: new Date() }).where(eq(eventHeats.id, heat.id));
 
-  const exp = Math.floor(Date.now() / 1000) + 3600;
   console.log(
     JSON.stringify(
       {
         registrationId: reg.id,
         ticketPath: `/tickets/${encodeURIComponent(reg.id)}?s=${encodeURIComponent(signEventTicket(reg.id))}`,
-        adminCookie: `tm_admin_session=${signSessionPayload({ admin: true, exp })}`,
         slug: SLUG,
       },
       null,

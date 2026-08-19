@@ -11,6 +11,7 @@ import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice
 import { formatAdminDateTime as fmt } from "@/features/admin/format";
 import { removeRunner, removeTeam } from "@/features/admin/legacy-actions";
 import { getLegacyOverview } from "@/features/admin/legacy-data";
+import { userCan } from "@/lib/auth/user-session";
 
 export default async function AdminLegacyPage({
   params,
@@ -19,12 +20,15 @@ export default async function AdminLegacyPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  const actor = await requireAdmin(locale);
+  // The exports are reads and stay for every level; removing a team or a runner
+  // is an `edit` act on frozen data, so those two forms do not render below it.
+  const canEdit = userCan(actor, "edit");
 
   return (
     <AdminPage title="Warsaw 2026 (legacy)">
       {process.env.DATABASE_URL ? (
-        <LegacyBody locale={locale} />
+        <LegacyBody locale={locale} canEdit={canEdit} />
       ) : (
         <NoDatabaseNotice>view teams and runners</NoDatabaseNotice>
       )}
@@ -32,7 +36,7 @@ export default async function AdminLegacyPage({
   );
 }
 
-async function LegacyBody({ locale }: { locale: string }) {
+async function LegacyBody({ locale, canEdit }: { locale: string; canEdit: boolean }) {
   const data = await getLegacyOverview();
 
   return (
@@ -78,16 +82,18 @@ async function LegacyBody({ locale }: { locale: string }) {
                     <td>
                       <div className="iv-inline">
                         <CopyLinkButton code={t.code} />
-                        <form action={removeTeam}>
-                          <input type="hidden" name="locale" value={locale} />
-                          <input type="hidden" name="id" value={t.id} />
-                          <ConfirmSubmit
-                            label="Remove"
-                            title="Remove team?"
-                            message={`This permanently removes "${t.name}" and its ${t.runnerCount} runner(s). This cannot be undone.`}
-                            confirmLabel="Remove team"
-                          />
-                        </form>
+                        {canEdit ? (
+                          <form action={removeTeam}>
+                            <input type="hidden" name="locale" value={locale} />
+                            <input type="hidden" name="id" value={t.id} />
+                            <ConfirmSubmit
+                              label="Remove"
+                              title="Remove team?"
+                              message={`This permanently removes "${t.name}" and its ${t.runnerCount} runner(s). This cannot be undone.`}
+                              confirmLabel="Remove team"
+                            />
+                          </form>
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -125,7 +131,7 @@ async function LegacyBody({ locale }: { locale: string }) {
                   <th>Type</th>
                   <th>Payment</th>
                   <th>Registered</th>
-                  <th>Actions</th>
+                  {canEdit ? <th>Actions</th> : null}
                 </tr>
               </thead>
               <tbody>
@@ -149,18 +155,20 @@ async function LegacyBody({ locale }: { locale: string }) {
                       </span>
                     </td>
                     <td>{fmt(r.createdAt)}</td>
-                    <td>
-                      <form action={removeRunner}>
-                        <input type="hidden" name="locale" value={locale} />
-                        <input type="hidden" name="id" value={r.id} />
-                        <ConfirmSubmit
-                          label="Remove"
-                          title="Remove runner?"
-                          message={`This permanently removes ${r.fullName} from the event. This cannot be undone.`}
-                          confirmLabel="Remove runner"
-                        />
-                      </form>
-                    </td>
+                    {canEdit ? (
+                      <td>
+                        <form action={removeRunner}>
+                          <input type="hidden" name="locale" value={locale} />
+                          <input type="hidden" name="id" value={r.id} />
+                          <ConfirmSubmit
+                            label="Remove"
+                            title="Remove runner?"
+                            message={`This permanently removes ${r.fullName} from the event. This cannot be undone.`}
+                            confirmLabel="Remove runner"
+                          />
+                        </form>
+                      </td>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>

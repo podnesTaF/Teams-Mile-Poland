@@ -31,6 +31,7 @@ import {
 } from "@/features/event-mailings/user-broadcast-actions";
 import { listUserBroadcasts, type UserBroadcastRow } from "@/features/event-mailings/user-broadcast";
 import { describeUserSegments, type SegmentOption } from "@/features/event-mailings/user-segments";
+import { userCan } from "@/lib/auth/user-session";
 
 const SEGMENT_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "All runners" },
@@ -49,14 +50,18 @@ export default async function MailingsPage({
   const { locale } = await params;
   const { msg } = await searchParams;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  const actor = await requireAdmin(locale);
+  // Every send on this page asks for `edit`. A view-only admin keeps the whole
+  // schedule — what is due, what went out, to how many — and gets none of the
+  // presses that would send it.
+  const canEdit = userCan(actor, "edit");
 
   return (
     <AdminPage title="Mailings">
       {msg ? <div className="iv-notice iv-notice--info">{msg}</div> : null}
 
       {process.env.DATABASE_URL ? (
-        <MailingsBody locale={locale} />
+        <MailingsBody locale={locale} canEdit={canEdit} />
       ) : (
         <NoDatabaseNotice>manage mailings</NoDatabaseNotice>
       )}
@@ -64,11 +69,13 @@ export default async function MailingsPage({
   );
 }
 
-async function MailingsBody({ locale }: { locale: string }) {
+async function MailingsBody({ locale, canEdit }: { locale: string; canEdit: boolean }) {
   const now = new Date();
   const { rows, past, totalRunners } = await getMailingsOverview(now);
   const eventGroups = await getEventMailingsOverview(now);
-  const registrations = await listRegistrations();
+  // The recipient picker only feeds the test-send form, so a level that cannot
+  // send does not pay for the read either.
+  const registrations = canEdit ? await listRegistrations() : [];
   const userSegments = await describeUserSegments();
   const userBroadcasts = await listUserBroadcasts();
 
@@ -78,16 +85,18 @@ async function MailingsBody({ locale }: { locale: string }) {
       <section className="iv-card" style={{ marginTop: 20 }}>
         <div className="iv-toolbar" style={{ marginBottom: 12 }}>
           <h2 className="iv-section-title">Series lifecycle (per event)</h2>
-          <form action={runDueEventMailingsAction}>
-            <input type="hidden" name="locale" value={locale} />
-            <ConfirmSubmit
-              label="Run due series mailings"
-              title="Run due series mailings?"
-              message="Send every due lifecycle email across the individual mile series. Each event has its own chain. Already-sent emails are skipped. Reminder emails include the confirmation ask only for runners still awaiting confirmation."
-              confirmLabel="Run now"
-              danger={false}
-            />
-          </form>
+          {canEdit ? (
+            <form action={runDueEventMailingsAction}>
+              <input type="hidden" name="locale" value={locale} />
+              <ConfirmSubmit
+                label="Run due series mailings"
+                title="Run due series mailings?"
+                message="Send every due lifecycle email across the individual mile series. Each event has its own chain. Already-sent emails are skipped. Reminder emails include the confirmation ask only for runners still awaiting confirmation."
+                confirmLabel="Run now"
+                danger={false}
+              />
+            </form>
+          ) : null}
         </div>
         <p className="iv-note" style={{ marginBottom: 14 }}>
           One chain per mile night. Reminders (−7 / −3 / −1) ask unconfirmed runners to confirm
@@ -98,28 +107,40 @@ async function MailingsBody({ locale }: { locale: string }) {
           <p className="iv-note">No active series events.</p>
         ) : (
           eventGroups.map((g) => (
-            <EventLifecycleGroupView key={g.eventSlug} group={g} locale={locale} />
+            <EventLifecycleGroupView
+              key={g.eventSlug}
+              group={g}
+              locale={locale}
+              canEdit={canEdit}
+            />
           ))
         )}
       </section>
 
       {/* ---- User broadcast composer (segments + unsubscribe) ---- */}
-      <UserBroadcastSection locale={locale} segments={userSegments} past={userBroadcasts} />
+      <UserBroadcastSection
+        locale={locale}
+        segments={userSegments}
+        past={userBroadcasts}
+        canEdit={canEdit}
+      />
 
       {/* ---- Legacy lifecycle (frozen warsaw-2026) ---- */}
       <section className="iv-card">
         <div className="iv-toolbar" style={{ marginBottom: 12 }}>
           <h2 className="iv-section-title">Legacy lifecycle (warsaw-2026)</h2>
-          <form action={runDueMailingsAction}>
-            <input type="hidden" name="locale" value={locale} />
-            <ConfirmSubmit
-              label="Run due legacy mailings"
-              title="Run due legacy mailings?"
-              message={`Send every lifecycle email that is currently due to eligible legacy runners (${totalRunners} registered). Already-sent emails are skipped.`}
-              confirmLabel="Run now"
-              danger={false}
-            />
-          </form>
+          {canEdit ? (
+            <form action={runDueMailingsAction}>
+              <input type="hidden" name="locale" value={locale} />
+              <ConfirmSubmit
+                label="Run due legacy mailings"
+                title="Run due legacy mailings?"
+                message={`Send every lifecycle email that is currently due to eligible legacy runners (${totalRunners} registered). Already-sent emails are skipped.`}
+                confirmLabel="Run now"
+                danger={false}
+              />
+            </form>
+          ) : null}
         </div>
 
         <div className="iv-tablewrap">
@@ -131,12 +152,12 @@ async function MailingsBody({ locale }: { locale: string }) {
                 <th>Status</th>
                 <th>Eligible</th>
                 <th>Sent</th>
-                <th>Action</th>
+                {canEdit ? <th>Action</th> : null}
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
-                <LifecycleRowView key={r.kind} row={r} locale={locale} />
+                <LifecycleRowView key={r.kind} row={r} locale={locale} canEdit={canEdit} />
               ))}
             </tbody>
           </table>
@@ -146,7 +167,10 @@ async function MailingsBody({ locale }: { locale: string }) {
         </p>
       </section>
 
-      {/* ---- Legacy broadcast composer ---- */}
+      {/* ---- Legacy broadcast composer + template test: both are sends, so a
+           view-only admin gets neither ---- */}
+      {canEdit ? (
+        <>
       <section className="iv-card">
         <h2 className="iv-section-title">Send a legacy broadcast</h2>
         <form action={sendBroadcastAction} className="iv-editmodal__form" style={{ marginTop: 14 }}>
@@ -231,6 +255,8 @@ async function MailingsBody({ locale }: { locale: string }) {
           </div>
         </form>
       </section>
+        </>
+      ) : null}
 
       {/* ---- Past broadcasts ---- */}
       <section className="iv-card">
@@ -272,13 +298,16 @@ function UserBroadcastSection({
   locale,
   segments,
   past,
+  canEdit,
 }: {
   locale: string;
   segments: SegmentOption[];
   past: UserBroadcastRow[];
+  canEdit: boolean;
 }) {
   return (
     <>
+      {canEdit ? (
       <section className="iv-card">
         <h2 className="iv-section-title">Send a user broadcast</h2>
         <p className="iv-note" style={{ marginTop: 4 }}>
@@ -332,6 +361,7 @@ function UserBroadcastSection({
           </div>
         </form>
       </section>
+      ) : null}
 
       <section className="iv-card">
         <h2 className="iv-section-title">Past user broadcasts</h2>
@@ -347,7 +377,7 @@ function UserBroadcastSection({
                   <th>Sent</th>
                   <th>Status</th>
                   <th>Created</th>
-                  <th>Action</th>
+                  {canEdit ? <th>Action</th> : null}
                 </tr>
               </thead>
               <tbody>
@@ -358,19 +388,21 @@ function UserBroadcastSection({
                     <td>{b.sentCount}</td>
                     <td>{b.status}</td>
                     <td>{fmtDate(b.createdAt)}</td>
-                    <td>
-                      <form action={resendUserBroadcastAction}>
-                        <input type="hidden" name="locale" value={locale} />
-                        <input type="hidden" name="broadcastId" value={b.id} />
-                        <ConfirmSubmit
-                          label="Re-send"
-                          title="Re-send this broadcast?"
-                          message="Re-sends to the same segment. Anyone already emailed for this broadcast is skipped, so nobody is double-emailed."
-                          confirmLabel="Re-send"
-                          danger={false}
-                        />
-                      </form>
-                    </td>
+                    {canEdit ? (
+                      <td>
+                        <form action={resendUserBroadcastAction}>
+                          <input type="hidden" name="locale" value={locale} />
+                          <input type="hidden" name="broadcastId" value={b.id} />
+                          <ConfirmSubmit
+                            label="Re-send"
+                            title="Re-send this broadcast?"
+                            message="Re-sends to the same segment. Anyone already emailed for this broadcast is skipped, so nobody is double-emailed."
+                            confirmLabel="Re-send"
+                            danger={false}
+                          />
+                        </form>
+                      </td>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>
@@ -385,9 +417,11 @@ function UserBroadcastSection({
 function EventLifecycleGroupView({
   group,
   locale,
+  canEdit,
 }: {
   group: EventMailingsGroup;
   locale: string;
+  canEdit: boolean;
 }) {
   return (
     <div style={{ marginBottom: 20 }}>
@@ -409,12 +443,17 @@ function EventLifecycleGroupView({
               <th>Eligible</th>
               <th>Awaiting confirm</th>
               <th>Sent</th>
-              <th>Action</th>
+              {canEdit ? <th>Action</th> : null}
             </tr>
           </thead>
           <tbody>
             {group.rows.map((r) => (
-              <EventLifecycleRowView key={`${r.eventSlug}:${r.kind}`} row={r} locale={locale} />
+              <EventLifecycleRowView
+                key={`${r.eventSlug}:${r.kind}`}
+                row={r}
+                locale={locale}
+                canEdit={canEdit}
+              />
             ))}
           </tbody>
         </table>
@@ -423,7 +462,15 @@ function EventLifecycleGroupView({
   );
 }
 
-function EventLifecycleRowView({ row, locale }: { row: EventMailingRow; locale: string }) {
+function EventLifecycleRowView({
+  row,
+  locale,
+  canEdit,
+}: {
+  row: EventMailingRow;
+  locale: string;
+  canEdit: boolean;
+}) {
   const pill =
     row.status === "due" ? "iv-pill--red" : row.status === "done" ? "iv-pill--ok" : "";
   const confirmNote =
@@ -440,25 +487,35 @@ function EventLifecycleRowView({ row, locale }: { row: EventMailingRow; locale: 
       <td>{row.eligible}</td>
       <td>{row.kind === "morning" ? "—" : row.awaitingConfirmation}</td>
       <td>{row.sent}</td>
-      <td>
-        <form action={sendEventKindNowAction}>
-          <input type="hidden" name="locale" value={locale} />
-          <input type="hidden" name="eventSlug" value={row.eventSlug} />
-          <input type="hidden" name="kind" value={row.kind} />
-          <ConfirmSubmit
-            label="Send now"
-            title={`Send "${row.label}" for ${row.eventLabel}?`}
-            message={`Send this email to ${row.eligible} eligible runner(s) for ${row.eventLabel}. ${confirmNote} Anyone who already received it is skipped.`}
-            confirmLabel="Send now"
-            danger={false}
-          />
-        </form>
-      </td>
+      {canEdit ? (
+        <td>
+          <form action={sendEventKindNowAction}>
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="eventSlug" value={row.eventSlug} />
+            <input type="hidden" name="kind" value={row.kind} />
+            <ConfirmSubmit
+              label="Send now"
+              title={`Send "${row.label}" for ${row.eventLabel}?`}
+              message={`Send this email to ${row.eligible} eligible runner(s) for ${row.eventLabel}. ${confirmNote} Anyone who already received it is skipped.`}
+              confirmLabel="Send now"
+              danger={false}
+            />
+          </form>
+        </td>
+      ) : null}
     </tr>
   );
 }
 
-function LifecycleRowView({ row, locale }: { row: MailingRow; locale: string }) {
+function LifecycleRowView({
+  row,
+  locale,
+  canEdit,
+}: {
+  row: MailingRow;
+  locale: string;
+  canEdit: boolean;
+}) {
   const pill =
     row.status === "due" ? "iv-pill--red" : row.status === "done" ? "iv-pill--ok" : "";
   return (
@@ -470,19 +527,21 @@ function LifecycleRowView({ row, locale }: { row: MailingRow; locale: string }) 
       </td>
       <td>{row.eligible}</td>
       <td>{row.sent}</td>
-      <td>
-        <form action={sendKindNowAction}>
-          <input type="hidden" name="locale" value={locale} />
-          <input type="hidden" name="kind" value={row.kind} />
-          <ConfirmSubmit
-            label="Send now"
-            title={`Send "${row.label}" now?`}
-            message={`Send this email to ${row.eligible} eligible runner(s). Anyone who already received it is skipped.`}
-            confirmLabel="Send now"
-            danger={false}
-          />
-        </form>
-      </td>
+      {canEdit ? (
+        <td>
+          <form action={sendKindNowAction}>
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="kind" value={row.kind} />
+            <ConfirmSubmit
+              label="Send now"
+              title={`Send "${row.label}" now?`}
+              message={`Send this email to ${row.eligible} eligible runner(s). Anyone who already received it is skipped.`}
+              confirmLabel="Send now"
+              danger={false}
+            />
+          </form>
+        </td>
+      ) : null}
     </tr>
   );
 }

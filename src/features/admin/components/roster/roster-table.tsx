@@ -45,6 +45,12 @@ import { RosterDrawer } from "./roster-drawer";
  * absenting a runner stays one deliberate act behind a confirm dialog, in the
  * drawer.
  *
+ * What renders depends on the reader's admin level, because a control whose
+ * action would 404 is worse than no control: without `edit` the bulk-move bar
+ * and the row checkboxes that feed it are gone (selection has nothing to do),
+ * and without `checkin` the drawer's status action goes too. The table itself —
+ * search, sort, page, drawer — is the same read for every level.
+ *
  * `data-roster-*` markers are stable hooks for end-to-end checks — a streamed
  * page cannot be told apart by status code, so assertions grep for content.
  */
@@ -56,6 +62,8 @@ export function RosterTable({
   sort,
   sortHrefs,
   heats,
+  canEdit,
+  canCheckin,
 }: {
   rows: RosterRowView[];
   slug: string;
@@ -66,6 +74,10 @@ export function RosterTable({
   /** Where each column header points — built by the page from `rosterHref`. */
   sortHrefs: Record<RosterSortKey, string>;
   heats: HeatOption[];
+  /** Seeding into heats and removing a registration ask for `edit`. */
+  canEdit: boolean;
+  /** The drawer's no-show / undo are the desk's actions, gated at `checkin`. */
+  canCheckin: boolean;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [openId, setOpenId] = useState<string | null>(null);
@@ -115,33 +127,37 @@ export function RosterTable({
   return (
     <>
       <section className="overflow-hidden rounded-admin-lg border border-admin-line bg-admin-surface">
-        <BulkAssign
-          slug={slug}
-          locale={locale}
-          ids={selectedOnPage}
-          heats={heats}
-          onClear={() => setSelected(new Set())}
-        />
+        {canEdit ? (
+          <BulkAssign
+            slug={slug}
+            locale={locale}
+            ids={selectedOnPage}
+            heats={heats}
+            onClear={() => setSelected(new Set())}
+          />
+        ) : null}
 
         <div className="admin-scroll overflow-x-auto">
           <table data-roster-table className="w-full border-collapse text-left">
             <thead className="border-b border-admin-line bg-admin-surface-2">
               <tr>
-                <th scope="col" className={cn(HEAD_CELL, "w-[44px] pr-0")}>
-                  <input
-                    type="checkbox"
-                    checked={allShown}
-                    onChange={toggleShown}
-                    ref={(el) => {
-                      if (el) el.indeterminate = selectedOnPage.length > 0 && !allShown;
-                    }}
-                    aria-label={allShown ? "Clear this page" : "Select this page"}
-                    data-roster-select-page={
-                      allShown ? "all" : selectedOnPage.length > 0 ? "some" : "none"
-                    }
-                    className="h-3.5 w-3.5 accent-admin-accent"
-                  />
-                </th>
+                {canEdit ? (
+                  <th scope="col" className={cn(HEAD_CELL, "w-[44px] pr-0")}>
+                    <input
+                      type="checkbox"
+                      checked={allShown}
+                      onChange={toggleShown}
+                      ref={(el) => {
+                        if (el) el.indeterminate = selectedOnPage.length > 0 && !allShown;
+                      }}
+                      aria-label={allShown ? "Clear this page" : "Select this page"}
+                      data-roster-select-page={
+                        allShown ? "all" : selectedOnPage.length > 0 ? "some" : "none"
+                      }
+                      className="h-3.5 w-3.5 accent-admin-accent"
+                    />
+                  </th>
+                ) : null}
                 <SortHeader sort={sort} hrefs={sortHrefs} sortKey="bib" label="Bib" className="w-[68px]" />
                 <SortHeader sort={sort} hrefs={sortHrefs} sortKey="name" label="Runner" />
                 <PlainHeader label="Club" className="hidden lg:table-cell" />
@@ -174,6 +190,7 @@ export function RosterTable({
                   ticked={selected.has(row.id)}
                   onToggle={toggle}
                   onOpen={setOpenId}
+                  selectable={canEdit}
                 />
               ))}
             </tbody>
@@ -188,6 +205,8 @@ export function RosterTable({
           locale={locale}
           statusFilter={statusFilter}
           onClose={() => setOpenId(null)}
+          canEdit={canEdit}
+          canCheckin={canCheckin}
         />
       ) : null}
     </>
@@ -379,11 +398,14 @@ function RosterTableRow({
   ticked,
   onToggle,
   onOpen,
+  selectable,
 }: {
   row: RosterRowView;
   ticked: boolean;
   onToggle: (id: string) => void;
   onOpen: (id: string) => void;
+  /** False without `edit`: there is no bulk move for the tick to feed. */
+  selectable: boolean;
 }) {
   return (
     <tr
@@ -395,15 +417,17 @@ function RosterTableRow({
         ticked ? "bg-admin-accent-soft" : "hover:bg-admin-surface-2",
       )}
     >
-      <td className={cn(CELL, "pr-0")} onClick={(e) => e.stopPropagation()}>
-        <input
-          type="checkbox"
-          checked={ticked}
-          onChange={() => onToggle(row.id)}
-          aria-label={`Select ${row.name}`}
-          className="h-3.5 w-3.5 accent-admin-accent"
-        />
-      </td>
+      {selectable ? (
+        <td className={cn(CELL, "pr-0")} onClick={(e) => e.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={ticked}
+            onChange={() => onToggle(row.id)}
+            aria-label={`Select ${row.name}`}
+            className="h-3.5 w-3.5 accent-admin-accent"
+          />
+        </td>
+      ) : null}
       {/* A bib is a lease (ADR 0003), so this column shows two different facts:
           the number a runner is wearing, and the number a runner wore. The
           second is dimmed — otherwise the table reads as if half the pool is

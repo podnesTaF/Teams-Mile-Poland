@@ -50,6 +50,7 @@ export function RunnerCard({
   q,
   nextBib,
   pool,
+  canCheckin,
 }: {
   row: RosterRow;
   slug: string;
@@ -57,6 +58,12 @@ export function RunnerCard({
   q: string;
   nextBib: number | null;
   pool: number;
+  /**
+   * Whether the reader may work the desk. A view-only admin gets the same card
+   * — who this is, where they stand, which bib they hold — and none of the
+   * presses, all of which are `checkin` actions.
+   */
+  canCheckin: boolean;
 }) {
   const name = [row.firstName, row.lastName].filter(Boolean).join(" ") || row.name;
   const checkedIn = row.status === "checked_in";
@@ -91,10 +98,17 @@ export function RunnerCard({
       </div>
 
       {checkedIn ? (
-        <CheckedIn row={row} slug={slug} locale={locale} q={q} nextBib={nextBib} />
-      ) : (
+        <CheckedIn
+          row={row}
+          slug={slug}
+          locale={locale}
+          q={q}
+          nextBib={nextBib}
+          canCheckin={canCheckin}
+        />
+      ) : canCheckin ? (
         <NotCheckedIn row={row} slug={slug} locale={locale} q={q} nextBib={nextBib} pool={pool} />
-      )}
+      ) : null}
     </li>
   );
 }
@@ -173,12 +187,14 @@ function CheckedIn({
   locale,
   q,
   nextBib,
+  canCheckin,
 }: {
   row: RosterRow;
   slug: string;
   locale: string;
   q: string;
   nextBib: number | null;
+  canCheckin: boolean;
 }) {
   const holds = holdsBib(row);
   const waiting = awaitingBib(row);
@@ -198,6 +214,7 @@ function CheckedIn({
         </p>
       </div>
 
+      {canCheckin ? (
       <div className="mt-4 flex flex-wrap items-center justify-end gap-2.5">
         {waiting ? (
           <DeskActionForm
@@ -229,6 +246,7 @@ function CheckedIn({
           </button>
         </DeskActionForm>
       </div>
+      ) : null}
     </div>
   );
 }
