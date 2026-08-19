@@ -2,8 +2,8 @@
  * Throwaway DB round-trip for the publish + heat_assignment delta (#30).
  * NOT committed — delete when done.
  *
- *   npx tsx --env-file=.env.local scripts/verify-heat-publish.ts
- *   npx tsx --env-file=.env.local scripts/verify-heat-publish.ts --teardown
+ *   ALLOW_FIXTURES=1 npx tsx --env-file=.env.local scripts/verify-heat-publish.ts
+ *   ALLOW_FIXTURES=1 npx tsx --env-file=.env.local scripts/verify-heat-publish.ts --teardown
  *
  * This file is a loader and nothing else. It blanks `RESEND_API_KEY` and then
  * pulls the real script in with a **dynamic** import, because a static `import`

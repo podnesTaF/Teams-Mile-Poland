@@ -1,8 +1,11 @@
 /**
  * Throwaway DB round-trip for the race-morning slice (#32). NOT committed.
  *
- *   npx tsx --env-file=.env.local scripts/verify-race-morning.ts
- *   npx tsx --env-file=.env.local scripts/verify-race-morning.ts --teardown
+ *   ALLOW_FIXTURES=1 npx tsx --env-file=.env.local scripts/verify-race-morning.ts
+ *   ALLOW_FIXTURES=1 npx tsx --env-file=.env.local scripts/verify-race-morning.ts --teardown
+ *
+ * Both modes write to the live DB, so both refuse to run without
+ * `ALLOW_FIXTURES=1` (see `scripts/lib/guard.ts`).
  *
  * Runs against whatever `DATABASE_URL` `.env.local` points at, which is the live
  * DB (there is no Neon branch here). Every fixture lives on `mile-2026-08-15` —
@@ -36,6 +39,9 @@ import {
   setHeatForRegistrations,
   unfinishHeatRow,
 } from "../src/features/admin/heats-data";
+import { requireFixtureConsent } from "./lib/guard";
+
+requireFixtureConsent("scripts/verify-race-morning.ts");
 
 const SLUG = "mile-2026-08-15";
 const OTHER = "mile-2026-08-22";

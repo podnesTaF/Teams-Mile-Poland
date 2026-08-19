@@ -6,8 +6,11 @@
  * Unassigned column have something to show. It creates no heats — press
  * "Generate" on the page to do that, which is the thing worth watching.
  *
- *   npx tsx --env-file=.env.local scripts/seed-heats-fixture.ts
- *   npx tsx --env-file=.env.local scripts/seed-heats-fixture.ts --teardown
+ *   ALLOW_FIXTURES=1 npx tsx --env-file=.env.local scripts/seed-heats-fixture.ts
+ *   ALLOW_FIXTURES=1 npx tsx --env-file=.env.local scripts/seed-heats-fixture.ts --teardown
+ *
+ * Both modes write to the live DB, so both refuse to run without
+ * `ALLOW_FIXTURES=1` (see `scripts/lib/guard.ts`).
  *
  * Teardown deletes only what this script created: the `uifix-*` users, their
  * registrations, and any heats on `mile-2026-08-29`. Nothing else is touched.
@@ -16,6 +19,9 @@ import { eq, inArray, like } from "drizzle-orm";
 
 import { eventHeats, eventRegistrations, users } from "../src/db/schema";
 import { getDb } from "../src/lib/db";
+import { requireFixtureConsent } from "./lib/guard";
+
+requireFixtureConsent("scripts/seed-heats-fixture.ts");
 
 const SLUG = "mile-2026-08-29";
 const PREFIX = "uifix-";

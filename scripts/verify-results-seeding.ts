@@ -3,7 +3,9 @@
  * qualification → final bridge (`topQualifiers` / `seedTopQualifiers`) and the
  * public per-event results projection (`getPublicResults`).
  *
- *   npx tsx --env-file=.env.local scripts/verify-results-seeding.ts
+ *   ALLOW_FIXTURES=1 npx tsx --env-file=.env.local scripts/verify-results-seeding.ts
+ *
+ * It refuses to run without `ALLOW_FIXTURES=1` (see `scripts/lib/guard.ts`).
  *
  * Runs against the live DB (no branch DB exists), so every row it creates is
  * prefixed / high-numbered and deleted by id at the end — including on failure.
@@ -19,6 +21,9 @@ import { seedTopQualifiers, topQualifiers } from "../src/features/admin/results-
 import { getDb } from "../src/lib/db";
 import { getEventBySlug } from "../src/lib/events/registry";
 import { getPublicResults } from "../src/lib/events/results-data";
+import { requireFixtureConsent } from "./lib/guard";
+
+requireFixtureConsent("scripts/verify-results-seeding.ts");
 
 const SLUG = "mile-2026-08-29";
 const PREFIX = "seedfix-";

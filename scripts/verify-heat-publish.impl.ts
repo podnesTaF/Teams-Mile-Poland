@@ -6,6 +6,8 @@
  * DB (there is no Neon branch here). Every fixture lives on `mile-2026-08-22`,
  * the one individual event with zero registrations and zero heats; the script
  * refuses to run if that changes, and every delete is scoped to ids it created.
+ * Both the seed and `--teardown` modes refuse to run at all without
+ * `ALLOW_FIXTURES=1` (see `scripts/lib/guard.ts`).
  *
  * There is **no mail transport**, so `publishHeatsAndNotify` reports its whole
  * seeded set as `skipped`. The exact delta arithmetic is therefore asserted
@@ -29,6 +31,10 @@ import {
   type SeedRow,
 } from "../src/features/admin/heats-data";
 import { publishHeatsAndNotify } from "../src/features/event-mailings/heat-assignment";
+import { requireFixtureConsent } from "./lib/guard";
+
+// Named for the loader, since that is what an operator runs.
+requireFixtureConsent("scripts/verify-heat-publish.ts");
 
 if (resend !== null) {
   console.error("REFUSING TO RUN: a Resend client is configured — this script must not send mail.");

@@ -2,7 +2,9 @@
  * Round-trip verification for the timing results import (timing integration
  * slice): parse → resolve → commit → read back through the public readers.
  *
- *   npx tsx --env-file=.env.local scripts/verify-results-import.ts
+ *   ALLOW_FIXTURES=1 npx tsx --env-file=.env.local scripts/verify-results-import.ts
+ *
+ * It refuses to run without `ALLOW_FIXTURES=1` (see `scripts/lib/guard.ts`).
  *
  * Runs against the live DB (no branch DB exists), so every row it creates is
  * prefixed / high-numbered and deleted by id at the end — including on failure.
@@ -26,6 +28,9 @@ import { getDb } from "../src/lib/db";
 import { getEventBySlug } from "../src/lib/events/registry";
 import { getDirectResultRefs, getMergedResults } from "../src/lib/events/results-data";
 import { findUserResults } from "../src/lib/events/user-results";
+import { requireFixtureConsent } from "./lib/guard";
+
+requireFixtureConsent("scripts/verify-results-import.ts");
 
 const SLUG = "mile-2026-08-29";
 const PREFIX = "resfix-";
