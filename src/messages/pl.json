@@ -472,7 +472,7 @@
       "eyebrow": "Wyniki biegu",
       "title": "Wyniki",
       "subtitle": "{date} · {count} zawodników",
-      "subtitleAll": "Wszystkie biegi · {count} zawodników",
+      "subtitleAthletes": "Wszystkie biegi · {count} zawodników · liczy się najlepszy czas",
       "tabsLabel": "Filtruj wyniki według biegu",
       "tabs": {
         "all": "Wszystkie"
@@ -483,6 +483,8 @@
         "level": "Poziom",
         "category": "Kategoria",
         "time": "Czas",
+        "bestTime": "Najlepszy czas",
+        "races": "Biegi",
         "race": "Bieg"
       },
       "level": "Poz. {n}",

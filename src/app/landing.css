@@ -4171,6 +4171,13 @@
   font-weight: 700;
   color: rgba(255, 255, 255, 0.82);
 }
+/* Person-level board only: races run, and the race the best time was set at. */
+.ace-landing .results__races,
+.ace-landing .results__race {
+  width: 1%;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.65);
+}
 
 /* Per-row expand control — hidden on desktop, shown when columns collapse. */
 .ace-landing .results__toggle-col,

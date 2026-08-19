@@ -472,7 +472,7 @@
       "eyebrow": "Race results",
       "title": "Results",
       "subtitle": "{date} · {count} finishers",
-      "subtitleAll": "All races · {count} finishers",
+      "subtitleAthletes": "All races · {count} athletes · best time counts",
       "tabsLabel": "Filter results by race",
       "tabs": {
         "all": "All"
@@ -483,6 +483,8 @@
         "level": "Level",
         "category": "Category",
         "time": "Time",
+        "bestTime": "Best time",
+        "races": "Races",
         "race": "Race"
       },
       "level": "Lvl {n}",

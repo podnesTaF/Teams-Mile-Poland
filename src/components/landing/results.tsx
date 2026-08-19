@@ -3,6 +3,7 @@
 import { Fragment, useState } from "react";
 import { useTranslations } from "next-intl";
 
+import { buildLeaderboard } from "@/lib/events/leaderboard";
 import { computeLevel } from "@/lib/events/levels";
 import { formatTime } from "@/lib/events/time";
 import type { EventSummary } from "@/lib/events/types";
@@ -13,17 +14,18 @@ import { ChevronIcon } from "./icons";
 const ALL = "all";
 
 /**
- * Results section — leaderboards for every completed event, sorted by time
- * across all heats. Rendered directly below the hero when at least one
- * completed event has results.
+ * Results section — the series standings plus a leaderboard per completed
+ * event. Rendered directly below the hero when at least one completed event has
+ * results.
  *
- * A tab row lets the visitor pick which race to see: "All" combines every
- * event into one leaderboard; each date tab shows that race alone. The tabs
- * only render when more than one event has results.
+ * A tab row lets the visitor pick what to see: "All" is the person-level board
+ * — every runner once, ranked by their best mile of the series (see
+ * `lib/events/leaderboard.ts`); each date tab ranks that race's rows on their
+ * own. The tabs only render when more than one event has results.
  *
  * Layout adapts to width without duplicating the data: it stays a single
- * `<table>`, but on narrow screens the detail columns (level / category)
- * collapse and each row gains an expand button that reveals them in a
+ * `<table>`, but on narrow screens the detail columns (level / category /
+ * races) collapse and each row gains an expand button that reveals them in a
  * stacked panel — so place, athlete, and time are always visible at a glance.
  */
 export function Results({ events }: { events: EventSummary[] }) {
@@ -35,14 +37,13 @@ export function Results({ events }: { events: EventSummary[] }) {
   if (withResults.length === 0) return null;
 
   const selectedEvent = withResults.find((e) => e.slug === selected) ?? null;
-  const shownEvents = selectedEvent ? [selectedEvent] : withResults;
 
-  const rows = shownEvents
+  // Per-event tab: that race's own rows, ranked by time across its heats.
+  const eventRows = (selectedEvent ? [selectedEvent] : [])
     .flatMap((event) =>
       (event.results?.heats ?? []).flatMap((heat) =>
         heat.entries.map((entry) => ({
           ...entry,
-          event,
           // Bibs are recycled leases (ADR 0003): only (event, heat, bib) is
           // unique, so the row id carries all three.
           id: `${event.slug}:${heat.number}:${entry.bib}`,
@@ -55,6 +56,13 @@ export function Results({ events }: { events: EventSummary[] }) {
       rank: i + 1,
       level: computeLevel(entry.timeCs, entry.gender),
     }));
+
+  // "All" tab: one row per person, not per result. Genders share the list, as
+  // they always have here — the level column is what reads them apart, being
+  // computed against gender-specific bars.
+  const personRows = selectedEvent ? [] : buildLeaderboard(withResults);
+
+  const count = selectedEvent ? eventRows.length : personRows.length;
 
   const selectTab = (slug: string) => {
     setSelected(slug);
@@ -69,8 +77,8 @@ export function Results({ events }: { events: EventSummary[] }) {
           <h2 className="head t-sec">{t("title")}</h2>
           <p className="head t-20" style={{ opacity: 0.6 }}>
             {selectedEvent
-              ? t("subtitle", { date: selectedEvent.shortDate, count: rows.length })
-              : t("subtitleAll", { count: rows.length })}
+              ? t("subtitle", { date: selectedEvent.shortDate, count })
+              : t("subtitleAthletes", { count })}
           </p>
         </div>
 
@@ -112,8 +120,18 @@ export function Results({ events }: { events: EventSummary[] }) {
                 <th className="results__cat results__detail-col" scope="col">
                   {t("cols.category")}
                 </th>
+                {!selectedEvent && (
+                  <>
+                    <th className="results__races results__detail-col" scope="col">
+                      {t("cols.races")}
+                    </th>
+                    <th className="results__race results__detail-col" scope="col">
+                      {t("cols.race")}
+                    </th>
+                  </>
+                )}
                 <th className="results__time" scope="col">
-                  {t("cols.time")}
+                  {selectedEvent ? t("cols.time") : t("cols.bestTime")}
                 </th>
                 <th className="results__toggle-col">
                   <span className="sr-only">{t("detailsLabel")}</span>
@@ -121,7 +139,65 @@ export function Results({ events }: { events: EventSummary[] }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
+              {personRows.map((row) => {
+                const isOpen = open === row.key;
+                const podium = row.rank <= 3;
+                const detailId = `results-detail-athlete-${row.rank}`;
+                return (
+                  <Fragment key={row.key}>
+                    <tr className={podium ? "is-podium" : undefined}>
+                      <td className="results__rank">{row.rank}</td>
+                      <td className="results__name">{row.name}</td>
+                      <td className="results__lvl results__detail-col">
+                        {t("level", { n: row.level })}
+                      </td>
+                      <td className="results__cat results__detail-col">
+                        {t(`category.${row.gender}`)}
+                      </td>
+                      <td className="results__races results__detail-col">{row.races}</td>
+                      <td className="results__race results__detail-col">
+                        {row.bestEvent.shortDate}
+                      </td>
+                      <td className="results__time">{formatTime(row.bestTimeCs)}</td>
+                      <td className="results__toggle-cell">
+                        <button
+                          type="button"
+                          className="results__toggle"
+                          aria-expanded={isOpen}
+                          aria-controls={detailId}
+                          aria-label={t("detailsLabel")}
+                          onClick={() => setOpen(isOpen ? null : row.key)}
+                        >
+                          <ChevronIcon className={isOpen ? "is-open" : undefined} />
+                        </button>
+                      </td>
+                    </tr>
+                    <tr id={detailId} className={`results__detail-row${isOpen ? " is-open" : ""}`}>
+                      <td colSpan={8}>
+                        <dl className="results__detail">
+                          <div>
+                            <dt>{t("cols.level")}</dt>
+                            <dd>{t("level", { n: row.level })}</dd>
+                          </div>
+                          <div>
+                            <dt>{t("cols.category")}</dt>
+                            <dd>{t(`category.${row.gender}`)}</dd>
+                          </div>
+                          <div>
+                            <dt>{t("cols.races")}</dt>
+                            <dd>{row.races}</dd>
+                          </div>
+                          <div>
+                            <dt>{t("cols.race")}</dt>
+                            <dd>{row.bestEvent.shortDate}</dd>
+                          </div>
+                        </dl>
+                      </td>
+                    </tr>
+                  </Fragment>
+                );
+              })}
+              {eventRows.map((row) => {
                 const isOpen = open === row.id;
                 const podium = row.rank <= 3;
                 return (
@@ -163,12 +239,6 @@ export function Results({ events }: { events: EventSummary[] }) {
                             <dt>{t("cols.category")}</dt>
                             <dd>{t(`category.${row.gender}`)}</dd>
                           </div>
-                          {!selectedEvent && (
-                            <div>
-                              <dt>{t("cols.race")}</dt>
-                              <dd>{row.event.shortDate}</dd>
-                            </div>
-                          )}
                         </dl>
                       </td>
                     </tr>
