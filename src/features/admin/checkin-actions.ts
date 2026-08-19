@@ -341,26 +341,41 @@ export async function unmarkHeatFinished(formData: FormData) {
   redirect(back(`ok=unfinished&released=${outcome.released}`));
 }
 
-/** Mark a runner a no-show. */
+/**
+ * Mark a runner a no-show — from the desk, or from their scanned ticket.
+ *
+ * Goes through `resolveSurface` like the check-in itself (slice #45): the ticket
+ * panel reaches this by registration id alone, so the signature is what keeps it
+ * "the runner whose ticket you scanned" rather than a mark-anyone-by-id endpoint.
+ * The redirect is what the panel's flash row reads, and it is what puts the
+ * scan-the-next-runner press back on screen.
+ */
 export async function markNoShow(formData: FormData) {
-  const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale, "checkin");
-  const slug = String(formData.get("slug") ?? "");
-  const registrationId = String(formData.get("registrationId") ?? "");
-  if (slug && registrationId) {
-    await setRegistrationStatus(registrationId, "no_show");
-    revalidateRaceMorning(locale, slug);
+  const { locale, slug, registrationId, back } = await resolveSurface(formData);
+  if (!slug || !registrationId) {
+    redirect(back("error=input"));
   }
+
+  await setRegistrationStatus(registrationId, "no_show");
+  revalidateRaceMorning(locale, slug);
+  redirect(back("ok=noshow"));
 }
 
-/** Revert a runner back to registered (undo check-in / no-show). */
+/**
+ * Revert a runner back to registered — undo a check-in, or undo a no-show. One
+ * action for both, because both are the same write, and the surface it was
+ * pressed on words which of the two happened.
+ *
+ * Any bib the runner held goes back to the pool (`setRegistrationStatus`), which
+ * is why the presses that reach this are confirmed first.
+ */
 export async function revertToRegistered(formData: FormData) {
-  const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale, "checkin");
-  const slug = String(formData.get("slug") ?? "");
-  const registrationId = String(formData.get("registrationId") ?? "");
-  if (slug && registrationId) {
-    await setRegistrationStatus(registrationId, "registered");
-    revalidateRaceMorning(locale, slug);
+  const { locale, slug, registrationId, back } = await resolveSurface(formData);
+  if (!slug || !registrationId) {
+    redirect(back("error=input"));
   }
+
+  await setRegistrationStatus(registrationId, "registered");
+  revalidateRaceMorning(locale, slug);
+  redirect(back("ok=registered"));
 }

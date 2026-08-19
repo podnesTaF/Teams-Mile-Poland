@@ -41,7 +41,7 @@
 
 import { getBibPool } from "@/lib/events/registry";
 
-import { checkedInText, checkinErrorText } from "./checkin-copy";
+import { checkinErrorText, checkinOkText } from "./checkin-copy";
 import { plural } from "./format";
 import { MAX_GENERATE_HEATS } from "./heats-data";
 
@@ -178,19 +178,20 @@ const ERROR_CODES: Record<string, FlashCopy> = {
 const MAX_HEAT_LENGTH = 12;
 
 /**
- * The check-in desk's confirmation. Not a code: `?ok=` is the number the runner
- * has just been handed (`ok=12`), or `pending` when the pool was empty and they
- * were marked present bib-less (ADR 0003). Anything else is not the desk
- * talking, so this declines rather than guessing.
+ * The check-in family's confirmations, worded by `checkin-copy.ts` — the module
+ * the ticket page's admin panel words itself from.
+ *
+ * Mostly not codes: `?ok=` is the number the runner has just been handed
+ * (`ok=12`), or `pending` when the pool was empty and they were marked present
+ * bib-less (ADR 0003). `noshow` and `registered` are the family's two named
+ * codes, pressed from either surface. Anything else is not this family talking,
+ * so `checkinOkText` declines rather than guessing.
  */
-const deskCheckedIn: FlashCopy = (query) => {
-  const ok = param(query, "ok");
-  if (ok !== "pending" && !/^\d+$/.test(ok)) return null;
+const deskCheckedIn: FlashCopy = (query) =>
   // The placement is named in the sentence, so it is bounded for the same reason
   // `?msg=` is: a heat number is three characters, and a hand-edited URL should
   // not be able to write a paragraph into the banner.
-  return checkedInText(ok, param(query, "heat").slice(0, MAX_HEAT_LENGTH));
-};
+  checkinOkText(param(query, "ok"), param(query, "heat").slice(0, MAX_HEAT_LENGTH));
 
 /**
  * The check-in desk's refusals, worded by `checkin-copy.ts` — the module the

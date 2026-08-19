@@ -27,6 +27,31 @@ export function checkedInText(code: string, heat: string | undefined): string {
 }
 
 /**
+ * Confirmation copy for every race-morning success, keyed by the `?ok=` code the
+ * action redirected with — or `null` when the code is not this family's.
+ *
+ * Two kinds live here. A check-in reports the *number* (`ok=12`, or `pending`),
+ * which is why {@link checkedInText} takes a value rather than a code; the two
+ * status reversals report named codes like every other action in the panel. Both
+ * are now pressed from either surface (slice #45), so both are worded once, here.
+ *
+ * Declining is load-bearing: a hand-edited or stale `?ok=` must render no
+ * feedback at all rather than a sentence about a bib nobody was handed.
+ */
+export function checkinOkText(code: string, heat: string | undefined): string | null {
+  if (code === "noshow") {
+    return "Marked no-show. Any bib they were holding is back in the pool.";
+  }
+  if (code === "registered") {
+    return "Back to registered — not checked in. Any bib they were holding is back in the pool.";
+  }
+  if (code === "pending" || /^\d+$/.test(code)) {
+    return checkedInText(code, heat);
+  }
+  return null;
+}
+
+/**
  * Desk-facing copy for a refused action. Bib exhaustion at check-in is
  * deliberately absent: it is not an error — check-in succeeds bib-less and
  * reports through the confirmation instead.

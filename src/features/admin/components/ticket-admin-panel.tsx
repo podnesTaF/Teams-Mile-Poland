@@ -1,5 +1,11 @@
-import { assignBibAndCheckIn, assignPendingBib } from "@/features/admin/checkin-actions";
-import { checkedInText, checkinErrorText } from "@/features/admin/checkin-copy";
+import {
+  assignBibAndCheckIn,
+  assignPendingBib,
+  markNoShow,
+  revertToRegistered,
+} from "@/features/admin/checkin-actions";
+import { checkinErrorText, checkinOkText } from "@/features/admin/checkin-copy";
+import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { StatusPill } from "@/features/admin/components/status-pill";
 import { getRosterRowById, holdsBib, suggestNextBib } from "@/features/admin/events-data";
 import { formatAdminDateTime } from "@/features/admin/format";
@@ -17,9 +23,16 @@ import { Link } from "@/i18n/navigation";
  * and everyone else — including the ticket's owner — sees exactly the page they
  * saw before.
  *
- * **Rendering this is not authorization.** The actions it posts to enforce the
- * admin guard themselves, and reach the same `assignBibAndCheckIn` the check-in
- * desk does, through its `surface` token.
+ * It carries the whole desk-side vocabulary for one runner (slice #45): check in
+ * on the suggested bib or on a typed one, hand out a freed bib, mark a no-show,
+ * and undo either. A volunteer working the phone should never have to leave a
+ * scan to finish the person standing in front of them — the only things still
+ * only at the desk are the ones that are not about *this* runner (search, the
+ * waiting list, finishing heats).
+ *
+ * **Rendering this is not authorization.** The actions it posts enforce the admin
+ * guard themselves, and reach the same `assignBibAndCheckIn` / `markNoShow` /
+ * `revertToRegistered` the check-in desk does, through its `surface` token.
  *
  * English-only, like every other admin surface — a deliberate, documented
  * exception inside an otherwise participant-facing page.
@@ -53,7 +66,7 @@ export async function TicketAdminPanel({
   const ran = checkedIn && !holds && row.heatFinishedAt !== null;
   const nextBib = holds ? null : await suggestNextBib(slug);
 
-  const flash = ok ? checkedInText(ok, heat) : checkinErrorText(error ?? "", { pool });
+  const flash = ok ? checkinOkText(ok, heat) : checkinErrorText(error ?? "", { pool });
   const name = [row.firstName, row.lastName].filter(Boolean).join(" ") || row.name;
 
   return (
@@ -114,29 +127,72 @@ export async function TicketAdminPanel({
               {ran
                 ? `Ran in heat ${row.heatNumber} · bib ${row.bib ?? "—"} returned to the pool.`
                 : `Checked in ${formatAdminDateTime(row.checkedInAt)}.`}
-              {holds || ran ? " Undo from the check-in desk." : ""}
             </span>
-            {holds || ran ? null : (
+            <div className="tk-admin__actions">
+              {holds || ran ? null : (
+                <TicketActionForm
+                  action={assignPendingBib}
+                  locale={locale}
+                  registrationId={registrationId}
+                  sig={sig}
+                >
+                  <button type="submit" className="btn btn-red btn-sm" disabled={nextBib === null}>
+                    {nextBib === null ? "No bib free" : `Assign bib ${nextBib}`}
+                  </button>
+                </TicketActionForm>
+              )}
+              {/* Undo throws away a check-in and the lease with it, so it is
+                  confirmed — the desk's own idiom for a reversible-but-costly
+                  press, and this one is a thumb's width from Scan next runner. */}
               <TicketActionForm
-                action={assignPendingBib}
+                action={revertToRegistered}
                 locale={locale}
                 registrationId={registrationId}
                 sig={sig}
               >
-                <button type="submit" className="btn btn-red btn-sm" disabled={nextBib === null}>
-                  {nextBib === null ? "No bib free" : `Assign bib ${nextBib}`}
-                </button>
+                <ConfirmSubmit
+                  label="Undo check-in"
+                  title="Undo this check-in?"
+                  message={
+                    holds
+                      ? `Bib ${row.bib} goes back to the pool and the runner is registered again, as if they had not arrived. Check them in again to hand out a number.`
+                      : "The runner is registered again, as if they had not arrived. Check them in again to hand out a number."
+                  }
+                  confirmLabel="Undo check-in"
+                  danger={false}
+                  triggerClassName="btn btn-stroke btn-sm"
+                />
               </TicketActionForm>
-            )}
+            </div>
           </>
         ) : (
           <>
+            {/* The bib is pre-filled — with the number pinned on in the heat
+                builder when there is one, the lowest free number otherwise — and
+                stays editable: typing over it is the "this runner already has 42
+                on their vest" case, which used to mean walking to the desk.
+                Left blank (an exhausted pool) it leases nothing and the runner is
+                checked in bib-less, ADR 0003. */}
             <TicketActionForm
               action={assignBibAndCheckIn}
               locale={locale}
               registrationId={registrationId}
               sig={sig}
+              className="tk-admin__checkin"
             >
+              <label className="tk-admin__bibfield">
+                <span className="tk-admin__biblabel">Bib</span>
+                <input
+                  className="iv-input tk-admin__bibinput"
+                  name="bib"
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={pool}
+                  placeholder={!holds && nextBib === null ? "none" : undefined}
+                  defaultValue={holds ? (row.bib ?? "") : (nextBib ?? "")}
+                />
+              </label>
               <button type="submit" className="btn btn-red">
                 Check in
               </button>
@@ -145,9 +201,40 @@ export async function TicketAdminPanel({
               {holds
                 ? `Bib ${row.bib} was pre-assigned in the heat builder — checking in confirms it.`
                 : nextBib === null
-                  ? `All ${pool} bibs are out — they will be checked in with a bib pending.`
-                  : `Next free bib: ${nextBib}. Use the check-in desk to pick a different one.`}
+                  ? `All ${pool} bibs are out — leave this blank and they are checked in with a bib pending.`
+                  : `Next free bib: ${nextBib}. Type over it to hand out a different number.`}
             </span>
+            <div className="tk-admin__actions">
+              {row.status === "no_show" ? (
+                <TicketActionForm
+                  action={revertToRegistered}
+                  locale={locale}
+                  registrationId={registrationId}
+                  sig={sig}
+                >
+                  {/* Unmarking a no-show only restores what was there before, so
+                      it is the one press here that is not confirmed. */}
+                  <button type="submit" className="btn btn-stroke btn-sm">
+                    Undo no-show
+                  </button>
+                </TicketActionForm>
+              ) : (
+                <TicketActionForm
+                  action={markNoShow}
+                  locale={locale}
+                  registrationId={registrationId}
+                  sig={sig}
+                >
+                  <ConfirmSubmit
+                    label="Mark no-show"
+                    title="Mark this runner a no-show?"
+                    message="They are recorded as not having arrived. Undo it from here or from the desk if they turn up late."
+                    confirmLabel="Mark no-show"
+                    triggerClassName="btn btn-stroke btn-sm"
+                  />
+                </TicketActionForm>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -161,16 +248,18 @@ function TicketActionForm({
   locale,
   registrationId,
   sig,
+  className,
   children,
 }: {
   action: (formData: FormData) => void | Promise<void>;
   locale: string;
   registrationId: string;
   sig: string;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <form action={action}>
+    <form action={action} className={className}>
       <input type="hidden" name="surface" value="ticket" />
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="registrationId" value={registrationId} />

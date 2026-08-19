@@ -3254,6 +3254,35 @@
   text-transform: uppercase;
   color: rgb(255, 140, 150);
 }
+/* Check in on a typed number: the bib field and the press sit on one line, the
+   way they do at the desk, so the thumb lands on Check in either way. */
+.ace-landing .tk-admin__checkin {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.ace-landing .tk-admin__bibfield {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 92px;
+  flex: none;
+}
+.ace-landing .tk-admin__bibinput {
+  height: 44px;
+  padding: 0 8px;
+  text-align: center;
+}
+/* No-show / undo get their own full-width line, away from the thumb aiming at
+   Check in — `.tk-admin__result` is a wrapping flex row, so 100% is the break. */
+.ace-landing .tk-admin__actions {
+  flex: 1 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
 /* Flash + the loop back to the scanner, side by side on a phone-width panel. */
 .ace-landing .tk-admin__flashrow {
   display: flex;
