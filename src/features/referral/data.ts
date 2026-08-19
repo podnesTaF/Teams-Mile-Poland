@@ -1,9 +1,10 @@
 import { and, eq, isNull, ne, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
-import { eventRegistrations, users } from "@/db/schema";
+import { eventRegistrations, legacyParticipations, users } from "@/db/schema";
 import { getAppUrl } from "@/lib/app-url";
 import { getDb } from "@/lib/db";
+import { RACES_RUN_OVER_JOIN } from "@/lib/events/participation";
 import { localePath } from "@/lib/i18n/config";
 
 /**
@@ -94,7 +95,12 @@ export type ReferralStats = {
   signups: number;
   /** Race registrations by those accounts (any non-cancelled status). */
   raceRegistrations: number;
-  /** Of those, actually at the start line (checked in on site). */
+  /**
+   * Races those accounts actually ran, per the one canonical definition
+   * (`src/lib/events/participation.ts`): checked in on site, plus legacy
+   * attendance — rare for a referred account, but the definition is the same one
+   * the profile stat and the admin users list report.
+   */
   participations: number;
 };
 
@@ -103,16 +109,18 @@ export async function getReferralStats(userId: string): Promise<ReferralStats> {
   const [row] = await db
     .select({
       signups: sql<number>`count(distinct ${users.id})`.mapWith(Number),
-      raceRegistrations: sql<number>`count(${eventRegistrations.id})`.mapWith(Number),
-      participations: sql<number>`count(${eventRegistrations.id}) filter (where ${eventRegistrations.status} = 'checked_in')`.mapWith(
-        Number,
-      ),
+      // `distinct` throughout: the two left joins below are independently
+      // one-to-many per referred account and so multiply each other's rows.
+      raceRegistrations: sql<number>`count(distinct ${eventRegistrations.id})`.mapWith(Number),
+      // `::int` inside the expression, so no `mapWith` — see the helper.
+      participations: RACES_RUN_OVER_JOIN,
     })
     .from(users)
     .leftJoin(
       eventRegistrations,
       and(eq(eventRegistrations.userId, users.id), ne(eventRegistrations.status, "cancelled")),
     )
+    .leftJoin(legacyParticipations, eq(legacyParticipations.userId, users.id))
     .where(eq(users.referredBy, userId));
   return row ?? { signups: 0, raceRegistrations: 0, participations: 0 };
 }

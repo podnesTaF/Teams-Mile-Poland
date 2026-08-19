@@ -46,7 +46,11 @@ async function ReferralsBody() {
         <AdminStat label="Referrers" value={referrers.length} />
         <AdminStat label="Referred sign-ups" value={totals.signups} />
         <AdminStat label="Race registrations" value={totals.raceRegistrations} />
-        <AdminStat label="Checked in" value={totals.participations} hint="On-site participation" />
+        <AdminStat
+          label="Races run"
+          value={totals.participations}
+          hint="Checked in on site, plus legacy attendance"
+        />
       </div>
 
       <section className="iv-card" style={{ marginTop: 20 }}>
@@ -60,7 +64,7 @@ async function ReferralsBody() {
                   <th>Referrer</th>
                   <th>Sign-ups</th>
                   <th>Race registrations</th>
-                  <th>Checked in</th>
+                  <th>Races run</th>
                 </tr>
               </thead>
               <tbody>

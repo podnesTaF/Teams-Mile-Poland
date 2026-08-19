@@ -1,13 +1,14 @@
 import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
-import { eventRegistrations, users } from "@/db/schema";
+import { eventRegistrations, legacyParticipations, users } from "@/db/schema";
 import { getDb } from "@/lib/db";
+import { RACES_RUN_OVER_JOIN } from "@/lib/events/participation";
 
 /**
  * Admin view of the referral program: one row per user who has referred at
  * least one account, with the funnel counts (sign-ups → race registrations →
- * checked in). Derived entirely from `users.referred_by` joins — there is no
+ * races run). Derived entirely from `users.referred_by` joins — there is no
  * separate tracking table.
  */
 export type ReferrerRow = {
@@ -16,6 +17,11 @@ export type ReferrerRow = {
   email: string;
   signups: number;
   raceRegistrations: number;
+  /**
+   * Races the referred accounts actually ran, per the one canonical definition
+   * (`src/lib/events/participation.ts`) — the same number `getReferralStats`
+   * shows the referrer on their own profile.
+   */
   participations: number;
 };
 
@@ -29,10 +35,10 @@ export async function listReferrers(): Promise<ReferrerRow[]> {
       name: users.name,
       email: users.email,
       signups,
-      raceRegistrations: sql<number>`count(${eventRegistrations.id})`.mapWith(Number),
-      participations: sql<number>`count(${eventRegistrations.id}) filter (where ${eventRegistrations.status} = 'checked_in')`.mapWith(
-        Number,
-      ),
+      // `distinct` throughout: the two left joins below are independently
+      // one-to-many per referred account and so multiply each other's rows.
+      raceRegistrations: sql<number>`count(distinct ${eventRegistrations.id})`.mapWith(Number),
+      participations: RACES_RUN_OVER_JOIN,
     })
     .from(users)
     .innerJoin(referred, eq(referred.referredBy, users.id))
@@ -40,6 +46,7 @@ export async function listReferrers(): Promise<ReferrerRow[]> {
       eventRegistrations,
       and(eq(eventRegistrations.userId, referred.id), ne(eventRegistrations.status, "cancelled")),
     )
+    .leftJoin(legacyParticipations, eq(legacyParticipations.userId, referred.id))
     .groupBy(users.id, users.name, users.email)
     .orderBy(desc(signups), users.name);
 }

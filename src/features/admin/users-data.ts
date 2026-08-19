@@ -2,6 +2,7 @@ import { and, eq, ilike, inArray, isNull, ne, or, sql, type SQL } from "drizzle-
 
 import { eventRegistrations, legacyParticipations, users } from "@/db/schema";
 import { getDb } from "@/lib/db";
+import { racesRunPerUser } from "@/lib/events/participation";
 import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
 import type { ParticipationStatus } from "@/db/schema";
 
@@ -63,9 +64,10 @@ export type UserListRow = {
   firstEventAttended: boolean | null;
   augRegistrationCount: number;
   /**
-   * Races actually run: legacy participations attended + series registrations
-   * that reached `checked_in` — the same "participated" definition the
-   * referral stats use.
+   * Races actually run, per the one canonical definition
+   * (`src/lib/events/participation.ts`): series registrations that reached
+   * `checked_in`, plus legacy participations marked attended. The same
+   * definition the profile stat and the referral funnels report.
    */
   raceCount: number;
   /** Account registration date. */
@@ -129,20 +131,13 @@ function userAggregates(db: ReturnType<typeof getDb>) {
     .groupBy(eventRegistrations.userId)
     .as("aug_agg");
 
-  // Per-user count of series races actually run (status reached `checked_in`,
-  // any event slug). The legacy first event is added per-row below — one user
-  // has at most one legacy participation.
-  const ranAgg = db
-    .select({
-      userId: eventRegistrations.userId,
-      count: sql<number>`count(*)::int`.as("ran_count"),
-    })
-    .from(eventRegistrations)
-    .where(eq(eventRegistrations.status, "checked_in"))
-    .groupBy(eventRegistrations.userId)
-    .as("ran_agg");
+  // Races actually run — the shared canonical aggregates, so this column cannot
+  // drift from the profile stat or the referral funnels. Counts every legacy
+  // event the user attended, not just the first one the row below joins for its
+  // attended/no-show flag.
+  const { seriesAgg, legacyAgg, racesRun } = racesRunPerUser(db);
 
-  return { augAgg, ranAgg };
+  return { augAgg, seriesAgg, legacyAgg, racesRun };
 }
 
 /** The `WHERE` a filter set means — shared by the page read and its count. */
@@ -209,7 +204,7 @@ export async function listUsers(
   window: UserWindow = {},
 ): Promise<UserListRow[]> {
   const db = getDb();
-  const { augAgg, ranAgg } = userAggregates(db);
+  const { augAgg, seriesAgg, legacyAgg, racesRun } = userAggregates(db);
   const clauses = userFilters(filters, augAgg);
 
   const query = db
@@ -224,7 +219,7 @@ export async function listUsers(
       profileComplete: sql<boolean>`${PROFILE_COMPLETE}`,
       firstEventAttended: legacyParticipations.attended,
       augRegistrationCount: sql<number>`coalesce(${augAgg.count}, 0)`,
-      raceCount: sql<number>`coalesce(${ranAgg.count}, 0) + (${legacyParticipations.attended} is true)::int`,
+      raceCount: racesRun,
       createdAt: users.createdAt,
     })
     .from(users)
@@ -236,7 +231,8 @@ export async function listUsers(
       ),
     )
     .leftJoin(augAgg, eq(augAgg.userId, users.id))
-    .leftJoin(ranAgg, eq(ranAgg.userId, users.id))
+    .leftJoin(seriesAgg, eq(seriesAgg.userId, users.id))
+    .leftJoin(legacyAgg, eq(legacyAgg.userId, users.id))
     .where(clauses.length ? and(...clauses) : undefined)
     .orderBy(...userOrder(window.sort ?? DEFAULT_USER_SORT));
 

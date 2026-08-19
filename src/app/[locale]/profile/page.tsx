@@ -34,6 +34,7 @@ import {
 import { InviteLink } from "@/features/team/components/invite-link";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { formatHeatTime } from "@/lib/events/heat-time";
+import { isRaceRun } from "@/lib/events/participation";
 import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
 import { formatTime } from "@/lib/events/time";
 import { getDirectResultRefs, getMergedResults } from "@/lib/events/results-data";
@@ -162,7 +163,11 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
       };
     });
 
-  const raceCount = registrations.filter((r) => r.status !== "cancelled").length;
+  // The canonical "races run" (`src/lib/events/participation.ts`): races the
+  // runner was actually at the start line for, not races they signed up to. The
+  // rows are already loaded, so this counts in memory instead of re-querying;
+  // `legacySlugs` is the attended-only legacy read, one slug per legacy race.
+  const raceCount = registrations.filter((r) => isRaceRun(r.status)).length + legacySlugs.length;
   const initials =
     (
       [u.firstName?.[0], u.lastName?.[0]].filter(Boolean).join("") ||
