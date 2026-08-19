@@ -11,6 +11,11 @@ import { profileSchema, type ProfileInput, type ProfileResult } from "./schemas"
  * Update the signed-in user's profile fields. Validated server-side with zod,
  * then written via Better Auth's update-user API (which enforces the session).
  * `dateOfBirth` is passed as a Date to match the additionalField type "date".
+ *
+ * `phone` is sent in its display form only — `users.phone_e164` is derived from
+ * it by the user `update.before` database hook (`derivePhoneE164` in
+ * `src/lib/auth/better-auth.ts`), which is also why it is absent from the body
+ * here. Nothing to do at this call site.
  */
 export async function updateProfile(input: ProfileInput): Promise<ProfileResult> {
   const parsed = profileSchema.safeParse(input);

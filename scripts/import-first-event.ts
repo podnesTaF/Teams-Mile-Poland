@@ -40,6 +40,7 @@ import { legacyParticipations, runners, teams, users } from "../src/db/schema";
 import { nameKey } from "../src/lib/events/name-key";
 import { getEventOrThrow } from "../src/lib/events/registry";
 import { formatTime } from "../src/lib/events/time";
+import { toE164 } from "../src/lib/phone";
 
 const EVENT_SLUG = "warsaw-2026";
 
@@ -349,6 +350,11 @@ async function main() {
             email: person.email,
             emailVerified: false,
             phone: person.phone,
+            // Legacy `runners.phone` was never validated, so a share of these
+            // resolve to null — `scripts/backfill-phone-e164.ts` reports which.
+            // Derived here anyway so a re-run does not reintroduce rows the
+            // backfill would have to sweep again.
+            phoneE164: toE164(person.phone),
             locale: person.locale,
           });
           usersCreated += 1;

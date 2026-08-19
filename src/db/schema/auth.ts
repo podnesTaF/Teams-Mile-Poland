@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   date,
@@ -62,6 +63,14 @@ export const users = pgTable(
     sex: userSexEnum("sex"),
     club: text("club"),
     phone: text("phone"),
+    // Canonical dedup key for `phone` — "+48512345678", derived by `toE164()`
+    // and null whenever libphonenumber cannot confirm the display value. NOT
+    // unique on purpose: duplicates have to stay representable so the admin
+    // duplicates report can list them. Never written by a client payload — see
+    // the `phoneE164` additionalField (`input: false`) plus the user
+    // create/update database hooks in `src/lib/auth/better-auth.ts`, which are
+    // the single place the derivation happens.
+    phoneE164: text("phone_e164"),
     locale: text("locale").default("pl").notNull(),
     // Marketing consent flag set by the public signed unsubscribe link; the
     // broadcast segment resolver excludes opted-out users centrally.
@@ -82,6 +91,20 @@ export const users = pgTable(
   (table) => [
     uniqueIndex("users_referral_code_uq").on(table.referralCode),
     index("users_referred_by_idx").on(table.referredBy),
+    // Phone duplicates are a report, not an error — non-unique on purpose.
+    index("users_phone_e164_idx").on(table.phoneE164),
+    /**
+     * `users_email_unique` already forbids byte-identical emails, but every
+     * lowercasing on the way in is convention only (sign-up/sign-in forms, the
+     * guest-registration schema, admin-grant). Nothing stopped "A@x.com" and
+     * "a@x.com" from both existing, which is one account per casing for the
+     * same mailbox. This makes the DB the enforcer.
+     *
+     * CREATING THIS INDEX FAILS if such a pair is already stored, and the whole
+     * migration rolls back with it. Run `scripts/check-email-case-dupes.ts`
+     * first — see the header of the migration that adds this index.
+     */
+    uniqueIndex("users_email_lower_uq").on(sql`lower(${table.email})`),
   ],
 );
 

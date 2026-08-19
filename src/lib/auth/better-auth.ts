@@ -10,7 +10,7 @@ import { applyReferralAttribution, REF_COOKIE } from "@/features/referral/data";
 import { getAppUrl, vercelDeploymentOrigins } from "@/lib/app-url";
 import { db } from "@/lib/db";
 import { FROM_EMAIL, getResend, resend } from "@/lib/email";
-import { phoneFieldSchema } from "@/lib/phone";
+import { phoneFieldSchema, toE164 } from "@/lib/phone";
 
 /**
  * Better Auth instance for the individual mile series (email+password + Google,
@@ -61,6 +61,39 @@ async function sendAuthEmail(input: {
     console.error(`[auth] ${input.kind} email to ${input.to} rejected by Resend:`, error);
     throw new Error(`Resend rejected the ${input.kind} email: ${error.message}`);
   }
+}
+
+/**
+ * The one place `users.phone_e164` is written on a Better Auth path.
+ *
+ * Phone reaches the table from three directions — the client sign-up form posts
+ * straight to `authClient.signUp.email`, `updateProfile` calls
+ * `auth.api.updateUser`, and `registerAsGuest` calls `auth.api.signUpEmail` —
+ * so there is no server action all three pass through. The `create.before` /
+ * `update.before` database hooks are the shared floor underneath all of them:
+ * every write of the user model runs through `createWithHooks` /
+ * `updateWithHooks`, and the data these hooks return is what the adapter
+ * persists. Deriving here rather than at each call site is what makes it
+ * impossible to add a fourth caller that stores a display phone with a stale or
+ * missing key.
+ *
+ * Returns nothing when the payload carries no `phone`, so unrelated updates
+ * (locale sync, email verification, password reset) leave the column alone —
+ * `undefined` would be indistinguishable from "clear it" to the merge in
+ * `updateWithHooks`.
+ *
+ * The paired `phoneE164` additionalField is `input: false`: the column must be
+ * derived from `phone`, never asserted by a client payload, and declaring it is
+ * also what stops the adapter's `transformInput` from dropping the field this
+ * hook adds.
+ */
+function derivePhoneE164(
+  user: Record<string, unknown>,
+): { data: { phoneE164: string | null } } | undefined {
+  if (!("phone" in user)) return undefined;
+  const phone = user.phone;
+  if (typeof phone !== "string" && phone !== null) return undefined;
+  return { data: { phoneE164: toE164(phone) } };
 }
 
 export const auth = betterAuth({
@@ -158,6 +191,9 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
+        // Derive the E.164 dedup key from whatever display phone is being
+        // stored. See the note on `derivePhoneE164` above.
+        before: async (user) => derivePhoneE164(user),
         // Referral attribution: every account-creation path funnels through
         // here (email sign-up, Google OAuth callback, and `registerAsGuest`,
         // which forwards the browser headers for this reason). The `ref`
@@ -167,6 +203,9 @@ export const auth = betterAuth({
           const code = ctx?.getCookie(REF_COOKIE);
           if (code) await applyReferralAttribution(user.id, code);
         },
+      },
+      update: {
+        before: async (user) => derivePhoneE164(user),
       },
     },
   },
@@ -191,6 +230,12 @@ export const auth = betterAuth({
         input: true,
         validator: { input: phoneFieldSchema() },
       },
+      // Derived from `phone` by the database hooks above, never accepted from a
+      // payload — `input: false` on the same footing as `role`. Declared here
+      // (rather than only in the Drizzle schema) because the adapter's
+      // `transformInput` builds its write from the Better Auth field list and
+      // silently drops anything absent from it, hook output included.
+      phoneE164: { type: "string", required: false, input: false },
       locale: { type: "string", required: false, input: true, defaultValue: "pl" },
     },
   },

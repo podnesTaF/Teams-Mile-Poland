@@ -11,6 +11,7 @@ import { getEventBySlug } from "@/lib/events/registry";
 import { auth } from "@/lib/auth/better-auth";
 import { canRegister } from "@/lib/auth/user-session";
 import { defaultLocale } from "@/lib/i18n/config";
+import { toE164 } from "@/lib/phone";
 
 import { createFreeRegistration, hasRegistration } from "./data";
 import { guestRegisterSchema, type GuestRegisterInput } from "./schemas";
@@ -180,6 +181,11 @@ export async function registerAsGuest(
           sex: data.sex,
           club: data.club || "",
           phone: data.phone,
+          // This branch writes straight to the table, so it is outside the
+          // Better Auth user-update hook that derives this everywhere else
+          // (`derivePhoneE164` in `src/lib/auth/better-auth.ts`) — derive it
+          // here or the refreshed row keeps the previous attempt's key.
+          phoneE164: toE164(data.phone),
           locale,
         })
         .where(eq(users.id, existing.id));

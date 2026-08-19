@@ -1,11 +1,12 @@
-import examples from "libphonenumber-js/examples.mobile.json";
 import {
   type CountryCode,
-  formatIncompletePhoneNumber,
-  getExampleNumber,
-  parsePhoneNumberFromString,
-  validatePhoneNumberLength,
-} from "libphonenumber-js/max";
+  formatIncompletePhoneNumber as formatIncomplete,
+  getExampleNumber as getExample,
+  parsePhoneNumberFromString as parseNumber,
+  validatePhoneNumberLength as validateLength,
+} from "libphonenumber-js/core";
+import examples from "libphonenumber-js/examples.mobile.json";
+import metadata from "libphonenumber-js/metadata.max.json";
 import { z } from "zod";
 
 import { PARSE_DIAL_CODES, countryByDial, countryByIso } from "@/lib/country-calling-codes";
@@ -17,12 +18,32 @@ import { PARSE_DIAL_CODES, countryByDial, countryByIso } from "@/lib/country-cal
  * libphonenumber's per-country rules, so it round-trips through `parsePhone`
  * and renders as-is in tickets and emails.
  *
- * Metadata: `/max` (not the default `/min`). `/min` only checks number *length*,
- * so "+48 999 999 999" would pass; `/max` carries the per-country digit
- * patterns and rejects it, and is the only set that can tell a mobile from a
- * landline. One set is imported here and used by BOTH the client mask and the
- * server schema on purpose — a client/server split would let a form submit a
- * number the action then rejects.
+ * Metadata: `metadata.max.json` (not `min`). `min` only checks number *length*,
+ * so "+48 999 999 999" would pass; `max` carries the per-country digit patterns
+ * and rejects it, and is the only set that can tell a mobile from a landline.
+ * One set is imported here and used by BOTH the client mask and the server
+ * schema on purpose — a client/server split would let a form submit a number the
+ * action then rejects.
+ *
+ * The metadata is imported explicitly and threaded through `libphonenumber-js/
+ * core`, rather than taken implicitly from the `libphonenumber-js/max` wrapper
+ * this module used to call. `/max` loads its metadata with
+ * `require('../metadata.max.json')` — a relative *file path* — and tsx's CJS
+ * loader hands relative JSON requires back wrapped as `{ default: … }`, so under
+ * `npx tsx` every `/max` call throws "`metadata` argument was passed but it's
+ * not a valid metadata". That made this whole module untestable and unusable
+ * from `scripts/`, which is where the phone backfill has to run. Bare package
+ * specifiers like the import above are unaffected.
+ *
+ * Keep to ONE import style. The bare specifier resolves through the package
+ * export map to `metadata.max.json.js`, while `/max` reaches the raw
+ * `metadata.max.json`: two module identities for the same 158KB of data, and
+ * mixing them invites the bundler to ship both to the browser. The client bundle
+ * currently carries exactly one copy — verify that still holds
+ * (`grep -ro "country_calling_codes:{" .next/static/chunks | wc -l` → 1) if you
+ * ever change how the metadata is imported. `scripts/`-side equivalence of the
+ * two forms was checked function-by-function across ~700 inputs when this was
+ * rewired; they agree everywhere.
  */
 
 export const DEFAULT_DIAL_CODE = "48"; // Poland
@@ -99,7 +120,7 @@ function dialForIso(iso: string): string {
 export function capNationalDigits(digits: string, iso: string): string {
   const dial = dialForIso(iso);
   let out = onlyDigits(digits).slice(0, Math.max(1, E164_MAX_DIGITS - dial.length));
-  while (out.length > 1 && validatePhoneNumberLength(out, iso as CountryCode) === "TOO_LONG") {
+  while (out.length > 1 && validateLength(out, iso as CountryCode, metadata) === "TOO_LONG") {
     out = out.slice(0, -1);
   }
   return out;
@@ -119,7 +140,7 @@ export function formatNationalDigits(digits: string, iso: string = DEFAULT_COUNT
 
   const dial = dialForIso(iso);
   const prefix = `+${dial}`;
-  const international = formatIncompletePhoneNumber(`${prefix}${capped}`);
+  const international = formatIncomplete(`${prefix}${capped}`, metadata);
   return international.startsWith(prefix) ? international.slice(prefix.length).trimStart() : capped;
 }
 
@@ -129,7 +150,7 @@ export function formatNationalDigits(digits: string, iso: string = DEFAULT_COUNT
  * typing. "" for the few countries with no example in the metadata (e.g. PN).
  */
 export function examplePhoneForCountry(iso: string): string {
-  const example = getExampleNumber(iso as CountryCode, examples);
+  const example = getExample(iso as CountryCode, examples, metadata);
   return example ? formatNationalDigits(example.nationalNumber, iso) : "";
 }
 
@@ -163,7 +184,7 @@ export function phoneIssue(value: string): PhoneIssue {
   // otherwise be parsed against no country at all.
   const { dialCode, national } = parsePhone(trimmed);
   if (!national) return "empty";
-  const parsed = parsePhoneNumberFromString(`+${dialCode}${national}`);
+  const parsed = parseNumber(`+${dialCode}${national}`, metadata);
   if (!parsed?.isValid()) return "invalid";
   if (REQUIRE_MOBILE) {
     const type = parsed.getType();
@@ -187,6 +208,40 @@ export function normalizePhone(value: string): string {
   const { dialCode, national } = parsePhone(value);
   if (!national) return "";
   return buildPhone(isoForDialCode(dialCode), national);
+}
+
+/**
+ * Canonical E.164 key for a phone value — "+48512345678", digits only after the
+ * plus. This is the *dedup* form, stored alongside the display form in
+ * `users.phone_e164`; `normalizePhone` above remains what tickets and emails
+ * render. Returns `null` for anything libphonenumber cannot confirm as a real
+ * number, so the column never holds a key that two different people could share
+ * by accident.
+ *
+ * A value already carrying "+" is parsed as written; anything else is read
+ * against `DEFAULT_COUNTRY_ISO` (PL), which is what a bare "512345678" from a
+ * legacy import means. A bare "48512345678" still lands on +48512345678 —
+ * libphonenumber prefers the country-code reading over an over-long PL national
+ * number. Deliberately NOT routed through `parsePhone`: its longest-prefix
+ * dial-code split is built for half-typed input and would read "512345678" as
+ * Peru (+51) rather than as Polish digits.
+ *
+ * Gated on `isValid()` against the same metadata `phoneIssue` uses, rather than
+ * `isPossible()`: a key derived from a number the metadata rejects is not a key
+ * worth matching on. Loosen it here if a duplicates report ever needs to reach
+ * further — `scripts/backfill-phone-e164.ts` prints every row this leaves null,
+ * so the cost of the strict bar stays visible.
+ */
+export function toE164(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  if (!PHONE_CHARS.test(trimmed)) return null;
+
+  const parsed = trimmed.startsWith("+")
+    ? parseNumber(trimmed, metadata)
+    : parseNumber(trimmed, DEFAULT_COUNTRY_ISO as CountryCode, metadata);
+  if (!parsed?.isValid()) return null;
+  return parsed.number;
 }
 
 /**
