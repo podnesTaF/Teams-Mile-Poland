@@ -3,6 +3,7 @@ import ExcelJS from "exceljs";
 import { and, eq, ilike, isNotNull, isNull, ne, notExists, or, sql, type SQL } from "drizzle-orm";
 
 import { eventHeats, eventRegistrations, users, type ParticipationStatus } from "@/db/schema";
+import { awardCheckInRewards } from "@/features/wallet/accruals";
 import { getDb } from "@/lib/db";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 
@@ -407,6 +408,14 @@ export function isUniqueViolation(error: unknown): boolean {
  * fresh lease — a recycled number must read as held again. Throws a
  * unique-violation error if another runner already holds the bib (partial unique
  * index); callers retry with the next free number.
+ *
+ * The ACER accruals (PRD #44) hang off the returned row: this UPDATE is one of
+ * the two that the desk's four check-in paths funnel through, which is why the
+ * credit is written here rather than in the action layer — see
+ * `src/features/wallet/accruals.ts` for that decision and its corollary (calling
+ * this function credits ACER). It only runs on a successful transition — a lost
+ * bib race throws above this line — and `awardCheckInRewards` never throws, so a
+ * wallet problem can never cost the runner their check-in.
  */
 export async function checkInWithBib(registrationId: string, bib: number) {
   const db = getDb();
@@ -414,8 +423,19 @@ export async function checkInWithBib(registrationId: string, bib: number) {
     .update(eventRegistrations)
     .set({ bib, bibReturnedAt: null, status: "checked_in", checkedInAt: new Date() })
     .where(eq(eventRegistrations.id, registrationId))
-    .returning({ id: eventRegistrations.id, bib: eventRegistrations.bib });
-  return row ?? null;
+    .returning({
+      id: eventRegistrations.id,
+      bib: eventRegistrations.bib,
+      userId: eventRegistrations.userId,
+      eventSlug: eventRegistrations.eventSlug,
+    });
+  if (!row) return null;
+  await awardCheckInRewards({
+    registrationId: row.id,
+    userId: row.userId,
+    eventSlug: row.eventSlug,
+  });
+  return row;
 }
 
 /**
@@ -565,10 +585,24 @@ export async function getHeldBib(registrationId: string): Promise<number | null>
  */
 export async function checkInWithoutBib(registrationId: string) {
   const db = getDb();
-  await db
+  const [row] = await db
     .update(eventRegistrations)
     .set({ status: "checked_in", checkedInAt: new Date() })
-    .where(eq(eventRegistrations.id, registrationId));
+    .where(eq(eventRegistrations.id, registrationId))
+    .returning({
+      id: eventRegistrations.id,
+      userId: eventRegistrations.userId,
+      eventSlug: eventRegistrations.eventSlug,
+    });
+  // Bib-pending is a full check-in (ADR 0003) and earns exactly like any other —
+  // inventory is the desk's problem, not the runner's. See `checkInWithBib`.
+  if (row) {
+    await awardCheckInRewards({
+      registrationId: row.id,
+      userId: row.userId,
+      eventSlug: row.eventSlug,
+    });
+  }
 }
 
 /**
