@@ -8,12 +8,18 @@ import "./wallet.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { WALLET_ASSETS } from "@/db/schema";
+import { AcerPurchaseForm } from "@/features/wallet/components/purchase-form";
 import { getWalletBalances, listWalletTransactions, parseWalletPage } from "@/features/wallet/data";
 import {
   formatWalletAmount,
   formatWalletBalance,
   formatWalletDateTime,
 } from "@/features/wallet/format";
+import {
+  isAcerPurchaseEnabled,
+  resolvePurchaseFlash,
+  type PurchaseFlash,
+} from "@/features/wallet/purchase";
 import { Link } from "@/i18n/navigation";
 import { getUser, isProfileComplete } from "@/lib/auth/user-session";
 import { localePath } from "@/lib/i18n/config";
@@ -31,7 +37,13 @@ const WALLET_PATH = "/wallet";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ page?: string | string[] }>;
+  searchParams: Promise<{
+    page?: string | string[];
+    /** Stripe's return channel: `success` | `cancelled`. */
+    purchase?: string | string[];
+    /** The Checkout Session Stripe substituted into `success_url`. */
+    session?: string | string[];
+  }>;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -56,7 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
  */
 export default async function WalletPage({ params, searchParams }: PageProps) {
   const { locale } = await params;
-  const { page } = await searchParams;
+  const { page, purchase, session } = await searchParams;
   setRequestLocale(locale);
 
   const t = await getTranslations("wallet");
@@ -92,9 +104,10 @@ export default async function WalletPage({ params, searchParams }: PageProps) {
     );
   }
 
-  const [balances, history] = await Promise.all([
+  const [balances, history, flash] = await Promise.all([
     getWalletBalances(user.id),
     listWalletTransactions(user.id, { page: parseWalletPage(page) }),
+    resolvePurchaseFlash(user.id, first(purchase), first(session)),
   ]);
 
   return (
@@ -105,6 +118,12 @@ export default async function WalletPage({ params, searchParams }: PageProps) {
           <span className="iv-eyebrow">{t("eyebrow")}</span>
           <h1 className="iv-title">{t("title")}</h1>
           <p className="iv-sub">{t("subtitle")}</p>
+
+          {flash ? (
+            <p className="wl-flash" data-tone={FLASH_TONE[flash]} role="status">
+              {t(`purchase.flash.${flash}`)}
+            </p>
+          ) : null}
 
           <section className="wl-balances" aria-label={t("balances.heading")}>
             {WALLET_ASSETS.map((asset) => (
@@ -117,6 +136,12 @@ export default async function WalletPage({ params, searchParams }: PageProps) {
               </div>
             ))}
           </section>
+
+          {/* Off until the #46 legal copy clears Polish counsel review (#49
+              launch note) — the affordance is absent, not merely disabled. */}
+          {isAcerPurchaseEnabled() ? (
+            <AcerPurchaseForm email={user.email} redirectTo={WALLET_PATH} />
+          ) : null}
 
           <section className="wl-history">
             <div className="section-label">
@@ -203,6 +228,18 @@ export default async function WalletPage({ params, searchParams }: PageProps) {
     </div>
   );
 }
+
+/** First value of a query param that a hand-edited URL may have repeated. */
+function first(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+/** How each outcome of the trip to Stripe is coloured. Presentation only. */
+const FLASH_TONE: Record<PurchaseFlash, string> = {
+  success: "ok",
+  settling: "wait",
+  cancelled: "info",
+};
 
 /**
  * A step of the gate chain the user still has to finish. Rendered as the whole

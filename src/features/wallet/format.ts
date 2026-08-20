@@ -46,3 +46,18 @@ export function formatWalletDateTime(date: Date, locale: string): string {
     timeZone: "Europe/Warsaw",
   }).format(date);
 }
+
+/**
+ * A top-up price as the payer will be charged it: always USD, because that is
+ * the only currency the checkout runs in (1 ACER = $1, no conversion). Rendered
+ * in the reader's number format, so a Polish visitor sees "25,00 USD" — their
+ * grouping, our currency, no pretending the charge is in złoty.
+ */
+export function formatPurchasePrice(amountAcer: number, locale: string): string {
+  return new Intl.NumberFormat(tag(locale), {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amountAcer);
+}

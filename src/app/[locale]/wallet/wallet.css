@@ -241,3 +241,178 @@
 .ace-landing .wl-foot {
   margin-top: 40px;
 }
+
+/* --- Stripe return flash (?purchase=success|cancelled) -------------------- */
+
+/* One token set for every message this page shows — the return flash and the
+   purchase form's refusal both use it. Not `.banner--ok` / `--red`: those set
+   light-card ink (#1e7a3a, #a01120 on a 14% tint), which on this dark shell is
+   barely legible. These tones reuse the status-pill palette above instead, so a
+   success flash and a completed row are the same green. */
+.ace-landing .wl-flash {
+  margin: 18px 0 0;
+  border: 1px solid var(--line-d);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.ace-landing .wl-flash[data-tone="ok"] {
+  background: var(--ok-soft);
+  border-color: rgba(48, 183, 85, 0.4);
+  color: #7fe39c;
+}
+.ace-landing .wl-flash[data-tone="wait"] {
+  background: var(--amber-soft);
+  border-color: rgba(224, 168, 0, 0.4);
+  color: #f0cd66;
+}
+.ace-landing .wl-flash[data-tone="err"] {
+  background: var(--red-soft);
+  border-color: rgba(229, 31, 50, 0.45);
+  color: #f6899a;
+}
+.ace-landing .wl-flash[data-tone="info"] {
+  background: rgba(255, 255, 255, 0.05);
+  color: #cfcfcd;
+}
+
+/* --- Buy ACER (ТЗ 2.6.2.1) ------------------------------------------------ */
+
+.ace-landing .wl-buy {
+  margin-top: clamp(34px, 5vw, 54px);
+}
+
+/* Inside the purchase card the flex `gap` already spaces it. */
+.ace-landing .wl-buy__card .wl-flash {
+  margin-top: 0;
+}
+
+.ace-landing .wl-buy__card {
+  margin-top: 20px;
+  background: var(--card);
+  border: 1px solid var(--line-d);
+  border-radius: 8px;
+  padding: clamp(20px, 3vw, 30px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ace-landing .wl-packs {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.ace-landing .wl-packs legend {
+  margin-bottom: 10px;
+}
+/* Packs read as one row of equal tiles and wrap on a narrow screen — never a
+   horizontal scroll on the screen where money is chosen. */
+.ace-landing .wl-packs__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  gap: 10px;
+}
+
+.ace-landing .wl-pack {
+  appearance: none;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line-d2);
+  border-radius: 6px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: inherit;
+  text-align: center;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.ace-landing .wl-pack:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.ace-landing .wl-pack[aria-pressed="true"] {
+  border-color: rgba(229, 31, 50, 0.6);
+  background: linear-gradient(180deg, rgba(229, 31, 50, 0.14), rgba(255, 255, 255, 0.03));
+}
+.ace-landing .wl-pack:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.ace-landing .wl-pack__amount {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.5rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ace-landing .wl-pack--custom .wl-pack__amount {
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+.ace-landing .wl-pack__unit {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.ace-landing .wl-pack__price {
+  font-size: 0.76rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ace-landing .wl-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 260px;
+}
+.ace-landing .wl-custom__hint {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.ace-landing .wl-buy__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line-d);
+  padding-top: 16px;
+}
+.ace-landing .wl-buy__total-k {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.ace-landing .wl-buy__total-v {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(1.4rem, 4vw, 1.8rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ace-landing .wl-buy__note {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.ace-landing .wl-buy__note a {
+  color: #f6899a;
+  text-decoration: underline;
+}

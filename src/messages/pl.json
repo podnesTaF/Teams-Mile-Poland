@@ -1374,6 +1374,36 @@
       "ACE_PL": "Jeszcze nieemitowany — pokazujemy go, żebyś widział pełny zestaw aktywów.",
       "ACEG": "Jeszcze nieemitowany — pokazujemy go, żebyś widział pełny zestaw aktywów."
     },
+    "purchase": {
+      "title": "Zasilenie",
+      "heading": "Kup ACER",
+      "subtitle": "Płatność kartą w dolarach amerykańskich — 1 ACER = 1 USD, wyłącznie pełne ACER. Kredyt pojawia się w portfelu, gdy Stripe potwierdzi płatność.",
+      "packsLabel": "Wybierz kwotę",
+      "customCta": "Inna",
+      "customRange": "{min}–{max} ACER",
+      "customLabel": "Kwota w ACER",
+      "customHint": "Pełne ACER, od {min} do {max}.",
+      "youPay": "Do zapłaty",
+      "submit": "Przejdź do płatności",
+      "submitting": "Otwieramy płatność…",
+      "terms": "Płatność obsługuje Stripe, który przed jej dokonaniem poprosi o akceptację <link>warunków</link>.",
+      "note": "ACER to kredyt na koncie Ace Battle. Jest używany wyłącznie w ramach platformy i nie podlega przeniesieniu.",
+      "redeem": "Jest przeznaczony na płatne starty, licencje sezonowe i podobne płatne funkcje oraz jako nagroda w cyklu. Udział w obecnych biegach jest darmowy, więc na razie może nie być na co go wydać.",
+      "refund": "Niewykorzystany zakupiony ACER może zostać zwrócony na wniosek złożony w ciągu 14 dni od zakupu. ACER otrzymany jako nagroda nie ma wartości pieniężnej.",
+      "errors": {
+        "amount": "Podaj pełną liczbę ACER od {min} do {max}.",
+        "unavailable": "Płatności kartą są chwilowo niedostępne. Spróbuj ponownie za moment."
+      },
+      "flash": {
+        "success": "Płatność otrzymana — ACER są już w portfelu.",
+        "settling": "Płatność otrzymana. Kredyt może pojawić się z niewielkim opóźnieniem; odśwież tę stronę, jeśli nie ma go jeszcze w historii. Jeśli nadal go brakuje, napisz na info@poland.acebattle.run.",
+        "cancelled": "Płatność anulowana. Nic nie zostało obciążone ani naliczone."
+      },
+      "stripe": {
+        "description": "{amount} ACER kredytu na koncie Ace Battle. 1 ACER = 1 USD. Do wykorzystania wyłącznie na platformie — bez możliwości przeniesienia i bez możliwości wypłaty.",
+        "consent": "Akceptuję Warunki korzystania oraz warunki Portfela. Żądam natychmiastowego udostępnienia kredytu i przyjmuję do wiadomości, że po jego dostarczeniu tracę 14-dniowe prawo odstąpienia od umowy."
+      }
+    },
     "history": {
       "title": "Historia",
       "heading": "Historia transakcji",

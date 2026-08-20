@@ -1374,6 +1374,36 @@
       "ACE_PL": "Not issued yet — shown so you can see the full set of assets.",
       "ACEG": "Not issued yet — shown so you can see the full set of assets."
     },
+    "purchase": {
+      "title": "Top up",
+      "heading": "Buy ACER",
+      "subtitle": "Pay by card in US dollars — 1 ACER = 1 USD, whole ACER only. The credit lands in your wallet as soon as Stripe confirms the payment.",
+      "packsLabel": "Choose an amount",
+      "customCta": "Other",
+      "customRange": "{min}–{max} ACER",
+      "customLabel": "Amount in ACER",
+      "customHint": "Whole ACER, from {min} to {max}.",
+      "youPay": "You pay",
+      "submit": "Continue to payment",
+      "submitting": "Opening payment…",
+      "terms": "Payment is handled by Stripe, which asks you to accept the <link>terms</link> before you pay.",
+      "note": "ACER is Ace Battle account credit. It is used inside the platform only and is not transferable.",
+      "redeem": "It is meant for paid entries, season licences and comparable paid features, and as a series prize. Entry to the current events is free, so there may be nothing to spend it on yet.",
+      "refund": "Purchased ACER you have not spent can be refunded on request within 14 days of the purchase. ACER received as a reward has no monetary value.",
+      "errors": {
+        "amount": "Enter a whole number of ACER between {min} and {max}.",
+        "unavailable": "Card payments are not available right now. Please try again in a moment."
+      },
+      "flash": {
+        "success": "Payment received — your ACER is in the wallet.",
+        "settling": "Payment received. The credit can take a moment to appear; reload this page if it is not in the history yet. If it is still missing, write to info@poland.acebattle.run.",
+        "cancelled": "Payment cancelled. Nothing was charged and nothing was credited."
+      },
+      "stripe": {
+        "description": "{amount} ACER of Ace Battle account credit. 1 ACER = 1 USD. Usable inside the platform only — not transferable, and it cannot be paid out.",
+        "consent": "I accept the Terms of Use and the wallet terms. I ask for the credit to be made available immediately and I acknowledge that, once it has been delivered, I lose the 14-day right of withdrawal."
+      }
+    },
     "history": {
       "title": "History",
       "heading": "Transaction history",

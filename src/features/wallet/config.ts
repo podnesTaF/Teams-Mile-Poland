@@ -28,6 +28,23 @@ export const ACER_PACKS: readonly number[] = [10, 25, 50, 100];
 export const ACER_CUSTOM_MIN = 5;
 export const ACER_CUSTOM_MAX = 500;
 
+/**
+ * Whether an amount may be bought.
+ *
+ * Whole ACER, between {@link ACER_CUSTOM_MIN} and {@link ACER_CUSTOM_MAX}. The
+ * preset packs are a subset of that range, so there is one rule rather than a
+ * pack list and a bound that can drift apart. A fraction is refused rather than
+ * rounded: "0.5 ACER" is a typo far more often than an intention.
+ *
+ * It lives here, beside the bounds and away from anything server-only, so the
+ * purchase form and the server action can call the *same* function — the form's
+ * `min`/`max`/`step` are a courtesy to the person typing, and this is the rule
+ * either way.
+ */
+export function isValidAcerAmount(amount: number): boolean {
+  return Number.isInteger(amount) && amount >= ACER_CUSTOM_MIN && amount <= ACER_CUSTOM_MAX;
+}
+
 /** Whole (or fractional) ACER → signed integer minor units. */
 export function acerToMinor(acer: number): number {
   return Math.round(acer * ACER_MINOR_UNITS);

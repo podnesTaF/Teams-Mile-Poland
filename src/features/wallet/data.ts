@@ -83,6 +83,31 @@ export async function recordWalletTransaction(
   return rows[0] ?? null;
 }
 
+/**
+ * Whether the fact behind `idempotencyKey` is already in **this user's** ledger.
+ *
+ * Scoped to the user rather than keyed globally on purpose: the wallet page asks
+ * this about a Stripe session id it read out of its own query string, so an
+ * unscoped lookup would answer "did that session credit?" for any session id
+ * anyone cared to paste.
+ */
+export async function hasWalletTransaction(
+  userId: string,
+  idempotencyKey: string,
+): Promise<boolean> {
+  const [row] = await getDb()
+    .select({ id: walletTransactions.id })
+    .from(walletTransactions)
+    .where(
+      and(
+        eq(walletTransactions.userId, userId),
+        eq(walletTransactions.idempotencyKey, idempotencyKey),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
+}
+
 /** Balance per asset in minor units. Every asset is present, zero when unissued. */
 export type WalletBalances = Record<WalletAsset, number>;
 

@@ -357,3 +357,54 @@ revisit if chargebacks appear.
   user / anonymous POSTs of both actions rejected. **A Neon branch was not available in this
   session**; this slice adds no migration, but #45's `0020` still needs applying there and to
   production.
+- 2026-08-20 — PRD #44 slice (issue #49): Phase B — buying ACER by card. `createAcerCheckout`
+  (`src/features/wallet/actions.ts`) is user-gated with the full chain re-checked in the action
+  itself (an action is an HTTP endpoint, not a rendered control), validates the amount with
+  `isValidAcerAmount`, and opens a USD Checkout Session; `src/features/wallet/purchase.ts` holds
+  the session creation and the webhook's credit, together but away from `"use server"` because the
+  webhook is authenticated by signature rather than by session. One client island, the pack/custom
+  form, reading the *same* `config.ts` bounds the action enforces. Three Stripe parameters are
+  load-bearing and must not be tidied away: `payment_method_types: ["card"]` (async methods would
+  need a `pending` row an append-only ledger can never promote), `adaptive_pricing: {enabled:
+  false}` (otherwise `amount_total` stops being USD cents and the 1 ACER = 1 USD = 100 minor
+  identity breaks), and `consent_collection.terms_of_service: "required"` — which **requires a
+  Terms of Service URL in the Stripe Dashboard** (Settings → Public details) or session creation is
+  rejected. Crediting is `amount_total` itself (the charge *is* the credit), keyed
+  `stripe:<sessionId>`, with the fiat side kept for reconciliation as `reference` = the session id
+  and `memo` = `"USD 25.00"` — a locale-free token, not a sentence, for the same reason accrual rows
+  carry no memo. No pending row is written at checkout: it would either claim the credit's key or
+  strand a `pending` row forever when the payer walks away at Stripe. **Two documented deviations
+  from the frozen Contracts, surfaced on #49**: the action returns a result union instead of a bare
+  `{url}` (a bare url leaves only `throw` for the refusals the issue requires, and a thrown action
+  error reaches the client as an opaque digest — so it follows `registerForEvent`'s established
+  shape), and the flash carries a third `?session=` parameter and a `settling` state, because
+  "paid" and "credited" are two facts seconds apart and `success|cancelled` cannot express the
+  middle one. Refusals travel as **codes**, not sentences: this is the money screen and its copy has
+  to exist in pl/en/ua. The webhook branch returns before the legacy team-checkout block, which is
+  textually unchanged. **A launch gate ships with it**: `ACER_PURCHASE_ENABLED=1` — off, the page
+  renders no purchase form and the action refuses, so #49's "purchases must not go live before the
+  #46 legal copy has passed Polish counsel review" is held by the code rather than remembered by a
+  person, and going live is a config change on the day counsel signs off. Review turned up two real
+  bugs, both fixed: the verify-email hop was missing `email=`, which makes that page's only action a
+  silent no-op, and the FK-violation guard read `error.code` when Drizzle wraps the driver error —
+  so a buyer deleted between checkout and settlement would have answered 500 to a delivery no retry
+  can fix, forever. The purchase screen also gained the PRD's consumer-protection copy (what ACER is
+  redeemable for; unspent purchased credit refundable on request within 14 days) and drops
+  "cannot be paid out" from the page — that framing stays in the Terms and in the Stripe-facing
+  description, keeping the wallet UI free of any withdrawal mention. Nothing writes a `purchase`
+  row with `pending`/`failed` in v1 (documented in `purchase.ts`); #45's rendering covers those
+  statuses if a later payment method needs them. No migration, no new table. Verified: typecheck /
+  build clean, lint baseline unchanged at 55; `scripts/verify-acer-purchase.ts` green at 58 checks
+  against the real data layer (bounds, one row per settled session, the same event delivered three
+  times crediting once, unpaid / wrong-currency / zero / no-buyer / deleted-buyer sessions crediting
+  nothing, the charge winning over a mismatched metadata amount, and the flash resolver's per-user
+  scoping); and 103 HTTP checks green against `next start` — the gate chain in all three locales,
+  the form and its packs in pl/en/ua, no withdrawal wording in any rendered locale, cancel /
+  settling / success flashes, a **Stripe-signed `checkout.session.completed` delivered twice**
+  crediting exactly once (and a bad signature refused with 400), the credit appearing as `25,00` /
+  `25.00` / `25,00` with its `USD 25.00` memo, the legacy team-checkout delivery still answering the
+  old `{received:true}` shape with no wallet row, and the launch gate off hiding the affordance while
+  the rest of the page still works. **A Neon branch was not available in this session** (throwaway
+  Postgres 16 again, migrated from empty); this slice adds no migration, but #45's `0020` still
+  needs applying there and to production. **Stripe Dashboard prerequisite before launch**: a Terms
+  of Service URL, or every session creation fails and the action reports the purchase unavailable.
