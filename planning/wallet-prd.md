@@ -299,3 +299,28 @@ revisit if chargebacks appear.
   rendering with their status). **A Neon branch was not available in this session** — the
   migration still needs applying there and to production. Accruals (#48), admin panel (#47) and
   purchase (#49) write to this ledger; nothing calls the writer yet.
+- 2026-08-20 — PRD #44 slice (issue #48): Phase A step 2 — both automatic accruals, riding the
+  existing check-in transition. `src/features/wallet/accruals.ts` holds one entry point,
+  `awardCheckInRewards`: 1 ACER to the runner keyed `participation:<registrationId>`, and 1 ACER to
+  `users.referred_by` keyed `referral_checkin:<referredUserId>` — once per referred person forever,
+  so a sign-up alone still pays nothing. Amounts read #45's config constants. Hooked at the two
+  UPDATEs in `events-data.ts` that every check-in funnels through, `checkInWithBib` (explicit /
+  held / leased bib) and `checkInWithoutBib` (bib-pending), which is the Contracts' "data-layer,
+  not actions" and makes exactly-once true by construction rather than by four callers remembering;
+  `leaseBibForCheckedIn` deliberately does not credit (already present, already paid). Each accrual
+  is guarded on its own and the function never throws — a wallet outage cannot fail a check-in, and
+  a failed participation credit cannot cost the referrer theirs. `getReferrerId` was added to
+  `src/features/referral/data.ts` (that feature owns `referred_by`), and a self-referral is skipped
+  as well as refused at attribution time. **Accrual rows carry no memo**: the first cut wrote a
+  formatted event label, which is an untranslatable English string on the money screen — the row
+  instead carries `reference: event:<slug>`, renders with #45's trilingual `kind` label, and its own
+  timestamp is the race night. Reverting a check-in leaves the credit standing by design; the
+  append-only correction path is an admin `reversal` row (#47). No migration, no new strings, no
+  backfill. Verified: typecheck/build clean, lint baseline unchanged at 55;
+  `scripts/verify-wallet-accruals.ts` green at 39 checks against the real data layer (every path
+  credits once, re-scan/retry/undo-recheck are no-ops, referrer paid once across two events,
+  unreferred runner earns alone, a ledger refusing all inserts leaves the check-in committed and
+  logged); and 26 HTTP checks green — a real check-in, then runner and referrer each signed in with
+  their rows rendering on `/wallet`, `/en/wallet`, `/ua/wallet`. **A Neon branch was not available
+  in this session** (throwaway Postgres 16 again); this slice adds no migration, but #45's `0020`
+  still needs applying there and to production.
