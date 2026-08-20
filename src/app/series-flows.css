@@ -1361,6 +1361,19 @@
   background: var(--card-2);
 }
 
+/* The pill that leaves the page (the wallet) rather than scrolling to a
+ * section — tinted so it does not read as another anchor in the same strip. */
+.ace-landing .pf-nav__link--go {
+  border-color: rgba(229, 31, 50, 0.45);
+  color: #f6899a;
+}
+.ace-landing .pf-nav__link--go:hover,
+.ace-landing .pf-nav__link--go:focus-visible {
+  border-color: var(--acl-red);
+  color: #fff;
+  background: var(--red-soft);
+}
+
 /* Anchor targets stop below the sticky header + nav instead of under them. */
 .ace-landing .pf-section {
   scroll-margin-top: 128px;

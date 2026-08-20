@@ -1157,7 +1157,8 @@
       "races": "Starty",
       "results": "Wyniki",
       "invite": "Zaproś",
-      "settings": "Ustawienia"
+      "settings": "Ustawienia",
+      "wallet": "Portfel"
     },
     "stats": {
       "races": "Starty",
@@ -1352,5 +1353,62 @@
     "meta": {
       "listTitle": "Aktualności — ACE BATTLE RUN"
     }
+  },
+  "wallet": {
+    "meta": {
+      "title": "Portfel"
+    },
+    "eyebrow": "Twój portfel",
+    "title": "Portfel",
+    "subtitle": "ACER to środki na koncie Ace Battle: zdobywasz je, przychodząc na bieg i startując, i wykorzystujesz je tylko na platformie. 1 ACER = 1 USD.",
+    "balances": {
+      "heading": "Twoje salda"
+    },
+    "assets": {
+      "ACER": "ACER",
+      "ACE_PL": "Ace(PL)",
+      "ACEG": "ACEG"
+    },
+    "assetNote": {
+      "ACER": "Przyznajemy go, gdy zameldujesz się na wieczorze biegowym oraz gdy osoba z Twojego zaproszenia pobiegnie pierwszy raz.",
+      "ACE_PL": "Jeszcze nieemitowany — pokazujemy go, żebyś widział pełny zestaw aktywów.",
+      "ACEG": "Jeszcze nieemitowany — pokazujemy go, żebyś widział pełny zestaw aktywów."
+    },
+    "history": {
+      "title": "Historia",
+      "heading": "Historia transakcji",
+      "empty": "Nie ma jeszcze żadnych transakcji.",
+      "emptyHint": "Pierwszy ACER pojawi się tutaj w chwili zameldowania na wieczorze biegowym.",
+      "txid": "TxID",
+      "prev": "Nowsze",
+      "next": "Starsze",
+      "pageOf": "Strona {page} z {pages}",
+      "pagerLabel": "Strony historii transakcji"
+    },
+    "kinds": {
+      "participation_reward": "Nagroda za udział w biegu",
+      "prize_reward": "Nagroda z puli nagród",
+      "referral_signup": "Nagroda za zaproszenie",
+      "referral_ticket": "Przychód z zapisów z zaproszenia",
+      "referral_sponsor": "Nagroda za pozyskanie sponsora",
+      "purchase": "Zakup środków",
+      "admin_credit": "Ręczne uznanie",
+      "admin_debit": "Ręczne obciążenie",
+      "reversal": "Korekta"
+    },
+    "statuses": {
+      "completed": "Zrealizowana",
+      "pending": "W toku",
+      "failed": "Nieudana"
+    },
+    "gate": {
+      "verifyTitle": "Potwierdź adres e-mail",
+      "verifyBody": "Portfel otworzy się, gdy potwierdzisz swój adres e-mail.",
+      "verifyCta": "Potwierdź e-mail",
+      "profileTitle": "Uzupełnij profil",
+      "profileBody": "Potrzebujemy Twoich danych zawodnika, aby portfel mógł liczyć to, co zdobywasz na biegach.",
+      "profileCta": "Uzupełnij profil"
+    },
+    "backToProfile": "Wróć do profilu"
   }
 }

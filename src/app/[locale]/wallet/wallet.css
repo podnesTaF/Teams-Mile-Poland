@@ -1,0 +1,243 @@
+/* Cabinet wallet — balances and the transaction ledger. Piggybacks on the
+   interior `.ace-landing .iv-*` shell (dark theme, wrap, title) and reuses the
+   profile's card/pill rhythm from series-flows.css; only the wallet-specific
+   pieces live here. Mobile-first: the transaction row stacks under 560px so a
+   phone never scrolls sideways through money. */
+
+/* --- Balances (ТЗ 2.6.1) -------------------------------------------------- */
+
+.ace-landing .wl-balances {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: clamp(22px, 3.4vw, 32px);
+}
+@media (max-width: 640px) {
+  .ace-landing .wl-balances {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ace-landing .wl-bal {
+  background: var(--card);
+  border: 1px solid var(--line-d);
+  border-radius: 8px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+/* ACER is the only asset anything issues; the other two are shown at zero so
+   the wallet reflects the whole ecosystem without pretending they do
+   something. The accent says which one is live. */
+.ace-landing .wl-bal[data-live="true"] {
+  border-color: rgba(229, 31, 50, 0.45);
+  background: linear-gradient(180deg, rgba(229, 31, 50, 0.1), var(--card));
+}
+
+.ace-landing .wl-bal__asset {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.ace-landing .wl-bal[data-live="true"] .wl-bal__asset {
+  color: #f6899a;
+}
+.ace-landing .wl-bal__value {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ace-landing .wl-bal__note {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* --- History (ТЗ 2.6.4.2) ------------------------------------------------- */
+
+.ace-landing .wl-history {
+  margin-top: clamp(34px, 5vw, 54px);
+}
+
+.ace-landing .wl-empty {
+  margin-top: 20px;
+  background: var(--card);
+  border: 1px dashed var(--line-d2);
+  border-radius: 8px;
+  padding: clamp(22px, 3.4vw, 32px);
+  text-align: center;
+}
+.ace-landing .wl-empty__title {
+  margin: 0;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.ace-landing .wl-empty__hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.ace-landing .wl-tx-list {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ace-landing .wl-tx {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--line-d);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+@media (max-width: 560px) {
+  .ace-landing .wl-tx {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.ace-landing .wl-tx__main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.ace-landing .wl-tx__purpose {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+.ace-landing .wl-tx__memo {
+  font-size: 0.83rem;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.ace-landing .wl-tx__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 0.74rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+/* The TxID is shown in full — it is the row's audit handle, so it has to be
+   readable and selectable, not tucked into a hover title. It wraps rather than
+   widening the row on a phone. */
+.ace-landing .wl-tx__id {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+
+.ace-landing .wl-tx__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+@media (max-width: 560px) {
+  .ace-landing .wl-tx__side {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.ace-landing .wl-tx__amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.25rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ace-landing .wl-tx__amount[data-dir="in"] {
+  color: #7fe39c;
+}
+.ace-landing .wl-tx__amount[data-dir="out"] {
+  color: #f6899a;
+}
+.ace-landing .wl-tx__asset {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-style: normal;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Status pill — a pending or failed row stays visible with its status, because
+   "where is my ACER" is only answerable if the row is on the page. */
+.ace-landing .wl-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-d);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ace-landing .wl-pill--completed {
+  background: var(--ok-soft);
+  border-color: rgba(48, 183, 85, 0.4);
+  color: #7fe39c;
+}
+.ace-landing .wl-pill--pending {
+  background: var(--amber-soft);
+  border-color: rgba(224, 168, 0, 0.4);
+  color: #f0cd66;
+}
+.ace-landing .wl-pill--failed {
+  background: var(--red-soft);
+  border-color: rgba(229, 31, 50, 0.45);
+  color: #f6899a;
+}
+
+.ace-landing .wl-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+.ace-landing .wl-pager__at {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+}
+
+.ace-landing .wl-foot {
+  margin-top: 40px;
+}

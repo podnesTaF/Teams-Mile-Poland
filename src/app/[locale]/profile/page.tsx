@@ -9,6 +9,8 @@ import { LogOutButton } from "@/features/auth/components/log-out-button";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import { Link } from "@/i18n/navigation";
+
 import {
   getUserRegistrations,
   publishedHeatsByRegistration,
@@ -255,6 +257,12 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             <a className="pf-nav__link" href="#settings">
               {t("nav.settings")}
             </a>
+            {/* The one pill that leaves the page — the wallet is its own screen
+              * (per-user money, never pre-rendered), and this strip is where a
+              * runner looks for the rest of their cabinet. */}
+            <Link className="pf-nav__link pf-nav__link--go" href="/wallet">
+              {t("nav.wallet")} →
+            </Link>
           </nav>
 
           {incomplete ? (

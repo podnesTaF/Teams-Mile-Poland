@@ -1157,7 +1157,8 @@
       "races": "Races",
       "results": "Results",
       "invite": "Invite",
-      "settings": "Settings"
+      "settings": "Settings",
+      "wallet": "Wallet"
     },
     "stats": {
       "races": "Races run",
@@ -1352,5 +1353,62 @@
     "meta": {
       "listTitle": "News — ACE BATTLE RUN"
     }
+  },
+  "wallet": {
+    "meta": {
+      "title": "Wallet"
+    },
+    "eyebrow": "Your wallet",
+    "title": "Wallet",
+    "subtitle": "ACER is Ace Battle account credit: you earn it by turning up and racing, and it is used inside the platform only. 1 ACER = 1 USD.",
+    "balances": {
+      "heading": "Your balances"
+    },
+    "assets": {
+      "ACER": "ACER",
+      "ACE_PL": "Ace(PL)",
+      "ACEG": "ACEG"
+    },
+    "assetNote": {
+      "ACER": "Earned when you are checked in at a race night, and when someone you invited races for the first time.",
+      "ACE_PL": "Not issued yet — shown so you can see the full set of assets.",
+      "ACEG": "Not issued yet — shown so you can see the full set of assets."
+    },
+    "history": {
+      "title": "History",
+      "heading": "Transaction history",
+      "empty": "No transactions yet.",
+      "emptyHint": "Your first ACER lands here the moment you are checked in at a race night.",
+      "txid": "TxID",
+      "prev": "Newer",
+      "next": "Older",
+      "pageOf": "Page {page} of {pages}",
+      "pagerLabel": "Transaction history pages"
+    },
+    "kinds": {
+      "participation_reward": "Race participation reward",
+      "prize_reward": "Prize reward",
+      "referral_signup": "Invitation reward",
+      "referral_ticket": "Invitation entry income",
+      "referral_sponsor": "Sponsor introduction reward",
+      "purchase": "Credit purchase",
+      "admin_credit": "Manual credit",
+      "admin_debit": "Manual debit",
+      "reversal": "Correction"
+    },
+    "statuses": {
+      "completed": "Completed",
+      "pending": "Pending",
+      "failed": "Failed"
+    },
+    "gate": {
+      "verifyTitle": "Confirm your email",
+      "verifyBody": "Your wallet opens as soon as your email address is verified.",
+      "verifyCta": "Verify email",
+      "profileTitle": "Finish your profile",
+      "profileBody": "We need your runner details before the wallet can track what you earn at races.",
+      "profileCta": "Complete profile"
+    },
+    "backToProfile": "Back to profile"
   }
 }
