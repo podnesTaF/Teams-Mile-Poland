@@ -684,7 +684,7 @@
     "documents": [
       {
         "title": "Polityka prywatności",
-        "updated": "Ostatnia aktualizacja: 2 czerwca 2026",
+        "updated": "Ostatnia aktualizacja: 20 sierpnia 2026",
         "intro": "Niniejsza Polityka Prywatności określa zasady gromadzenia, przetwarzania, wykorzystywania oraz ochrony danych osobowych użytkowników niniejszej strony internetowej. Administrator strony szanuje prawo każdego użytkownika do prywatności i zobowiązuje się do ochrony przekazanych informacji zgodnie z obowiązującymi przepisami prawa. Korzystając z tej strony internetowej, użytkownik potwierdza swoją zgodę na postanowienia niniejszej Polityki Prywatności oraz zasady przetwarzania danych osobowych opisane w tym dokumencie.",
         "sections": [
           {
@@ -710,7 +710,8 @@
               "Imię i nazwisko;",
               "Adres e-mail;",
               "Numer telefonu;",
-              "Informacje przesyłane za pośrednictwem formularzy dostępnych na stronie."
+              "Informacje przesyłane za pośrednictwem formularzy dostępnych na stronie;",
+              "Dane transakcyjne dotyczące kredytu ACER w Portfelu (kwota, waluta, data, identyfikator płatności) — z wyłączeniem danych karty płatniczej."
             ],
             "outro": [
               "Informacje te są wykorzystywane wyłącznie w zakresie niezbędnym do prawidłowego funkcjonowania strony internetowej."
@@ -721,7 +722,13 @@
             "p": [
               "Zebrane informacje są wykorzystywane w celu zapewnienia prawidłowego działania strony internetowej, świadczenia usług, utrzymywania kontaktu z użytkownikami oraz obsługi zapytań i zgłoszeń.",
               "Dane osobowe mogą być również przetwarzane w celu poprawy jakości treści, optymalizacji struktury strony internetowej oraz analizy skuteczności jej działania.",
-              "Administrator strony nie przetwarza danych osobowych w celach ukrytych ani niezgodnych z prawem oraz nie wykorzystuje ich w sposób mogący naruszać prawa, wolności lub uzasadnione interesy użytkowników."
+              "Administrator strony nie przetwarza danych osobowych w celach ukrytych ani niezgodnych z prawem oraz nie wykorzystuje ich w sposób mogący naruszać prawa, wolności lub uzasadnione interesy użytkowników.",
+              "W przypadku zakupu kredytu ACER w Portfelu dane osobowe przetwarzane są dodatkowo w następujących celach i na następujących podstawach prawnych:"
+            ],
+            "list": [
+              "realizacja płatności i dostarczenie zakupionego kredytu — wykonanie umowy z użytkownikiem (art. 6 ust. 1 lit. b RODO);",
+              "prowadzenie dokumentacji transakcji finansowych, ksiąg rachunkowych i dokumentacji podatkowej — wypełnienie obowiązku prawnego administratora (art. 6 ust. 1 lit. c RODO);",
+              "przeciwdziałanie oszustwom, nadużyciom w zakresie obciążeń zwrotnych (chargeback) oraz nadużyciom w programie nagród, a także zabezpieczenie rejestru transakcji — prawnie uzasadniony interes administratora (art. 6 ust. 1 lit. f RODO)."
             ]
           },
           {
@@ -729,7 +736,8 @@
             "p": [
               "Administrator strony podejmuje odpowiednie środki w celu zapewnienia bezpieczeństwa danych osobowych oraz zapobiegania nieuprawnionemu dostępowi do nich.",
               "Informacje są przechowywane wyłącznie przez okres niezbędny do realizacji celów, dla których zostały zebrane, lub przez okres wymagany obowiązującymi przepisami prawa.",
-              "Wdrożone środki techniczne i organizacyjne mają na celu minimalizację ryzyka utraty, modyfikacji, nieuprawnionego ujawnienia lub niewłaściwego wykorzystania danych osobowych."
+              "Wdrożone środki techniczne i organizacyjne mają na celu minimalizację ryzyka utraty, modyfikacji, nieuprawnionego ujawnienia lub niewłaściwego wykorzystania danych osobowych.",
+              "W drodze wyjątku od powyższego zapisy transakcji finansowych — zakupy kredytu ACER, zapisy w rejestrze Portfela oraz powiązane dokumenty księgowe — przechowywane są przez okres około 5 lat, liczony od końca roku obrotowego, w którym transakcja miała miejsce, zgodnie z ustawą o rachunkowości i przepisami podatkowymi. Obowiązek ten ma pierwszeństwo przed żądaniem usunięcia danych: zapisy te przechowywane są przez okres ustawowy również po usunięciu konta użytkownika, a następnie są usuwane."
             ]
           },
           {
@@ -748,6 +756,21 @@
             ]
           },
           {
+            "h": "Odbiorcy danych i przekazywanie poza EOG",
+            "p": [
+              "Dane osobowe ujawniane są wyłącznie podmiotom, które przetwarzają je na zlecenie administratora lub które muszą je otrzymać, aby zamówiona usługa mogła zostać wykonana, i wyłącznie w niezbędnym zakresie.",
+              "Płatności kartą oraz zakupy kredytu ACER w Portfelu obsługują Stripe, Inc. oraz Stripe Payments Europe, Ltd., działający jako niezależny administrator danych płatniczych. Stripe otrzymuje imię i nazwisko oraz adres e-mail kupującego, a także metadane transakcji (kwotę, walutę, zakupiony kredyt i wewnętrzny identyfikator konta)."
+            ],
+            "list": [
+              "Dane karty płatniczej i innych instrumentów płatniczych wprowadzane są na stronie płatności Stripe i przekazywane bezpośrednio do Stripe — platforma nigdy ich nie otrzymuje ani nie przechowuje.",
+              "Stripe może przekazywać dane do Stanów Zjednoczonych. Takie przekazywanie odbywa się w oparciu o EU–US Data Privacy Framework, a w zakresie, w jakim nie ma on zastosowania — na podstawie standardowych klauzul umownych Komisji Europejskiej.",
+              "Stripe przetwarza dane płatnicze również we własnych celach, w szczególności w celu przeciwdziałania oszustwom oraz wypełnienia własnych obowiązków prawnych, na podstawie własnej polityki prywatności."
+            ],
+            "outro": [
+              "Dane mogą być ujawniane także dostawcom hostingu, usług wysyłki poczty elektronicznej i usług analitycznych wykorzystywanych do prowadzenia strony, a także organom publicznym, gdy obowiązek taki wynika z przepisów prawa."
+            ]
+          },
+          {
             "h": "Prawa użytkownika i zmiany Polityki",
             "p": [
               "Użytkownicy mają prawo do uzyskania informacji o przetwarzaniu swoich danych osobowych, żądania ich sprostowania lub usunięcia oraz cofnięcia zgody na przetwarzanie danych, jeśli ma ona zastosowanie.",
@@ -758,7 +781,7 @@
       },
       {
         "title": "Warunki korzystania",
-        "updated": "Ostatnia aktualizacja: 2 czerwca 2026",
+        "updated": "Ostatnia aktualizacja: 20 sierpnia 2026",
         "intro": "Niniejsze Warunki Korzystania określają zasady dostępu do niniejszej strony internetowej oraz korzystania z niej. Korzystając ze strony, użytkownik potwierdza, że zapoznał się z niniejszymi Warunkami Korzystania, rozumie ich treść i akceptuje wszystkie zawarte w nich postanowienia. Jeżeli użytkownik nie zgadza się z niniejszymi Warunkami, powinien niezwłocznie zaprzestać korzystania ze strony internetowej.",
         "sections": [
           {
@@ -800,6 +823,61 @@
             "p": [
               "W maksymalnym zakresie dopuszczonym przez obowiązujące przepisy prawa administrator strony nie ponosi odpowiedzialności za jakiekolwiek szkody bezpośrednie, pośrednie, przypadkowe, następcze lub szczególne wynikające z korzystania lub niemożności korzystania ze strony internetowej.",
               "Administrator nie odpowiada również za czasową niedostępność strony, błędy techniczne, przerwy w działaniu ani działania osób trzecich wpływające na funkcjonowanie serwisu."
+            ]
+          },
+          {
+            "h": "Kredyt ACER i Portfel",
+            "p": [
+              "Platforma udostępnia zalogowanemu użytkownikowi osobisty Portfel, w którym może on posiadać ACER — kredyt przedpłacony wydawany przez ACE BATTLE POLAND Sp. z o.o. i wykorzystywany wyłącznie w ramach tej platformy. Dla celów rozliczeniowych przyjmuje się stały przelicznik: 1 ACER = 1 USD.",
+              "Kredyt ACER:"
+            ],
+            "list": [
+              "może być wykorzystywany wyłącznie w ramach tej platformy i wyłącznie na towary oraz usługi, które platforma za niego udostępnia;",
+              "jest niezbywalny — nie może zostać przeniesiony na innego użytkownika, sprzedany, scedowany ani darowany;",
+              "nie podlega wypłacie, wymianie na pieniądze ani wypłacie w gotówce; platforma nie udostępnia żadnego mechanizmu wypłat;",
+              "nie jest oprocentowany i nie zwiększa swojej wartości w czasie;",
+              "nie jest instrumentem płatniczym, pieniądzem elektronicznym, papierem wartościowym, produktem inwestycyjnym ani środkiem płatniczym akceptowanym poza tą platformą."
+            ],
+            "outro": [
+              "Ponieważ ACER może być wykorzystany wyłącznie na własne towary i usługi wydawcy w ramach ograniczonej sieci, nie stanowi pieniądza elektronicznego, a jego wydawanie nie jest usługą płatniczą.",
+              "ACER istnieje wyłącznie jako zapis w wewnętrznym rejestrze transakcji platformy. Saldo stanowi sumę zapisów przypisanych do konta użytkownika. Rejestr prowadzony jest w sposób wyłącznie dopisujący: korekta następuje zawsze przez dodanie zapisu przeciwstawnego, nigdy przez zmianę lub usunięcie historii."
+            ]
+          },
+          {
+            "h": "Naliczanie ACER (program nagród)",
+            "p": [
+              "Platforma może przyznać użytkownikowi ACER w formie nagrody — na przykład za potwierdzoną obecność (odprawę) na wydarzeniu albo za polecenie osoby, która następnie została odprawiona na wydarzeniu. Wysokość nagród oraz lista nagradzanych działań ustalane są przez platformę i publikowane w Portfelu.",
+              "Program nagród prowadzony jest na następujących zasadach:"
+            ],
+            "list": [
+              "wysokość nagród oraz katalog nagradzanych działań mogą zostać w każdym czasie zmienione, zawieszone lub zakończone, ze skutkiem na przyszłość;",
+              "nagrody przyznawane są wyłącznie za działania, które faktycznie miały miejsce; nagroda przyznana omyłkowo, dwukrotnie lub w wyniku błędu technicznego może zostać odwrócona zapisem przeciwstawnym;",
+              "nagrody mają charakter osobisty: zakładanie dodatkowych lub fikcyjnych kont, polecanie samego siebie, zautomatyzowane rejestracje oraz wszelkie inne próby uzyskania nagród bez rzeczywistego udziału są zabronione i mogą skutkować odwróceniem naliczeń oraz zablokowaniem konta;",
+              "nagrody przyznawane są od dnia uruchomienia programu i nie obejmują z mocą wstecz wcześniejszych wydarzeń ani wcześniejszych poleceń;",
+              "nagroda nie jest rabatem, obniżką ceny ani roszczeniem pieniężnym, a użytkownikowi nie przysługuje roszczenie o jej przyznanie."
+            ]
+          },
+          {
+            "h": "Zakup ACER, prawo odstąpienia i zwroty",
+            "p": [
+              "Zalogowany użytkownik może kupić ACER kartą płatniczą. Płatności realizowane są w dolarach amerykańskich (USD) przez Stripe; cena wynosi dokładnie 1 USD za 1 ACER, zakup następuje w pełnych jednostkach ACER, a kwoty dostępne w jednej transakcji (gotowe pakiety oraz dopuszczalny zakres kwoty własnej) wskazane są na ekranie zakupu. Platforma nie pobiera własnej opłaty; opłatę za przewalutowanie może pobrać bank użytkownika.",
+              "Zakupiony ACER zapisywany jest w Portfelu niezwłocznie po potwierdzeniu płatności przez Stripe. Może to zająć chwilę po dokonaniu płatności — do tego czasu Portfel pokazuje transakcję wraz z jej statusem.",
+              "Ponieważ kredyt stanowi treść cyfrową dostarczaną niezwłocznie, przy składaniu zamówienia konsument wyraźnie żąda dostarczenia kredytu przed upływem 14-dniowego terminu na odstąpienie od umowy oraz przyjmuje do wiadomości, że po jego dostarczeniu traci prawo odstąpienia od umowy przewidziane w ustawie z dnia 30 maja 2014 r. o prawach konsumenta (wdrażającej dyrektywę 2011/83/UE). Potwierdzenie zakupu stanowi takie żądanie i takie oświadczenie.",
+              "Niezależnie od powyższego platforma zobowiązuje się — jako świadczenie dobrowolne — zwrócić kwotę zapłaconą za zakupiony i niewykorzystany ACER, jeżeli użytkownik zgłosi takie żądanie w terminie 14 dni od zakupu. Zgłoszenia przyjmowane są pod adresem kontaktowym wskazanym w niniejszych Warunkach; zwrot realizowany jest na ten sam sposób płatności, w kwocie faktycznie zapłaconej, a odpowiadający mu kredyt usuwany jest z Portfela zapisem przeciwstawnym. ACER otrzymany jako nagroda nie ma wartości pieniężnej i nigdy nie podlega zwrotowi w pieniądzu."
+            ]
+          },
+          {
+            "h": "Saldo w przypadku usunięcia konta",
+            "p": [
+              "Użytkownik może w każdym czasie zażądać usunięcia konta. Usunięcie konta kończy dostęp do Portfela, a pozostałe saldo ACER — zarówno zakupione, jak i przyznane w formie nagrody — wygasa bez wynagrodzenia, z zastrzeżeniem opisanego powyżej zwrotu za niewykorzystany ACER zakupiony w ciągu ostatnich 14 dni, o ile użytkownik zgłosi go przed usunięciem konta.",
+              "Platforma nie usuwa zapisów transakcji finansowych, których przechowywanie wymagane jest przepisami prawa (zob. Polityka prywatności). Zapisy te przechowywane są przez okres ustawowy również po usunięciu samego konta."
+            ]
+          },
+          {
+            "h": "Na co można wykorzystać ACER",
+            "p": [
+              "ACER przeznaczony jest do wykorzystania w ramach platformy na płatne zapisy na wydarzenia, licencje sezonowe i podobne płatne funkcje, a także jako nagroda w cyklu. Udział w obecnych wydarzeniach jest bezpłatny, dlatego w chwili obecnej może nie istnieć żadne świadczenie, na które ACER da się wykorzystać. Platforma nie składa zapewnień co do terminu udostępnienia którejkolwiek z możliwości wykorzystania kredytu, a użytkownik powinien kupować ACER wyłącznie wtedy, gdy to akceptuje.",
+              "Platforma decyduje, na co i po jakiej cenie można wykorzystać ACER, oraz może dodawać, zmieniać i wycofywać poszczególne możliwości. Wycofanie danej możliwości nie pozbawia posiadanego ACER — pozostaje on użyteczny w pozostałym zakresie."
             ]
           },
           {
