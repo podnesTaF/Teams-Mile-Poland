@@ -59,7 +59,7 @@ export async function TicketAdminPanel({
   const row = await getRosterRowById(slug, registrationId);
   if (!row) return null;
 
-  const pool = getBibPool(slug);
+  const pool = await getBibPool(slug);
   const checkedIn = row.status === "checked_in";
   const holds = holdsBib(row);
   // Their heat has run: they are done, not waiting on a number (ADR 0003).

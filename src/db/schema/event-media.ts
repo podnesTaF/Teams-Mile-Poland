@@ -3,8 +3,10 @@ import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 /**
  * A completed event's published Drive gallery — the DB successor of the old
  * `EventSummary.media` config field (PRD #14). One row per event, keyed by
- * `event_slug` text like `event_results` (no FK — events live in the config
- * registry, not the DB).
+ * `event_slug` text like `event_results` (no FK — events are rows of their own
+ * now, but the slug stays the plain text join key across six tables, and a hard
+ * delete of an event with media is refused by the admin guard instead of being
+ * cascaded or blocked by the database; see ADR 0005).
  *
  * Row exists = media is published: the public gallery page renders, the event
  * page shows the teaser, and the media-live mailing may be sent. Publication is

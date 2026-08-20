@@ -16,18 +16,24 @@ import {
 import { listEventMedia } from "@/lib/events/media";
 import { getEventMediaConfig } from "@/lib/events/media-config";
 import { getEventBySlug } from "@/lib/events/registry";
+// Straight from the store, not the `registry` compat shim: `isPubliclyVisible`
+// is new API, and the shim exists only so the pre-DB call sites kept compiling.
+import { isPubliclyVisible } from "@/lib/events/store";
 import { formatEventLongDate } from "@/lib/events/time";
 import type { EventMediaItem } from "@/lib/events/types";
 
 import { GalleryLightbox } from "./gallery-lightbox";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
   // Deliberately empty, not omitted (the start-list pattern, issue #31): which
   // events have a gallery lives in the `event_media` DB table now, so paths
   // can't be known at build time. An empty array renders each path on first
   // visit and then caches it — which is what lets the admin publish action's
   // `revalidatePath` actually flip a gallery live without a deploy. Omitting
   // the export would re-render every request and make that a no-op.
+  //
+  // So there is no visibility filter to apply here either: no path is
+  // prerendered, and the gate lives in the page and its metadata below.
   return [];
 }
 
@@ -40,8 +46,12 @@ type PageProps = { params: Promise<{ locale: string; slug: string }> };
  */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
-  const event = getEventBySlug(slug);
-  if (!event || event.eventType !== "individual" || event.status !== "completed") {
+  const event = await getEventBySlug(slug);
+  // Same gate as the page — an unannounced night gets no title and no OG image.
+  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
+    notFound();
+  }
+  if (event.status !== "completed") {
     return {};
   }
   const media = await getEventMediaConfig(slug);
@@ -63,10 +73,19 @@ export default async function GalleryPage({ params }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const event = getEventBySlug(slug);
-  // Fully public — no auth gate. 404 for anything that isn't a completed
+  const event = await getEventBySlug(slug);
+  // Fully public — no auth gate. 404 for anything with no public surface
+  // (`isPubliclyVisible`: a draft), and for anything that isn't a completed
   // individual event (mirrors the admin publish guard) …
-  if (!event || event.eventType !== "individual" || event.status !== "completed") {
+  //
+  // The `completed` requirement already implies both — a draft is not completed,
+  // and slice 02 refuses `completed → cancelled` — but the visibility gate is
+  // stated anyway, so this page keeps 404ing drafts if the gallery ever opens up
+  // to a non-completed state.
+  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
+    notFound();
+  }
+  if (event.status !== "completed") {
     notFound();
   }
   // … or whose media isn't published. `getEventMediaConfig` is request-cached,

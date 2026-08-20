@@ -188,7 +188,7 @@ function cardRecord(r: ExportRow): Record<string, string | number> {
  */
 export async function buildHeatExportWorkbook(eventSlug: string): Promise<Buffer> {
   const [heats, rows] = await Promise.all([getEventHeats(eventSlug), getExportRows(eventSlug)]);
-  const event = getEventBySlug(eventSlug);
+  const event = await getEventBySlug(eventSlug);
   const generatedAt = new Date();
   const stamp = `Generated ${fmtDateTime(generatedAt)} Warsaw`;
   const context = event ? `${event.name} · ${stamp}` : stamp;

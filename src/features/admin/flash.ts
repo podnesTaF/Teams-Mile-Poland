@@ -34,12 +34,17 @@
  * take `ok=<digits>`, `pending`, or any `checkin-copy` code to mean something
  * else. Only the desk emits them today.
  *
- * Server-only: the entries read event config and the heat-generation bound, so
- * this must not be pulled into a client bundle. {@link AdminFlash} resolves on
- * the server and hands the finished sentence to the client banner.
+ * Not everything the panel says arrives as a code. The event settings page
+ * carries a standing warning about mail already sent for an event, which no
+ * redirect can hand it — {@link remindersSentNotice} words that here too, so the
+ * panel keeps one voice for one fact.
+ *
+ * Server-only: the entries read the heat-generation bound, so this must not be
+ * pulled into a client bundle. {@link AdminFlash} resolves on the server and
+ * hands the finished sentence to the client banner. What it does *not* read is
+ * the event — see {@link FlashContext}; resolving one is a DB read now, and this
+ * layer stays synchronous.
  */
-
-import { getBibPool } from "@/lib/events/registry";
 
 import { checkinErrorText, checkinOkText } from "./checkin-copy";
 import { plural } from "./format";
@@ -57,11 +62,20 @@ export type Flash = {
 export type FlashQuery = Record<string, string | string[] | undefined>;
 
 /**
- * What the query string cannot carry but the copy needs — currently just the
- * event, so pool-bounded messages can name the real number.
+ * What the query string cannot carry but the copy needs: the event, and its bib
+ * pool, so pool-bounded messages can name the real number.
+ *
+ * `bibPool` is passed in rather than looked up here **on purpose**. Events are
+ * DB rows now, so reading one is async — and this module is a code→sentence map,
+ * the one layer that should stay synchronous and side-effect-free. Every page
+ * that renders `<AdminFlash>` is already an async server component, so it
+ * resolves the pool and hands it over; the copy stays a pure function of what it
+ * was given. Omit it and the pool-bounded sentences fall back to their
+ * unbounded wording rather than guessing a number.
  */
 export type FlashContext = {
   slug?: string;
+  bibPool?: number;
 };
 
 /**
@@ -81,6 +95,63 @@ function param(query: FlashQuery, key: string): string {
 function count(query: FlashQuery, key: string): number {
   return Number.parseInt(param(query, key), 10) || 0;
 }
+
+/**
+ * A caveat flag an action sets on an otherwise successful redirect (`?past=1`):
+ * the confirmation still reports success, with one more clause on the end.
+ */
+function flag(query: FlashQuery, key: string): boolean {
+  const value = param(query, key);
+  return value === "1" || value === "true";
+}
+
+/** "3 heats and 1 registration" — several counts read out as one clause. */
+function joinList(parts: string[]): string {
+  if (parts.length <= 1) return parts[0] ?? "";
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+}
+
+/** A `?status=`/`?from=`/`?to=` longer than this is not a status name. */
+const MAX_STATUS_LENGTH = 24;
+
+/** `registration_open` → `registration open`, so a status can sit in a sentence. */
+function humanStatus(status: string): string {
+  return status.slice(0, MAX_STATUS_LENGTH).replace(/_/g, " ");
+}
+
+/**
+ * What each lifecycle state means *publicly*, keyed by the raw value the status
+ * action redirects with — the thing an admin cannot see from the admin side, and
+ * so the whole point of the confirmation.
+ *
+ * Keyed by `string`, not `EventStatus`, on purpose: this module words a query
+ * param, which is someone's URL until an action has validated it, and an
+ * unrecognised value has to fall back to a shorter true sentence rather than
+ * render `undefined`. The exhaustiveness net for `EventStatus` belongs where a
+ * missing state is a bug — the badge and roster maps that must cover them all.
+ */
+const STATUS_MEANING: Record<string, string> = {
+  draft:
+    "Status changed to draft — the event is admin-only again: its public pages 404 in every locale and the landing does not list it.",
+  upcoming:
+    "Status changed to upcoming — the event is announced publicly, with no Register button yet.",
+  registration_open:
+    "Status changed to registration open — the landing's Register button now points at this event and entries are accepted.",
+  registration_closed:
+    "Status changed to registration closed — the public page still lists the night, but no new entries are accepted.",
+  completed:
+    "Status changed to completed — the event reads as run, and its results and gallery can be published.",
+  cancelled:
+    "Status changed to cancelled — the public page shows the cancelled notice and registration is refused, while the roster, heats and results stay on the record.",
+};
+
+/**
+ * Appended to a create or an edit that saved a date in the past. Allowed on
+ * purpose (a night that already ran gets back-filled), so it is a clause on a
+ * confirmation and not a refusal — but it is also what a typo looks like.
+ */
+const PAST_DATE_CAVEAT =
+  "Its date is in the past — allowed, for back-filling a night that already ran, but check the date before announcing it.";
 
 /** Confirmation copy, keyed by the `?ok=` code the action redirected with. */
 const OK_CODES: Record<string, FlashCopy> = {
@@ -134,13 +205,49 @@ const OK_CODES: Record<string, FlashCopy> = {
     `Gallery published — ${plural(count(q, "photos"), "photo")} and ${plural(count(q, "videos"), "video")} listed from Drive. The event page and landing now show it.`,
   mediaunpublished: () =>
     "Gallery unpublished — the event page shows the coming-soon note again and the gallery link is gone.",
+  // The lifecycle control. `?status=` is the state the event landed in, and the
+  // sentence says what that state does publicly. `?registered=` is the guard
+  // rail: moving to completed with nobody checked in is legal, and worth saying.
+  statuschanged: (q) => {
+    const head = STATUS_MEANING[param(q, "status")] ?? "Event status changed.";
+    const stillRegistered = count(q, "registered");
+    return stillRegistered === 0
+      ? head
+      : `${head} ${plural(stillRegistered, "runner")} never checked in — they stay registered on the roster, so mark them no-show from the check-in desk if they did not run.`;
+  },
+  // Creation always lands a draft — an unannounced event is the only safe
+  // default — so the confirmation's job is to say the event exists but is not
+  // live, and where the admin makes it live.
+  eventcreated: (q) => {
+    const head =
+      "Event created as a draft — admin-only for now: its public pages 404 and the landing does not list it. Move it on from this page when it is ready to announce.";
+    return flag(q, "past") ? `${head} ${PAST_DATE_CAVEAT}` : head;
+  },
+  // An edit can save cleanly and still leave two things worth knowing, and both
+  // can be true of the same save — so they are clauses of this confirmation
+  // rather than codes of their own, the way `published` reports its failures.
+  eventupdated: (q) => {
+    const parts = [
+      "Event saved — the public event page and the landing pick the new details up on the next request, with no deploy.",
+    ];
+    if (flag(q, "past")) parts.push(PAST_DATE_CAVEAT);
+    const strandedHeats = count(q, "heatsoutside");
+    if (strandedHeats > 0) {
+      parts.push(
+        `${plural(strandedHeats, "generated heat")} ${strandedHeats === 1 ? "falls" : "fall"} outside the saved window — heat times are stored facts and did not move with it. Re-time or regenerate them from the Heats tab.`,
+      );
+    }
+    return parts.join(" ");
+  },
+  eventdeleted: () =>
+    "Event deleted for good — it had no registrations, results, heats, gallery or logged emails, so nothing was left pointing at its slug.",
 };
 
 /** Refusal copy, keyed by the `?error=` code the action redirected with. */
 const ERROR_CODES: Record<string, FlashCopy> = {
   count: () => `Enter how many heats to generate (1–${MAX_GENERATE_HEATS}).`,
   capacity: (_q, ctx) => {
-    const pool = ctx.slug ? getBibPool(ctx.slug) : null;
+    const pool = ctx.bibPool ?? null;
     return pool === null
       ? "Capacity must be at least 1 — and a heat cannot be larger than the bib pool."
       : `Capacity must be between 1 and ${pool} — a heat cannot be larger than the bib pool.`;
@@ -172,6 +279,48 @@ const ERROR_CODES: Record<string, FlashCopy> = {
       ? "No finished results to seed from — import qualification results first."
       : `Nothing seeded — the ${plural(unlinked, "qualifying result")} in range are not linked to any runner. Seed them by hand from the builder.`;
   },
+  // An admin who has just been refused a status change needs to know what *is*
+  // allowed, so the whole lifecycle is in the sentence. `?from=`/`?to=` are
+  // optional: with them the refusal names the move it turned down, without them
+  // it still says the rule.
+  transition: (q) => {
+    const from = param(q, "from");
+    const to = param(q, "to");
+    const head =
+      from && to
+        ? `Cannot move this event from ${humanStatus(from)} to ${humanStatus(to)}.`
+        : "That status change is not allowed.";
+    return `${head} An event moves forward along draft → upcoming → registration open → registration closed → completed. It can be cancelled from any state except completed, and two moves undo a mistake: registration closed back to registration open, and cancelled back to upcoming. Nothing was changed.`;
+  },
+  // The hard-delete guard. It names what is holding the event because the admin
+  // has to judge whether to go and clear it, and it names the real exit —
+  // cancelling — because for a night that people entered, that is the answer.
+  not_empty: (q) => {
+    const parts: string[] = [];
+    const registrations = count(q, "registrations");
+    if (registrations > 0) parts.push(plural(registrations, "registration"));
+    const results = count(q, "results");
+    if (results > 0) parts.push(plural(results, "imported result"));
+    const heats = count(q, "heats");
+    if (heats > 0) parts.push(plural(heats, "heat"));
+    const media = count(q, "media");
+    if (media > 0) parts.push(media === 1 ? "a published gallery" : plural(media, "gallery row"));
+    const emails = count(q, "emails");
+    if (emails > 0) parts.push(plural(emails, "logged email"));
+    const held = parts.length === 0 ? "rows attached to it" : joinList(parts);
+    return `Cannot delete this event — it still has ${held}. The slug is the only thing tying those rows to it, so deleting the event would strand them. Cancel it instead: the public page says cancelled and registration is refused, while the roster, heats and results stay on the record.`;
+  },
+  // Shrinking the pool under a live lease. `?bib=` is the highest bib currently
+  // held and `?pool=` the size that was asked for; the current pool comes from
+  // the context, like the `capacity` sentence above.
+  bibpool_in_use: (q, ctx) => {
+    const bib = count(q, "bib");
+    const asked = count(q, "pool");
+    const stillIs = ctx.bibPool ? ` The pool is still ${ctx.bibPool}.` : "";
+    return `Cannot shrink the bib pool${asked > 0 ? ` to ${asked}` : ""} — bib #${bib} is held by a runner right now, and bibs are leases from 1 to the pool size. Nothing was changed.${stillIs} Finish that runner's heat to return the bib, or keep the pool at ${bib} or higher.`;
+  },
+  invalid_window: () =>
+    "Enter the event window as two times, HH:MM, with the start before the end — the public timetable is generated from the start time.",
 };
 
 /** A `?heat=` longer than this is not a heat number; see {@link MAX_MSG_LENGTH}. */
@@ -207,7 +356,7 @@ const deskCheckedIn: FlashCopy = (query) =>
  */
 const deskError: FlashCopy = (query, context) =>
   checkinErrorText(param(query, "error"), {
-    pool: context.slug ? getBibPool(context.slug) : 0,
+    pool: context.bibPool ?? 0,
     bibs: param(query, "bibs"),
   });
 
@@ -237,4 +386,38 @@ export function resolveFlash(query: FlashQuery, context: FlashContext = {}): Fla
 
   const msg = param(query, "msg").slice(0, MAX_MSG_LENGTH);
   return msg ? { tone: "info", message: msg } : null;
+}
+
+/** Scheduled event mail, worded short enough to be read out in a sentence. */
+const MAIL_KIND_LABEL: Record<string, string> = {
+  reminder_7d: "the −7-day reminder",
+  reminder_3d: "the −3-day reminder",
+  reminder_1d: "the −1-day reminder",
+  morning: "the morning-of mail",
+};
+
+/**
+ * The settings page's standing warning that mail has already gone out for this
+ * event: a reminder cannot be un-sent, so moving the date can leave participants
+ * holding a mail that no longer matches the night, and pulling the date earlier
+ * can make the kinds still to go due at once.
+ *
+ * Not a code, deliberately. No action emits it and no redirect carries it — the
+ * form has to say this *before* the date is moved, on a plain page load. It is
+ * still said here, in the module that words the panel, and comes back as a
+ * {@link Flash} so the page renders it through the same banner. `info` is the
+ * fitting tone: nothing succeeded and nothing was refused.
+ *
+ * It takes the kinds rather than reading `event_email_log`, for the same reason
+ * {@link FlashContext} takes `bibPool`: the query is the caller's, the sentence
+ * is ours. `kinds` are raw `event_email_log.kind` values, deduplicated here and
+ * named as they come if unrecognised. Nothing sent yet, no notice.
+ */
+export function remindersSentNotice(kinds: readonly string[]): Flash | null {
+  const named = [...new Set(kinds)].map((kind) => MAIL_KIND_LABEL[kind] ?? kind);
+  if (named.length === 0) return null;
+  return {
+    tone: "info",
+    message: `Mail has already gone out for this event: ${joinList(named)}. It cannot be un-sent, so moving the date leaves those participants holding the old one — and pulling the date earlier can make the kinds still to go due on the next cron run.`,
+  };
 }

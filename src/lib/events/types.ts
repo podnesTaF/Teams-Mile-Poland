@@ -5,16 +5,21 @@
  * lifecycle, and the landing renders itself from that state: the "featured"
  * (next) event drives the register CTA, while completed events expose results.
  *
- * Phase 1 keeps this layer config-driven (see `registry.ts`) — no DB. When a
- * real second event opens registration, registration data (teams / runners /
- * slot_counter) gains an `event_id` FK; this model is the seam for that.
+ * These types describe rows, not config. Events live in the `events` table
+ * (`src/db/schema/events.ts`) and are read through `src/lib/events/store.ts`,
+ * which `registry.ts` re-exports so its long-standing consumers keep importing
+ * `@/lib/events/registry`. `registry.ts` itself is down to the window and
+ * venue defaults the admin create form prefills — the lifecycle is an admin
+ * action now, not a code edit plus a deploy.
  */
 
 export type EventStatus =
+  | "draft" // created but not announced; admin-only, 404s on every public surface
   | "upcoming" // announced, registration not yet open
   | "registration_open" // accepting registrations now
   | "registration_closed" // full or closed, event not yet run
-  | "completed"; // has happened; results may be available
+  | "completed" // has happened; results may be available
+  | "cancelled"; // called off; public page says so, history kept
 
 /**
  * `team` — the legacy TEAMS MILE format (teams/runners/slot_counter stack).

@@ -37,12 +37,12 @@ import { getResultsEventsWithDb } from "@/lib/events/results-data";
  * `@modal` parallel slot.
  */
 export async function LandingView() {
-  const featuredEvent = getFeaturedEvent();
+  const featuredEvent = await getFeaturedEvent();
   // DB-first: timing imports overlay (or replace) the config results sheets.
   const resultsEvents = await getResultsEventsWithDb();
   // The archive: completed individual events, with published-gallery covers
   // overlaid from the `event_media` table (one batch read, no Drive calls).
-  const archiveEvents = getArchiveEvents();
+  const archiveEvents = await getArchiveEvents();
   const archiveMedia = await getPublishedMedia(archiveEvents.map((e) => e.slug));
   const registrationOpen = isRegistrationOpen(featuredEvent);
   // Individual events register on their own detail page; the legacy team event

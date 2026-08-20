@@ -1,190 +1,55 @@
 import { EVENT } from "@/lib/marketing/event";
 
-import { mile20260801Results } from "./results/mile-2026-08-01";
-import { warsaw2026Results } from "./results/warsaw-2026";
-import { buildMileTimetable, firstHeatTime } from "./timetables";
-import {
-  DEFAULT_BIB_POOL,
-  DEFAULT_HEAT_INTERVAL_MINUTES,
-  type EventSummary,
-  type TimeRange,
-} from "./types";
+import type { TimeRange } from "./types";
 
 /**
- * Shared config for the Aug-2026 individual mile series — same venue for every
- * event. Registration is free and uncapped. Only the date/time differs, so the
- * registry entries below stay one line of intent each.
+ * What is left of the event registry once events became rows.
+ *
+ * This module used to *be* the source of truth: a literal `EVENTS` array plus
+ * the selectors over it. The records now live in the `events` table and are read
+ * by `store.ts`, which this file re-exports so all ~41 consumers keep importing
+ * `@/lib/events/registry` and changed only by gaining an `await`. Two things
+ * that were never really registry data stayed behind: the two time windows the
+ * series actually runs (form defaults now, not entries), and the shared
+ * venue/brand facts, which live in `@/lib/marketing/event` and are referenced
+ * here rather than duplicated.
+ *
+ * The hand-transcribed results sheets moved to `results-sheets.ts`, so the
+ * reader can import them without a cycle through this file.
+ *
+ * Historical note kept because it is the reason `cancelled` is being added: the
+ * 2026-08-08 night was **cancelled and removed from the registry outright**
+ * rather than parked in a lifecycle state — the model had no `cancelled` status,
+ * and leaving it as `registration_closed` read as a race still happening with
+ * entries shut. Its 11 registrations were re-slugged to 08-15 by hand first, so
+ * no row keyed a slug the registry no longer knew. That is also why a slug is
+ * generated once and never rewritten.
  */
-const MORNING: TimeRange = { start: "09:15", end: "12:15" };
-// Evening window for the alternating race nights.
-const EVENING: TimeRange = { start: "17:30", end: "20:30" };
 
-/** Build one individual mile-series entry from its date + time window. */
-function mileEvent(
-  date: string,
-  timeRange: TimeRange,
-  status: EventSummary["status"] = "upcoming",
-): EventSummary {
-  const [y, m, d] = date.split("-");
-  return {
-    slug: `mile-${date}`,
-    status,
-    eventType: "individual",
-    name: "Individual Mile",
-    date,
-    shortDate: `${d} · ${m} · ${y}`,
-    venue: EVENT.venue.name,
-    city: EVENT.venue.city,
-    timeRange,
-    timetable: buildMileTimetable(timeRange.start),
-    bibPool: DEFAULT_BIB_POOL,
-    heatIntervalMinutes: DEFAULT_HEAT_INTERVAL_MINUTES,
-  };
-}
+/** Morning window for the alternating race nights — a create-form default. */
+export const MORNING: TimeRange = { start: "09:15", end: "12:15" };
+
+/** Evening window for the alternating race nights — a create-form default. */
+export const EVENING: TimeRange = { start: "17:30", end: "20:30" };
 
 /**
- * The event registry — the single source of truth for which events exist and
- * what state each is in. Add a new entry per event; flip `status` as it moves
- * through its lifecycle. Shared, non-event data (contact, brand) lives in
- * `@/lib/marketing/event` and is referenced here, not duplicated.
+ * The venue every event in the series has run at so far, as create-form
+ * defaults. Kept derived from the marketing facts rather than retyped.
  */
-export const EVENTS: EventSummary[] = [
-  {
-    slug: "warsaw-2026",
-    status: "completed",
-    eventType: "team",
-    name: EVENT.name,
-    date: EVENT.date,
-    shortDate: EVENT.shortDate,
-    venue: EVENT.venue.name,
-    city: EVENT.venue.city,
-    results: warsaw2026Results,
-  },
-  // Aug-2026 individual mile series. The 08-01 and 08-15 mornings have been
-  // run. The 2026-08-08 night was **cancelled and removed from the registry
-  // outright** rather than parked in a lifecycle state — the model has no
-  // `cancelled` status, and leaving it as `registration_closed` read as a race
-  // still happening with entries shut, which is exactly the confusion the
-  // removal is meant to avoid. Its 11 registrations were re-slugged to 08-15
-  // first, so no row keys a slug the registry no longer knows; `/events/
-  // mile-2026-08-08` now 404s.
-  { ...mileEvent("2026-08-01", MORNING, "completed"), results: mile20260801Results },
-  // 08-15 has no config `results` sheet: its results were imported from the
-  // timing system into `event_results`, which the DB-first readers prefer.
-  mileEvent("2026-08-15", MORNING, "completed"),
-  mileEvent("2026-08-22", EVENING, "registration_open"),
-  mileEvent("2026-08-29", MORNING, "registration_open"),
-];
+export const DEFAULT_VENUE = { venue: EVENT.venue.name, city: EVENT.venue.city } as const;
 
-/**
- * The "next" event the site should promote: the soonest event still accepting
- * registrations, falling back to the soonest not-yet-completed event when none
- * is open. The open-first preference matters once a race night's registration
- * closes — by date that night is still the soonest non-completed event, and
- * featuring it would strip the landing's register CTA (see
- * {@link isRegistrationOpen}) while a later night is taking entries. Returns
- * `null` when nothing is scheduled.
- */
-export function getFeaturedEvent(): EventSummary | null {
-  const scheduled = EVENTS.filter((e) => e.status !== "completed").sort((a, b) =>
-    a.date.localeCompare(b.date),
-  );
-  return scheduled.find((e) => e.status === "registration_open") ?? scheduled[0] ?? null;
-}
-
-/** Completed events, newest first. */
-export function getPastEvents(): EventSummary[] {
-  return EVENTS.filter((e) => e.status === "completed").sort((a, b) =>
-    b.date.localeCompare(a.date),
-  );
-}
-
-/** Completed events that have results, newest first. */
-export function getResultsEvents(): EventSummary[] {
-  return getPastEvents().filter((e) => e.results);
-}
-
-/** Whether the featured event is currently accepting registrations. */
-export function isRegistrationOpen(event: EventSummary | null): boolean {
-  return event?.status === "registration_open";
-}
-
-/** Events accepting registrations now, soonest first. */
-export function getOpenEvents(): EventSummary[] {
-  return EVENTS.filter((e) => e.status === "registration_open").sort((a, b) =>
-    a.date.localeCompare(b.date),
-  );
-}
-
-/** Announced-but-not-yet-open events, soonest first. */
-export function getUpcomingEvents(): EventSummary[] {
-  return EVENTS.filter((e) => e.status === "upcoming").sort((a, b) =>
-    a.date.localeCompare(b.date),
-  );
-}
-
-/**
- * The individual mile series, soonest first — every non-completed individual
- * event regardless of open/upcoming state. Drives the landing cards section.
- */
-export function getSeriesEvents(): EventSummary[] {
-  return EVENTS.filter((e) => e.eventType === "individual" && e.status !== "completed").sort(
-    (a, b) => a.date.localeCompare(b.date),
-  );
-}
-
-/**
- * Every individual mile event in the registry regardless of lifecycle status.
- * Two consumers: the "Aug events" universe the broadcast segments
- * (`registered_any_aug`, `not_registered_aug`, `registered:<slug>`,
- * `awaiting_confirmation:<slug>`, `confirmed:<slug>`) are computed against, and
- * the event detail page's static params (a completed race night must keep its
- * page — the gallery teaser/back-link and media-live mailing CTA point at it).
- * Unlike {@link getSeriesEvents} this includes completed individual events, so
- * a past event stays reachable. Soonest first.
- */
-export function getIndividualEvents(): EventSummary[] {
-  return EVENTS.filter((e) => e.eventType === "individual").sort((a, b) =>
-    a.date.localeCompare(b.date),
-  );
-}
-
-/** Look up a single event by slug. */
-export function getEventBySlug(slug: string): EventSummary | undefined {
-  return EVENTS.find((e) => e.slug === slug);
-}
-
-/**
- * The bib pool an event draws leases from (ADR 0003), falling back to the series
- * default for events whose config omits it. Pool size is config, not data.
- */
-export function getBibPool(slug: string): number {
-  return getEventBySlug(slug)?.bibPool ?? DEFAULT_BIB_POOL;
-}
-
-/**
- * Spacing used to prefill generated heat start times, falling back to the series
- * default. Like the pool size this is config: once a heat is generated its
- * `scheduledAt` is a stored fact and editing the registry never moves it.
- */
-export function getHeatIntervalMinutes(slug: string): number {
-  return getEventBySlug(slug)?.heatIntervalMinutes ?? DEFAULT_HEAT_INTERVAL_MINUTES;
-}
-
-/**
- * Wall-clock time ("HH:MM") the first heat of an event can start — the moment its
- * racing window opens. `null` for events with no configured window.
- */
-export function getFirstHeatTime(slug: string): string | null {
-  const start = getEventBySlug(slug)?.timeRange?.start;
-  return start ? firstHeatTime(start) : null;
-}
-
-/** Look up a single event by slug, throwing if it does not exist. */
-export function getEventOrThrow(slug: string): EventSummary {
-  const event = getEventBySlug(slug);
-  if (!event) {
-    throw new Error(`Unknown event slug: ${slug}`);
-  }
-  return event;
-}
+export {
+  getBibPool,
+  getEventBySlug,
+  getEventOrThrow,
+  getFeaturedEvent,
+  getFirstHeatTime,
+  getHeatIntervalMinutes,
+  getIndividualEvents,
+  getOpenEvents,
+  getPastEvents,
+  getResultsEvents,
+  getSeriesEvents,
+  getUpcomingEvents,
+  isRegistrationOpen,
+} from "./store";

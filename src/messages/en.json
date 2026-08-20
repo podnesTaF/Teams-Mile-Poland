@@ -909,7 +909,8 @@
       "registration_open": "Registration open",
       "registration_closed": "Registration closed",
       "completed": "Completed",
-      "full": "Full"
+      "full": "Full",
+      "cancelled": "Cancelled"
     },
     "card": {
       "viewDetails": "View details →",
@@ -989,6 +990,13 @@
           "bannerTxt": "This race night has finished. Results are available.",
           "note": "Check your profile for your placement.",
           "cta": "View results →"
+        },
+        "cancelled": {
+          "kicker": "Cancelled",
+          "bannerTitle": "This race night is cancelled",
+          "bannerTxt": "This race night has been cancelled. Pick another night in the series.",
+          "note": "Already registered? Your entry for this night is void.",
+          "cta": "Pick another night"
         }
       }
     },

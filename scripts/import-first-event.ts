@@ -69,7 +69,7 @@ async function main() {
   }
 
   // Validates the slug against the config registry (the DB has no events FK).
-  const event = getEventOrThrow(EVENT_SLUG);
+  const event = await getEventOrThrow(EVENT_SLUG);
   if (!event.results) {
     throw new Error(`Event ${EVENT_SLUG} has no results in the registry`);
   }
@@ -243,9 +243,7 @@ async function main() {
           .from(legacyParticipations)
           .where(eq(legacyParticipations.eventSlug, EVENT_SLUG))
       : [];
-    const existingParticipationByUserId = new Map(
-      existingParticipations.map((p) => [p.userId, p]),
-    );
+    const existingParticipationByUserId = new Map(existingParticipations.map((p) => [p.userId, p]));
 
     // Resolve each person once; the dry-run report and the write path both
     // read these fields so their counts cannot drift apart.
@@ -300,12 +298,16 @@ async function main() {
     line(`Check-in-corroborated attendance without a results match: ${checkInOnly.length}`);
     for (const p of checkInOnly) line(`  ${p.name} <${p.email}>`);
     line();
-    line(`Duplicate emails among runners (merged to one user each): ${duplicateEmailMerges.length}`);
+    line(
+      `Duplicate emails among runners (merged to one user each): ${duplicateEmailMerges.length}`,
+    );
     for (const p of duplicateEmailMerges) {
       line(`  <${p.email}> x${p.rowCount} rows -> name "${p.name}" (first row wins)`);
     }
     line();
-    line(`Existing users (participation attached, profile untouched): ${existingUserAttach.length}`);
+    line(
+      `Existing users (participation attached, profile untouched): ${existingUserAttach.length}`,
+    );
     for (const p of existingUserAttach) line(`  <${p.email}>`);
     line();
     line("=== Planned writes ===");

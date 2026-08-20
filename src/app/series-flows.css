@@ -230,6 +230,10 @@
 .ace-landing .status--closed .status__dot { background: var(--muted); }
 .ace-landing .status--completed { background: rgba(255, 255, 255, 0.06); color: #b8b8b6; border-color: var(--line-d); }
 .ace-landing .status--completed .status__dot { background: var(--line-d2); }
+/* A cancelled night is negated, not merely shut: it takes the red the sold-out
+   pill uses, so it never reads as "closed but still happening". */
+.ace-landing .status--cancelled { background: var(--red-soft); color: #f6899a; border-color: rgba(229, 31, 50, 0.45); }
+.ace-landing .status--cancelled .status__dot { background: var(--red); }
 
 .ace-landing .race-tag {
   background: rgba(229, 31, 50, 0.14);

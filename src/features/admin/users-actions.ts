@@ -101,7 +101,7 @@ export async function adminRegisterUserForEvent(formData: FormData) {
     back(locale, suffix, "User must verify their email before they can be registered.");
   }
 
-  const event = getEventBySlug(eventSlug);
+  const event = await getEventBySlug(eventSlug);
   if (!event || event.eventType !== "individual") back(locale, suffix, "Event not found.");
   if (event.status === "completed") {
     back(locale, suffix, "Cannot register a user for a completed event.");

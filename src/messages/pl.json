@@ -909,7 +909,8 @@
       "registration_open": "Zapisy otwarte",
       "registration_closed": "Zapisy zamknięte",
       "completed": "Zakończony",
-      "full": "Brak miejsc"
+      "full": "Brak miejsc",
+      "cancelled": "Odwołany"
     },
     "card": {
       "viewDetails": "Zobacz szczegóły →",
@@ -989,6 +990,13 @@
           "bannerTxt": "Ten wieczór biegowy się zakończył. Wyniki są dostępne.",
           "note": "Sprawdź swoją pozycję w profilu.",
           "cta": "Zobacz wyniki →"
+        },
+        "cancelled": {
+          "kicker": "Odwołany",
+          "bannerTitle": "Ten wieczór jest odwołany",
+          "bannerTxt": "Ten wieczór biegowy został odwołany. Wybierz inny wieczór serii.",
+          "note": "Już zapisany? Zapis na ten wieczór jest nieważny.",
+          "cta": "Wybierz inny wieczór"
         }
       }
     },

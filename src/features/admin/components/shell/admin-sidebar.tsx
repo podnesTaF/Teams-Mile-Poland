@@ -7,13 +7,10 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import { AdminEyebrow } from "./admin-eyebrow";
-import {
-  eventStatusLabel,
-  type AdminNav,
-  type AdminNavEvent,
-  type AdminNavItem,
-} from "./admin-nav";
-import { EVENT_STATUS_DOT } from "./event-status-badge";
+// Types only — `admin-nav.ts` reads the event store and so imports the database
+// driver; a runtime import from it would pull `postgres` into this client bundle.
+import type { AdminNav, AdminNavEvent, AdminNavItem } from "./admin-nav";
+import { EVENT_STATUS_DOT, eventStatusLabel } from "./event-status-badge";
 
 /**
  * The persistent admin sidebar: wordmark, grouped sections, every mile event

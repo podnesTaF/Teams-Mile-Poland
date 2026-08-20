@@ -12,6 +12,9 @@ import { Link } from "@/i18n/navigation";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug } from "@/lib/events/registry";
 import { getMergedResults } from "@/lib/events/results-data";
+// Straight from the store, not the `registry` compat shim: `isPubliclyVisible`
+// is new API, and the shim exists only so the pre-DB call sites kept compiling.
+import { isPubliclyVisible } from "@/lib/events/store";
 import { formatEventLongDate } from "@/lib/events/time";
 
 /**
@@ -25,8 +28,12 @@ import { formatEventLongDate } from "@/lib/events/time";
  * publish/edit/finish revalidation into a no-op and puts two queries on every
  * spectator refresh (verified against `node_modules/next/dist/docs` —
  * "All paths at runtime").
+ *
+ * Nothing to filter for visibility here, then: no path is prerendered, so no
+ * draft's start list can be. The gate that matters is in the page and its
+ * metadata below.
  */
-export function generateStaticParams() {
+export async function generateStaticParams() {
   return [];
 }
 
@@ -34,8 +41,13 @@ type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
-  const event = getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") return {};
+  const event = await getEventBySlug(slug);
+  // Same gate as the page, so an unannounced night has no title to leak into a
+  // tab, a share card or a crawler — metadata renders before the page body and
+  // would otherwise answer for a slug the page itself 404s.
+  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
+    notFound();
+  }
   const t = await getTranslations({ locale, namespace: "events" });
   return { title: `${event.name} — ${t("heats.eyebrow")}` };
 }
@@ -53,9 +65,12 @@ export default async function EventStartListPage({ params }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const event = getEventBySlug(slug);
-  // Fully public — no auth gate. Heats exist for individual events only.
-  if (!event || event.eventType !== "individual") {
+  const event = await getEventBySlug(slug);
+  // Fully public — no auth gate. Heats exist for individual events only, and a
+  // draft has no public surface at all (`isPubliclyVisible`) — its start list
+  // would be the one page that names an unannounced night's runners. A cancelled
+  // night passes: its heats stay readable as the record of what was seeded.
+  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
     notFound();
   }
 

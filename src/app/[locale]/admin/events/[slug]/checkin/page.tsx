@@ -73,7 +73,7 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
   // without that level the page is the lists and none of the buttons.
   const canCheckin = userCan(actor, "checkin");
 
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
 
   const q = query.q?.trim() ?? "";
@@ -96,7 +96,7 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
     }
   }
 
-  const pool = getBibPool(slug);
+  const pool = await getBibPool(slug);
   const [nextBib, heats, checkedIn] = await Promise.all([
     suggestNextBib(slug),
     getEventHeats(slug),
@@ -107,7 +107,10 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
     <div className="flex flex-col gap-4">
       {/* A failed signature on a pasted link is not an action's redirect, so it is
           handed to the banner as the code the desk's copy already words. */}
-      <AdminFlash query={scanError ? { ...query, error: "scan" } : query} context={{ slug }} />
+      <AdminFlash
+        query={scanError ? { ...query, error: "scan" } : query}
+        context={{ slug, bibPool: pool }}
+      />
 
       {nextBib === null ? <BibsExhausted pool={pool} /> : null}
 

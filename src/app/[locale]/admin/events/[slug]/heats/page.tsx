@@ -20,6 +20,7 @@ import {
   MAX_GENERATE_HEATS,
   outOfOrderHeats,
 } from "@/features/admin/heats-data";
+import { heatsOutsideWindow } from "@/features/admin/event-schemas";
 import { getResultsState, topQualifiers } from "@/features/admin/results-import/data";
 import { instantToWarsawLocal } from "@/lib/events/heat-time";
 import {
@@ -63,7 +64,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
   // forms rather than buttons that 404.
   const canEdit = userCan(actor, "edit");
 
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
 
   const [heats, seeds, resultsState] = await Promise.all([
@@ -72,7 +73,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
     getResultsState(slug),
   ]);
 
-  const pool = getBibPool(slug);
+  const pool = await getBibPool(slug);
 
   // The seed-final bridge appears once the timing system has reported
   // finishers and there is a card to seed into. The preview is the standings
@@ -84,10 +85,17 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
     canEdit && importedFinishers > 0 && heats.length > 0
       ? await topQualifiers(slug, { limit: defaultFinalSize })
       : [];
-  const interval = getHeatIntervalMinutes(slug);
-  const firstHeat = getFirstHeatTime(slug);
+  const interval = await getHeatIntervalMinutes(slug);
+  const firstHeat = await getFirstHeatTime(slug);
   const seeded = seeds.filter((s) => s.heatId).length;
   const outOfOrder = outOfOrderHeats(heats);
+  // Editing an event never re-times a generated heat, so a moved date or a
+  // narrowed window strands the card where it was. The save that caused it
+  // reports it once as a flash on the Settings tab — but an admin who moves a
+  // date and then comes here to generate never saw that flash, and the prefill
+  // below anchors on the stale card. So it is stated again where it costs
+  // something.
+  const stranded = heatsOutsideWindow(heats, event);
   const totalCapacity = heats.reduce((sum, h) => sum + h.capacity, 0);
 
   // Prefill the next generated heat one interval past the latest heat already on
@@ -110,7 +118,15 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
 
   return (
     <>
-      <AdminFlash query={query} context={{ slug }} />
+      <AdminFlash query={query} context={{ slug, bibPool: pool }} />
+
+      {stranded.length > 0 ? (
+        <AdminNotice className="mb-4">
+          {plural(stranded.length, "heat")} no longer {stranded.length === 1 ? "sits" : "sit"} inside
+          this event&rsquo;s window — heat {stranded.join(", ")}. Heat times are stored facts and did
+          not move when the event did. Re-time them below, or delete and regenerate the card.
+        </AdminNotice>
+      ) : null}
 
       {outOfOrder.length > 0 ? (
         <AdminNotice className="mb-4">

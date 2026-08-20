@@ -12,7 +12,7 @@ import {
   type ImportedResultRow,
 } from "@/features/admin/results-import/data";
 import { userCan } from "@/lib/auth/user-session";
-import { getEventBySlug } from "@/lib/events/registry";
+import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 import { formatTime } from "@/lib/events/time";
 import { cn } from "@/lib/utils";
 
@@ -46,8 +46,11 @@ export default async function AdminEventResultsPage({ params, searchParams }: Pa
   setRequestLocale(locale);
   const actor = await requireAdmin(locale);
 
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
+  // The pool the flash copy needs to bound its refusal sentences; `flash.ts`
+  // stays synchronous, so the page resolves it.
+  const bibPool = await getBibPool(slug);
 
   const [state, importedRows] = await Promise.all([
     getResultsState(slug),
@@ -68,7 +71,7 @@ export default async function AdminEventResultsPage({ params, searchParams }: Pa
 
   return (
     <>
-      <AdminFlash query={query} context={{ slug }} />
+      <AdminFlash query={query} context={{ slug, bibPool }} />
 
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <AdminStat label="Heats imported" value={state.length} />

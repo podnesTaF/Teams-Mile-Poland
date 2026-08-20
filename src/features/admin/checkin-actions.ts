@@ -201,7 +201,7 @@ export async function assignBibAndCheckIn(formData: FormData) {
   // Explicit bib: one attempt, surface conflicts.
   if (bibRaw) {
     const bib = Number.parseInt(bibRaw, 10);
-    if (!Number.isInteger(bib) || bib < 1 || bib > getBibPool(slug)) {
+    if (!Number.isInteger(bib) || bib < 1 || bib > (await getBibPool(slug))) {
       redirect(back("error=bib"));
     }
     try {

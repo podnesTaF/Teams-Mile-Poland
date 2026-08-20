@@ -70,7 +70,7 @@ export default async function AdminUserDetailPage({
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name;
   // Non-completed individual events — the registry set an admin may register a
   // user for. `registration_closed` events remain in this set as admin overrides.
-  const registrableEvents = getSeriesEvents();
+  const registrableEvents = await getSeriesEvents();
 
   return (
     <AdminPage

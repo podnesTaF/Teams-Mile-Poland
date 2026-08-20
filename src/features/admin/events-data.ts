@@ -2,7 +2,15 @@ import { cache } from "react";
 import ExcelJS from "exceljs";
 import { and, eq, ilike, isNotNull, isNull, ne, notExists, or, sql, type SQL } from "drizzle-orm";
 
-import { eventHeats, eventRegistrations, users, type ParticipationStatus } from "@/db/schema";
+import {
+  eventEmailLog,
+  eventHeats,
+  eventMedia,
+  eventRegistrations,
+  eventResults,
+  users,
+  type ParticipationStatus,
+} from "@/db/schema";
 import { awardCheckInRewards } from "@/features/wallet/accruals";
 import { getDb } from "@/lib/db";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
@@ -298,7 +306,7 @@ async function heldBibs(eventSlug: string): Promise<Set<number>> {
  * bib-less and tell the desk to free bibs by marking a finished heat complete.
  */
 export async function suggestNextBib(eventSlug: string): Promise<number | null> {
-  const pool = getBibPool(eventSlug);
+  const pool = await getBibPool(eventSlug);
   const held = await heldBibs(eventSlug);
   for (let bib = 1; bib <= pool; bib += 1) {
     if (!held.has(bib)) return bib;
@@ -337,7 +345,7 @@ function fmtDob(date: Date | null): string {
 /** Build a single-sheet XLSX roster for an event, with computed age category. */
 export async function buildEventRosterWorkbook(eventSlug: string): Promise<Buffer> {
   const rows = await getEventRoster(eventSlug);
-  const event = getEventBySlug(eventSlug);
+  const event = await getEventBySlug(eventSlug);
   const eventDate = event ? new Date(event.date) : new Date();
 
   const workbook = new ExcelJS.Workbook();
@@ -625,4 +633,62 @@ export async function setRegistrationStatus(
         else coalesce(${eventRegistrations.bibReturnedAt}, now()) end`,
     })
     .where(eq(eventRegistrations.id, registrationId));
+}
+
+/** How many rows each of the five slug-keyed tables holds for one event. */
+export type EventAttachedCounts = {
+  registrations: number;
+  results: number;
+  heats: number;
+  media: number;
+  emails: number;
+};
+
+/**
+ * What is still pointing at an event's slug — the delete guard's evidence.
+ *
+ * An event may only be hard-deleted while every one of these is zero. The slug
+ * is plain text in all five tables with no foreign key, so deleting a used
+ * event does not cascade and does not fail: it silently strands the rows. The
+ * admin's exit for a used event is `cancelled`, which keeps the record.
+ *
+ * **One definition, two readers, on purpose.** `deleteEvent` calls this as the
+ * authority immediately before deleting, and the settings page calls it to
+ * render the guard's state so "why is this refused" is answerable before
+ * anything is pressed. They must not be able to disagree — a panel saying
+ * "nothing attached" over an action that refuses is worse than either alone —
+ * so the query lives here rather than in the action. It cannot live in
+ * `event-actions.ts`: that module is `"use server"`, where every export becomes
+ * a client-callable endpoint.
+ *
+ * `user_broadcasts` is deliberately absent. A stored broadcast references an
+ * event only through a segment *string*, so counting it would make an empty
+ * draft permanently undeletable; the safety there is that an unresolvable
+ * segment resolves to nobody rather than to everyone (see `user-segments.ts`).
+ */
+export async function countEventAttachedRows(slug: string): Promise<EventAttachedCounts> {
+  const db = getDb();
+  const n = () => sql<number>`count(*)::int`;
+  const one = async (rows: PromiseLike<{ n: number }[]>): Promise<number> =>
+    (await rows)[0]?.n ?? 0;
+
+  const [registrations, results, heats, media, emails] = await Promise.all([
+    one(
+      db.select({ n: n() }).from(eventRegistrations).where(eq(eventRegistrations.eventSlug, slug)),
+    ),
+    one(db.select({ n: n() }).from(eventResults).where(eq(eventResults.eventSlug, slug))),
+    one(db.select({ n: n() }).from(eventHeats).where(eq(eventHeats.eventSlug, slug))),
+    one(db.select({ n: n() }).from(eventMedia).where(eq(eventMedia.eventSlug, slug))),
+    // The log is keyed by registration, not by slug — the join is how it becomes
+    // a fact about an event.
+    one(
+      db
+        .select({ n: n() })
+        .from(eventEmailLog)
+        .innerJoin(eventRegistrations, eq(eventEmailLog.eventRegistrationId, eventRegistrations.id))
+        .where(eq(eventRegistrations.eventSlug, slug)),
+    ),
+  ]);
+
+  return { registrations, results, heats, media, emails };
 }

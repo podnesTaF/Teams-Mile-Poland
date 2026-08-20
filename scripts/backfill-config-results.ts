@@ -17,12 +17,12 @@ import {
   resolveRegistrations,
 } from "../src/features/admin/results-import/data";
 import type { ParsedResultRow } from "../src/features/admin/results-import/parse";
-import { getEventBySlug } from "../src/lib/events/registry";
+import { RESULTS_SHEETS } from "../src/lib/events/results-sheets";
 
 const SLUGS = ["warsaw-2026", "mile-2026-08-01"];
 
 async function backfill(slug: string) {
-  const results = getEventBySlug(slug)?.results;
+  const results = RESULTS_SHEETS[slug];
   if (!results) {
     console.log(`${slug}: no config sheet — skipped`);
     return;
@@ -44,7 +44,9 @@ async function backfill(slug: string) {
   const resolved = await resolveRegistrations(slug, rows);
   const { heats, rows: written } = await replaceHeatResults(slug, resolved);
   const linked = resolved.filter((r) => r.registrationId !== null).length;
-  console.log(`${slug}: ${written} rows across ${heats} heats — ${linked} linked, ${written - linked} unlinked`);
+  console.log(
+    `${slug}: ${written} rows across ${heats} heats — ${linked} linked, ${written - linked} unlinked`,
+  );
 }
 
 async function main() {

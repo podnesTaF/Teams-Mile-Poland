@@ -60,7 +60,7 @@ async function cleanup(heatIds: string[], userIds: string[]) {
 
 async function main() {
   const db = getDb();
-  check("fixture event exists in registry", Boolean(getEventBySlug(SLUG)));
+  check("fixture event exists in registry", Boolean(await getEventBySlug(SLUG)));
 
   const heatIds: string[] = [];
   const userIds = ["alfa", "bravo", "charlie", "delta"].map((n) => `${PREFIX}${n}`);
