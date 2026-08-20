@@ -324,3 +324,36 @@ revisit if chargebacks appear.
   their rows rendering on `/wallet`, `/en/wallet`, `/ua/wallet`. **A Neon branch was not available
   in this session** (throwaway Postgres 16 again); this slice adds no migration, but #45's `0020`
   still needs applying there and to production.
+- 2026-08-20 — PRD #44 slice (issue #47): Phase A step 4 — the admin write path. The user detail
+  page gains a Wallet panel: the three balances, the paginated ledger (`?wpage=`, 25/page) with
+  author and reason on every manual row, and the two Contracts actions. `adjustWalletBalance`
+  takes a **signed whole-ACER** amount (positive → `admin_credit`, negative → `admin_debit`) with a
+  mandatory reason and `createdBy` set to the acting admin; fractions, zero and anything past a
+  ±100 000 typo guard are refused, and it carries **no** idempotency key — two identical
+  adjustments entered on purpose are two real adjustments. This is also the interim channel for
+  ad-hoc rewards (sponsor attraction) until those get a flow. `reverseWalletTransaction` appends
+  the mirror row (`kind: reversal`, `reverses_id` → the original) and **does** carry
+  `idempotency_key = reversal:<txId>`: the §2 sentence about manual entries being repeatable is
+  about adjustments, and keying the correction is what makes "a row is reversed at most once" a
+  database guarantee instead of a check-then-insert race between two admins — `null` from the
+  writer is reported as "already reversed", not as a failure. A correction is not itself reversible
+  and a `pending`/`failed` row cannot be reversed (it counts toward no balance, so offsetting it
+  would create the error it looks like it fixes). Reads live in `src/features/admin/wallet-data.ts`
+  (self-join for "has this been corrected", `leftJoin` on `users` for the author); the shared
+  page-window clamp moved into `src/features/wallet/data.ts` so the runner's history and the
+  admin's cannot paginate the same rows differently. Panel is read-only for `admin_viewer` /
+  `admin_checkin` and both actions re-check `edit` themselves; refusals come back on the page's
+  existing `?msg=` channel with `wpage` preserved. Built in the **Tailwind admin layer** (ADR 0004)
+  even though its sibling cards on that page are still `.iv-*`, and English-only. The asset field
+  is **pinned to ACER** in the UI while the action stays asset-generic per the Contracts signature:
+  nothing may issue Ace(PL)/ACEG yet (§4), and an option list would make one mis-click the rule
+  that creates them. No migration, no new i18n keys. Verified: typecheck/build clean, lint baseline
+  unchanged at 55; 31 data-layer checks green against a throwaway Postgres 16 migrated from empty
+  (schema shape including the index predicate, credit/debit/repeatability, author resolution,
+  reversal + refused second reversal, pagination + clamping, pending-not-money, `created_by`
+  surviving the author's deletion, per-user isolation); and driven over HTTP — anonymous redirect
+  with no data, credit → the row on the runner's own `/wallet` in pl/en/ua, reversal → both rows
+  visible netting to zero, every validation refusal writing nothing, and `admin_viewer` / plain
+  user / anonymous POSTs of both actions rejected. **A Neon branch was not available in this
+  session**; this slice adds no migration, but #45's `0020` still needs applying there and to
+  production.

@@ -8,6 +8,7 @@ import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
+import { WalletPanel } from "@/features/admin/components/wallet-panel";
 import { findUsersByPhoneE164 } from "@/features/admin/duplicates-data";
 import { formatAdminDateTime as fmt } from "@/features/admin/format";
 import { getReferralLinks } from "@/features/admin/referrals-data";
@@ -22,6 +23,9 @@ import {
   type UserProfile,
   type UserResultsSummary,
 } from "@/features/admin/users-data";
+import { listWalletLedger } from "@/features/admin/wallet-data";
+import { getWalletBalances, parseWalletPage } from "@/features/wallet/data";
+import { userCan } from "@/lib/auth/user-session";
 import { getSeriesEvents } from "@/lib/events/registry";
 import { formatTime } from "@/lib/events/time";
 import type { EventSummary } from "@/lib/events/types";
@@ -32,12 +36,14 @@ export default async function AdminUserDetailPage({
   searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
-  searchParams: Promise<{ msg?: string }>;
+  searchParams: Promise<{ msg?: string; wpage?: string | string[] }>;
 }) {
   const { locale, id } = await params;
-  const { msg } = await searchParams;
+  const { msg, wpage } = await searchParams;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  // The panel's write actions need the `edit` capability; the page itself is
+  // readable by any admin level, so the actor decides which forms render.
+  const admin = await requireAdmin(locale);
 
   if (!process.env.DATABASE_URL) {
     return (
@@ -55,6 +61,12 @@ export default async function AdminUserDetailPage({
   // the flag hides rather than asserting there are no duplicates.
   const phonePeers = user.phoneE164 ? await findUsersByPhoneE164(user.phoneE164, user.id) : [];
   const referral = await getReferralLinks(user.id);
+  // Money, so it is read straight from the ledger on every request: balances are
+  // `SUM` over completed rows, never a stored total (see `db/schema/wallet.ts`).
+  const [walletBalances, walletLedger] = await Promise.all([
+    getWalletBalances(user.id),
+    listWalletLedger(user.id, { page: parseWalletPage(wpage) }),
+  ]);
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name;
   // Non-completed individual events — the registry set an admin may register a
   // user for. `registration_closed` events remain in this set as admin overrides.
@@ -103,9 +115,8 @@ export default async function AdminUserDetailPage({
             ) : null}
             {referral.invitedCount > 0 ? (
               <>
-                Invited {referral.invitedCount}{" "}
-                {referral.invitedCount === 1 ? "person" : "people"} —{" "}
-                <Link href={`/admin/referrals/${user.id}`}>see who</Link>.
+                Invited {referral.invitedCount} {referral.invitedCount === 1 ? "person" : "people"}{" "}
+                — <Link href={`/admin/referrals/${user.id}`}>see who</Link>.
               </>
             ) : null}
           </p>
@@ -113,6 +124,13 @@ export default async function AdminUserDetailPage({
       ) : null}
       <ResultsCard results={results} />
       <HistoryCard history={history} />
+      <WalletPanel
+        userId={user.id}
+        locale={locale}
+        balances={walletBalances}
+        ledger={walletLedger}
+        canEdit={userCan(admin, "edit")}
+      />
       <RegisterForEventCard user={user} locale={locale} events={registrableEvents} />
       <ActionsCard user={user} locale={locale} />
     </AdminPage>

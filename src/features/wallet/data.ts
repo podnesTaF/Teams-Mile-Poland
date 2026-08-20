@@ -115,6 +115,24 @@ export async function getWalletBalances(userId: string): Promise<WalletBalances>
   return balances;
 }
 
+/**
+ * Which slice of a history a requested page actually is.
+ *
+ * Clamped into range, so a bookmarked `?page=99` on a history that has since
+ * shrunk shows the last real page instead of a void. Shared with the admin
+ * panel's ledger read (`features/admin/wallet-data.ts`) so the runner's history
+ * and the admin's cannot drift into paginating the same rows differently.
+ */
+export function walletPageWindow(
+  total: number,
+  page: number,
+  pageSize: number,
+): { page: number; pageCount: number; offset: number } {
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const current = Math.min(Math.max(1, page), pageCount);
+  return { page: current, pageCount, offset: (current - 1) * pageSize };
+}
+
 export type WalletHistoryPage = {
   rows: WalletTransactionRow[];
   /** 1-based. */
@@ -143,8 +161,7 @@ export async function listWalletTransactions(
     .where(eq(walletTransactions.userId, userId));
 
   const total = countRow?.total ?? 0;
-  const pageCount = Math.max(1, Math.ceil(total / pageSize));
-  const current = Math.min(Math.max(1, page), pageCount);
+  const { page: current, pageCount, offset } = walletPageWindow(total, page, pageSize);
 
   const rows =
     total === 0
@@ -155,15 +172,15 @@ export async function listWalletTransactions(
           .where(eq(walletTransactions.userId, userId))
           .orderBy(desc(walletTransactions.createdAt), desc(walletTransactions.id))
           .limit(pageSize)
-          .offset((current - 1) * pageSize);
+          .offset(offset);
 
   return { rows, page: current, pageCount, total, pageSize };
 }
 
 /**
- * `?page=` off a page's searchParams — 1-based, tolerant of the junk a
+ * A page number off a page's searchParams — 1-based, tolerant of the junk a
  * hand-edited or stale URL carries (`?page=0`, `?page=abc`, a repeated param).
- * Mirrors the roster's query parsing.
+ * Mirrors the roster's query parsing. Also parses the admin panel's `?wpage=`.
  */
 export function parseWalletPage(value: string | string[] | undefined): number {
   const raw = Array.isArray(value) ? value[0] : value;
