@@ -60,19 +60,20 @@ export const EVENTS: EventSummary[] = [
     city: EVENT.venue.city,
     results: warsaw2026Results,
   },
-  // Aug-2026 individual mile series. The 08-01 and 08-15 mornings have been
-  // run. The 2026-08-08 night was **cancelled and removed from the registry
-  // outright** rather than parked in a lifecycle state — the model has no
-  // `cancelled` status, and leaving it as `registration_closed` read as a race
-  // still happening with entries shut, which is exactly the confusion the
+  // Aug-2026 individual mile series. The 08-01 and 08-15 mornings and the 08-22
+  // evening have been run. The 2026-08-08 night was **cancelled and removed from
+  // the registry outright** rather than parked in a lifecycle state — the model
+  // has no `cancelled` status, and leaving it as `registration_closed` read as a
+  // race still happening with entries shut, which is exactly the confusion the
   // removal is meant to avoid. Its 11 registrations were re-slugged to 08-15
   // first, so no row keys a slug the registry no longer knows; `/events/
   // mile-2026-08-08` now 404s.
   { ...mileEvent("2026-08-01", MORNING, "completed"), results: mile20260801Results },
-  // 08-15 has no config `results` sheet: its results were imported from the
-  // timing system into `event_results`, which the DB-first readers prefer.
+  // Neither 08-15 nor 08-22 has a config `results` sheet: their results were
+  // imported from the timing system into `event_results`, which the DB-first
+  // readers prefer.
   mileEvent("2026-08-15", MORNING, "completed"),
-  mileEvent("2026-08-22", EVENING, "registration_open"),
+  mileEvent("2026-08-22", EVENING, "completed"),
   mileEvent("2026-08-29", MORNING, "registration_open"),
 ];
 

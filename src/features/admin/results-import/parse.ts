@@ -10,9 +10,19 @@ import type { ResultStatus } from "@/db/schema";
  * export's "Flat" sheet (`Heat | Start | Bib | First name | Surname | Sex | …`
  * plus whatever result columns the operator appends) must parse without edits.
  *
- * Every row must carry the heat: bibs are recycled leases across heats within
- * one event, so `(heat, bib)` — never bib alone — identifies a result
- * (ADR 0003). A file without a heat column is rejected outright.
+ * Two layouts are read, because the operator exports both:
+ *
+ * - *flat* — one row per result with a `Heat` column (our own export, and
+ *   RaceResult's flat result list);
+ * - *by heat* — RaceResult's "Results by Heat" sheet, where the heat arrives as
+ *   a `Heat-1` banner row above each group, every athlete row is trailed by a
+ *   per-lap split row, and a non-finisher's marker sits in the net-time column
+ *   ("DNF") because that sheet has no status column at all.
+ *
+ * Either way every row must end up carrying a heat: bibs are recycled leases
+ * across heats within one event, so `(heat, bib)` — never bib alone —
+ * identifies a result (ADR 0003). A file that supplies the heat neither as a
+ * column nor as banners is rejected outright.
  */
 
 export type ParsedResultRow = {
@@ -92,9 +102,47 @@ function mapHeaderRow(cells: string[]): HeaderMap {
   return map;
 }
 
-/** A header row is one that locates both halves of the (heat, bib) identity. */
+/** Whether a header row locates a name, under either of its two spellings. */
+function hasNameColumn(map: HeaderMap): boolean {
+  return map.name !== undefined || map.firstName !== undefined || map.lastName !== undefined;
+}
+
+/**
+ * A header row is one that locates a bib and a name. The heat is deliberately
+ * *not* required here — the by-heat layout carries it in banner rows instead —
+ * but a file that supplies it neither way still fails, in {@link parseGrid}.
+ */
 function isHeaderRow(map: HeaderMap): boolean {
-  return map.heat !== undefined && map.bib !== undefined;
+  return map.bib !== undefined && hasNameColumn(map);
+}
+
+/** `Heat-1`, `Heat 2`, `HEAT 3 final` — the group banner of the by-heat sheet. */
+const HEAT_BANNER = /^heat[^0-9]*(\d+)/i;
+
+/**
+ * The heat a banner row announces, or null when the row is not a banner. Only a
+ * row whose *sole* content is the banner counts: a data row that happens to hold
+ * "Heat 3" in some column must never silently re-point the group.
+ */
+function bannerHeat(cells: string[]): number | null {
+  const filled = cells.map((c) => c.trim()).filter(Boolean);
+  if (filled.length !== 1) return null;
+  const match = HEAT_BANNER.exec(filled[0]);
+  return match ? Number.parseInt(match[1], 10) : null;
+}
+
+/**
+ * A row carrying neither bib nor name — in the by-heat sheet, the per-lap split
+ * line written under every athlete. Skipped rather than refused: it continues
+ * the row above rather than being a result of its own, and nothing in it could
+ * identify a runner anyway.
+ */
+function isContinuationRow(cells: string[], map: HeaderMap): boolean {
+  const filled = (field: Field): boolean => {
+    const index = map[field];
+    return index !== undefined && (cells[index] ?? "").trim() !== "";
+  };
+  return !filled("bib") && !filled("name") && !filled("firstName") && !filled("lastName");
 }
 
 /** Rows scanned for the header before giving up (banners precede it in our export). */
@@ -158,11 +206,17 @@ function parseIntCell(raw: string): number | null {
   return Number.parseInt(text, 10);
 }
 
-/** One source row → a parsed row, or the reason it was refused. */
+/**
+ * One source row → a parsed row, or the reason it was refused.
+ * `bannerHeatNumber` is the heat the most recent banner announced (null before
+ * the first one): it supplies the heat for a layout without a heat column, and
+ * for a flat file whose heat cell is blank below the first row of a group.
+ */
 function parseRow(
   cells: string[],
   map: HeaderMap,
   sourceRow: number,
+  bannerHeatNumber: number | null,
 ): ParsedResultRow | RowError {
   const cell = (field: Field): string => {
     const index = map[field];
@@ -170,8 +224,18 @@ function parseRow(
   };
   const refuse = (message: string): RowError => ({ sourceRow, message });
 
-  const heat = parseIntCell(cell("heat"));
-  if (heat === null || heat < 1) return refuse(`unreadable heat "${cell("heat")}"`);
+  // A present-but-unreadable heat cell is a refusal, not a reason to inherit the
+  // banner's heat: filing a typo'd row under the previous heat would corrupt the
+  // (heat, bib) identity the whole import rests on.
+  const heatCell = cell("heat");
+  const heat = heatCell ? parseIntCell(heatCell) : bannerHeatNumber;
+  if (heat === null || heat < 1) {
+    return refuse(
+      heatCell
+        ? `unreadable heat "${heatCell}"`
+        : 'no heat — the row has no heat column and no "Heat-N" banner above it',
+    );
+  }
   const bib = parseIntCell(cell("bib"));
   if (bib === null || bib < 1) return refuse(`unreadable bib "${cell("bib")}"`);
 
@@ -183,7 +247,11 @@ function parseRow(
 
   const statusRaw = cell("status").toLowerCase().replace(/[^a-z]/g, "");
   const timeRaw = cell("time");
-  const status: ResultStatus | undefined = STATUS_TEXT[statusRaw] ?? (timeRaw ? "finished" : undefined);
+  // The by-heat sheet has no status column: a non-finisher's marker *is* the net
+  // time cell. Letters only, so a real time never reaches the lookup.
+  const timeStatusRaw = timeRaw.toLowerCase().replace(/[^a-z]/g, "");
+  const status: ResultStatus | undefined =
+    STATUS_TEXT[statusRaw] ?? STATUS_TEXT[timeStatusRaw] ?? (timeRaw ? "finished" : undefined);
   if (!status) {
     return refuse(
       statusRaw ? `unknown status "${cell("status")}"` : "no time and no DNF/DNS/DSQ status",
@@ -225,14 +293,12 @@ function parseGrid(grid: string[][]): ParsedResults {
         {
           sourceRow: 0,
           message:
-            "No header row with both a heat and a bib column — the export must carry the heat, " +
-            "because a bib alone does not identify a result (bibs are recycled across heats).",
+            "No header row with both a bib and a name column — the export must also carry the " +
+            'heat, either as a "Heat" column or as "Heat-N" banner rows, because a bib alone ' +
+            "does not identify a result (bibs are recycled across heats).",
         },
       ],
     };
-  }
-  if (map.name === undefined && map.firstName === undefined && map.lastName === undefined) {
-    return { rows: [], errors: [{ sourceRow: 0, message: "No name column in the header row." }] };
   }
   if (map.gender === undefined) {
     return { rows: [], errors: [{ sourceRow: 0, message: "No sex column in the header row." }] };
@@ -240,10 +306,17 @@ function parseGrid(grid: string[][]): ParsedResults {
 
   const rows: ParsedResultRow[] = [];
   const errors: RowError[] = [];
+  let bannerHeatNumber: number | null = null;
   for (let i = headerRow; i < grid.length; i += 1) {
     const cells = grid[i];
     if (cells.every((c) => !c.trim())) continue;
-    const parsed = parseRow(cells, map, i + 1);
+    const banner = bannerHeat(cells);
+    if (banner !== null) {
+      bannerHeatNumber = banner;
+      continue;
+    }
+    if (isContinuationRow(cells, map)) continue;
+    const parsed = parseRow(cells, map, i + 1, bannerHeatNumber);
     if ("message" in parsed) errors.push(parsed);
     else rows.push(parsed);
   }
