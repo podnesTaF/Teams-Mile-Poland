@@ -21,7 +21,7 @@ import {
   type PurchaseFlash,
 } from "@/features/wallet/purchase";
 import { Link } from "@/i18n/navigation";
-import { getUser, isProfileComplete } from "@/lib/auth/user-session";
+import { getUser, isAdmin, isProfileComplete } from "@/lib/auth/user-session";
 import { localePath } from "@/lib/i18n/config";
 
 /**
@@ -80,6 +80,12 @@ export default async function WalletPage({ params, searchParams }: PageProps) {
   const user = await getUser();
   if (!user) {
     redirect(localePath(locale, `/auth/sign-up?redirectTo=${encodeURIComponent(WALLET_PATH)}`));
+  }
+
+  // Admin-only while the wallet is in testing: ordinary users are sent back to
+  // their profile (the pill that links here is hidden for them too).
+  if (!isAdmin(user)) {
+    redirect(localePath(locale, "/profile"));
   }
 
   if (!user.emailVerified) {

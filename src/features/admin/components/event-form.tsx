@@ -44,6 +44,8 @@ export type EventFormValues = {
   city: string;
   eventType: EventType;
   bibPool: number;
+  /** Slot spec ("101-115, 203"), or "" when the event issues 1..bibPool. */
+  bibSlots: string;
   heatIntervalMinutes: number;
 };
 
@@ -69,6 +71,7 @@ export const NEW_EVENT_DEFAULTS: EventFormValues = {
   city: DEFAULT_VENUE.city,
   eventType: "individual",
   bibPool: DEFAULT_BIB_POOL,
+  bibSlots: "",
   heatIntervalMinutes: DEFAULT_HEAT_INTERVAL_MINUTES,
 };
 
@@ -227,8 +230,29 @@ export function EventForm({
           </AdminField>
           <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[52ch]")}>
             How many physical bibs the timing system supplies at the venue. Bibs are leases drawn
-            from 1 to this number, so shrinking it below a bib a runner is holding right now is
-            refused and names the bib.
+            from 1 to this number — unless the list below is filled in, which takes over. Shrinking
+            it below a bib a runner is holding right now is refused and names the bib.
+          </p>
+        </div>
+
+        <div>
+          <AdminField label="Bib numbers — optional" className="max-w-[320px]">
+            <input
+              className={adminInput()}
+              type="text"
+              name="bibSlots"
+              maxLength={2000}
+              placeholder="e.g. 101-115, 203"
+              defaultValue={initial.bibSlots}
+              data-event-bibslots
+            />
+          </AdminField>
+          <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[52ch]")}>
+            The exact bib numbers to issue, as numbers and ranges — the &ldquo;list of remaining
+            bibs&rdquo; case, when the box is not simply 1 to N. When set, check-in and the heat
+            builder issue only these numbers and the pool above is ignored. Leave empty to issue 1
+            up to the bib pool. Dropping a number a runner is holding is refused, same as shrinking
+            the pool.
           </p>
         </div>
 

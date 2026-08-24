@@ -49,7 +49,7 @@ export function RunnerCard({
   locale,
   q,
   nextBib,
-  pool,
+  bibMax,
   canCheckin,
 }: {
   row: RosterRow;
@@ -57,7 +57,8 @@ export function RunnerCard({
   locale: string;
   q: string;
   nextBib: number | null;
-  pool: number;
+  /** Highest issuable bib — the input's browser-side `max`; the server checks membership. */
+  bibMax: number;
   /**
    * Whether the reader may work the desk. A view-only admin gets the same card
    * — who this is, where they stand, which bib they hold — and none of the
@@ -107,7 +108,7 @@ export function RunnerCard({
           canCheckin={canCheckin}
         />
       ) : canCheckin ? (
-        <NotCheckedIn row={row} slug={slug} locale={locale} q={q} nextBib={nextBib} pool={pool} />
+        <NotCheckedIn row={row} slug={slug} locale={locale} q={q} nextBib={nextBib} bibMax={bibMax} />
       ) : null}
     </li>
   );
@@ -128,14 +129,14 @@ function NotCheckedIn({
   locale,
   q,
   nextBib,
-  pool,
+  bibMax,
 }: {
   row: RosterRow;
   slug: string;
   locale: string;
   q: string;
   nextBib: number | null;
-  pool: number;
+  bibMax: number;
 }) {
   return (
     <div className="mt-4 border-t border-admin-line pt-4">
@@ -153,7 +154,7 @@ function NotCheckedIn({
             name="bib"
             type="number"
             min={1}
-            max={pool}
+            max={bibMax}
             placeholder={!holdsBib(row) && nextBib === null ? "none" : undefined}
             defaultValue={holdsBib(row) ? (row.bib ?? "") : (nextBib ?? "")}
           />

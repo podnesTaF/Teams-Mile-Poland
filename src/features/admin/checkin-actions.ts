@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { revalidateStartList } from "@/features/event-heats/start-list";
 import { verifyEventTicket } from "@/features/ticket/sign";
-import { getBibPool } from "@/lib/events/registry";
+import { getBibSlots } from "@/lib/events/registry";
 import { localePath } from "@/lib/i18n/config";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
@@ -201,7 +201,10 @@ export async function assignBibAndCheckIn(formData: FormData) {
   // Explicit bib: one attempt, surface conflicts.
   if (bibRaw) {
     const bib = Number.parseInt(bibRaw, 10);
-    if (!Number.isInteger(bib) || bib < 1 || bib > (await getBibPool(slug))) {
+    // Membership, not a range: the event's issuable bibs may be an explicit
+    // slot list ("101-115, 203"), and a typed number outside it is exactly the
+    // mistake this refusal exists to catch.
+    if (!Number.isInteger(bib) || !(await getBibSlots(slug)).includes(bib)) {
       redirect(back("error=bib"));
     }
     try {

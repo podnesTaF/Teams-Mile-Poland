@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { events } from "@/db/schema";
 import { getDb } from "@/lib/db";
+import { formatBibSlots, parseBibSlots } from "@/lib/events/bib-slots";
 import { getEventBySlug } from "@/lib/events/registry";
 import { DEFAULT_BIB_POOL, type EventStatus, type TimeRange } from "@/lib/events/types";
 
@@ -151,23 +152,47 @@ function pastCaveat(date: string): string {
   return isPastEventDate(date) ? "&past=1" : "";
 }
 
+/**
+ * The bib slot list the form submitted, or `"invalid"`.
+ *
+ * Blank is `null` — no list, leases keep drawing from `1..bibPool` — and mirrors
+ * {@link readWindow}'s shape for the same reason: this failure gets its own
+ * flash code (`bibslots`), which names what a slot spec looks like, where the
+ * generic `input` refusal would leave the admin staring at nine fields. The
+ * parsed list rides along so the guard below does not parse twice; `spec` is
+ * the *normalized* text ({@link formatBibSlots}), which is what the column
+ * stores — "101,102,103" and "101-103" save as the same event.
+ */
+function readBibSlots(
+  formData: FormData,
+): { slots: number[]; spec: string } | null | "invalid" {
+  const raw = field(formData, "bibSlots");
+  if (!raw) return null;
+  const slots = parseBibSlots(raw);
+  return slots ? { slots, spec: formatBibSlots(slots) } : "invalid";
+}
+
 /* ── the guards that need the database ───────────────────────────────── */
 
 /**
- * The highest bib currently out on loan for an event, or 0 when none is.
+ * A bib currently out on loan that the proposed issuable set no longer covers,
+ * or 0 when every lease is covered.
  *
  * Reads the roster and asks `holdsBib` of each row rather than adding a seventh
  * query that knows what a held bib is: a bib is a *lease* (ADR 0003), held while
  * `bib` is set and `bib_returned_at` is not, and that predicate already has one
  * home. A returned number is deliberately not counted — it is history the roster
- * still shows, and shrinking the pool past it strands nothing.
+ * still shows, and dropping it from the list strands nothing.
  *
  * The roster read excludes the deprecated `cancelled` participation status,
  * which is never written, so nothing that could hold a lease is missed.
  */
-async function highestHeldBib(slug: string): Promise<number> {
+async function heldBibOutside(slug: string, issuable: ReadonlySet<number>): Promise<number> {
   const roster = await getEventRoster(slug);
-  return roster.reduce((max, row) => (holdsBib(row) ? Math.max(max, row.bib ?? 0) : max), 0);
+  const stranded = roster.find(
+    (row) => holdsBib(row) && row.bib !== null && !issuable.has(row.bib),
+  );
+  return stranded?.bib ?? 0;
 }
 
 /** `registrations=3&heats=1` — only the counts that are actually non-zero. */
@@ -288,6 +313,9 @@ export async function createEvent(formData: FormData): Promise<void> {
   const timeWindow = readWindow(formData, windowRequired(eventType.data));
   if (timeWindow === "invalid") backToForm("error=invalid_window");
 
+  const bibSlots = readBibSlots(formData);
+  if (bibSlots === "invalid") backToForm("error=bibslots");
+
   const values = {
     status: "draft" as const,
     eventType: eventType.data,
@@ -298,6 +326,7 @@ export async function createEvent(formData: FormData): Promise<void> {
     venue: fields.venue,
     city: fields.city,
     bibPool: fields.bibPool,
+    bibSlots: bibSlots?.spec ?? null,
     heatIntervalMinutes: fields.heatIntervalMinutes,
     createdBy: actor.id,
   };
@@ -337,11 +366,12 @@ export async function createEvent(formData: FormData): Promise<void> {
  * One refusal and one warning, and the difference between them is whether the
  * save could make a *lie* true:
  *
- * - **Shrinking the bib pool below a bib somebody is holding is refused**
- *   (`?error=bibpool_in_use&bib=<highest>`). Bibs are leases drawn from
- *   `1..bibPool` (ADR 0003), and every check-in and heat guard bounds against
- *   the live pool — so a pool of 20 with bib 37 out on the track is a number
- *   nothing in the system can account for.
+ * - **Saving a bib pool or slot list that no longer covers a bib somebody is
+ *   holding is refused** (`?error=bibpool_in_use&bib=<stranded>`). Bibs are
+ *   leases drawn from the event's issuable set — its slot list, or `1..bibPool`
+ *   (ADR 0003) — and every check-in and heat guard validates against the live
+ *   set, so a list of 101–115 with bib 37 out on the track is a number nothing
+ *   in the system can account for.
  * - **Heats left outside the new window are only counted**
  *   (`?heatsoutside=<n>`). Their times are stored facts that this save did not
  *   and must not move, and an admin mid-reschedule legitimately moves the date
@@ -367,13 +397,26 @@ export async function updateEvent(formData: FormData): Promise<void> {
   const timeWindow = readWindow(formData, windowRequired(eventType));
   if (timeWindow === "invalid") backToSettings(locale, slug, "error=invalid_window");
 
-  // Only a shrink can strand a lease, and only then is the roster worth reading:
-  // leases are bounded by the pool at every site that issues one, so growing it
-  // or leaving it alone cannot put a held bib out of range.
-  if (fields.bibPool < (event.bibPool ?? DEFAULT_BIB_POOL)) {
-    const highest = await highestHeldBib(slug);
-    if (fields.bibPool < highest) {
-      backToSettings(locale, slug, `error=bibpool_in_use&bib=${highest}&pool=${fields.bibPool}`);
+  const bibSlots = readBibSlots(formData);
+  if (bibSlots === "invalid") backToSettings(locale, slug, "error=bibslots");
+
+  // Only a save that stops covering the current issuable set can strand a
+  // lease, and only then is the roster worth reading: every site that issues a
+  // bib draws from that set, so a save that keeps or widens it cannot put a
+  // held bib outside it. "Issuable" is the slot list when one is defined and
+  // `1..bibPool` otherwise — same rule as `getBibSlots`, computed from the form
+  // here because the store's snapshot predates this save.
+  const newIssuable = new Set(
+    bibSlots?.slots ?? Array.from({ length: fields.bibPool }, (_, i) => i + 1),
+  );
+  const oldIssuable =
+    event.bibSlots ??
+    Array.from({ length: event.bibPool ?? DEFAULT_BIB_POOL }, (_, i) => i + 1);
+  if (!oldIssuable.every((bib) => newIssuable.has(bib))) {
+    const stranded = await heldBibOutside(slug, newIssuable);
+    if (stranded > 0) {
+      const asked = bibSlots ? "" : `&pool=${fields.bibPool}`;
+      backToSettings(locale, slug, `error=bibpool_in_use&bib=${stranded}${asked}`);
     }
   }
 
@@ -387,6 +430,7 @@ export async function updateEvent(formData: FormData): Promise<void> {
       venue: fields.venue,
       city: fields.city,
       bibPool: fields.bibPool,
+      bibSlots: bibSlots?.spec ?? null,
       heatIntervalMinutes: fields.heatIntervalMinutes,
       updatedAt: new Date(),
     })

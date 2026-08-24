@@ -40,6 +40,7 @@ export const DEFAULT_VENUE = { venue: EVENT.venue.name, city: EVENT.venue.city }
 
 export {
   getBibPool,
+  getBibSlots,
   getEventBySlug,
   getEventOrThrow,
   getFeaturedEvent,

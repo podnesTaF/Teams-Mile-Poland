@@ -23,8 +23,9 @@ import {
 import { heatsOutsideWindow } from "@/features/admin/event-schemas";
 import { getResultsState, topQualifiers } from "@/features/admin/results-import/data";
 import { instantToWarsawLocal } from "@/lib/events/heat-time";
+import { formatBibSlots } from "@/lib/events/bib-slots";
 import {
-  getBibPool,
+  getBibSlots,
   getEventBySlug,
   getFirstHeatTime,
   getHeatIntervalMinutes,
@@ -73,7 +74,13 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
     getResultsState(slug),
   ]);
 
-  const pool = await getBibPool(slug);
+  // The issuable bibs — the event's slot list, or 1..pool. The count bounds
+  // capacities; the highest number is the per-runner bib inputs' `max`; the
+  // spec (only when a list is set) lets the bib refusal name the list.
+  const slots = await getBibSlots(slug);
+  const pool = slots.length;
+  const bibMax = slots[slots.length - 1];
+  const bibSpec = event.bibSlots ? formatBibSlots(slots) : undefined;
 
   // The seed-final bridge appears once the timing system has reported
   // finishers and there is a card to seed into. The preview is the standings
@@ -118,7 +125,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
 
   return (
     <>
-      <AdminFlash query={query} context={{ slug, bibPool: pool }} />
+      <AdminFlash query={query} context={{ slug, bibPool: pool, bibSpec }} />
 
       {stranded.length > 0 ? (
         <AdminNotice className="mb-4">
@@ -286,6 +293,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
             heats={heats}
             seeds={seeds}
             pool={pool}
+            bibMax={bibMax}
             canEdit={canEdit}
           />
         </div>

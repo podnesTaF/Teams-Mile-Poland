@@ -118,6 +118,12 @@ export type EventSummary = {
    */
   bibPool?: number;
   /**
+   * The explicit bib numbers to issue instead of `1..bibPool`, ascending, when
+   * the event defines a slot list (`events.bib_slots`). Absent otherwise —
+   * read the effective list through `getBibSlots`, not from here.
+   */
+  bibSlots?: number[];
+  /**
    * Spacing used to prefill generated heat start times (individual events).
    * Defaults to {@link DEFAULT_HEAT_INTERVAL_MINUTES} when omitted.
    */

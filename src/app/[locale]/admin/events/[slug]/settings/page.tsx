@@ -20,6 +20,7 @@ import { plural } from "@/features/admin/format";
 import { getEventHeats } from "@/features/admin/heats-data";
 import { EVENT_SCHEDULED_KINDS } from "@/features/event-mailings/schedule";
 import { getDb } from "@/lib/db";
+import { formatBibSlots } from "@/lib/events/bib-slots";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 import {
   DEFAULT_BIB_POOL,
@@ -156,6 +157,7 @@ function toFormValues(event: EventSummary): EventFormValues {
     city: event.city,
     eventType: event.eventType ?? "individual",
     bibPool: event.bibPool ?? DEFAULT_BIB_POOL,
+    bibSlots: event.bibSlots ? formatBibSlots(event.bibSlots) : "",
     heatIntervalMinutes: event.heatIntervalMinutes ?? DEFAULT_HEAT_INTERVAL_MINUTES,
   };
 }

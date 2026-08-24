@@ -56,6 +56,14 @@ export const events = pgTable("events", {
   city: text("city").notNull(),
   /** Physical bibs the timing system supplies; bibs are leases from `1..bibPool` (ADR 0003). */
   bibPool: integer("bib_pool").default(DEFAULT_BIB_POOL).notNull(),
+  /**
+   * Explicit bib numbers to issue instead of `1..bibPool`, as the normalized
+   * spec `lib/events/bib-slots.ts` writes ("101-115, 203") — the "list of
+   * remaining numbers" case, where the venue's box is not a neat prefix. Null
+   * means no list: leases keep drawing from `1..bibPool`, so every existing
+   * row behaves exactly as before this column existed.
+   */
+  bibSlots: text("bib_slots"),
   /** Spacing used to prefill *newly* generated heat times; never moves a stored one. */
   heatIntervalMinutes: integer("heat_interval_minutes")
     .default(DEFAULT_HEAT_INTERVAL_MINUTES)

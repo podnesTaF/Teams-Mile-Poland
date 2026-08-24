@@ -75,7 +75,10 @@ export type FlashQuery = Record<string, string | string[] | undefined>;
  */
 export type FlashContext = {
   slug?: string;
+  /** How many bibs the event can issue — `getBibPool`, which counts the slot list when one is set. */
   bibPool?: number;
+  /** The event's slot spec ("101-115, 203") when it issues from a list — lets refusals name the list. */
+  bibSpec?: string;
 };
 
 /**
@@ -310,15 +313,20 @@ const ERROR_CODES: Record<string, FlashCopy> = {
     const held = parts.length === 0 ? "rows attached to it" : joinList(parts);
     return `Cannot delete this event — it still has ${held}. The slug is the only thing tying those rows to it, so deleting the event would strand them. Cancel it instead: the public page says cancelled and registration is refused, while the roster, heats and results stay on the record.`;
   },
-  // Shrinking the pool under a live lease. `?bib=` is the highest bib currently
-  // held and `?pool=` the size that was asked for; the current pool comes from
-  // the context, like the `capacity` sentence above.
-  bibpool_in_use: (q, ctx) => {
+  // Saving a pool or slot list that no longer covers a live lease. `?bib=` is a
+  // stranded held bib; `?pool=` is the size that was asked for, sent only when
+  // the save was a plain pool shrink — a refused slot list has no single number
+  // to name, so the sentence names the bib and the rule instead.
+  bibpool_in_use: (q) => {
     const bib = count(q, "bib");
     const asked = count(q, "pool");
-    const stillIs = ctx.bibPool ? ` The pool is still ${ctx.bibPool}.` : "";
-    return `Cannot shrink the bib pool${asked > 0 ? ` to ${asked}` : ""} — bib #${bib} is held by a runner right now, and bibs are leases from 1 to the pool size. Nothing was changed.${stillIs} Finish that runner's heat to return the bib, or keep the pool at ${bib} or higher.`;
+    const move = asked > 0 ? `shrink the bib pool to ${asked}` : "save that bib list";
+    return `Cannot ${move} — bib #${bib} is held by a runner right now and would fall outside the numbers this event can issue. Nothing was changed. Finish that runner's heat to return the bib, or keep #${bib} in the list.`;
   },
+  // An unreadable slot spec. Named separately from `input` because the fix is
+  // knowing what a spec looks like, and the sentence is the one place to say it.
+  bibslots: () =>
+    "Enter the bib numbers as a comma-separated list of numbers and ranges — like 101-115, 203 — using whole numbers from 1 to 9999, or leave the field empty to issue 1 up to the bib pool. Nothing was changed.",
   invalid_window: () =>
     "Enter the event window as two times, HH:MM, with the start before the end — the public timetable is generated from the start time.",
 };
@@ -357,6 +365,7 @@ const deskCheckedIn: FlashCopy = (query) =>
 const deskError: FlashCopy = (query, context) =>
   checkinErrorText(param(query, "error"), {
     pool: context.bibPool ?? 0,
+    spec: context.bibSpec,
     bibs: param(query, "bibs"),
   });
 

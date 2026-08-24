@@ -43,7 +43,7 @@ import type { EventSummary } from "@/lib/events/types";
 import { getDirectResultRefs, getMergedResults } from "@/lib/events/results-data";
 import { findUserResults } from "@/lib/events/user-results";
 import { defaultLocale } from "@/lib/i18n/config";
-import { getUser, isProfileComplete } from "@/lib/auth/user-session";
+import { getUser, isAdmin, isProfileComplete } from "@/lib/auth/user-session";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
@@ -274,10 +274,13 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             </a>
             {/* The one pill that leaves the page — the wallet is its own screen
               * (per-user money, never pre-rendered), and this strip is where a
-              * runner looks for the rest of their cabinet. */}
-            <Link className="pf-nav__link pf-nav__link--go" href="/wallet">
-              {t("nav.wallet")} →
-            </Link>
+              * runner looks for the rest of their cabinet. Admin-only while the
+              * wallet is in testing; the /wallet route is gated to match. */}
+            {isAdmin(user) ? (
+              <Link className="pf-nav__link pf-nav__link--go" href="/wallet">
+                {t("nav.wallet")} →
+              </Link>
+            ) : null}
           </nav>
 
           {incomplete ? (

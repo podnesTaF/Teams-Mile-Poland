@@ -4,6 +4,7 @@ import { asc } from "drizzle-orm";
 import { events, type EventRow } from "@/db/schema";
 import { db } from "@/lib/db";
 
+import { parseBibSlots } from "./bib-slots";
 import { RESULTS_SHEETS } from "./results-sheets";
 import { buildMileTimetable, firstHeatTime } from "./timetables";
 import {
@@ -60,6 +61,13 @@ function shortDate(date: string): string {
 function toSummary(row: EventRow): EventSummary {
   const timeRange: TimeRange | undefined =
     row.startTime && row.endTime ? { start: row.startTime, end: row.endTime } : undefined;
+  // The actions normalize the spec before writing it, so a row that does not
+  // parse is a hand-edited column — treated as "no list" (back to 1..bibPool)
+  // and said out loud, because silently issuing from a corrupt list is worse.
+  const bibSlots = row.bibSlots ? parseBibSlots(row.bibSlots) : null;
+  if (row.bibSlots && !bibSlots) {
+    console.warn(`[events] ${row.slug} has an unreadable bib_slots spec; ignoring it`);
+  }
   return {
     slug: row.slug,
     status: row.status,
@@ -74,6 +82,7 @@ function toSummary(row: EventRow): EventSummary {
       ? { timetable: buildMileTimetable(timeRange.start) }
       : {}),
     bibPool: row.bibPool,
+    ...(bibSlots ? { bibSlots } : {}),
     heatIntervalMinutes: row.heatIntervalMinutes,
     ...(RESULTS_SHEETS[row.slug] ? { results: RESULTS_SHEETS[row.slug] } : {}),
   };
@@ -277,13 +286,29 @@ export async function getEventBySlug(slug: string): Promise<EventSummary | undef
 }
 
 /**
- * The bib pool an event draws leases from (ADR 0003), falling back to the series
- * default for an event the store does not know. The column is `not null` with
- * the same default, so the fallback now only covers an unknown slug.
+ * Every bib number an event may issue, ascending — the one place "which bibs
+ * exist" is answered. The event's slot list when it defines one
+ * (`events.bib_slots`), and the classic `1..bibPool` range otherwise
+ * (ADR 0003); the series default covers an unknown slug. Check-in's
+ * suggestions, both explicit-bib validations and the pre-assignment in the
+ * heat builder all draw from exactly this list.
+ */
+export async function getBibSlots(slug: string): Promise<number[]> {
+  const event = await getEventBySlug(slug);
+  if (event?.bibSlots?.length) return event.bibSlots;
+  const pool = event?.bibPool ?? DEFAULT_BIB_POOL;
+  return Array.from({ length: pool }, (_, i) => i + 1);
+}
+
+/**
+ * How many bibs the event can issue — `getBibSlots().length`. This is the
+ * *count*, which is what every caller wants for a bound or a sentence ("a heat
+ * cannot be larger than…", "All N bibs are out"); it is no longer the highest
+ * legal number, which for a slot list like `101-115` is a different value —
+ * take `Math.max` over {@link getBibSlots} for an input's `max`.
  */
 export async function getBibPool(slug: string): Promise<number> {
-  const event = await getEventBySlug(slug);
-  return event?.bibPool ?? DEFAULT_BIB_POOL;
+  return (await getBibSlots(slug)).length;
 }
 
 /**

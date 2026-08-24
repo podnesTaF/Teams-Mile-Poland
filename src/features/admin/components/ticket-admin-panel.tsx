@@ -10,7 +10,8 @@ import { StatusPill } from "@/features/admin/components/status-pill";
 import { getRosterRowById, holdsBib, suggestNextBib } from "@/features/admin/events-data";
 import { formatAdminDateTime } from "@/features/admin/format";
 import { formatHeatTime } from "@/lib/events/heat-time";
-import { getBibPool } from "@/lib/events/registry";
+import { formatBibSlots } from "@/lib/events/bib-slots";
+import { getBibSlots, getEventBySlug } from "@/lib/events/registry";
 import { Link } from "@/i18n/navigation";
 
 /**
@@ -59,14 +60,20 @@ export async function TicketAdminPanel({
   const row = await getRosterRowById(slug, registrationId);
   if (!row) return null;
 
-  const pool = await getBibPool(slug);
+  // The issuable bibs — the event's slot list, or 1..pool (both reads share the
+  // request-cached event snapshot). Count for the copy, highest number for the
+  // input's `max`, spec so a refusal can name the list when one is set.
+  const [slots, event] = await Promise.all([getBibSlots(slug), getEventBySlug(slug)]);
+  const pool = slots.length;
+  const bibMax = slots[slots.length - 1];
+  const spec = event?.bibSlots ? formatBibSlots(slots) : undefined;
   const checkedIn = row.status === "checked_in";
   const holds = holdsBib(row);
   // Their heat has run: they are done, not waiting on a number (ADR 0003).
   const ran = checkedIn && !holds && row.heatFinishedAt !== null;
   const nextBib = holds ? null : await suggestNextBib(slug);
 
-  const flash = ok ? checkinOkText(ok, heat) : checkinErrorText(error ?? "", { pool });
+  const flash = ok ? checkinOkText(ok, heat) : checkinErrorText(error ?? "", { pool, spec });
   const name = [row.firstName, row.lastName].filter(Boolean).join(" ") || row.name;
 
   return (
@@ -188,7 +195,7 @@ export async function TicketAdminPanel({
                   type="number"
                   inputMode="numeric"
                   min={1}
-                  max={pool}
+                  max={bibMax}
                   placeholder={!holds && nextBib === null ? "none" : undefined}
                   defaultValue={holds ? (row.bib ?? "") : (nextBib ?? "")}
                 />

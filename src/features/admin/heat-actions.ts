@@ -10,7 +10,7 @@ import {
   type PublishHeatsSummary,
 } from "@/features/event-mailings/heat-assignment";
 import { warsawLocalToInstant } from "@/lib/events/heat-time";
-import { getBibPool, getEventBySlug } from "@/lib/events/registry";
+import { getBibPool, getBibSlots, getEventBySlug } from "@/lib/events/registry";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 import { clearPreassignedBib, isUniqueViolation, preassignBib } from "./events-data";
@@ -307,8 +307,10 @@ export async function assignBib(formData: FormData) {
   }
 
   const bib = Number.parseInt(bibRaw, 10);
-  const pool = await getBibPool(slug);
-  if (!Number.isInteger(bib) || bib < 1 || bib > pool) {
+  // Membership in the event's issuable bibs (its slot list, or 1..pool) — the
+  // same rule the desk enforces, so a pre-assignment cannot promise a number
+  // check-in would then refuse.
+  if (!Number.isInteger(bib) || !(await getBibSlots(slug)).includes(bib)) {
     back(locale, slug, "error=bib");
   }
 

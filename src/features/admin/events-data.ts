@@ -13,7 +13,7 @@ import {
 } from "@/db/schema";
 import { awardCheckInRewards } from "@/features/wallet/accruals";
 import { getDb } from "@/lib/db";
-import { getBibPool, getEventBySlug } from "@/lib/events/registry";
+import { getBibSlots, getEventBySlug } from "@/lib/events/registry";
 
 export type { ParticipationStatus };
 
@@ -297,18 +297,19 @@ async function heldBibs(eventSlug: string): Promise<Set<number>> {
 }
 
 /**
- * The lowest bib in `1..bibPool` nobody is currently holding, or `null` when the
- * pool is exhausted. Bibs are recycled leases (ADR 0003), so a returned number
- * is free again — which is why this cannot be `max(bib) + 1`: that hands out
- * numbers above the pool the venue actually has.
+ * The lowest bib the event may issue that nobody is currently holding, or
+ * `null` when the pool is exhausted. "May issue" is `getBibSlots` — the
+ * event's explicit slot list, or `1..bibPool` without one. Bibs are recycled
+ * leases (ADR 0003), so a returned number is free again — which is why this
+ * cannot be `max(bib) + 1`: that hands out numbers the venue does not have.
  *
  * Exhaustion is a normal expected state, not an error: callers check a runner in
  * bib-less and tell the desk to free bibs by marking a finished heat complete.
  */
 export async function suggestNextBib(eventSlug: string): Promise<number | null> {
-  const pool = await getBibPool(eventSlug);
+  const slots = await getBibSlots(eventSlug);
   const held = await heldBibs(eventSlug);
-  for (let bib = 1; bib <= pool; bib += 1) {
+  for (const bib of slots) {
     if (!held.has(bib)) return bib;
   }
   return null;

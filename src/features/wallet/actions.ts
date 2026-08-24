@@ -2,7 +2,7 @@
 
 import { getLocale, getTranslations } from "next-intl/server";
 
-import { getUser, isProfileComplete } from "@/lib/auth/user-session";
+import { getUser, isAdmin, isProfileComplete } from "@/lib/auth/user-session";
 
 import { isValidAcerAmount } from "./config";
 import { createAcerPurchaseSession, isAcerPurchaseEnabled } from "./purchase";
@@ -69,6 +69,8 @@ export async function createAcerCheckout({
 
   const user = await getUser();
   if (!user) return { ok: false, reason: "auth" };
+  // Admin-only while the wallet is in testing, matching the page gate.
+  if (!isAdmin(user)) return { ok: false, reason: "unavailable" };
   if (!user.emailVerified) return { ok: false, reason: "verify" };
   if (!isProfileComplete(user)) return { ok: false, reason: "profile" };
 
