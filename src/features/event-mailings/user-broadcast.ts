@@ -6,7 +6,7 @@ import { getDb } from "@/lib/db";
 import { FROM_EMAIL, resend } from "@/lib/email";
 
 import { unsubscribeFooter } from "./unsubscribe";
-import { resolveUserSegment, type UserSegment } from "./user-segments";
+import { parseUserSegment, resolveUserSegment, type UserSegment } from "./user-segments";
 
 export type UserBroadcastRow = typeof userBroadcasts.$inferSelect;
 
@@ -127,18 +127,36 @@ export async function sendUserBroadcast(
  * per-(user, broadcast) dedup: recipients already reached are skipped, so this
  * only ever fills gaps (e.g. a partial first send) and never double-emails.
  */
-export async function resendUserBroadcast(broadcastId: string): Promise<UserBroadcastResult | null> {
+/**
+ * Why a re-send did not happen. Two distinct causes that used to share one
+ * `null`: the broadcast is gone, versus the broadcast is here but the audience
+ * it named can no longer be identified (its event was cancelled, deleted, or is
+ * unreadable). An admin debugging silent mail needs to be told which.
+ */
+export type ResendRefusal = { refused: "notfound" | "unresolvable_segment" };
+
+export async function resendUserBroadcast(
+  broadcastId: string,
+): Promise<UserBroadcastResult | ResendRefusal> {
   const [row] = await getDb()
     .select()
     .from(userBroadcasts)
     .where(eq(userBroadcasts.id, broadcastId))
     .limit(1);
-  if (!row) return null;
+  if (!row) return { refused: "notfound" };
+  // Re-validate rather than cast. The stored string was valid when it was
+  // written, but a per-event segment names an event, and events are rows now —
+  // the event it targets may since have been cancelled, deleted, or simply be
+  // unreadable. `parseUserSegment` returns null for all three, and re-sending
+  // to an audience we can no longer identify is how a one-night mail becomes a
+  // mail to everybody.
+  const segment = await parseUserSegment(row.segment);
+  if (!segment) return { refused: "unresolvable_segment" };
   return deliver({
     id: row.id,
     subject: row.subject,
     bodyHtml: row.bodyHtml,
-    segment: row.segment as UserSegment,
+    segment,
   });
 }
 

@@ -50,13 +50,17 @@ export function HeatBuilder({
   heats,
   seeds,
   pool,
+  bibMax,
   canEdit,
 }: {
   locale: string;
   slug: string;
   heats: HeatWithFill[];
   seeds: SeedRow[];
+  /** How many bibs the event can issue — the capacity inputs' `max`. */
   pool: number;
+  /** Highest issuable bib — the bib inputs' `max`; not the same number when the event issues from a slot list. */
+  bibMax: number;
   /** Whether the reader holds `edit`; false renders the card read-only. */
   canEdit: boolean;
 }) {
@@ -260,7 +264,7 @@ export function HeatBuilder({
           emptyText={filtering ? "No matches here." : "Everyone confirmed is placed."}
           locale={locale}
           slug={slug}
-          pool={pool}
+          bibMax={bibMax}
           canEdit={canEdit}
           scroll
         />
@@ -291,6 +295,7 @@ export function HeatBuilder({
             slug={slug}
             heat={heat}
             pool={pool}
+            bibMax={bibMax}
             rows={byHeat.get(heat.id) ?? []}
             toNotify={toNotifyByHeat.get(heat.id) ?? 0}
             selected={selected}
@@ -317,6 +322,7 @@ function HeatCard({
   slug,
   heat,
   pool,
+  bibMax,
   rows,
   toNotify,
   selected,
@@ -329,6 +335,7 @@ function HeatCard({
   slug: string;
   heat: HeatWithFill;
   pool: number;
+  bibMax: number;
   rows: SeedRow[];
   toNotify: number;
   selected: Set<string>;
@@ -395,7 +402,7 @@ function HeatCard({
           }
           locale={locale}
           slug={slug}
-          pool={pool}
+          bibMax={bibMax}
           canEdit={canEdit}
         />
       </div>
@@ -552,7 +559,7 @@ function RunnerGrid({
   emptyText,
   locale,
   slug,
-  pool,
+  bibMax,
   canEdit,
   scroll = false,
   className,
@@ -563,7 +570,7 @@ function RunnerGrid({
   emptyText: string;
   locale: string;
   slug: string;
-  pool: number;
+  bibMax: number;
   canEdit: boolean;
   scroll?: boolean;
   className?: string;
@@ -588,7 +595,7 @@ function RunnerGrid({
           onToggle={onToggle}
           locale={locale}
           slug={slug}
-          pool={pool}
+          bibMax={bibMax}
           canEdit={canEdit}
         />
       ))}
@@ -613,7 +620,7 @@ function RunnerChip({
   onToggle,
   locale,
   slug,
-  pool,
+  bibMax,
   canEdit,
 }: {
   row: SeedRow;
@@ -621,7 +628,7 @@ function RunnerChip({
   onToggle: (id: string) => void;
   locale: string;
   slug: string;
-  pool: number;
+  bibMax: number;
   canEdit: boolean;
 }) {
   // Only `stale` is marked per runner: in a never-published heat *everyone* is
@@ -685,7 +692,7 @@ function RunnerChip({
             type="number"
             name="bib"
             min={1}
-            max={pool}
+            max={bibMax}
             defaultValue={row.bib ?? ""}
             placeholder="—"
             className={adminInput("h-7 w-16 px-1.5 text-center text-[12px]")}

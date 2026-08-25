@@ -684,7 +684,7 @@
     "documents": [
       {
         "title": "Privacy Policy",
-        "updated": "Last updated 2 June 2026",
+        "updated": "Last updated 20 August 2026",
         "intro": "This Privacy Policy outlines the rules for the collection, processing, use, and protection of personal data of users of this website. The website administration respects every user's right to privacy and is committed to protecting the information provided in accordance with applicable laws. By using this website, the user confirms their agreement with this Privacy Policy and the terms of personal data processing described herein.",
         "sections": [
           {
@@ -710,7 +710,8 @@
               "Name",
               "Email address",
               "Phone number",
-              "Information submitted through forms on the website"
+              "Information submitted through forms on the website",
+              "Transaction data relating to ACER credit in the Wallet (amount, currency, date, payment identifier — never card details)"
             ],
             "outro": [
               "This information is used solely to the extent necessary for the proper operation of the website."
@@ -721,7 +722,13 @@
             "p": [
               "The collected information is used to ensure the proper functioning of the website, provide services, maintain communication with users, and process inquiries or requests.",
               "Personal data may also be processed for the purpose of improving content quality, optimizing website structure, and analyzing the effectiveness of website performance.",
-              "The website administration does not process personal data for hidden or unlawful purposes and does not use such data in any manner that may violate the rights, freedoms, or legitimate interests of users."
+              "The website administration does not process personal data for hidden or unlawful purposes and does not use such data in any manner that may violate the rights, freedoms, or legitimate interests of users.",
+              "Where a user buys ACER credit in the Wallet, personal data is additionally processed for the following purposes and on the following legal bases:"
+            ],
+            "list": [
+              "processing the payment and delivering the purchased credit — performance of a contract with the user (Art. 6(1)(b) GDPR);",
+              "keeping records of financial transactions, accounting books and tax documentation — compliance with a legal obligation of the controller (Art. 6(1)(c) GDPR);",
+              "preventing fraud, chargeback abuse and abuse of the reward programme, and securing the transaction ledger — the legitimate interests of the controller (Art. 6(1)(f) GDPR)."
             ]
           },
           {
@@ -729,7 +736,8 @@
             "p": [
               "The website administration takes appropriate measures to ensure the security of personal data and prevent unauthorized access to it.",
               "Information is stored only for as long as necessary to achieve the purposes for which it was collected or as required by applicable law.",
-              "Technical and organizational security measures are implemented to minimize the risks of loss, alteration, unauthorized disclosure, or misuse of personal data."
+              "Technical and organizational security measures are implemented to minimize the risks of loss, alteration, unauthorized disclosure, or misuse of personal data.",
+              "By way of exception to the above, records of financial transactions — purchases of ACER credit, the entries in the Wallet ledger and the related accounting documents — are kept for approximately 5 years counted from the end of the accounting year in which the transaction took place, as required by the Polish Accounting Act and tax legislation. That obligation takes precedence over a request to delete data: such records are retained for the statutory period even after the user's account has been deleted, and are removed afterwards."
             ]
           },
           {
@@ -748,6 +756,21 @@
             ]
           },
           {
+            "h": "Data recipients and transfers outside the EEA",
+            "p": [
+              "Personal data is disclosed only to entities that process it on the controller's behalf, or that must receive it in order for a requested service to be provided, and only to the extent necessary.",
+              "Card payments and purchases of ACER credit in the Wallet are handled by Stripe, Inc. and Stripe Payments Europe, Ltd., acting as an independent controller of the payment data. Stripe receives the buyer's name and email address and the metadata of the transaction (amount, currency, the credit purchased and the internal account identifier)."
+            ],
+            "list": [
+              "Card and other payment-instrument details are entered on Stripe's own payment page and transmitted directly to Stripe — the platform never receives or stores them.",
+              "Stripe may transfer data to the United States. Such transfers are covered by the EU–US Data Privacy Framework and, to the extent it does not apply, by the European Commission's Standard Contractual Clauses.",
+              "Stripe also processes payment data for its own purposes, in particular fraud prevention and its own legal obligations, on the basis of its own privacy policy."
+            ],
+            "outro": [
+              "Data may also be disclosed to the hosting, email-delivery and analytics providers used to operate the website, and to public authorities where the law requires it."
+            ]
+          },
+          {
             "h": "User rights and policy changes",
             "p": [
               "Users have the right to obtain information about the processing of their personal data, request correction or deletion of their data, and withdraw their consent to data processing where applicable.",
@@ -758,7 +781,7 @@
       },
       {
         "title": "Terms of Use",
-        "updated": "Last updated 2 June 2026",
+        "updated": "Last updated 20 August 2026",
         "intro": "These Terms of Use govern access to and use of this website. By accessing or using the website, you acknowledge that you have read, understood, and agree to be bound by these Terms of Use. If you do not agree with these Terms, you should discontinue use of the website immediately.",
         "sections": [
           {
@@ -803,6 +826,61 @@
             ]
           },
           {
+            "h": "ACER credit and the Wallet",
+            "p": [
+              "The platform provides a signed-in user with a personal Wallet in which they may hold ACER — prepaid credit issued by ACE BATTLE POLAND Sp. z o.o. and usable only inside this platform. For accounting purposes a fixed denomination applies: 1 ACER = 1 USD.",
+              "ACER credit:"
+            ],
+            "list": [
+              "may be used only within this platform, and only for the goods and services the platform makes available for it;",
+              "is not transferable — it cannot be moved to another user, sold, assigned or given away;",
+              "cannot be withdrawn, exchanged for money or paid out in cash; the platform provides no payout mechanism of any kind;",
+              "bears no interest and does not grow in value over time;",
+              "is not a payment instrument, electronic money, a security, an investment product, or a means of payment accepted outside this platform."
+            ],
+            "outro": [
+              "Because ACER can be used only for the issuer's own goods and services within a limited network, it is not electronic money and its issuance is not a payment service.",
+              "ACER exists solely as an entry in the platform's internal transaction ledger. A balance is the sum of the entries recorded against the user's account. The ledger is append-only: a correction is always made by adding an offsetting entry, never by changing or deleting history."
+            ]
+          },
+          {
+            "h": "Earning ACER (reward programme)",
+            "p": [
+              "The platform may credit ACER to a user as a reward — for example for being checked in at an event, or for introducing another person who is later checked in at an event. Reward amounts and the list of rewarded actions are set by the platform and published in the Wallet.",
+              "The reward programme operates on the following terms:"
+            ],
+            "list": [
+              "reward amounts and the list of rewarded actions may be changed, suspended or ended at any time, with effect for the future;",
+              "rewards are credited only for actions that actually took place; a reward granted in error, twice, or as a result of a technical fault may be reversed by an offsetting entry;",
+              "rewards are personal: creating additional or fictitious accounts, referring oneself, automated sign-ups and any other attempt to obtain rewards without genuine participation are prohibited and may lead to reversal of the affected credit and to suspension of the account;",
+              "rewards are granted from the date the programme starts and are not applied retroactively to earlier events or earlier introductions;",
+              "a reward is not a discount, a price reduction or a monetary claim, and no user has a right to be granted one."
+            ]
+          },
+          {
+            "h": "Buying ACER, right of withdrawal and refunds",
+            "p": [
+              "A signed-in user may buy ACER by payment card. Payments are processed in US dollars (USD) by Stripe; the price is exactly 1 USD per 1 ACER, purchases are made in whole ACER, and the amounts available in a single transaction (the fixed packs and the permitted range for a custom amount) are shown on the purchase screen. The platform adds no fee of its own; a currency-conversion charge may be applied by the user's own bank.",
+              "Purchased ACER is credited to the Wallet as soon as the payment is confirmed by Stripe. This may take a short moment after payment — until then the Wallet shows the transaction together with its status.",
+              "Because the credit is digital content supplied immediately, at checkout the consumer expressly requests that the credit be delivered before the end of the 14-day withdrawal period, and acknowledges that once it has been delivered they lose the right of withdrawal provided for in the Polish Act on Consumer Rights of 30 May 2014 (implementing Directive 2011/83/EU). Confirming the purchase constitutes that request and that acknowledgment.",
+              "Irrespective of the above, the platform undertakes — as a voluntary commitment — to refund the amount paid for purchased ACER that has not been spent, if the user asks within 14 days of the purchase. Requests are made to the contact address given in these Terms; the refund is returned to the original payment method in the amount actually paid, and the corresponding credit is removed from the Wallet by an offsetting ledger entry. ACER received as a reward has no monetary value and is never refunded in money."
+            ]
+          },
+          {
+            "h": "Your balance if the account is deleted",
+            "p": [
+              "A user may ask for their account to be deleted at any time. Deleting the account ends access to the Wallet, and any remaining ACER balance — purchased or awarded as a reward — expires without compensation, save for the refund described above of unspent ACER purchased within the last 14 days, provided the user asks for it before the account is deleted.",
+              "The platform does not delete records of financial transactions whose retention is required by law (see the Privacy Policy). Those records are kept for the statutory period even after the account itself has been removed."
+            ]
+          },
+          {
+            "h": "What ACER can be used for",
+            "p": [
+              "ACER is intended for use within the platform for paid event entries, season licences and comparable paid features, and as a prize within the series. Participation in current events is free, so at present there may be nothing that ACER can be spent on. The platform makes no promise as to when any particular redemption option will become available, and a user should buy ACER only if they accept that.",
+              "The platform decides what ACER can be used for and at what price, and may add, change or withdraw individual redemption options. Withdrawing an option does not take away ACER already held — it remains usable for the remaining options."
+            ]
+          },
+          {
             "h": "Changes to the terms",
             "p": [
               "The website administration reserves the right to modify, update, or replace these Terms of Use at any time without prior notice.",
@@ -831,7 +909,8 @@
       "registration_open": "Registration open",
       "registration_closed": "Registration closed",
       "completed": "Completed",
-      "full": "Full"
+      "full": "Full",
+      "cancelled": "Cancelled"
     },
     "card": {
       "viewDetails": "View details →",
@@ -911,6 +990,13 @@
           "bannerTxt": "This race night has finished. Results are available.",
           "note": "Check your profile for your placement.",
           "cta": "View results →"
+        },
+        "cancelled": {
+          "kicker": "Cancelled",
+          "bannerTitle": "This race night is cancelled",
+          "bannerTxt": "This race night has been cancelled. Pick another night in the series.",
+          "note": "Already registered? Your entry for this night is void.",
+          "cta": "Pick another night"
         }
       }
     },
@@ -1079,7 +1165,8 @@
       "races": "Races",
       "results": "Results",
       "invite": "Invite",
-      "settings": "Settings"
+      "settings": "Settings",
+      "wallet": "Wallet"
     },
     "stats": {
       "races": "Races run",
@@ -1274,5 +1361,92 @@
     "meta": {
       "listTitle": "News — ACE BATTLE RUN"
     }
+  },
+  "wallet": {
+    "meta": {
+      "title": "Wallet"
+    },
+    "eyebrow": "Your wallet",
+    "title": "Wallet",
+    "subtitle": "ACER is Ace Battle account credit: you earn it by turning up and racing, and it is used inside the platform only. 1 ACER = 1 USD.",
+    "balances": {
+      "heading": "Your balances"
+    },
+    "assets": {
+      "ACER": "ACER",
+      "ACE_PL": "Ace(PL)",
+      "ACEG": "ACEG"
+    },
+    "assetNote": {
+      "ACER": "Earned when you are checked in at a race night, and when someone you invited races for the first time.",
+      "ACE_PL": "Not issued yet — shown so you can see the full set of assets.",
+      "ACEG": "Not issued yet — shown so you can see the full set of assets."
+    },
+    "purchase": {
+      "title": "Top up",
+      "heading": "Buy ACER",
+      "subtitle": "Pay by card in US dollars — 1 ACER = 1 USD, whole ACER only. The credit lands in your wallet as soon as Stripe confirms the payment.",
+      "packsLabel": "Choose an amount",
+      "customCta": "Other",
+      "customRange": "{min}–{max} ACER",
+      "customLabel": "Amount in ACER",
+      "customHint": "Whole ACER, from {min} to {max}.",
+      "youPay": "You pay",
+      "submit": "Continue to payment",
+      "submitting": "Opening payment…",
+      "terms": "Payment is handled by Stripe, which asks you to accept the <link>terms</link> before you pay.",
+      "note": "ACER is Ace Battle account credit. It is used inside the platform only and is not transferable.",
+      "redeem": "It is meant for paid entries, season licences and comparable paid features, and as a series prize. Entry to the current events is free, so there may be nothing to spend it on yet.",
+      "refund": "Purchased ACER you have not spent can be refunded on request within 14 days of the purchase. ACER received as a reward has no monetary value.",
+      "errors": {
+        "amount": "Enter a whole number of ACER between {min} and {max}.",
+        "unavailable": "Card payments are not available right now. Please try again in a moment."
+      },
+      "flash": {
+        "success": "Payment received — your ACER is in the wallet.",
+        "settling": "Payment received. The credit can take a moment to appear; reload this page if it is not in the history yet. If it is still missing, write to info@poland.acebattle.run.",
+        "cancelled": "Payment cancelled. Nothing was charged and nothing was credited."
+      },
+      "stripe": {
+        "description": "{amount} ACER of Ace Battle account credit. 1 ACER = 1 USD. Usable inside the platform only — not transferable, and it cannot be paid out.",
+        "consent": "I accept the Terms of Use and the wallet terms. I ask for the credit to be made available immediately and I acknowledge that, once it has been delivered, I lose the 14-day right of withdrawal."
+      }
+    },
+    "history": {
+      "title": "History",
+      "heading": "Transaction history",
+      "empty": "No transactions yet.",
+      "emptyHint": "Your first ACER lands here the moment you are checked in at a race night.",
+      "txid": "TxID",
+      "prev": "Newer",
+      "next": "Older",
+      "pageOf": "Page {page} of {pages}",
+      "pagerLabel": "Transaction history pages"
+    },
+    "kinds": {
+      "participation_reward": "Race participation reward",
+      "prize_reward": "Prize reward",
+      "referral_signup": "Invitation reward",
+      "referral_ticket": "Invitation entry income",
+      "referral_sponsor": "Sponsor introduction reward",
+      "purchase": "Credit purchase",
+      "admin_credit": "Manual credit",
+      "admin_debit": "Manual debit",
+      "reversal": "Correction"
+    },
+    "statuses": {
+      "completed": "Completed",
+      "pending": "Pending",
+      "failed": "Failed"
+    },
+    "gate": {
+      "verifyTitle": "Confirm your email",
+      "verifyBody": "Your wallet opens as soon as your email address is verified.",
+      "verifyCta": "Verify email",
+      "profileTitle": "Finish your profile",
+      "profileBody": "We need your runner details before the wallet can track what you earn at races.",
+      "profileCta": "Complete profile"
+    },
+    "backToProfile": "Back to profile"
   }
 }

@@ -110,9 +110,11 @@ export async function sendEventTicketEmail(input: {
   registration: EventRegistrationRow;
   user: TicketUser;
 }) {
-  const event = getEventBySlug(input.registration.eventSlug);
+  const event = await getEventBySlug(input.registration.eventSlug);
   const view = buildEventTicketView(input.registration, input.user, event);
-  const ticketUrl = makeEventTicketUrl(input.registration.id, { locale: input.registration.locale });
+  const ticketUrl = makeEventTicketUrl(input.registration.id, {
+    locale: input.registration.locale,
+  });
 
   if (!resend) {
     return { ticketUrl };

@@ -90,6 +90,24 @@ export async function applyReferralAttribution(
   }
 }
 
+/**
+ * Who referred this account, or null when nobody did.
+ *
+ * `users.referred_by` is this feature's column — attribution writes it here and
+ * the admin drill-downs read it through `referrals-data.ts`. The wallet's
+ * check-in accrual (`src/features/wallet/accruals.ts`) needs the same answer to
+ * know who to pay, and asks for it here rather than reaching into the column
+ * itself.
+ */
+export async function getReferrerId(userId: string): Promise<string | null> {
+  const [row] = await getDb()
+    .select({ referredBy: users.referredBy })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  return row?.referredBy ?? null;
+}
+
 export type ReferralStats = {
   /** Accounts created through the user's link. */
   signups: number;

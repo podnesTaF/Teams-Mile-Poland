@@ -80,7 +80,7 @@ export async function generateMetadata({
 
   // The tab title carries the next event's date, so it follows the registry
   // instead of going stale between race nights. No scheduled event → no date.
-  const featured = getFeaturedEvent();
+  const featured = await getFeaturedEvent();
   const title = featured
     ? `${t("title")} · ${formatEventLongDate(locale, featured.date)}`
     : t("title");

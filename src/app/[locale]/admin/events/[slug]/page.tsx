@@ -38,7 +38,7 @@ import {
   type RosterRowView,
 } from "@/features/admin/roster-view";
 import { userCan } from "@/lib/auth/user-session";
-import { getEventBySlug } from "@/lib/events/registry";
+import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 import type { EventStatus } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
@@ -74,8 +74,11 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
   setRequestLocale(locale);
   const actor = await requireAdmin(locale);
 
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
+  // The pool the flash copy needs to bound its refusal sentences; `flash.ts`
+  // stays synchronous, so the page resolves it.
+  const bibPool = await getBibPool(slug);
 
   const requested = parseRosterParams(query);
   const eventDate = new Date(event.date);
@@ -118,7 +121,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
 
   return (
     <>
-      <AdminFlash query={query} context={{ slug }} />
+      <AdminFlash query={query} context={{ slug, bibPool }} />
 
       {/* No controls above an empty roster: there is nothing to search, filter
           or sort, and the empty state should be the only thing on the page. */}
@@ -182,13 +185,17 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
  * after it closes is the whole story of the event.
  */
 const EMPTY_ROSTER_COPY: Record<EventStatus, string> = {
+  draft:
+    "This night is still a draft: it has no public page yet, so there is no way anyone could have entered it.",
   upcoming:
-    "Registration has not opened for this night yet, so there is nothing to expect here — entries start arriving the moment it does. Lifecycle status is configuration, not data: it is flipped in the event registry.",
+    "Registration has not opened for this night yet, so there is nothing to expect here — entries start arriving the moment it does. Open it from the event's Settings tab when you are ready.",
   registration_open:
     "Registration is open and nobody has entered yet. Entries land here on their own; heats can be generated as soon as there are runners to seed.",
   registration_closed:
     "Registration has closed with nobody entered, so there is nobody to seed into heats or check in.",
   completed: "This night has run and no runner ever entered it.",
+  cancelled:
+    "This night was cancelled with nobody entered, so there was nobody to tell — the roster stays empty for the record.",
 };
 
 /** What the admin currently has switched on, said back to them in the empty state. */

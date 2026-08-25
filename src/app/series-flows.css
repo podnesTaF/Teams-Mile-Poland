@@ -230,6 +230,10 @@
 .ace-landing .status--closed .status__dot { background: var(--muted); }
 .ace-landing .status--completed { background: rgba(255, 255, 255, 0.06); color: #b8b8b6; border-color: var(--line-d); }
 .ace-landing .status--completed .status__dot { background: var(--line-d2); }
+/* A cancelled night is negated, not merely shut: it takes the red the sold-out
+   pill uses, so it never reads as "closed but still happening". */
+.ace-landing .status--cancelled { background: var(--red-soft); color: #f6899a; border-color: rgba(229, 31, 50, 0.45); }
+.ace-landing .status--cancelled .status__dot { background: var(--red); }
 
 .ace-landing .race-tag {
   background: rgba(229, 31, 50, 0.14);
@@ -1359,6 +1363,19 @@
   border-color: var(--line-d2);
   color: #fff;
   background: var(--card-2);
+}
+
+/* The pill that leaves the page (the wallet) rather than scrolling to a
+ * section — tinted so it does not read as another anchor in the same strip. */
+.ace-landing .pf-nav__link--go {
+  border-color: rgba(229, 31, 50, 0.45);
+  color: #f6899a;
+}
+.ace-landing .pf-nav__link--go:hover,
+.ace-landing .pf-nav__link--go:focus-visible {
+  border-color: var(--acl-red);
+  color: #fff;
+  background: var(--red-soft);
 }
 
 /* Anchor targets stop below the sticky header + nav instead of under them. */

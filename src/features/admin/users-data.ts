@@ -6,7 +6,7 @@ import { isRaceRun, racesRunPerUser } from "@/lib/events/participation";
 import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
 import { getDirectResultRefs, getMergedResults } from "@/lib/events/results-data";
 import { findUserResults } from "@/lib/events/user-results";
-import type { Gender } from "@/lib/events/types";
+import type { EventSummary, Gender } from "@/lib/events/types";
 import type { ParticipationStatus } from "@/db/schema";
 
 /**
@@ -17,8 +17,8 @@ import type { ParticipationStatus } from "@/db/schema";
 export const FIRST_EVENT_SLUG = "warsaw-2026";
 
 /** Aug-2026 individual-series event slugs — "Aug events" in the PRD. */
-function augEventSlugs(): string[] {
-  return getSeriesEvents().map((e) => e.slug);
+async function augEventSlugs(): Promise<string[]> {
+  return (await getSeriesEvents()).map((e) => e.slug);
 }
 
 export type VerifiedFilter = "verified" | "unverified";
@@ -115,8 +115,8 @@ function userOrder(sort: UserSort): SQL[] {
  * The per-user aggregates the list joins against, built once so the row read and
  * its count can filter on exactly the same shape.
  */
-function userAggregates(db: ReturnType<typeof getDb>) {
-  const augSlugs = augEventSlugs();
+async function userAggregates(db: ReturnType<typeof getDb>) {
+  const augSlugs = await augEventSlugs();
 
   // Per-user Aug-series registration count (deprecated `cancelled` excluded).
   const augAgg = db
@@ -146,7 +146,7 @@ function userAggregates(db: ReturnType<typeof getDb>) {
 /** The `WHERE` a filter set means — shared by the page read and its count. */
 function userFilters(
   filters: UserListFilters,
-  augAgg: ReturnType<typeof userAggregates>["augAgg"],
+  augAgg: Awaited<ReturnType<typeof userAggregates>>["augAgg"],
 ): SQL[] {
   const clauses: SQL[] = [];
 
@@ -207,7 +207,7 @@ export async function listUsers(
   window: UserWindow = {},
 ): Promise<UserListRow[]> {
   const db = getDb();
-  const { augAgg, seriesAgg, legacyAgg, racesRun } = userAggregates(db);
+  const { augAgg, seriesAgg, legacyAgg, racesRun } = await userAggregates(db);
   const clauses = userFilters(filters, augAgg);
 
   const query = db
@@ -255,7 +255,7 @@ export async function listUsers(
  */
 export async function countUsers(filters: UserListFilters = {}): Promise<number> {
   const db = getDb();
-  const { augAgg } = userAggregates(db);
+  const { augAgg } = await userAggregates(db);
   const clauses = userFilters(filters, augAgg);
 
   const [row] = await db
@@ -385,8 +385,21 @@ export async function getUserDetail(id: string): Promise<UserDetail | null> {
     db.select().from(eventRegistrations).where(eq(eventRegistrations.userId, id)),
   ]);
 
-  const eventName = (slug: string) => getEventBySlug(slug)?.name ?? slug;
-  const eventDate = (slug: string) => getEventBySlug(slug)?.date ?? "";
+  // Every event slug this detail touches — the history rows above and the
+  // participations the results matcher runs over — resolved once, because the
+  // event reader is a read now. Passed to `findUserResults` below, which no
+  // longer resolves slugs itself.
+  const detailSlugs = [
+    ...legacyRows.map((r) => r.eventSlug),
+    ...registrationRows.map((r) => r.eventSlug),
+  ];
+  const eventsBySlug = new Map<string, EventSummary>();
+  for (const slug of new Set(detailSlugs)) {
+    const event = await getEventBySlug(slug);
+    if (event) eventsBySlug.set(slug, event);
+  }
+  const eventName = (slug: string) => eventsBySlug.get(slug)?.name ?? slug;
+  const eventDate = (slug: string) => eventsBySlug.get(slug)?.date ?? "";
 
   const history: UserHistoryEntry[] = [
     ...legacyRows.map((r) => ({
@@ -425,7 +438,13 @@ export async function getUserDetail(id: string): Promise<UserDetail | null> {
     getMergedResults(participations.map((p) => p.eventSlug)),
     getDirectResultRefs(registrationRows.map((r) => r.id)),
   ]);
-  const matches = findUserResults(fullName, participations, resultsBySlug, directRefs);
+  const matches = findUserResults(
+    fullName,
+    participations,
+    resultsBySlug,
+    directRefs,
+    eventsBySlug,
+  );
 
   const results: UserResultRow[] = matches.map((m) => ({
     eventSlug: m.event.slug,

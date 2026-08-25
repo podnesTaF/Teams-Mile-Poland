@@ -52,7 +52,7 @@ export async function publishEventMedia(formData: FormData): Promise<void> {
   const slug = String(formData.get("slug") ?? "").trim();
   const mediaPage = adminPath(locale, `/events/${slug}/media`);
 
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   // Completed individual events only — the same predicate the mailing and the
   // public pages apply, enforced server-side so a crafted post can't publish a
   // gallery for a race that hasn't run.
@@ -114,7 +114,7 @@ export async function unpublishEventMedia(formData: FormData): Promise<void> {
 
   const slug = String(formData.get("slug") ?? "").trim();
   const mediaPage = adminPath(locale, `/events/${slug}/media`);
-  if (!getEventBySlug(slug)) {
+  if (!(await getEventBySlug(slug))) {
     redirect(`${mediaPage}?error=input`);
   }
 

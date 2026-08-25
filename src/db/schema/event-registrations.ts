@@ -30,8 +30,11 @@ export type ParticipationStatus = Exclude<
 >;
 
 /**
- * One row per (event, user). Keyed by `event_slug` text (no FK — events live in
- * the config registry, not the DB). All registrations are free.
+ * One row per (event, user). Keyed by `event_slug` text (no FK — events are rows
+ * now, but the slug remains the stable join key for six tables, and an event
+ * with registrations is never hard-deleted: the admin guard refuses and offers
+ * `cancelled` instead, which is a better failure than a cascade. See ADR 0005).
+ * All registrations are free.
  *
  * A bib is a **lease**, not an identity (ADR 0003): it is issued at check-in and
  * returned when the runner's heat is marked finished, which stamps

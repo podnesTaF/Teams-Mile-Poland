@@ -10,7 +10,7 @@ import {
   type PublishHeatsSummary,
 } from "@/features/event-mailings/heat-assignment";
 import { warsawLocalToInstant } from "@/lib/events/heat-time";
-import { getBibPool, getEventBySlug } from "@/lib/events/registry";
+import { getBibPool, getBibSlots, getEventBySlug } from "@/lib/events/registry";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 import { clearPreassignedBib, isUniqueViolation, preassignBib } from "./events-data";
@@ -70,7 +70,7 @@ export async function generateHeats(formData: FormData) {
   await requireAdmin(locale, "edit");
 
   const slug = String(formData.get("slug") ?? "");
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") {
     back(locale, slug, "error=input");
   }
@@ -79,7 +79,7 @@ export async function generateHeats(formData: FormData) {
   const capacity = readInt(formData, "capacity");
   const intervalMinutes = readInt(formData, "intervalMinutes");
   const firstStart = warsawLocalToInstant(String(formData.get("firstStart") ?? ""));
-  const pool = getBibPool(slug);
+  const pool = await getBibPool(slug);
 
   if (count === null || count < 1 || count > MAX_GENERATE_HEATS) {
     back(locale, slug, "error=count");
@@ -115,7 +115,7 @@ export async function updateHeat(formData: FormData) {
   }
 
   const capacity = readInt(formData, "capacity");
-  const pool = getBibPool(slug);
+  const pool = await getBibPool(slug);
   if (capacity !== null && (capacity < 1 || capacity > pool)) {
     back(locale, slug, "error=capacity");
   }
@@ -239,7 +239,7 @@ export async function seedFinalFromResults(formData: FormData) {
 
   const slug = String(formData.get("slug") ?? "");
   const heatId = String(formData.get("heatId") ?? "");
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") {
     back(locale, slug, "error=input");
   }
@@ -250,7 +250,7 @@ export async function seedFinalFromResults(formData: FormData) {
   // A final larger than the bib pool cannot be chipped (ADR 0003) — same bound
   // the heat-capacity inputs enforce.
   const count = readInt(formData, "count");
-  const pool = getBibPool(slug);
+  const pool = await getBibPool(slug);
   if (count === null || count < 1 || count > pool) {
     back(locale, slug, "error=capacity");
   }
@@ -307,8 +307,10 @@ export async function assignBib(formData: FormData) {
   }
 
   const bib = Number.parseInt(bibRaw, 10);
-  const pool = getBibPool(slug);
-  if (!Number.isInteger(bib) || bib < 1 || bib > pool) {
+  // Membership in the event's issuable bibs (its slot list, or 1..pool) — the
+  // same rule the desk enforces, so a pre-assignment cannot promise a number
+  // check-in would then refuse.
+  if (!Number.isInteger(bib) || !(await getBibSlots(slug)).includes(bib)) {
     back(locale, slug, "error=bib");
   }
 

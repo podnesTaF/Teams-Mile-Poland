@@ -15,7 +15,7 @@ import { Link } from "@/i18n/navigation";
 import { userCan } from "@/lib/auth/user-session";
 import { GALLERY_THUMB_SIZE, driveAlbumUrl, driveThumbUrl } from "@/lib/events/drive-urls";
 import { getEventMediaConfig } from "@/lib/events/media-config";
-import { getEventBySlug } from "@/lib/events/registry";
+import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 import { cn } from "@/lib/utils";
 
 type PageProps = {
@@ -39,7 +39,7 @@ export default async function AdminEventMediaPage({ params, searchParams }: Page
   // the published state and the links to it are the read every level gets.
   const canEdit = userCan(actor, "edit");
 
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
 
   if (!process.env.DATABASE_URL) {
@@ -47,11 +47,14 @@ export default async function AdminEventMediaPage({ params, searchParams }: Page
   }
 
   const media = await getEventMediaConfig(slug);
+  // The pool the flash copy needs to bound its refusal sentences; `flash.ts`
+  // stays synchronous, so the page resolves it.
+  const bibPool = await getBibPool(slug);
   const completed = event.status === "completed";
 
   return (
     <>
-      <AdminFlash query={query} context={{ slug }} />
+      <AdminFlash query={query} context={{ slug, bibPool }} />
 
       {media ? (
         <>

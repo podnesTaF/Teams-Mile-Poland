@@ -48,7 +48,7 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
     notFound();
   }
 
-  const event = getEventBySlug(loaded.registration.eventSlug);
+  const event = await getEventBySlug(loaded.registration.eventSlug);
   const view = buildEventTicketView(loaded.registration, loaded.user, event);
 
   const qrBuffer = await generateTicketQrPng(makeEventTicketUrl(registrationId, { locale }));

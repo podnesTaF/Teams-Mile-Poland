@@ -26,8 +26,35 @@ export type PublishHeatsSummary = {
   failed: number;
 };
 
-/** Thrown when the slug is not an individual event in the registry. */
+/** Thrown when the event is not one whose heats may be published and mailed. */
 export class HeatPublishNotEligibleError extends Error {}
+
+/**
+ * The lifecycle states whose heats may be published *and mailed about*.
+ *
+ * An allow-list, so a status added later has to opt in rather than inherit
+ * permission to mail. Heat assignment is the sharpest mail in the system: it is
+ * deliberately not gated by `event_email_log` (a moved heat has to be able to
+ * reach the same runner again), so every press of (Re)publish re-sends "your
+ * heat is 4 at 18:40" to everyone whose heat or time differs from what they were
+ * told. Two states must never reach that:
+ *
+ * - `draft` — the night is not announced; its runners do not exist yet, and its
+ *   public start list 404s.
+ * - `cancelled` — the race is off, and this mail says the opposite in the most
+ *   concrete possible words. Nothing in the Heats tab stops an admin pressing
+ *   (Re)publish after cancelling, so the refusal has to live here.
+ *
+ * `completed` stays allowed: a heat corrected after the night has run is a
+ * legitimate archival edit, and publishing it re-notifies only the runners whose
+ * heat actually changed.
+ */
+const PUBLISHABLE_STATUSES = [
+  "upcoming",
+  "registration_open",
+  "registration_closed",
+  "completed",
+] as const;
 
 /**
  * One seeded runner as the publish delta sees them: where they are now, and
@@ -109,9 +136,16 @@ async function seededRunners(eventSlug: string): Promise<SeededRunner[]> {
  * again. Callers enforce the admin gate — see `heat-actions.ts`.
  */
 export async function publishHeatsAndNotify(eventSlug: string): Promise<PublishHeatsSummary> {
-  const event = getEventBySlug(eventSlug);
+  const event = await getEventBySlug(eventSlug);
   if (!event || event.eventType !== "individual") {
     throw new HeatPublishNotEligibleError("This slug isn't an individual event.");
+  }
+  // Refuse before anything is stamped or sent: `publishEventHeats` below is the
+  // point of no return for the mail. See {@link PUBLISHABLE_STATUSES}.
+  if (!(PUBLISHABLE_STATUSES as readonly string[]).includes(event.status)) {
+    throw new HeatPublishNotEligibleError(
+      `This event is ${event.status}; its heats can't be published or mailed.`,
+    );
   }
 
   const published = await publishEventHeats(eventSlug);

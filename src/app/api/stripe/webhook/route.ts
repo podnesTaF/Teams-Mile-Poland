@@ -4,6 +4,7 @@ import Stripe from "stripe";
 
 import { promotePendingRegistration } from "@/features/registration/data";
 import { sendRegistrationEmails } from "@/features/registration/email";
+import { ACER_PURCHASE_KIND, creditAcerPurchase } from "@/features/wallet/purchase";
 import { getStripe } from "@/lib/stripe";
 
 export async function POST(request: Request) {
@@ -27,10 +28,27 @@ export async function POST(request: Request) {
     );
   }
 
-  // Legacy team registration flow (individual events are free — no checkout).
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
+    // ACER top-up (#49). This branch **returns**, so the legacy team-checkout
+    // block below never sees an ACER session and keeps its exact previous
+    // behaviour — the two flows share only this route.
+    //
+    // A failure here answers 500 on purpose: Stripe retries, and the credit is
+    // keyed by the session id, so the retry either lands the credit or finds it
+    // already there. Swallowing the error would lose a paid top-up silently.
+    if (session.metadata?.kind === ACER_PURCHASE_KIND) {
+      try {
+        const outcome = await creditAcerPurchase(session);
+        return NextResponse.json({ received: true, outcome });
+      } catch (error) {
+        console.error(`[wallet] crediting ACER session ${session.id} failed:`, error);
+        return NextResponse.json({ error: "Could not credit the purchase" }, { status: 500 });
+      }
+    }
+
+    // Legacy team registration flow (individual events are free — no checkout).
     if (session.payment_status === "paid") {
       const stored = await promotePendingRegistration(session.id);
       if (stored && "runnerEmail" in stored) {

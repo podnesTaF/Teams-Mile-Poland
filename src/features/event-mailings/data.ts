@@ -66,7 +66,7 @@ export async function getEventMailingsOverview(now: Date): Promise<EventMailings
   const sent = await sentCountByEventAndKind();
   const groups: EventMailingsGroup[] = [];
 
-  for (const event of getSeriesEvents()) {
+  for (const event of await getSeriesEvents()) {
     const recipients = await eligibleForEvent(event.slug);
     const awaitingConfirmation = recipients.filter((r) => r.status === "registered").length;
     const eligible = recipients.length;

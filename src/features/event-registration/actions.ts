@@ -58,7 +58,7 @@ export async function registerForEvent(eventSlug: string): Promise<RegisterResul
     return { ok: false, reason: "profile", message: "Complete your profile before registering." };
   }
 
-  const event = getEventBySlug(eventSlug);
+  const event = await getEventBySlug(eventSlug);
   if (!event || event.eventType !== "individual") {
     return { ok: false, reason: "notfound", message: "Event not found." };
   }
@@ -131,7 +131,7 @@ export async function registerAsGuest(
     };
   }
 
-  const event = getEventBySlug(eventSlug);
+  const event = await getEventBySlug(eventSlug);
   if (!event || event.eventType !== "individual") {
     return { ok: false, reason: "notfound", message: "Event not found." };
   }
@@ -229,7 +229,11 @@ export async function registerAsGuest(
   } catch (error) {
     // A verified account created between the check and now, or any unique clash.
     if (error instanceof Error && /exist|unique|duplicate|already/i.test(error.message)) {
-      return { ok: false, reason: "exists", message: "You already have an account — sign in to register." };
+      return {
+        ok: false,
+        reason: "exists",
+        message: "You already have an account — sign in to register.",
+      };
     }
     return { ok: false, reason: "error", message: "Registration failed. Please try again." };
   }

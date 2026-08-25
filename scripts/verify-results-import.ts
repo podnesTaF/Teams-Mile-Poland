@@ -81,7 +81,7 @@ async function cleanup(heatIds: string[], userIds: string[]) {
 
 async function main() {
   const db = getDb();
-  check("fixture event exists in registry", Boolean(getEventBySlug(SLUG)));
+  check("fixture event exists in registry", Boolean(await getEventBySlug(SLUG)));
 
   // ---- time parsing, no DB needed ----
   check("parseTimeCs 4:32,1 (decimal comma, tenths)", parseTimeCs("4:32,1") === 27210);
@@ -180,11 +180,17 @@ async function main() {
     const refs = await getDirectResultRefs([leaseRegId]);
     check("readers: direct ref from lease", refs.get(SLUG)?.heatNumber === HEAT_A && refs.get(SLUG)?.bib === 5);
 
+    // `findUserResults` is deliberately synchronous, so the event it needs is
+    // resolved here and handed over — same contract as the profile page and the
+    // admin user-detail page, which is what keeps all three reporting the same
+    // match for the same person.
+    const fixtureEvent = await getEventBySlug(SLUG);
     const mine = findUserResults(
       "Łukasz Frostowicz",
       [{ eventSlug: SLUG, bib: 5 }],
       merged,
       refs,
+      new Map(fixtureEvent ? [[SLUG, fixtureEvent]] : []),
     );
     check(
       "readers: profile match via direct ref, ranked 1st",

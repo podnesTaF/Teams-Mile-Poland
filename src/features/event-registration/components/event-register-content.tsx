@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { GuestRegisterForm } from "@/features/event-registration/components/guest-register-form";
@@ -9,6 +9,9 @@ import { ProfileForm } from "@/features/profile/components/profile-form";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { Link } from "@/i18n/navigation";
 import { getEventBySlug } from "@/lib/events/registry";
+// Straight from the store, not the `registry` compat shim: `isPubliclyVisible`
+// is new API, and the shim exists only so the pre-DB call sites kept compiling.
+import { isPubliclyVisible } from "@/lib/events/store";
 import type { EventSummary } from "@/lib/events/types";
 import { getUser, canRegister } from "@/lib/auth/user-session";
 import { coerceToDate, meetsMinParticipantAge, parseDateOnly } from "@/lib/age";
@@ -16,7 +19,8 @@ import { defaultLocale } from "@/lib/i18n/config";
 
 /** Serialize a stored DOB (Date via mode:"date", or string) to YYYY-MM-DD. */
 function toDateInput(value: unknown): string {
-  if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString().slice(0, 10);
+  if (value instanceof Date && !Number.isNaN(value.getTime()))
+    return value.toISOString().slice(0, 10);
   if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
   return "";
 }
@@ -27,9 +31,18 @@ function toDateInput(value: unknown): string {
  * form. Served by the full `/events/[slug]/register` page.
  */
 export async function EventRegisterContent({ slug, locale }: { slug: string; locale: string }) {
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") {
     redirect(locale === defaultLocale ? "/" : `/${locale}`);
+  }
+  // A draft 404s rather than bouncing home, because the lifecycle notice below
+  // would otherwise *advertise* a night nobody has announced — "registration
+  // opens soon", with its date, for an event that may never run. Same answer as
+  // every other public surface (`isPubliclyVisible`), including for a signed-in
+  // admin: the draft is visible in `/admin`, nowhere else. `cancelled` is not a
+  // draft and keeps its notice.
+  if (!isPubliclyVisible(event)) {
+    notFound();
   }
 
   const t = await getTranslations("register");
@@ -113,14 +126,25 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
             <div className="banner__txt">{t("profileBody")}</div>
           </div>
         </div>
-        <ProfileForm initial={initial} redirectTo={`/events/${slug}/register`} maxDobAsOf={event.date} />
+        <ProfileForm
+          initial={initial}
+          redirectTo={`/events/${slug}/register`}
+          maxDobAsOf={event.date}
+        />
       </div>
     );
   }
 
   const dob = coerceToDate((user as { dateOfBirth?: unknown }).dateOfBirth);
   if (!dob || !meetsMinParticipantAge(dob, parseDateOnly(event.date))) {
-    return <Notice title={t("ageTitle")} body={t("ageBody")} linkHref="/profile" linkText={t("profileCta")} />;
+    return (
+      <Notice
+        title={t("ageTitle")}
+        body={t("ageBody")}
+        linkHref="/profile"
+        linkText={t("profileCta")}
+      />
+    );
   }
 
   const u = user as typeof user & { firstName?: string | null; lastName?: string | null };
@@ -143,10 +167,27 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
 /**
  * Distinct notice per non-open lifecycle state (both guest and signed-in
  * entries): `upcoming` = opens-soon + date, `registration_closed` = closed,
- * `completed` = finished + link to results. `full` is n/a (free/uncapped).
+ * `completed` = finished + link to results, `cancelled` = called off + a link
+ * back to the nights still on. `full` is n/a (free/uncapped), and `draft` never
+ * arrives here — an unannounced night 404s above.
  */
 async function LifecycleNotice({ event }: { event: EventSummary }) {
   const t = await getTranslations("register");
+  if (event.status === "cancelled") {
+    // Borrows the event page's cancelled copy (`events.detail.states.cancelled`,
+    // trilingual already) rather than a near-duplicate under `register.*`: this
+    // is the same sentence the detail page's banner says, and it must not be
+    // possible for the two to disagree about whether the night is off.
+    const te = await getTranslations("events");
+    return (
+      <Notice
+        title={te("detail.states.cancelled.bannerTitle")}
+        body={te("detail.states.cancelled.bannerTxt")}
+        linkHref="/#events"
+        linkText={te("detail.states.cancelled.cta")}
+      />
+    );
+  }
   if (event.status === "upcoming") {
     return (
       <Notice

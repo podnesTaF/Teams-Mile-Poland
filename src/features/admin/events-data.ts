@@ -2,9 +2,18 @@ import { cache } from "react";
 import ExcelJS from "exceljs";
 import { and, eq, ilike, isNotNull, isNull, ne, notExists, or, sql, type SQL } from "drizzle-orm";
 
-import { eventHeats, eventRegistrations, users, type ParticipationStatus } from "@/db/schema";
+import {
+  eventEmailLog,
+  eventHeats,
+  eventMedia,
+  eventRegistrations,
+  eventResults,
+  users,
+  type ParticipationStatus,
+} from "@/db/schema";
+import { awardCheckInRewards } from "@/features/wallet/accruals";
 import { getDb } from "@/lib/db";
-import { getBibPool, getEventBySlug } from "@/lib/events/registry";
+import { getBibSlots, getEventBySlug } from "@/lib/events/registry";
 
 export type { ParticipationStatus };
 
@@ -288,18 +297,19 @@ async function heldBibs(eventSlug: string): Promise<Set<number>> {
 }
 
 /**
- * The lowest bib in `1..bibPool` nobody is currently holding, or `null` when the
- * pool is exhausted. Bibs are recycled leases (ADR 0003), so a returned number
- * is free again — which is why this cannot be `max(bib) + 1`: that hands out
- * numbers above the pool the venue actually has.
+ * The lowest bib the event may issue that nobody is currently holding, or
+ * `null` when the pool is exhausted. "May issue" is `getBibSlots` — the
+ * event's explicit slot list, or `1..bibPool` without one. Bibs are recycled
+ * leases (ADR 0003), so a returned number is free again — which is why this
+ * cannot be `max(bib) + 1`: that hands out numbers the venue does not have.
  *
  * Exhaustion is a normal expected state, not an error: callers check a runner in
  * bib-less and tell the desk to free bibs by marking a finished heat complete.
  */
 export async function suggestNextBib(eventSlug: string): Promise<number | null> {
-  const pool = getBibPool(eventSlug);
+  const slots = await getBibSlots(eventSlug);
   const held = await heldBibs(eventSlug);
-  for (let bib = 1; bib <= pool; bib += 1) {
+  for (const bib of slots) {
     if (!held.has(bib)) return bib;
   }
   return null;
@@ -336,7 +346,7 @@ function fmtDob(date: Date | null): string {
 /** Build a single-sheet XLSX roster for an event, with computed age category. */
 export async function buildEventRosterWorkbook(eventSlug: string): Promise<Buffer> {
   const rows = await getEventRoster(eventSlug);
-  const event = getEventBySlug(eventSlug);
+  const event = await getEventBySlug(eventSlug);
   const eventDate = event ? new Date(event.date) : new Date();
 
   const workbook = new ExcelJS.Workbook();
@@ -407,6 +417,14 @@ export function isUniqueViolation(error: unknown): boolean {
  * fresh lease — a recycled number must read as held again. Throws a
  * unique-violation error if another runner already holds the bib (partial unique
  * index); callers retry with the next free number.
+ *
+ * The ACER accruals (PRD #44) hang off the returned row: this UPDATE is one of
+ * the two that the desk's four check-in paths funnel through, which is why the
+ * credit is written here rather than in the action layer — see
+ * `src/features/wallet/accruals.ts` for that decision and its corollary (calling
+ * this function credits ACER). It only runs on a successful transition — a lost
+ * bib race throws above this line — and `awardCheckInRewards` never throws, so a
+ * wallet problem can never cost the runner their check-in.
  */
 export async function checkInWithBib(registrationId: string, bib: number) {
   const db = getDb();
@@ -414,8 +432,19 @@ export async function checkInWithBib(registrationId: string, bib: number) {
     .update(eventRegistrations)
     .set({ bib, bibReturnedAt: null, status: "checked_in", checkedInAt: new Date() })
     .where(eq(eventRegistrations.id, registrationId))
-    .returning({ id: eventRegistrations.id, bib: eventRegistrations.bib });
-  return row ?? null;
+    .returning({
+      id: eventRegistrations.id,
+      bib: eventRegistrations.bib,
+      userId: eventRegistrations.userId,
+      eventSlug: eventRegistrations.eventSlug,
+    });
+  if (!row) return null;
+  await awardCheckInRewards({
+    registrationId: row.id,
+    userId: row.userId,
+    eventSlug: row.eventSlug,
+  });
+  return row;
 }
 
 /**
@@ -565,10 +594,24 @@ export async function getHeldBib(registrationId: string): Promise<number | null>
  */
 export async function checkInWithoutBib(registrationId: string) {
   const db = getDb();
-  await db
+  const [row] = await db
     .update(eventRegistrations)
     .set({ status: "checked_in", checkedInAt: new Date() })
-    .where(eq(eventRegistrations.id, registrationId));
+    .where(eq(eventRegistrations.id, registrationId))
+    .returning({
+      id: eventRegistrations.id,
+      userId: eventRegistrations.userId,
+      eventSlug: eventRegistrations.eventSlug,
+    });
+  // Bib-pending is a full check-in (ADR 0003) and earns exactly like any other —
+  // inventory is the desk's problem, not the runner's. See `checkInWithBib`.
+  if (row) {
+    await awardCheckInRewards({
+      registrationId: row.id,
+      userId: row.userId,
+      eventSlug: row.eventSlug,
+    });
+  }
 }
 
 /**
@@ -591,4 +634,62 @@ export async function setRegistrationStatus(
         else coalesce(${eventRegistrations.bibReturnedAt}, now()) end`,
     })
     .where(eq(eventRegistrations.id, registrationId));
+}
+
+/** How many rows each of the five slug-keyed tables holds for one event. */
+export type EventAttachedCounts = {
+  registrations: number;
+  results: number;
+  heats: number;
+  media: number;
+  emails: number;
+};
+
+/**
+ * What is still pointing at an event's slug — the delete guard's evidence.
+ *
+ * An event may only be hard-deleted while every one of these is zero. The slug
+ * is plain text in all five tables with no foreign key, so deleting a used
+ * event does not cascade and does not fail: it silently strands the rows. The
+ * admin's exit for a used event is `cancelled`, which keeps the record.
+ *
+ * **One definition, two readers, on purpose.** `deleteEvent` calls this as the
+ * authority immediately before deleting, and the settings page calls it to
+ * render the guard's state so "why is this refused" is answerable before
+ * anything is pressed. They must not be able to disagree — a panel saying
+ * "nothing attached" over an action that refuses is worse than either alone —
+ * so the query lives here rather than in the action. It cannot live in
+ * `event-actions.ts`: that module is `"use server"`, where every export becomes
+ * a client-callable endpoint.
+ *
+ * `user_broadcasts` is deliberately absent. A stored broadcast references an
+ * event only through a segment *string*, so counting it would make an empty
+ * draft permanently undeletable; the safety there is that an unresolvable
+ * segment resolves to nobody rather than to everyone (see `user-segments.ts`).
+ */
+export async function countEventAttachedRows(slug: string): Promise<EventAttachedCounts> {
+  const db = getDb();
+  const n = () => sql<number>`count(*)::int`;
+  const one = async (rows: PromiseLike<{ n: number }[]>): Promise<number> =>
+    (await rows)[0]?.n ?? 0;
+
+  const [registrations, results, heats, media, emails] = await Promise.all([
+    one(
+      db.select({ n: n() }).from(eventRegistrations).where(eq(eventRegistrations.eventSlug, slug)),
+    ),
+    one(db.select({ n: n() }).from(eventResults).where(eq(eventResults.eventSlug, slug))),
+    one(db.select({ n: n() }).from(eventHeats).where(eq(eventHeats.eventSlug, slug))),
+    one(db.select({ n: n() }).from(eventMedia).where(eq(eventMedia.eventSlug, slug))),
+    // The log is keyed by registration, not by slug — the join is how it becomes
+    // a fact about an event.
+    one(
+      db
+        .select({ n: n() })
+        .from(eventEmailLog)
+        .innerJoin(eventRegistrations, eq(eventEmailLog.eventRegistrationId, eventRegistrations.id))
+        .where(eq(eventRegistrations.eventSlug, slug)),
+    ),
+  ]);
+
+  return { registrations, results, heats, media, emails };
 }

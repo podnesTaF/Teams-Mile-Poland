@@ -30,34 +30,30 @@ export type EventMediaConfig = Pick<
  * published (or the DB is unavailable). Request-cached so the event page, the
  * gallery page and its metadata share one read per render.
  */
-export const getEventMediaConfig = cache(
-  async (slug: string): Promise<EventMediaConfig | null> => {
-    if (!db) return null;
-    try {
-      const rows = await db
-        .select({
-          driveFolderId: eventMedia.driveFolderId,
-          coverFileId: eventMedia.coverFileId,
-          photoCount: eventMedia.photoCount,
-          videoCount: eventMedia.videoCount,
-        })
-        .from(eventMedia)
-        .where(eq(eventMedia.eventSlug, slug));
-      return rows[0] ?? null;
-    } catch (error) {
-      console.error(`[media] event_media read for ${slug} failed; treating as unpublished:`, error);
-      return null;
-    }
-  },
-);
+export const getEventMediaConfig = cache(async (slug: string): Promise<EventMediaConfig | null> => {
+  if (!db) return null;
+  try {
+    const rows = await db
+      .select({
+        driveFolderId: eventMedia.driveFolderId,
+        coverFileId: eventMedia.coverFileId,
+        photoCount: eventMedia.photoCount,
+        videoCount: eventMedia.videoCount,
+      })
+      .from(eventMedia)
+      .where(eq(eventMedia.eventSlug, slug));
+    return rows[0] ?? null;
+  } catch (error) {
+    console.error(`[media] event_media read for ${slug} failed; treating as unpublished:`, error);
+    return null;
+  }
+});
 
 /**
  * Published media for many events at once — the landing archive section's
  * input, one query instead of one per card. Slugs without a row are absent.
  */
-export async function getPublishedMedia(
-  slugs: string[],
-): Promise<Map<string, EventMediaConfig>> {
+export async function getPublishedMedia(slugs: string[]): Promise<Map<string, EventMediaConfig>> {
   const map = new Map<string, EventMediaConfig>();
   if (!db || slugs.length === 0) return map;
   try {
@@ -82,10 +78,10 @@ export async function getPublishedMedia(
 
 /**
  * The landing archive's event list: completed individual events, newest first.
- * Pure registry read — media publication state is overlaid per-card via
- * {@link getPublishedMedia}. The legacy team event stays off the archive
+ * Reads the event store (a request-cached DB query, not the old config literal);
+ * media publication state is overlaid per-card via {@link getPublishedMedia}. The legacy team event stays off the archive
  * because non-individual slugs have no event detail page to link to.
  */
-export function getArchiveEvents(): EventSummary[] {
-  return getPastEvents().filter((e) => e.eventType === "individual");
+export async function getArchiveEvents(): Promise<EventSummary[]> {
+  return (await getPastEvents()).filter((e) => e.eventType === "individual");
 }

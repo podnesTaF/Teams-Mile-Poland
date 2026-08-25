@@ -58,13 +58,17 @@ export function checkinOkText(code: string, heat: string | undefined): string | 
  */
 export function checkinErrorText(
   code: string,
-  opts: { pool: number; bibs?: string } = { pool: 0 },
+  opts: { pool: number; spec?: string; bibs?: string } = { pool: 0 },
 ): string | null {
   switch (code) {
     case "bib_held":
       return "Another runner is holding that bib right now. Choose another.";
     case "bib":
-      return `Enter a bib number between 1 and ${opts.pool}.`;
+      // `spec` is set when the event issues from an explicit slot list; the
+      // classic 1..pool wording covers every event without one.
+      return opts.spec
+        ? `Enter one of this event's bib numbers: ${opts.spec}.`
+        : `Enter a bib number between 1 and ${opts.pool}.`;
     case "bib_race":
       return "Another desk took that bib first. Try again.";
     case "pool_empty":

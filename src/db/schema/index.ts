@@ -18,3 +18,5 @@ export * from "./event-email-log";
 export * from "./legacy-participations";
 export * from "./user-broadcasts";
 export * from "./news-articles";
+export * from "./wallet";
+export * from "./events";

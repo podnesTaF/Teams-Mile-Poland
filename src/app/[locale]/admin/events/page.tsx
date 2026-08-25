@@ -9,6 +9,7 @@ import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { AdminStat } from "@/features/admin/components/shell/admin-stat";
 import { EventStatusBadge } from "@/features/admin/components/shell/event-status-badge";
 import { getRosterStats, type ParticipationStatus } from "@/features/admin/events-data";
+import { userCan } from "@/lib/auth/user-session";
 import { getIndividualEvents } from "@/lib/events/registry";
 import { formatEventLongDate } from "@/lib/events/time";
 import type { EventSummary } from "@/lib/events/types";
@@ -25,9 +26,13 @@ type RosterStats = Record<ParticipationStatus, number>;
  * lifecycle state, how many have entered, how many are through the desk, and
  * links to that event's three operational surfaces.
  *
- * Read-only — the registry plus the existing per-event roster-stats read. The
- * frozen team event never appears: `getIndividualEvents` excludes it, and it has
- * no roster / heats / check-in pages to link to in the first place.
+ * Almost read-only — the registry plus the existing per-event roster-stats read.
+ * The two writes it offers, "New event" and the per-card Settings link, are both
+ * `edit` surfaces, so they are gated here as well as by the actions behind them:
+ * a viewer or a check-in volunteer is never handed a control that 404s.
+ *
+ * The frozen team event never appears: `getIndividualEvents` excludes it, and it
+ * has no roster / heats / check-in pages to link to in the first place.
  */
 export default async function AdminEventsIndexPage({
   params,
@@ -36,11 +41,15 @@ export default async function AdminEventsIndexPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  const actor = await requireAdmin(locale);
+  // Creating an event, and everything on an event's Settings tab, is an `edit`
+  // act; the cards, counts and three operational links are the read every admin
+  // level gets.
+  const canEdit = userCan(actor, "edit");
 
   // Completed nights included, as in the sidebar: a race that has run keeps its
   // roster, heats and check-in pages, and its final counts are the record of it.
-  const events = getIndividualEvents();
+  const events = await getIndividualEvents();
   const hasDatabase = Boolean(process.env.DATABASE_URL);
   // One grouped count query per event, in parallel — the same read the roster
   // header uses, so the index adds no new data path.
@@ -49,7 +58,17 @@ export default async function AdminEventsIndexPage({
     : null;
 
   return (
-    <AdminPage eyebrow="Admin" title="Events">
+    <AdminPage
+      eyebrow="Admin"
+      title="Events"
+      actions={
+        canEdit ? (
+          <Link href="/admin/events/new" className={adminButton("primary")}>
+            New event
+          </Link>
+        ) : null
+      }
+    >
       {hasDatabase ? null : (
         <div className="mb-5">
           <NoDatabaseNotice>see registration and check-in counts</NoDatabaseNotice>
@@ -57,15 +76,21 @@ export default async function AdminEventsIndexPage({
       )}
 
       {events.length === 0 ? (
-        <AdminEmptyState title="No events configured">
-          Mile-series events are configuration, not rows: they live in the event registry
-          (<code>src/lib/events/registry.ts</code>). Add an entry there and deploy — this index,
-          the sidebar and the public site all read that one source.
+        <AdminEmptyState title="No events yet">
+          Events are rows in the <code>events</code> table — this index, the sidebar and the
+          public site all read that one source, so creating one here takes effect without a
+          deploy. If you expected events to be listed, the database read came back empty:
+          check the server log before adding anything.
         </AdminEmptyState>
       ) : (
         <ul className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
           {events.map((event, index) => (
-            <EventCard key={event.slug} event={event} stats={stats?.[index] ?? null} />
+            <EventCard
+              key={event.slug}
+              event={event}
+              stats={stats?.[index] ?? null}
+              canEdit={canEdit}
+            />
           ))}
         </ul>
       )}
@@ -75,10 +100,18 @@ export default async function AdminEventsIndexPage({
 
 /**
  * `stats` is `null` when there is no database configured: the card still renders
- * from the registry, with the two counts reading "—" rather than the page
- * collapsing to a notice.
+ * from whatever the event store returned, with the two counts reading "—" rather
+ * than the page collapsing to a notice.
  */
-function EventCard({ event, stats }: { event: EventSummary; stats: RosterStats | null }) {
+function EventCard({
+  event,
+  stats,
+  canEdit,
+}: {
+  event: EventSummary;
+  stats: RosterStats | null;
+  canEdit: boolean;
+}) {
   const registrations = stats ? STATUSES.reduce((sum, status) => sum + stats[status], 0) : null;
   const timeWindow = event.timeRange ? `${event.timeRange.start}–${event.timeRange.end}` : null;
 
@@ -123,6 +156,13 @@ function EventCard({ event, stats }: { event: EventSummary; stats: RosterStats |
         <Link href={`/admin/events/${event.slug}/checkin`} className={adminButton("primary")}>
           Check-in
         </Link>
+        {/* Last, and quiet: the lifecycle, the details and the delete panel are
+            reached for once, not worked from on the night. */}
+        {canEdit ? (
+          <Link href={`/admin/events/${event.slug}/settings`} className={adminButton("quiet")}>
+            Settings
+          </Link>
+        ) : null}
       </div>
     </li>
   );

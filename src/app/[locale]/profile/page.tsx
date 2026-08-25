@@ -9,6 +9,8 @@ import { LogOutButton } from "@/features/auth/components/log-out-button";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import { Link } from "@/i18n/navigation";
+
 import {
   getUserRegistrations,
   publishedHeatsByRegistration,
@@ -37,10 +39,11 @@ import { formatHeatTime } from "@/lib/events/heat-time";
 import { isRaceRun } from "@/lib/events/participation";
 import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
 import { formatTime } from "@/lib/events/time";
+import type { EventSummary } from "@/lib/events/types";
 import { getDirectResultRefs, getMergedResults } from "@/lib/events/results-data";
 import { findUserResults } from "@/lib/events/user-results";
 import { defaultLocale } from "@/lib/i18n/config";
-import { getUser, isProfileComplete } from "@/lib/auth/user-session";
+import { getUser, isAdmin, isProfileComplete } from "@/lib/auth/user-session";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
@@ -131,7 +134,21 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
     getMergedResults(participations.map((p) => p.eventSlug)),
     getDirectResultRefs(registrations.map((r) => r.id)),
   ]);
-  const myResults = findUserResults(fullName, participations, resultsBySlug, directRefs);
+  // The events behind those slugs, resolved once here: the matcher takes them
+  // as a map now, and the registration cards below need the same lookup from
+  // inside a render callback, which cannot await.
+  const eventsBySlug = new Map<string, EventSummary>();
+  for (const slug of new Set(participations.map((p) => p.eventSlug))) {
+    const event = await getEventBySlug(slug);
+    if (event) eventsBySlug.set(slug, event);
+  }
+  const myResults = findUserResults(
+    fullName,
+    participations,
+    resultsBySlug,
+    directRefs,
+    eventsBySlug,
+  );
   const bestTimeCs =
     myResults.length > 0 ? Math.min(...myResults.map((r) => r.entry.timeCs)) : null;
 
@@ -147,7 +164,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   // cancelled one) excludes the event, since registerForEvent rejects those
   // as duplicates and a dead-end Register CTA is worse than no row.
   const registeredSlugs = new Set(registrations.map((r) => r.eventSlug));
-  const otherEvents: RaceRow[] = getSeriesEvents()
+  const otherEvents: RaceRow[] = (await getSeriesEvents())
     .filter((event) => !registeredSlugs.has(event.slug))
     .map((event) => {
       const [y, m, d] = event.date.split("-");
@@ -255,6 +272,15 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             <a className="pf-nav__link" href="#settings">
               {t("nav.settings")}
             </a>
+            {/* The one pill that leaves the page — the wallet is its own screen
+              * (per-user money, never pre-rendered), and this strip is where a
+              * runner looks for the rest of their cabinet. Admin-only while the
+              * wallet is in testing; the /wallet route is gated to match. */}
+            {isAdmin(user) ? (
+              <Link className="pf-nav__link pf-nav__link--go" href="/wallet">
+                {t("nav.wallet")} →
+              </Link>
+            ) : null}
           </nav>
 
           {incomplete ? (
@@ -296,7 +322,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             ) : (
               <div className="reg-list">
                 {registrations.map((reg) => {
-                  const event = getEventBySlug(reg.eventSlug);
+                  const event = eventsBySlug.get(reg.eventSlug);
                   const active =
                     reg.status === "registered" ||
                     reg.status === "confirmed" ||

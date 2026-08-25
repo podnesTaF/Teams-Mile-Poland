@@ -18,7 +18,8 @@ import { getEventHeats } from "@/features/admin/heats-data";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { Link } from "@/i18n/navigation";
 import { userCan } from "@/lib/auth/user-session";
-import { getBibPool, getEventBySlug } from "@/lib/events/registry";
+import { formatBibSlots } from "@/lib/events/bib-slots";
+import { getBibSlots, getEventBySlug } from "@/lib/events/registry";
 
 /**
  * The check-in desk, designed for the way it is used: standing in the start area
@@ -73,7 +74,7 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
   // without that level the page is the lists and none of the buttons.
   const canCheckin = userCan(actor, "checkin");
 
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
 
   const q = query.q?.trim() ?? "";
@@ -96,7 +97,13 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
     }
   }
 
-  const pool = getBibPool(slug);
+  // The issuable bibs — the event's slot list, or 1..pool. The count feeds the
+  // exhaustion banner, the highest number is the bib input's browser-side
+  // `max`, and the spec (only when a list is set) lets refusals name the list.
+  const slots = await getBibSlots(slug);
+  const pool = slots.length;
+  const bibMax = slots[slots.length - 1];
+  const bibSpec = event.bibSlots ? formatBibSlots(slots) : undefined;
   const [nextBib, heats, checkedIn] = await Promise.all([
     suggestNextBib(slug),
     getEventHeats(slug),
@@ -107,7 +114,10 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
     <div className="flex flex-col gap-4">
       {/* A failed signature on a pasted link is not an action's redirect, so it is
           handed to the banner as the code the desk's copy already words. */}
-      <AdminFlash query={scanError ? { ...query, error: "scan" } : query} context={{ slug }} />
+      <AdminFlash
+        query={scanError ? { ...query, error: "scan" } : query}
+        context={{ slug, bibPool: pool, bibSpec }}
+      />
 
       {nextBib === null ? <BibsExhausted pool={pool} /> : null}
 
@@ -133,7 +143,7 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
               locale={locale}
               q={q}
               nextBib={nextBib}
-              pool={pool}
+              bibMax={bibMax}
               canCheckin={canCheckin}
             />
           ))}
