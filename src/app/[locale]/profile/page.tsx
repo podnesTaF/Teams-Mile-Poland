@@ -35,7 +35,7 @@ import {
 } from "@/features/referral/data";
 import { InviteLink } from "@/features/team/components/invite-link";
 import { WalletBalanceCard } from "@/features/wallet/components/balance-card";
-import { getWalletBalances, listWalletTransactions } from "@/features/wallet/data";
+import { getWalletBalances } from "@/features/wallet/data";
 import { isAcerPurchaseEnabled } from "@/features/wallet/purchase";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { formatHeatTime } from "@/lib/events/heat-time";
@@ -169,16 +169,11 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   // would hand ordinary runners a balance and two CTAs that bounce them
   // straight back to this page. Flip both together when the wallet opens up.
   //
-  // The reads are skipped entirely for everyone else: no query runs for a
-  // reader who will not see the card. `pageSize: 1` fetches only the newest
-  // movement — the card shows one, and the full history lives on `/wallet`.
+  // The read is skipped entirely for everyone else: no query runs for a reader
+  // who will not see the card. One balance query and no history — the card
+  // shows a single number, and movements live on `/wallet`.
   const showWallet = isAdmin(user);
-  const [walletBalances, walletLatest] = showWallet
-    ? await Promise.all([
-        getWalletBalances(user.id),
-        listWalletTransactions(user.id, { page: 1, pageSize: 1 }),
-      ])
-    : [null, null];
+  const walletBalances = showWallet ? await getWalletBalances(user.id) : null;
 
   // Race nights the user could still join — any registration row (even a
   // cancelled one) excludes the event, since registerForEvent rejects those
@@ -265,11 +260,10 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
           {/* Money sits directly under the identity block and above the stats
             * strip: it is the one number on this page that moves between visits,
             * so it leads rather than competing inside the grey grid. */}
-          {walletBalances && walletLatest ? (
+          {walletBalances ? (
             <WalletBalanceCard
               balanceMinor={walletBalances.ACER}
               locale={locale}
-              last={walletLatest.rows[0] ?? null}
               canTopUp={isAcerPurchaseEnabled()}
             />
           ) : null}

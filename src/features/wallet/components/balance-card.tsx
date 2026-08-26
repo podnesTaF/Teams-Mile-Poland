@@ -1,9 +1,8 @@
 import { getTranslations } from "next-intl/server";
 
-import type { WalletTxKind } from "@/db/schema/wallet";
 import { Link } from "@/i18n/navigation";
 
-import { formatWalletAmount, formatWalletBalance, formatWalletDateTime } from "../format";
+import { formatWalletBalance } from "../format";
 
 /**
  * The ACER balance, on the profile page.
@@ -21,23 +20,16 @@ import { formatWalletAmount, formatWalletBalance, formatWalletDateTime } from ".
  * there would be dishonest. Here the job is the opposite — one number, read at
  * a glance — and two permanent zeroes beside it would bury it.
  *
- * The last movement is the second half of the answer. "12.00" alone raises
- * "where did that come from"; "+1.00 · Race check-in reward · 22 Aug" answers it
- * without a trip to the history, and on an empty wallet the same slot says how
- * to earn the first one instead of showing a blank.
+ * **One supporting line, chosen by state.** An empty wallet is told how ACER is
+ * earned; a wallet with a balance is told what that balance is. Both are one
+ * muted sentence in the same slot, so the card's height does not move and the
+ * reader is never given the sentence that is useless to them. The history of
+ * individual movements belongs on `/wallet`, not here.
  */
-export type WalletBalanceCardLast = {
-  kind: WalletTxKind;
-  amountMinor: number;
-  createdAt: Date;
-};
-
 type WalletBalanceCardProps = {
   /** ACER balance in minor units — `getWalletBalances(...).ACER`. */
   balanceMinor: number;
   locale: string;
-  /** Newest ledger row, or `null` on a wallet with no movements yet. */
-  last: WalletBalanceCardLast | null;
   /** Whether to offer the top-up shortcut — `isAcerPurchaseEnabled()`. */
   canTopUp: boolean;
 };
@@ -45,7 +37,6 @@ type WalletBalanceCardProps = {
 export async function WalletBalanceCard({
   balanceMinor,
   locale,
-  last,
   canTopUp,
 }: WalletBalanceCardProps) {
   const t = await getTranslations("wallet");
@@ -60,36 +51,20 @@ export async function WalletBalanceCard({
           <span className="pf-wal__value">{formatWalletBalance(balanceMinor, locale)}</span>
           <span className="pf-wal__unit">{t("assets.ACER")}</span>
         </p>
-        <p className="pf-wal__note">{t("card.note")}</p>
+        <p className="pf-wal__note">
+          {balanceMinor === 0 ? t("card.empty") : t("card.note")}
+        </p>
       </div>
 
-      <div className="pf-wal__side">
-        {last ? (
-          <p className="pf-wal__last">
-            {/* Signed, and coloured by direction — the sign is the point of a
-              * movement, and a debit that reads green is a lie at a glance. */}
-            <span className="pf-wal__last-amt" data-dir={last.amountMinor < 0 ? "out" : "in"}>
-              {formatWalletAmount(last.amountMinor, locale)}
-            </span>
-            <span className="pf-wal__last-k">{t(`kinds.${last.kind}`)}</span>
-            <time className="pf-wal__last-t" dateTime={last.createdAt.toISOString()}>
-              {formatWalletDateTime(last.createdAt, locale)}
-            </time>
-          </p>
-        ) : (
-          <p className="pf-wal__last pf-wal__last--empty">{t("card.empty")}</p>
-        )}
-
-        <div className="pf-wal__cta">
-          {canTopUp ? (
-            <Link className="btn btn-red btn-sm" href="/wallet#top-up">
-              {t("card.topUp")}
-            </Link>
-          ) : null}
-          <Link className="btn btn-stroke-dark btn-sm" href="/wallet">
-            {t("card.open")} →
+      <div className="pf-wal__cta">
+        {canTopUp ? (
+          <Link className="btn btn-red btn-sm" href="/wallet#top-up">
+            {t("card.topUp")}
           </Link>
-        </div>
+        ) : null}
+        <Link className="btn btn-stroke-dark btn-sm" href="/wallet">
+          {t("card.open")} →
+        </Link>
       </div>
     </section>
   );
