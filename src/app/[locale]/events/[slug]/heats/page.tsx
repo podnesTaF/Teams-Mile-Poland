@@ -37,6 +37,15 @@ export async function generateStaticParams() {
   return [];
 }
 
+/**
+ * Safety-net ISR on top of the on-demand `revalidateStartList()`: a write that
+ * bypasses the app (a manual DB correction, a seed) reaches no `revalidatePath`
+ * and would leave a cached start list stale until a deploy. Five minutes bounds
+ * that; publish/edit/finish still invalidate instantly. Must stay a literal —
+ * the value is statically analyzed.
+ */
+export const revalidate = 300;
+
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

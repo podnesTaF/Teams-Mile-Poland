@@ -37,6 +37,15 @@ export async function generateStaticParams() {
   return [];
 }
 
+/**
+ * Safety-net ISR on top of the publish action's `revalidatePath`: a write that
+ * bypasses the app (a manual DB correction, a seed) reaches no revalidation and
+ * would leave a cached gallery stale until a deploy. Five minutes bounds that;
+ * the admin publish still flips it instantly. Must stay a literal — the value
+ * is statically analyzed.
+ */
+export const revalidate = 300;
+
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
 /**

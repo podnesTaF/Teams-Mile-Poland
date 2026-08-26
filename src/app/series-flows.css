@@ -1322,6 +1322,119 @@
   color: var(--muted);
 }
 
+/* Wallet balance card — the profile page's one money row, between the identity
+ * hero and the stats strip. It borrows the accent skin the wallet page gives its
+ * one live asset (.wl-bal[data-live]) so the two screens read as the same
+ * object; it cannot reuse that rule directly because wallet.css is imported by
+ * /wallet alone. Two columns on wide screens (amount | last movement + CTAs),
+ * one stacked column under 640px. */
+.ace-landing .pf-wal {
+  margin-top: clamp(18px, 3vw, 28px);
+  border: 1px solid rgba(229, 31, 50, 0.45);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(229, 31, 50, 0.12), var(--card) 68%);
+  padding: clamp(16px, 3vw, 22px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px 22px;
+}
+.ace-landing .pf-wal__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ace-landing .pf-wal__eyebrow {
+  color: #f6899a;
+}
+.ace-landing .pf-wal__amount {
+  margin: 2px 0 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.ace-landing .pf-wal__value {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(2.4rem, 10vw, 3.4rem);
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ace-landing .pf-wal__unit {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f6899a;
+}
+.ace-landing .pf-wal__note {
+  margin: 5px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 44ch;
+}
+
+.ace-landing .pf-wal__side {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ace-landing .pf-wal__last {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 3px 8px;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+.ace-landing .pf-wal__last-amt {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 0.98rem;
+  font-variant-numeric: tabular-nums;
+  color: #7fe39c;
+}
+.ace-landing .pf-wal__last-amt[data-dir="out"] {
+  color: #f6899a;
+}
+.ace-landing .pf-wal__last-k {
+  color: #d8d8d6;
+}
+.ace-landing .pf-wal__last--empty {
+  max-width: 36ch;
+  line-height: 1.45;
+}
+.ace-landing .pf-wal__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .ace-landing .pf-wal {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ace-landing .pf-wal__side {
+    align-items: stretch;
+  }
+  .ace-landing .pf-wal__cta > .btn {
+    flex: 1 1 0;
+    text-align: center;
+  }
+}
+
 /* Sticky pill nav — sits flush under the sticky .iv-header, whose height is
  * 28px padding + 1px border + the clamp()ed logo. Full-bleed to the wrap
  * edges so the pills scroll edge-to-edge on mobile. */

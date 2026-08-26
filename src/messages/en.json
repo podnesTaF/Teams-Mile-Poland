@@ -1372,6 +1372,13 @@
     "balances": {
       "heading": "Your balances"
     },
+    "card": {
+      "eyebrow": "Your balance",
+      "note": "Ace Battle account credit, used inside the platform. 1 ACER = 1 USD.",
+      "empty": "You earn 1 ACER every time you are checked in at a race night.",
+      "open": "Open wallet",
+      "topUp": "Top up"
+    },
     "assets": {
       "ACER": "ACER",
       "ACE_PL": "Ace(PL)",

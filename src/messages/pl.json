@@ -1372,6 +1372,13 @@
     "balances": {
       "heading": "Twoje salda"
     },
+    "card": {
+      "eyebrow": "Twoje saldo",
+      "note": "Środki na koncie Ace Battle, wykorzystywane wyłącznie na platformie. 1 ACER = 1 USD.",
+      "empty": "Zdobywasz 1 ACER za każde zameldowanie na wieczorze biegowym.",
+      "open": "Otwórz portfel",
+      "topUp": "Zasil konto"
+    },
     "assets": {
       "ACER": "ACER",
       "ACE_PL": "Ace(PL)",

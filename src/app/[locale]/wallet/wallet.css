@@ -281,6 +281,9 @@
 
 .ace-landing .wl-buy {
   margin-top: clamp(34px, 5vw, 54px);
+  /* Arriving via `#top-up` from the profile card must not park the heading
+     under the sticky .iv-header. */
+  scroll-margin-top: 96px;
 }
 
 /* Inside the purchase card the flex `gap` already spaces it. */

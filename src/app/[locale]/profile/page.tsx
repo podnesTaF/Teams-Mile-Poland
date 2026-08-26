@@ -34,6 +34,9 @@ import {
   makeReferralUrl,
 } from "@/features/referral/data";
 import { InviteLink } from "@/features/team/components/invite-link";
+import { WalletBalanceCard } from "@/features/wallet/components/balance-card";
+import { getWalletBalances, listWalletTransactions } from "@/features/wallet/data";
+import { isAcerPurchaseEnabled } from "@/features/wallet/purchase";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { isRaceRun } from "@/lib/events/participation";
@@ -160,6 +163,23 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   ]);
   const referralUrl = makeReferralUrl(referralCode, locale);
 
+  // The wallet is admin-only while it is in testing, and `/wallet` redirects
+  // everyone else back here — so the balance card is gated by the *same*
+  // predicate rather than a second one that can drift. Ungating the card alone
+  // would hand ordinary runners a balance and two CTAs that bounce them
+  // straight back to this page. Flip both together when the wallet opens up.
+  //
+  // The reads are skipped entirely for everyone else: no query runs for a
+  // reader who will not see the card. `pageSize: 1` fetches only the newest
+  // movement — the card shows one, and the full history lives on `/wallet`.
+  const showWallet = isAdmin(user);
+  const [walletBalances, walletLatest] = showWallet
+    ? await Promise.all([
+        getWalletBalances(user.id),
+        listWalletTransactions(user.id, { page: 1, pageSize: 1 }),
+      ])
+    : [null, null];
+
   // Race nights the user could still join — any registration row (even a
   // cancelled one) excludes the event, since registerForEvent rejects those
   // as duplicates and a dead-end Register CTA is worse than no row.
@@ -242,6 +262,18 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             <LogOutButton className="btn btn-stroke-dark btn-sm pf-hero__out" />
           </header>
 
+          {/* Money sits directly under the identity block and above the stats
+            * strip: it is the one number on this page that moves between visits,
+            * so it leads rather than competing inside the grey grid. */}
+          {walletBalances && walletLatest ? (
+            <WalletBalanceCard
+              balanceMinor={walletBalances.ACER}
+              locale={locale}
+              last={walletLatest.rows[0] ?? null}
+              canTopUp={isAcerPurchaseEnabled()}
+            />
+          ) : null}
+
           <div className="pf-stats">
             <div className="pf-stat">
               <span className="pf-stat__v">{raceCount}</span>
@@ -274,9 +306,10 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             </a>
             {/* The one pill that leaves the page — the wallet is its own screen
               * (per-user money, never pre-rendered), and this strip is where a
-              * runner looks for the rest of their cabinet. Admin-only while the
-              * wallet is in testing; the /wallet route is gated to match. */}
-            {isAdmin(user) ? (
+              * runner looks for the rest of their cabinet. It repeats the
+              * balance card's link on purpose: the nav is sticky, so this is the
+              * way back to the wallet once the card has scrolled away. */}
+            {showWallet ? (
               <Link className="pf-nav__link pf-nav__link--go" href="/wallet">
                 {t("nav.wallet")} →
               </Link>

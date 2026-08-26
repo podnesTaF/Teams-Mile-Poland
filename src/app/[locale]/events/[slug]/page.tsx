@@ -70,6 +70,14 @@ const BANNER_TONE: Record<DetailState, string> = {
   cancelled: "red",
 };
 
+/**
+ * Safety-net ISR: a write that bypasses the app (a manual DB correction, a
+ * seed) reaches no `revalidatePath` and would leave this page stale until a
+ * deploy. Five minutes bounds that; admin actions still invalidate instantly.
+ * Must stay a literal — the value is statically analyzed.
+ */
+export const revalidate = 300;
+
 export async function generateStaticParams() {
   // Individual events including completed ones — a race night that flips to
   // `completed` must keep its detail page (gallery teaser, gallery back-link,
