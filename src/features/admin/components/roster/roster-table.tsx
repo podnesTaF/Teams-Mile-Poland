@@ -165,6 +165,13 @@ export function RosterTable({
                 <SortHeader
                   sort={sort}
                   hrefs={sortHrefs}
+                  sortKey="best"
+                  label="Season best"
+                  className="hidden w-[120px] sm:table-cell"
+                />
+                <SortHeader
+                  sort={sort}
+                  hrefs={sortHrefs}
                   sortKey="status"
                   label="Status"
                   className="w-[130px]"
@@ -456,6 +463,17 @@ function RosterTableRow({
       <td className={cn(CELL, "hidden sm:table-cell")}>
         {row.category || "—"}
         {row.sex ? <span className="text-admin-muted"> · {row.sex}</span> : null}
+      </td>
+      {/* The qualification evidence beside the entry: their best mile from the
+          rest of the season, or a dash for a runner with no matched result. */}
+      <td
+        className={cn(
+          CELL,
+          "hidden whitespace-nowrap font-mono tabular-nums sm:table-cell",
+          row.seasonBest === null && "text-admin-muted",
+        )}
+      >
+        {row.seasonBest ?? "—"}
       </td>
       <td className={CELL}>
         <ParticipationBadge status={row.status} />

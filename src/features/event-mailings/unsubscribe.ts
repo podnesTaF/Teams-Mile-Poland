@@ -61,3 +61,16 @@ export function unsubscribeFooter(
 ): { line: string; cta: string; url: string } {
   return { ...FOOTER_COPY[locale], url: makeUnsubscribeUrl(userId, locale) };
 }
+
+/**
+ * The footer as the compose preview shows it: real copy, inert link. A preview
+ * belongs to no recipient, so it must never carry a real signed token — anyone
+ * the preview HTML is forwarded to could otherwise opt a user out.
+ */
+export function previewUnsubscribeFooter(locale: MailLocale): {
+  line: string;
+  cta: string;
+  url: string;
+} {
+  return { ...FOOTER_COPY[locale], url: "#" };
+}

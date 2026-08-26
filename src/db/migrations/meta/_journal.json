@@ -162,6 +162,13 @@
       "when": 1787581482997,
       "tag": "0022_stale_la_nuit",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1787755837553,
+      "tag": "0023_goofy_doorman",
+      "breakpoints": true
     }
   ]
 }

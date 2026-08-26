@@ -919,7 +919,7 @@
       "opensSoon": "Wkrótce",
       "full": "Brak miejsc",
       "viewResults": "Wyniki →",
-      "gun": "start",
+      "checkin": "rejestracja",
       "freeLeft": "darmowych",
       "paidLeft": "płatnych"
     },
@@ -945,7 +945,8 @@
       "soldOut": "Brak miejsc",
       "facts": {
         "date": "Data",
-        "gun": "Start",
+        "checkin": "Rejestracja",
+        "start": "Start",
         "venue": "Miejsce",
         "distance": "Dystans"
       },

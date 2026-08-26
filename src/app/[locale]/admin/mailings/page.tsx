@@ -4,6 +4,7 @@ import "@/app/landing.css";
 
 import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminPage } from "@/features/admin/components/shell/admin-page";
+import { BroadcastPreview } from "@/features/admin/components/broadcast-preview";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { RecipientMultiselect } from "@/features/admin/components/recipient-multiselect";
@@ -206,7 +207,8 @@ async function MailingsBody({ locale, canEdit }: { locale: string; canEdit: bool
               style={{ height: "auto", padding: "12px 14px", lineHeight: 1.5 }}
             />
           </div>
-          <div className="iv-actions">
+          <div className="iv-actions" style={{ justifyContent: "space-between" }}>
+            <BroadcastPreview locale={locale} withUnsubscribe={false} mailLocales={["en"]} />
             <ConfirmSubmit
               label="Send broadcast"
               title="Send broadcast?"
@@ -294,6 +296,55 @@ async function MailingsBody({ locale, canEdit }: { locale: string; canEdit: bool
   );
 }
 
+/**
+ * One optional language version of a user broadcast: a collapsed pair of
+ * subject + body fields. Leave both empty and those recipients get the
+ * default; fill both and they get this instead (the action rejects a
+ * half-filled pair).
+ */
+function BroadcastVariantFields({ lang, title }: { lang: "pl" | "ua"; title: string }) {
+  return (
+    <details style={{ border: "1px solid rgba(255, 255, 255, 0.14)", borderRadius: 8, padding: "10px 14px" }}>
+      <summary className="iv-fieldlabel" style={{ cursor: "pointer", marginBottom: 0 }}>
+        {title}
+      </summary>
+      <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
+        <div>
+          <label className="iv-fieldlabel" htmlFor={`ub-subject-${lang}`}>
+            Subject
+          </label>
+          <input
+            id={`ub-subject-${lang}`}
+            name={`subject_${lang}`}
+            className="iv-input"
+            maxLength={160}
+          />
+        </div>
+        <div>
+          <label className="iv-fieldlabel" htmlFor={`ub-body-${lang}`}>
+            Message (HTML allowed)
+          </label>
+          <textarea
+            id={`ub-body-${lang}`}
+            name={`body_${lang}`}
+            rows={6}
+            className="iv-input"
+            style={{ height: "auto", padding: "12px 14px", lineHeight: 1.5 }}
+          />
+        </div>
+      </div>
+    </details>
+  );
+}
+
+/** "EN · PL" — which language versions a stored broadcast carries. */
+function broadcastLanguages(b: UserBroadcastRow): string {
+  const langs = ["EN"];
+  if (b.subjectPl && b.bodyHtmlPl) langs.push("PL");
+  if (b.subjectUa && b.bodyHtmlUa) langs.push("UA");
+  return langs.join(" · ");
+}
+
 function UserBroadcastSection({
   locale,
   segments,
@@ -321,7 +372,7 @@ function UserBroadcastSection({
           <input type="hidden" name="locale" value={locale} />
           <div>
             <label className="iv-fieldlabel" htmlFor="ub-subject">
-              Subject
+              Subject (default · English)
             </label>
             <input id="ub-subject" name="subject" className="iv-input" required maxLength={160} />
           </div>
@@ -339,7 +390,7 @@ function UserBroadcastSection({
           </div>
           <div>
             <label className="iv-fieldlabel" htmlFor="ub-body">
-              Message (HTML allowed)
+              Message (default · English, HTML allowed)
             </label>
             <textarea
               id="ub-body"
@@ -349,12 +400,23 @@ function UserBroadcastSection({
               className="iv-input"
               style={{ height: "auto", padding: "12px 14px", lineHeight: 1.5 }}
             />
+            <p className="iv-note" style={{ marginTop: 6, marginBottom: 0 }}>
+              Sent to everyone whose language has no version below. Each recipient gets the
+              version matching their preferred language.
+            </p>
           </div>
-          <div className="iv-actions">
+          <BroadcastVariantFields lang="pl" title="Polska wersja (optional)" />
+          <BroadcastVariantFields lang="ua" title="Українська версія (optional)" />
+          <div className="iv-actions" style={{ justifyContent: "space-between" }}>
+            <BroadcastPreview
+              locale={locale}
+              withUnsubscribe
+              mailLocales={["en", "pl", "ua"]}
+            />
             <ConfirmSubmit
               label="Send user broadcast"
               title="Send user broadcast?"
-              message="This emails the selected user segment immediately (opted-out users excluded). Double-check the subject and message."
+              message="This emails the selected user segment immediately (opted-out users excluded). Each recipient gets the version for their preferred language, falling back to the default. Double-check with Preview first."
               confirmLabel="Send user broadcast"
               danger={false}
             />
@@ -374,6 +436,7 @@ function UserBroadcastSection({
                 <tr>
                   <th>Subject</th>
                   <th>Segment</th>
+                  <th>Languages</th>
                   <th>Sent</th>
                   <th>Status</th>
                   <th>Created</th>
@@ -385,6 +448,7 @@ function UserBroadcastSection({
                   <tr key={b.id}>
                     <td>{b.subject}</td>
                     <td>{b.segment}</td>
+                    <td>{broadcastLanguages(b)}</td>
                     <td>{b.sentCount}</td>
                     <td>{b.status}</td>
                     <td>{fmtDate(b.createdAt)}</td>

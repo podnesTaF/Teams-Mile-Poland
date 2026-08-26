@@ -84,7 +84,7 @@ export function SeriesList({ rows }: { rows: RaceRow[] }) {
               <div className="race-meta">
                 {r.time ? (
                   <span>
-                    {r.time} {t("card.gun")}
+                    {r.time} {t("card.checkin")}
                   </span>
                 ) : null}
                 <span>{r.venue}</span>

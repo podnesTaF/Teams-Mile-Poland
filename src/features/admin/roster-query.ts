@@ -33,7 +33,7 @@ export const ROSTER_STATUSES: ParticipationStatus[] = [
 ];
 
 /** Columns the table can be ordered by; anything else falls back to the default. */
-export const ROSTER_SORT_KEYS: RosterSortKey[] = ["bib", "name", "status", "registered-at"];
+export const ROSTER_SORT_KEYS: RosterSortKey[] = ["bib", "name", "status", "registered-at", "best"];
 
 /**
  * Rows per page. Sized so a full page fits a laptop screen without scrolling the

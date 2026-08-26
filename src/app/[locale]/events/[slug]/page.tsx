@@ -14,7 +14,7 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { getEventDocuments, resolveDocumentFile } from "@/lib/events/documents";
 import { getEventMediaConfig } from "@/lib/events/media-config";
-import { getEventBySlug, getIndividualEvents } from "@/lib/events/registry";
+import { getEventBySlug, getFirstHeatTime, getIndividualEvents } from "@/lib/events/registry";
 import { getPublicResults } from "@/lib/events/results-data";
 // Straight from the store, not the `registry` compat shim: `isPubliclyVisible`
 // is new API, and the shim exists only so the pre-DB call sites kept compiling.
@@ -131,6 +131,9 @@ export default async function EventDetailPage({ params }: PageProps) {
   });
   const [, m, d] = event.date.split("-");
   const longDate = formatEventLongDate(locale, event.date);
+  // The window start is when check-in opens; racing begins an hour later
+  // (`firstHeatTime`, the same offset the timetable below is built from).
+  const startTime = await getFirstHeatTime(slug);
 
   return (
     <div className="ace-landing iv">
@@ -159,12 +162,13 @@ export default async function EventDetailPage({ params }: PageProps) {
 
               <div className="detail-facts">
                 <Fact k={t("detail.facts.date")} v={`${d} ${MONTHS[Number(m) - 1] ?? m}`} />
-                <Fact k={t("detail.facts.gun")} v={event.timeRange?.start ?? "—"} />
                 <Fact
                   k={t("detail.facts.venue")}
                   v={event.venue}
                   href={venueMapsUrl(event.venue, event.city)}
                 />
+                <Fact k={t("detail.facts.checkin")} v={event.timeRange?.start ?? "—"} />
+                <Fact k={t("detail.facts.start")} v={startTime ?? "—"} />
                 <Fact k={t("detail.facts.distance")} v={t("detail.distanceValue")} />
               </div>
 

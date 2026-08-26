@@ -14,11 +14,16 @@ import {
 import { awardCheckInRewards } from "@/features/wallet/accruals";
 import { getDb } from "@/lib/db";
 import { getBibSlots, getEventBySlug } from "@/lib/events/registry";
+import { formatTime } from "@/lib/events/time";
+
+import { getSeasonBests } from "./roster-best";
 
 export type { ParticipationStatus };
 
 export type RosterRow = {
   id: string;
+  /** Account behind the registration — the key season bests are looked up by. */
+  userId: string;
   status: ParticipationStatus;
   bib: number | null;
   /** Set once the bib lease is back in the pool; see {@link holdsBib}. */
@@ -43,6 +48,7 @@ export type RosterRow = {
 
 const ROSTER_COLUMNS = {
   id: eventRegistrations.id,
+  userId: eventRegistrations.userId,
   status: eventRegistrations.status,
   bib: eventRegistrations.bib,
   bibReturnedAt: eventRegistrations.bibReturnedAt,
@@ -63,7 +69,7 @@ const ROSTER_COLUMNS = {
 };
 
 /** Which roster column the table is ordered by. */
-export type RosterSortKey = "bib" | "name" | "status" | "registered-at";
+export type RosterSortKey = "bib" | "name" | "status" | "registered-at" | "best";
 
 export type RosterSort = { key: RosterSortKey; dir: "asc" | "desc" };
 
@@ -156,6 +162,11 @@ function rosterOrder(sort: RosterSort): SQL[] {
     // lifecycle itself: registered → confirmed → checked_in → no_show.
     status: sql`${eventRegistrations.status} ${dir}`,
     "registered-at": sql`${eventRegistrations.createdAt} ${dir}`,
+    // Season best is matched in memory (`roster-best.ts`), not a column, so the
+    // database cannot order by it. The page re-orders and windows the full
+    // filtered roster itself for this key; the name order here is only the
+    // deterministic base (and the tie order for runners with no result).
+    best: sql`${SORT_NAME} asc nulls last`,
   };
   const secondary = sort.key === "name" ? sql`${users.firstName} asc` : sql`${SORT_NAME} asc`;
   return [primary[sort.key], secondary, sql`${eventRegistrations.id} asc`];
@@ -348,6 +359,9 @@ export async function buildEventRosterWorkbook(eventSlug: string): Promise<Buffe
   const rows = await getEventRoster(eventSlug);
   const event = await getEventBySlug(eventSlug);
   const eventDate = event ? new Date(event.date) : new Date();
+  // The same season-best the roster table shows (see `roster-best.ts`) — the
+  // export is how a final's field gets picked offline, so it travels along.
+  const bests = await getSeasonBests(rows, eventSlug);
 
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Teams Mile Admin";
@@ -361,6 +375,7 @@ export async function buildEventRosterWorkbook(eventSlug: string): Promise<Buffe
     { header: "Sex", key: "sex", width: 6 },
     { header: "Date of birth", key: "dob", width: 14 },
     { header: "Age cat.", key: "ageCat", width: 10 },
+    { header: "Season best", key: "seasonBest", width: 12 },
     { header: "Club", key: "club", width: 24 },
     { header: "Email", key: "email", width: 30 },
     { header: "Phone", key: "phone", width: 18 },
@@ -371,6 +386,7 @@ export async function buildEventRosterWorkbook(eventSlug: string): Promise<Buffe
   sheet.getRow(1).font = { bold: true };
 
   for (const r of rows) {
+    const best = bests.get(r.userId);
     sheet.addRow({
       bib: r.bib ?? "",
       firstName: r.firstName ?? "",
@@ -378,6 +394,7 @@ export async function buildEventRosterWorkbook(eventSlug: string): Promise<Buffe
       sex: r.sex ?? "",
       dob: fmtDob(r.dateOfBirth),
       ageCat: ageCategoryForDob(r.dateOfBirth, eventDate),
+      seasonBest: best ? formatTime(best.timeCs) : "",
       club: r.club ?? "",
       email: r.email,
       phone: r.phone ?? "",

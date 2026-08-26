@@ -15,10 +15,12 @@ import {
   getEventRoster,
   getRosterStats,
   type ParticipationStatus,
+  type RosterRow,
   type RosterSortKey,
 } from "@/features/admin/events-data";
 import { plural } from "@/features/admin/format";
 import { getEventHeats } from "@/features/admin/heats-data";
+import { getSeasonBests, type SeasonBest } from "@/features/admin/roster-best";
 import {
   isFiltered,
   parseRosterParams,
@@ -102,18 +104,31 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
   // The heats come back beside the rows because they are the bulk-move form's
   // target list: seeding from the roster has to be possible on the first page
   // load, not after a trip to the Heats tab to find out what exists.
-  const [rows, heats]: [RosterRowView[], HeatOption[]] =
+  //
+  // Season best is matched in memory (`roster-best.ts`), not a column, so it is
+  // the one sort the database cannot window: for that key the whole filtered
+  // roster is read, ranked here, and sliced here. Every other sort stays the
+  // windowed DB read it was, with bests looked up only for the page on show.
+  const bestSort = list.sort.key === "best";
+  const [roster, heats]: [RosterRow[], HeatOption[]] =
     matches === 0
       ? [[], []]
       : await Promise.all([
           getEventRoster(slug, {
             ...filter,
             sort: list.sort,
-            limit: ROSTER_PAGE_SIZE,
-            offset,
-          }).then((roster) => roster.map((row) => toRosterRowView(row, eventDate))),
+            ...(bestSort ? {} : { limit: ROSTER_PAGE_SIZE, offset }),
+          }),
           getEventHeats(slug).then((cards) => cards.map(toHeatOption)),
         ]);
+
+  const bests = await getSeasonBests(roster, slug);
+  const pageRoster = bestSort
+    ? sortBySeasonBest(roster, bests, list.sort.dir).slice(offset, offset + ROSTER_PAGE_SIZE)
+    : roster;
+  const rows: RosterRowView[] = pageRoster.map((row) =>
+    toRosterRowView(row, eventDate, bests.get(row.userId) ?? null),
+  );
 
   // The whole roster, never the page or the filter — the chips are the control,
   // so their counts have to say what is *available*, not what is showing.
@@ -197,6 +212,28 @@ const EMPTY_ROSTER_COPY: Record<EventStatus, string> = {
   cancelled:
     "This night was cancelled with nobody entered, so there was nobody to tell — the roster stays empty for the record.",
 };
+
+/**
+ * Order the roster by season best, fastest first when ascending. Runners with
+ * no matched result sink to the bottom in *both* directions — the same rule
+ * `rosterOrder` applies to a missing bib — and keep the read's name order among
+ * themselves (`Array.prototype.sort` is stable).
+ */
+function sortBySeasonBest(
+  roster: RosterRow[],
+  bests: Map<string, SeasonBest>,
+  dir: "asc" | "desc",
+): RosterRow[] {
+  const sign = dir === "desc" ? -1 : 1;
+  return [...roster].sort((a, b) => {
+    const ta = bests.get(a.userId)?.timeCs ?? null;
+    const tb = bests.get(b.userId)?.timeCs ?? null;
+    if (ta === null && tb === null) return 0;
+    if (ta === null) return 1;
+    if (tb === null) return -1;
+    return (ta - tb) * sign;
+  });
+}
 
 /** What the admin currently has switched on, said back to them in the empty state. */
 function plainDescription(list: RosterParams): string {

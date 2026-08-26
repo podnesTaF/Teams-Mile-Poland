@@ -320,6 +320,8 @@
   border-bottom: 1px solid var(--line-d);
 }
 .ace-landing .fact:nth-child(2n) { border-right: 0; }
+/* An odd fact count leaves an orphan cell; stretch it across both columns. */
+.ace-landing .fact:last-child:nth-child(odd) { grid-column: 1 / -1; border-right: 0; }
 .ace-landing .fact__k {
   font-family: var(--font-cta), "Exo 2", sans-serif;
   font-weight: 700;

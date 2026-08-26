@@ -919,7 +919,7 @@
       "opensSoon": "Opens soon",
       "full": "Full",
       "viewResults": "View results →",
-      "gun": "gun",
+      "checkin": "check-in",
       "freeLeft": "free left",
       "paidLeft": "paid left"
     },
@@ -945,7 +945,8 @@
       "soldOut": "Sold out",
       "facts": {
         "date": "Date",
-        "gun": "Gun time",
+        "checkin": "Check-in",
+        "start": "Start time",
         "venue": "Venue",
         "distance": "Distance"
       },

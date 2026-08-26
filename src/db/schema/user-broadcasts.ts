@@ -8,11 +8,20 @@ import { users } from "./auth";
  * `segment` is text, not an enum, because segments include parameterized
  * values (`registered:<event-slug>`, `awaiting_confirmation:<event-slug>`,
  * `confirmed:<event-slug>`) resolved at send time. Statuses: `draft` | `sent`.
+ *
+ * `subject`/`body_html` are the default (English) variant every recipient can
+ * fall back to. The `_pl`/`_ua` pairs are optional per-locale overrides picked
+ * by the recipient's stored locale at send time; a variant exists only when
+ * both its subject and body are set.
  */
 export const userBroadcasts = pgTable("user_broadcasts", {
   id: uuid("id").defaultRandom().primaryKey(),
   subject: text("subject").notNull(),
   bodyHtml: text("body_html").notNull(),
+  subjectPl: text("subject_pl"),
+  bodyHtmlPl: text("body_html_pl"),
+  subjectUa: text("subject_ua"),
+  bodyHtmlUa: text("body_html_ua"),
   segment: text("segment").notNull(),
   status: text("status").default("draft").notNull(),
   sentCount: integer("sent_count").default(0).notNull(),
