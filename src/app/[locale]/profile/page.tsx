@@ -34,15 +34,19 @@ import {
   makeReferralUrl,
 } from "@/features/referral/data";
 import { InviteLink } from "@/features/team/components/invite-link";
+import { WalletBalanceCard } from "@/features/wallet/components/balance-card";
+import { getWalletBalances } from "@/features/wallet/data";
+import { isAcerPurchaseEnabled } from "@/features/wallet/purchase";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { isRaceRun } from "@/lib/events/participation";
 import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
 import { formatTime } from "@/lib/events/time";
+import type { EventSummary } from "@/lib/events/types";
 import { getDirectResultRefs, getMergedResults } from "@/lib/events/results-data";
 import { findUserResults } from "@/lib/events/user-results";
 import { defaultLocale } from "@/lib/i18n/config";
-import { getUser, isProfileComplete } from "@/lib/auth/user-session";
+import { getUser, isAdmin, isProfileComplete } from "@/lib/auth/user-session";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
@@ -133,7 +137,21 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
     getMergedResults(participations.map((p) => p.eventSlug)),
     getDirectResultRefs(registrations.map((r) => r.id)),
   ]);
-  const myResults = findUserResults(fullName, participations, resultsBySlug, directRefs);
+  // The events behind those slugs, resolved once here: the matcher takes them
+  // as a map now, and the registration cards below need the same lookup from
+  // inside a render callback, which cannot await.
+  const eventsBySlug = new Map<string, EventSummary>();
+  for (const slug of new Set(participations.map((p) => p.eventSlug))) {
+    const event = await getEventBySlug(slug);
+    if (event) eventsBySlug.set(slug, event);
+  }
+  const myResults = findUserResults(
+    fullName,
+    participations,
+    resultsBySlug,
+    directRefs,
+    eventsBySlug,
+  );
   const bestTimeCs =
     myResults.length > 0 ? Math.min(...myResults.map((r) => r.entry.timeCs)) : null;
 
@@ -145,11 +163,23 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   ]);
   const referralUrl = makeReferralUrl(referralCode, locale);
 
+  // The wallet is admin-only while it is in testing, and `/wallet` redirects
+  // everyone else back here — so the balance card is gated by the *same*
+  // predicate rather than a second one that can drift. Ungating the card alone
+  // would hand ordinary runners a balance and two CTAs that bounce them
+  // straight back to this page. Flip both together when the wallet opens up.
+  //
+  // The read is skipped entirely for everyone else: no query runs for a reader
+  // who will not see the card. One balance query and no history — the card
+  // shows a single number, and movements live on `/wallet`.
+  const showWallet = isAdmin(user);
+  const walletBalances = showWallet ? await getWalletBalances(user.id) : null;
+
   // Race nights the user could still join — any registration row (even a
   // cancelled one) excludes the event, since registerForEvent rejects those
   // as duplicates and a dead-end Register CTA is worse than no row.
   const registeredSlugs = new Set(registrations.map((r) => r.eventSlug));
-  const otherEvents: RaceRow[] = getSeriesEvents()
+  const otherEvents: RaceRow[] = (await getSeriesEvents())
     .filter((event) => !registeredSlugs.has(event.slug))
     .map((event) => {
       const [y, m, d] = event.date.split("-");
@@ -227,6 +257,17 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             <LogOutButton className="btn btn-stroke-dark btn-sm pf-hero__out" />
           </header>
 
+          {/* Money sits directly under the identity block and above the stats
+            * strip: it is the one number on this page that moves between visits,
+            * so it leads rather than competing inside the grey grid. */}
+          {walletBalances ? (
+            <WalletBalanceCard
+              balanceMinor={walletBalances.ACER}
+              locale={locale}
+              canTopUp={isAcerPurchaseEnabled()}
+            />
+          ) : null}
+
           <div className="pf-stats">
             <div className="pf-stat">
               <span className="pf-stat__v">{raceCount}</span>
@@ -259,10 +300,14 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             </a>
             {/* The one pill that leaves the page — the wallet is its own screen
               * (per-user money, never pre-rendered), and this strip is where a
-              * runner looks for the rest of their cabinet. */}
-            <Link className="pf-nav__link pf-nav__link--go" href="/wallet">
-              {t("nav.wallet")} →
-            </Link>
+              * runner looks for the rest of their cabinet. It repeats the
+              * balance card's link on purpose: the nav is sticky, so this is the
+              * way back to the wallet once the card has scrolled away. */}
+            {showWallet ? (
+              <Link className="pf-nav__link pf-nav__link--go" href="/wallet">
+                {t("nav.wallet")} →
+              </Link>
+            ) : null}
           </nav>
 
           {incomplete ? (
@@ -304,7 +349,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             ) : (
               <div className="reg-list">
                 {registrations.map((reg) => {
-                  const event = getEventBySlug(reg.eventSlug);
+                  const event = eventsBySlug.get(reg.eventSlug);
                   const active =
                     reg.status === "registered" ||
                     reg.status === "confirmed" ||

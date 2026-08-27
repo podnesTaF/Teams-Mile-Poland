@@ -12,7 +12,7 @@ const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "
  * Hides itself when the series is empty.
  */
 export async function EventSeries() {
-  const events = getSeriesEvents();
+  const events = await getSeriesEvents();
   if (events.length === 0) return null;
 
   const t = await getTranslations("events");

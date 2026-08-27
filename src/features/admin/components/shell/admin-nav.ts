@@ -5,9 +5,17 @@ import type { EventStatus } from "@/lib/events/types";
 /**
  * The admin sidebar's navigation model.
  *
- * Built on the server (it reads the event registry) and handed to the sidebar
- * as plain data, so the registry — and the results/media payloads it imports —
- * never reach the client bundle.
+ * Built on the server (it reads the event store) and handed to the sidebar as
+ * plain data, so the store — and the database driver it now imports — never
+ * reach the client bundle.
+ *
+ * **That is a hard constraint, not a preference.** Events are DB rows now, so
+ * this module transitively imports `postgres`, which cannot be bundled for the
+ * browser (`fs`/`net`/`tls`). The client sidebar therefore imports only *types*
+ * from here — type imports are erased, so they pull nothing in. Adding a single
+ * runtime export that the sidebar uses would drag the driver into the client
+ * bundle and fail the build. Status *display* helpers live in
+ * `event-status-badge.tsx` for exactly this reason.
  *
  * Admin is English-only by convention, so the labels are literals rather than
  * message keys.
@@ -79,8 +87,8 @@ function eventLabel(date: string): string {
  * the way to the page's own redirect/404) holds no capability at all, so the
  * sidebar comes back empty rather than advertising the panel.
  */
-export function buildAdminNav(role: string | null | undefined): AdminNav {
-  const events: AdminNavEvent[] = getIndividualEvents().map((event) => ({
+export async function buildAdminNav(role: string | null | undefined): Promise<AdminNav> {
+  const events: AdminNavEvent[] = (await getIndividualEvents()).map((event) => ({
     slug: event.slug,
     label: eventLabel(event.date),
     status: event.status,
@@ -140,9 +148,4 @@ export function buildAdminNav(role: string | null | undefined): AdminNav {
     }))
     // A group whose every item was filtered out would render as a bare heading.
     .filter((group) => group.items.length > 0 || (group.events?.length ?? 0) > 0);
-}
-
-/** Human label for a lifecycle status, used as the status dot's tooltip. */
-export function eventStatusLabel(status: EventStatus): string {
-  return status.replaceAll("_", " ");
 }

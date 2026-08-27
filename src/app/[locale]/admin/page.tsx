@@ -38,8 +38,8 @@ export default async function AdminOverviewPage({
 
   // Completed nights included, as in the sidebar and the events index: a race
   // that has run keeps its pages, and its counts are the record of it.
-  const events = getIndividualEvents();
-  const featured = getFeaturedEvent();
+  const events = await getIndividualEvents();
+  const featured = await getFeaturedEvent();
   // The registry's featured event can in principle be the frozen team event;
   // it has no admin surfaces to link to, so the dashboard only ever leads with
   // an individual one.

@@ -124,6 +124,7 @@ export function RosterDrawer({
             <Detail label="Age cat.">{row.category}</Detail>
             <Detail label="Sex">{row.sex}</Detail>
             <Detail label="Club">{row.club}</Detail>
+            <Detail label="Season best">{row.seasonBestDetail}</Detail>
           </Section>
 
           <Section label="Race">

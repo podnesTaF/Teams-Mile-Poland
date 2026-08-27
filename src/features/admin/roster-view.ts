@@ -24,7 +24,9 @@ import {
 } from "./events-data";
 import { formatAdminDateTime } from "./format";
 import type { HeatWithFill } from "./heats-data";
+import type { SeasonBest } from "./roster-best";
 import { formatHeatTime } from "@/lib/events/heat-time";
+import { formatTime } from "@/lib/events/time";
 
 export type RosterRowView = {
   id: string;
@@ -48,11 +50,23 @@ export type RosterRowView = {
   heatTime: string | null;
   /** Their heat has run — they are done, not waiting for a bib. */
   heatFinished: boolean;
+  /**
+   * Best mile of the qualification season — the runner's fastest matched result
+   * across every event *other than this one* (`roster-best.ts`), formatted
+   * `MM:SS.cc`; null when they have none. What a final's roster is seeded by.
+   */
+  seasonBest: string | null;
+  /** The same best with its context for the drawer: "04:32.10 · Level 5 · 01 · 08 · 2026". */
+  seasonBestDetail: string | null;
   registeredAt: string;
   checkedInAt: string;
 };
 
-export function toRosterRowView(row: RosterRow, eventDate: Date): RosterRowView {
+export function toRosterRowView(
+  row: RosterRow,
+  eventDate: Date,
+  best: SeasonBest | null = null,
+): RosterRowView {
   return {
     id: row.id,
     status: row.status,
@@ -68,6 +82,10 @@ export function toRosterRowView(row: RosterRow, eventDate: Date): RosterRowView 
     heatLabel: row.heatNumber === null ? null : `Heat ${row.heatNumber}`,
     heatTime: row.heatScheduledAt ? formatHeatTime(row.heatScheduledAt) : null,
     heatFinished: row.heatFinishedAt !== null,
+    seasonBest: best ? formatTime(best.timeCs) : null,
+    seasonBestDetail: best
+      ? `${formatTime(best.timeCs)} · Level ${best.level} · ${best.shortDate}`
+      : null,
     registeredAt: formatAdminDateTime(row.createdAt),
     checkedInAt: formatAdminDateTime(row.checkedInAt),
   };

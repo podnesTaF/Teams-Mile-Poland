@@ -11,6 +11,9 @@ import { ResultsTables } from "@/features/event-results/results-tables";
 import { Link } from "@/i18n/navigation";
 import { getEventBySlug } from "@/lib/events/registry";
 import { getPublicResults } from "@/lib/events/results-data";
+// Straight from the store, not the `registry` compat shim: `isPubliclyVisible`
+// is new API, and the shim exists only so the pre-DB call sites kept compiling.
+import { isPubliclyVisible } from "@/lib/events/store";
 import { formatEventLongDate } from "@/lib/events/time";
 
 /**
@@ -30,8 +33,12 @@ type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
-  const event = getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") return {};
+  const event = await getEventBySlug(slug);
+  // Same gate as the page: an unannounced night gets no title, in a tab or a
+  // share card, because metadata renders before the body that 404s.
+  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
+    notFound();
+  }
   const t = await getTranslations({ locale, namespace: "events" });
   return { title: `${event.name} — ${t("results.eyebrow")}` };
 }
@@ -49,8 +56,11 @@ export default async function EventResultsPage({ params }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const event = getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") {
+  const event = await getEventBySlug(slug);
+  // A draft never has a public page (`isPubliclyVisible`). A cancelled night
+  // does: if it was called off mid-series after heats had already run, the
+  // results that exist stay readable — this page is a record, not a promotion.
+  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
     notFound();
   }
 

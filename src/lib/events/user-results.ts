@@ -1,6 +1,5 @@
 import { computeLevel } from "./levels";
 import { nameKey } from "./name-key";
-import { getEventBySlug } from "./registry";
 import type { EventSummary, ResultEntry, EventResults } from "./types";
 
 /**
@@ -51,6 +50,18 @@ export function findUserResults(
   participations: ParticipationRef[],
   resultsBySlug: Map<string, EventResults>,
   directRefs: Map<string, { heatNumber: number; bib: number }> = new Map(),
+  /**
+   * The events those participations point at, resolved by the caller. Passed in
+   * rather than looked up because resolving an event is a database read now
+   * (`getEventBySlug` is async): keeping this matcher synchronous and pure is
+   * what stops the profile page and the admin user-detail page from drifting
+   * into reporting different results for the same person — the guarantee
+   * `getUserDetail`'s docblock already promises. Required, not defaulted: a
+   * silently empty map would make every match vanish. Three callers pass it —
+   * the profile page, the admin user-detail page, and
+   * `scripts/verify-results-import.ts`.
+   */
+  eventsBySlug: Map<string, EventSummary>,
 ): UserResultMatch[] {
   const key = nameKey(fullName);
 
@@ -64,7 +75,7 @@ export function findUserResults(
 
   const matches: UserResultMatch[] = [];
   for (const [slug, bib] of bibBySlug) {
-    const event = getEventBySlug(slug);
+    const event = eventsBySlug.get(slug);
     const results = resultsBySlug.get(slug);
     if (!event || !results) continue;
 

@@ -15,6 +15,7 @@ import {
 import { AdminEventTabs } from "@/features/admin/components/shell/event-tabs";
 import { getRosterStats } from "@/features/admin/events-data";
 import { getEventBySlug } from "@/lib/events/registry";
+import { userCan } from "@/lib/auth/user-session";
 
 /**
  * The shared chrome for one event's three operational pages — roster, heats and
@@ -46,9 +47,9 @@ export default async function AdminEventLayout({
 }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
-  await requireAdmin(locale);
+  const actor = await requireAdmin(locale);
 
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
 
   return (
@@ -76,7 +77,7 @@ export default async function AdminEventLayout({
         }
       />
 
-      <AdminEventTabs slug={slug} />
+      <AdminEventTabs slug={slug} canEdit={userCan(actor, "edit")} />
 
       <div className="mt-5">{children}</div>
     </AdminPage>

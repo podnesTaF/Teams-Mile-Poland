@@ -909,7 +909,8 @@
       "registration_open": "Zapisy otwarte",
       "registration_closed": "Zapisy zamknięte",
       "completed": "Zakończony",
-      "full": "Brak miejsc"
+      "full": "Brak miejsc",
+      "cancelled": "Odwołany"
     },
     "card": {
       "viewDetails": "Zobacz szczegóły →",
@@ -918,7 +919,7 @@
       "opensSoon": "Wkrótce",
       "full": "Brak miejsc",
       "viewResults": "Wyniki →",
-      "gun": "start",
+      "checkin": "rejestracja",
       "freeLeft": "darmowych",
       "paidLeft": "płatnych"
     },
@@ -944,7 +945,8 @@
       "soldOut": "Brak miejsc",
       "facts": {
         "date": "Data",
-        "gun": "Start",
+        "checkin": "Rejestracja",
+        "start": "Start",
         "venue": "Miejsce",
         "distance": "Dystans"
       },
@@ -989,6 +991,13 @@
           "bannerTxt": "Ten wieczór biegowy się zakończył. Wyniki są dostępne.",
           "note": "Sprawdź swoją pozycję w profilu.",
           "cta": "Zobacz wyniki →"
+        },
+        "cancelled": {
+          "kicker": "Odwołany",
+          "bannerTitle": "Ten wieczór jest odwołany",
+          "bannerTxt": "Ten wieczór biegowy został odwołany. Wybierz inny wieczór serii.",
+          "note": "Już zapisany? Zapis na ten wieczór jest nieważny.",
+          "cta": "Wybierz inny wieczór"
         }
       }
     },
@@ -1363,6 +1372,13 @@
     "subtitle": "ACER to środki na koncie Ace Battle: zdobywasz je, przychodząc na bieg i startując, i wykorzystujesz je tylko na platformie. 1 ACER = 1 USD.",
     "balances": {
       "heading": "Twoje salda"
+    },
+    "card": {
+      "eyebrow": "Twoje saldo",
+      "note": "Środki na koncie Ace Battle, wykorzystywane wyłącznie na platformie. 1 ACER = 1 USD.",
+      "empty": "Zdobywasz 1 ACER za każde zameldowanie na wieczorze biegowym.",
+      "open": "Otwórz portfel",
+      "topUp": "Zasil konto"
     },
     "assets": {
       "ACER": "ACER",

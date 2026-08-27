@@ -7,6 +7,27 @@ import type { EventSummary } from "@/lib/events/types";
  * `timeRange`, so each mile night gets its own chain. No captain nudge.
  *
  * Pure functions (take `now` + `event`) so they're testable and safe from cron.
+ *
+ * **An event's date can move at runtime now** (events are rows, edited from
+ * `/admin`), so the two directions are worth stating because only one of them is
+ * a problem.
+ *
+ * Pulling a date *closer* is safe and needs no suppression. Only the **latest**
+ * passed kind is ever due (see {@link dueScheduledKind}), so a date move cannot
+ * produce a burst — it silently skips the kinds the new date has already gone
+ * past and sends the closest one on the next tick. That send is kept
+ * deliberately: it is the moment a reminder matters most, and the mail carries
+ * the event's live date and window, so the participant reads the true new date.
+ *
+ * Pushing a date *later* is the damaging direction and cannot be fixed here. A
+ * logged kind is consumed forever — `event_email_log` makes each
+ * `(registration, kind)` idempotent — so a night pushed a month out after its
+ * 7d/3d/1d mails have gone leaves those participants holding the old date and
+ * hearing nothing until the morning-of mail. Deleting log rows to re-arm the
+ * chain is not the answer: the log is the audit trail of what was actually
+ * sent. The admin is warned instead (the settings page names the kinds already
+ * sent), and the only way to re-reach those people is a user broadcast to
+ * `registered:<slug>`.
  */
 
 export const EVENT_SCHEDULED_KINDS = [

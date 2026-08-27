@@ -37,7 +37,7 @@ export default async function AdminLayout({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const nav = buildAdminNav(userRole(await getUser()));
+  const nav = await buildAdminNav(userRole(await getUser()));
 
   return (
     <div className="ace-landing iv admin-root">

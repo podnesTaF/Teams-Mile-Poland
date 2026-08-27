@@ -12,7 +12,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   }
 
   const { slug } = await params;
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }

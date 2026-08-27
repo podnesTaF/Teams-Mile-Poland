@@ -78,7 +78,7 @@ export async function getMergedResults(slugs: string[]): Promise<Map<string, Eve
 
   const merged = new Map<string, EventResults>();
   for (const slug of unique) {
-    const results = fromDb.get(slug) ?? getEventBySlug(slug)?.results;
+    const results = fromDb.get(slug) ?? (await getEventBySlug(slug))?.results;
     if (results && results.heats.some((h) => h.entries.length > 0)) merged.set(slug, results);
   }
   return merged;
@@ -162,7 +162,7 @@ export async function getPublicResults(slug: string): Promise<PublicEventResults
     }
   }
 
-  const sheet = getEventBySlug(slug)?.results;
+  const sheet = (await getEventBySlug(slug))?.results;
   if (!sheet || !sheet.heats.some((h) => h.entries.length > 0)) return null;
   return {
     heats: sheet.heats.map((h) => ({
@@ -178,11 +178,9 @@ export async function getPublicResults(slug: string): Promise<PublicEventResults
  * of the registry's `getResultsEvents`, which only sees config sheets.
  */
 export async function getResultsEventsWithDb(): Promise<EventSummary[]> {
-  const past = getPastEvents();
+  const past = await getPastEvents();
   const merged = await getMergedResults(past.map((e) => e.slug));
-  return past
-    .filter((e) => merged.has(e.slug))
-    .map((e) => ({ ...e, results: merged.get(e.slug) }));
+  return past.filter((e) => merged.has(e.slug)).map((e) => ({ ...e, results: merged.get(e.slug) }));
 }
 
 /**

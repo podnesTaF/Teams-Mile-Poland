@@ -154,7 +154,7 @@ export async function sendEventKind(
  */
 export async function runDueEventMailings(now: Date): Promise<EventKindSummary[]> {
   const summaries: EventKindSummary[] = [];
-  for (const event of getSeriesEvents()) {
+  for (const event of await getSeriesEvents()) {
     const kind = dueScheduledKind(now, event);
     if (kind) {
       summaries.push(await sendEventKind(event, kind));

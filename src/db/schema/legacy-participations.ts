@@ -7,7 +7,8 @@ import { users } from "./auth";
  * only warsaw-2026, whose registrants live in the frozen legacy `runners`
  * table. Written by the one-time first-event import script, which derives
  * `attended` from the official results file corroborated by legacy check-in.
- * Keyed by `event_slug` text (no FK — events live in the config registry).
+ * Keyed by `event_slug` text (no FK — events are rows of their own now, but the
+ * slug stays the plain text join key across six tables; see ADR 0005).
  */
 export const legacyParticipations = pgTable(
   "legacy_participations",

@@ -6,8 +6,9 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 /**
- * The Roster / Heats / Check-in / Results tab bar shared by the per-event
- * pages, replacing the cross-link button clusters each of them used to carry.
+ * The Roster / Heats / Check-in / Results / Media / Settings tab bar shared by
+ * the per-event pages, replacing the cross-link button clusters each of them
+ * used to carry.
  *
  * Active state comes from `useSelectedLayoutSegment`, which reports the child
  * segment of the event layout this bar lives in — `null` on the roster (the
@@ -26,9 +27,20 @@ const TABS = [
   { key: "checkin", label: "Check-in", segment: "checkin", suffix: "/checkin" },
   { key: "results", label: "Results", segment: "results", suffix: "/results" },
   { key: "media", label: "Media", segment: "media", suffix: "/media" },
+  /**
+   * Last on purpose: the lifecycle control, the edit form and the delete panel
+   * are what you reach for once, not the tabs you work the race night from.
+   *
+   * `editOnly` because the page behind it asks for `edit`: the panel's rule is
+   * that it never offers a door that is locked. The decision is made on the
+   * server and arrives as a plain boolean — this bar is a client component, so
+   * it must not import the role helpers itself, the same reason `buildAdminNav`
+   * filters server-side and hands the sidebar finished data.
+   */
+  { key: "settings", label: "Settings", segment: "settings", suffix: "/settings", editOnly: true },
 ] as const;
 
-export function AdminEventTabs({ slug }: { slug: string }) {
+export function AdminEventTabs({ slug, canEdit }: { slug: string; canEdit: boolean }) {
   const selected = useSelectedLayoutSegment();
 
   return (
@@ -36,7 +48,7 @@ export function AdminEventTabs({ slug }: { slug: string }) {
       aria-label="Event sections"
       className="admin-scroll mt-4 flex gap-1 overflow-x-auto border-b border-admin-line"
     >
-      {TABS.map((tab) => {
+      {TABS.filter((tab) => canEdit || !("editOnly" in tab && tab.editOnly)).map((tab) => {
         const active = tab.segment === selected;
         return (
           <Link

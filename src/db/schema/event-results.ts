@@ -14,7 +14,10 @@ export const RESULT_STATUSES: readonly ResultStatus[] = ["finished", "dnf", "dns
 
 /**
  * One timing-system result row for an individual event. Keyed by `event_slug`
- * text (no FK — events live in the config registry, not the DB).
+ * text (no FK — events are rows now, but the slug stays the plain text join key
+ * across six tables; deleting an event that has results is refused by the admin
+ * guard rather than cascaded away, since a race that ran keeps its record. See
+ * ADR 0005).
  *
  * Identity is `(event_slug, heat_number, bib)`: bibs are recycled leases across
  * heats within one event, so a bib alone never identifies a result (ADR 0003).

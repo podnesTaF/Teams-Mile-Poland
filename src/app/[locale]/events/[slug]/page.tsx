@@ -14,8 +14,11 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { getEventDocuments, resolveDocumentFile } from "@/lib/events/documents";
 import { getEventMediaConfig } from "@/lib/events/media-config";
-import { getEventBySlug, getIndividualEvents } from "@/lib/events/registry";
+import { getEventBySlug, getFirstHeatTime, getIndividualEvents } from "@/lib/events/registry";
 import { getPublicResults } from "@/lib/events/results-data";
+// Straight from the store, not the `registry` compat shim: `isPubliclyVisible`
+// is new API, and the shim exists only so the pre-DB call sites kept compiling.
+import { isPubliclyVisible } from "@/lib/events/store";
 import { formatEventLongDate } from "@/lib/events/time";
 import type { EventStatus } from "@/lib/events/types";
 import { defaultLocale } from "@/lib/i18n/config";
@@ -25,33 +28,71 @@ import { EventMediaTeaser } from "./event-media-teaser";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
-/** Config status → mockup detail display state (server-side; no live "full"). */
-type DetailState = "open" | "soon" | "closed" | "completed";
+/** Lifecycle status → mockup detail display state (server-side; no live "full"). */
+type DetailState = "open" | "soon" | "closed" | "completed" | "cancelled";
 function detailState(status: EventStatus): DetailState {
-  if (status === "registration_open") return "open";
-  if (status === "upcoming") return "soon";
-  if (status === "completed") return "completed";
-  return "closed";
+  switch (status) {
+    case "registration_open":
+      return "open";
+    case "upcoming":
+      return "soon";
+    case "completed":
+      return "completed";
+    case "cancelled":
+      return "cancelled";
+    // `draft` has no public display state, because it never gets one: an
+    // unannounced night 404s on every public surface before this page renders,
+    // and it is left out of `generateStaticParams` besides. This arm exists
+    // only to keep the function total, and it answers with the most inert
+    // state there is — `soon` renders a disabled button and no start list, no
+    // results and no gallery — so that even a hole in the visibility guard
+    // would advertise nothing about an unannounced night.
+    case "draft":
+      return "soon";
+    case "registration_closed":
+      return "closed";
+  }
 }
 const STATUS_KEY: Record<DetailState, string> = {
   open: "registration_open",
   soon: "upcoming",
   closed: "registration_closed",
   completed: "completed",
+  cancelled: "cancelled",
 };
 const BANNER_TONE: Record<DetailState, string> = {
   open: "info",
   soon: "warn",
   closed: "info",
   completed: "ok",
+  // `red` is the stylesheet's error tone (`series-flows.css` defines
+  // `banner--warn|red|info|ok`, and nothing else).
+  cancelled: "red",
 };
 
-export function generateStaticParams() {
+/**
+ * Safety-net ISR: a write that bypasses the app (a manual DB correction, a
+ * seed) reaches no `revalidatePath` and would leave this page stale until a
+ * deploy. Five minutes bounds that; admin actions still invalidate instantly.
+ * Must stay a literal — the value is statically analyzed.
+ */
+export const revalidate = 300;
+
+export async function generateStaticParams() {
   // Individual events including completed ones — a race night that flips to
   // `completed` must keep its detail page (gallery teaser, gallery back-link,
   // and the media-live mailing CTA all point at it). `getSeriesEvents` drops
   // completed events and drives landing cards, so it can't back the params.
-  return getIndividualEvents().map((event) => ({ slug: event.slug }));
+  //
+  // Filtered by `isPubliclyVisible`, which drops drafts and keeps cancelled
+  // nights: a cancelled night's page still renders (with its banner), an
+  // unannounced one has no page at all. Prerendering a draft would publish the
+  // slug — and the name, date and venue on it — the moment it was created.
+  // `dynamicParams` stays at its default `true`, so a draft that is later
+  // announced renders on first request without a deploy.
+  return (await getIndividualEvents())
+    .filter(isPubliclyVisible)
+    .map((event) => ({ slug: event.slug }));
 }
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
@@ -60,8 +101,12 @@ export default async function EventDetailPage({ params }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const event = getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") {
+  const event = await getEventBySlug(slug);
+  // A draft is indistinguishable from a slug that does not exist: not published,
+  // so not found — for an admin reading this page too, since the admin's view of
+  // a draft lives in `/admin`. `dynamicParams` means an un-prerendered slug still
+  // reaches this handler, so the gate has to be here and not only in the params.
+  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
     notFound();
   }
 
@@ -86,6 +131,9 @@ export default async function EventDetailPage({ params }: PageProps) {
   });
   const [, m, d] = event.date.split("-");
   const longDate = formatEventLongDate(locale, event.date);
+  // The window start is when check-in opens; racing begins an hour later
+  // (`firstHeatTime`, the same offset the timetable below is built from).
+  const startTime = await getFirstHeatTime(slug);
 
   return (
     <div className="ace-landing iv">
@@ -114,12 +162,13 @@ export default async function EventDetailPage({ params }: PageProps) {
 
               <div className="detail-facts">
                 <Fact k={t("detail.facts.date")} v={`${d} ${MONTHS[Number(m) - 1] ?? m}`} />
-                <Fact k={t("detail.facts.gun")} v={event.timeRange?.start ?? "—"} />
                 <Fact
                   k={t("detail.facts.venue")}
                   v={event.venue}
                   href={venueMapsUrl(event.venue, event.city)}
                 />
+                <Fact k={t("detail.facts.checkin")} v={event.timeRange?.start ?? "—"} />
+                <Fact k={t("detail.facts.start")} v={startTime ?? "—"} />
                 <Fact k={t("detail.facts.distance")} v={t("detail.distanceValue")} />
               </div>
 
@@ -189,6 +238,13 @@ export default async function EventDetailPage({ params }: PageProps) {
                     signInPrompt={t("detail.cta.signInPrompt")}
                     signInLabel={t("detail.cta.signIn")}
                   />
+                ) : state === "cancelled" ? (
+                  // A cancelled night never offers registration — the banner
+                  // above says it is off, and this points back at the nights
+                  // that are still on.
+                  <Link href="/#events" className="btn btn-stroke-dark btn-block">
+                    {t("detail.states.cancelled.cta")}
+                  </Link>
                 ) : state === "completed" && hasResults ? (
                   // "View results →" points at this page's own inline results
                   // section — the archive body right below — not the landing.

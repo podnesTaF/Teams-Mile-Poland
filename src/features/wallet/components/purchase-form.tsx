@@ -104,8 +104,11 @@ export function AcerPurchaseForm({ email, redirectTo }: Props) {
     });
   }
 
+  // `id="top-up"` is the anchor the profile page's balance card links to
+  // (`/wallet#top-up`), so a reader who came to top up lands on the form rather
+  // than at the top of the page.
   return (
-    <section className="wl-buy" aria-labelledby="wl-buy-h">
+    <section className="wl-buy" id="top-up" aria-labelledby="wl-buy-h">
       <div className="section-label">
         <span className="iv-eyebrow">{t("purchase.title")}</span>
       </div>

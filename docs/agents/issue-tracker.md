@@ -33,7 +33,7 @@ Workflow labels:
 
 Area labels (this is a single Next.js app, so "area" replaces LiftPeak's "surface"):
 
-- `area:events` — event config registry (`src/lib/events`), event detail/series pages
+- `area:events` — the `events` table and its readers (`src/lib/events`), event detail/series pages, admin event management
 - `area:auth` — Better Auth, sign-in/up/verify/reset flows
 - `area:registration` — event registration flow, tickets
 - `area:admin` — `/admin/*` roster, check-in, export

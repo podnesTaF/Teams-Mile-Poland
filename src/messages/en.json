@@ -909,7 +909,8 @@
       "registration_open": "Registration open",
       "registration_closed": "Registration closed",
       "completed": "Completed",
-      "full": "Full"
+      "full": "Full",
+      "cancelled": "Cancelled"
     },
     "card": {
       "viewDetails": "View details →",
@@ -918,7 +919,7 @@
       "opensSoon": "Opens soon",
       "full": "Full",
       "viewResults": "View results →",
-      "gun": "gun",
+      "checkin": "check-in",
       "freeLeft": "free left",
       "paidLeft": "paid left"
     },
@@ -944,7 +945,8 @@
       "soldOut": "Sold out",
       "facts": {
         "date": "Date",
-        "gun": "Gun time",
+        "checkin": "Check-in",
+        "start": "Start time",
         "venue": "Venue",
         "distance": "Distance"
       },
@@ -989,6 +991,13 @@
           "bannerTxt": "This race night has finished. Results are available.",
           "note": "Check your profile for your placement.",
           "cta": "View results →"
+        },
+        "cancelled": {
+          "kicker": "Cancelled",
+          "bannerTitle": "This race night is cancelled",
+          "bannerTxt": "This race night has been cancelled. Pick another night in the series.",
+          "note": "Already registered? Your entry for this night is void.",
+          "cta": "Pick another night"
         }
       }
     },
@@ -1363,6 +1372,13 @@
     "subtitle": "ACER is Ace Battle account credit: you earn it by turning up and racing, and it is used inside the platform only. 1 ACER = 1 USD.",
     "balances": {
       "heading": "Your balances"
+    },
+    "card": {
+      "eyebrow": "Your balance",
+      "note": "Ace Battle account credit, used inside the platform. 1 ACER = 1 USD.",
+      "empty": "You earn 1 ACER every time you are checked in at a race night.",
+      "open": "Open wallet",
+      "topUp": "Top up"
     },
     "assets": {
       "ACER": "ACER",

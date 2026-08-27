@@ -16,11 +16,27 @@ export type RaceRow = {
 
 type DisplayState = "open" | "soon" | "closed" | "completed";
 
+/**
+ * The landing's series list only ever receives announced, live nights: the
+ * event store filters `draft` and `cancelled` out before these rows are built,
+ * so neither has a row state of its own here. They are still spelled out, and
+ * the switch is exhaustive rather than defaulted, so that the day a seventh
+ * status appears the compiler asks what it should look like instead of quietly
+ * calling it closed.
+ */
 function displayState(status: EventStatus): DisplayState {
-  if (status === "registration_open") return "open";
-  if (status === "upcoming") return "soon";
-  if (status === "completed") return "completed";
-  return "closed";
+  switch (status) {
+    case "registration_open":
+      return "open";
+    case "upcoming":
+      return "soon";
+    case "completed":
+      return "completed";
+    case "registration_closed":
+    case "draft":
+    case "cancelled":
+      return "closed";
+  }
 }
 
 /**
@@ -68,7 +84,7 @@ export function SeriesList({ rows }: { rows: RaceRow[] }) {
               <div className="race-meta">
                 {r.time ? (
                   <span>
-                    {r.time} {t("card.gun")}
+                    {r.time} {t("card.checkin")}
                   </span>
                 ) : null}
                 <span>{r.venue}</span>

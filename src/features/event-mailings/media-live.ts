@@ -60,7 +60,7 @@ async function alreadySent(registrationIds: string[]): Promise<Set<string>> {
  * `media-live-actions.ts`).
  */
 export async function sendMediaLiveMailing(eventSlug: string): Promise<MediaLiveSummary> {
-  const event = getEventBySlug(eventSlug);
+  const event = await getEventBySlug(eventSlug);
   if (
     !event ||
     event.eventType !== "individual" ||

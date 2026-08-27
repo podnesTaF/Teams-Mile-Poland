@@ -15,10 +15,12 @@ import {
   getEventRoster,
   getRosterStats,
   type ParticipationStatus,
+  type RosterRow,
   type RosterSortKey,
 } from "@/features/admin/events-data";
 import { plural } from "@/features/admin/format";
 import { getEventHeats } from "@/features/admin/heats-data";
+import { getSeasonBests, type SeasonBest } from "@/features/admin/roster-best";
 import {
   isFiltered,
   parseRosterParams,
@@ -38,7 +40,7 @@ import {
   type RosterRowView,
 } from "@/features/admin/roster-view";
 import { userCan } from "@/lib/auth/user-session";
-import { getEventBySlug } from "@/lib/events/registry";
+import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 import type { EventStatus } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
@@ -74,8 +76,11 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
   setRequestLocale(locale);
   const actor = await requireAdmin(locale);
 
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
   if (!event || event.eventType !== "individual") notFound();
+  // The pool the flash copy needs to bound its refusal sentences; `flash.ts`
+  // stays synchronous, so the page resolves it.
+  const bibPool = await getBibPool(slug);
 
   const requested = parseRosterParams(query);
   const eventDate = new Date(event.date);
@@ -99,18 +104,31 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
   // The heats come back beside the rows because they are the bulk-move form's
   // target list: seeding from the roster has to be possible on the first page
   // load, not after a trip to the Heats tab to find out what exists.
-  const [rows, heats]: [RosterRowView[], HeatOption[]] =
+  //
+  // Season best is matched in memory (`roster-best.ts`), not a column, so it is
+  // the one sort the database cannot window: for that key the whole filtered
+  // roster is read, ranked here, and sliced here. Every other sort stays the
+  // windowed DB read it was, with bests looked up only for the page on show.
+  const bestSort = list.sort.key === "best";
+  const [roster, heats]: [RosterRow[], HeatOption[]] =
     matches === 0
       ? [[], []]
       : await Promise.all([
           getEventRoster(slug, {
             ...filter,
             sort: list.sort,
-            limit: ROSTER_PAGE_SIZE,
-            offset,
-          }).then((roster) => roster.map((row) => toRosterRowView(row, eventDate))),
+            ...(bestSort ? {} : { limit: ROSTER_PAGE_SIZE, offset }),
+          }),
           getEventHeats(slug).then((cards) => cards.map(toHeatOption)),
         ]);
+
+  const bests = await getSeasonBests(roster, slug);
+  const pageRoster = bestSort
+    ? sortBySeasonBest(roster, bests, list.sort.dir).slice(offset, offset + ROSTER_PAGE_SIZE)
+    : roster;
+  const rows: RosterRowView[] = pageRoster.map((row) =>
+    toRosterRowView(row, eventDate, bests.get(row.userId) ?? null),
+  );
 
   // The whole roster, never the page or the filter — the chips are the control,
   // so their counts have to say what is *available*, not what is showing.
@@ -118,7 +136,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
 
   return (
     <>
-      <AdminFlash query={query} context={{ slug }} />
+      <AdminFlash query={query} context={{ slug, bibPool }} />
 
       {/* No controls above an empty roster: there is nothing to search, filter
           or sort, and the empty state should be the only thing on the page. */}
@@ -182,14 +200,40 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
  * after it closes is the whole story of the event.
  */
 const EMPTY_ROSTER_COPY: Record<EventStatus, string> = {
+  draft:
+    "This night is still a draft: it has no public page yet, so there is no way anyone could have entered it.",
   upcoming:
-    "Registration has not opened for this night yet, so there is nothing to expect here — entries start arriving the moment it does. Lifecycle status is configuration, not data: it is flipped in the event registry.",
+    "Registration has not opened for this night yet, so there is nothing to expect here — entries start arriving the moment it does. Open it from the event's Settings tab when you are ready.",
   registration_open:
     "Registration is open and nobody has entered yet. Entries land here on their own; heats can be generated as soon as there are runners to seed.",
   registration_closed:
     "Registration has closed with nobody entered, so there is nobody to seed into heats or check in.",
   completed: "This night has run and no runner ever entered it.",
+  cancelled:
+    "This night was cancelled with nobody entered, so there was nobody to tell — the roster stays empty for the record.",
 };
+
+/**
+ * Order the roster by season best, fastest first when ascending. Runners with
+ * no matched result sink to the bottom in *both* directions — the same rule
+ * `rosterOrder` applies to a missing bib — and keep the read's name order among
+ * themselves (`Array.prototype.sort` is stable).
+ */
+function sortBySeasonBest(
+  roster: RosterRow[],
+  bests: Map<string, SeasonBest>,
+  dir: "asc" | "desc",
+): RosterRow[] {
+  const sign = dir === "desc" ? -1 : 1;
+  return [...roster].sort((a, b) => {
+    const ta = bests.get(a.userId)?.timeCs ?? null;
+    const tb = bests.get(b.userId)?.timeCs ?? null;
+    if (ta === null && tb === null) return 0;
+    if (ta === null) return 1;
+    if (tb === null) return -1;
+    return (ta - tb) * sign;
+  });
+}
 
 /** What the admin currently has switched on, said back to them in the empty state. */
 function plainDescription(list: RosterParams): string {
