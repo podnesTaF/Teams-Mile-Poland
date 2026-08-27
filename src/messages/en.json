@@ -477,11 +477,15 @@
       "tabs": {
         "all": "All"
       },
+      "boards": {
+        "M": "Men",
+        "F": "Women"
+      },
+      "boardCount": "{count, plural, one {# athlete} other {# athletes}}",
       "cols": {
         "place": "Place",
         "name": "Athlete",
         "level": "Level",
-        "category": "Category",
         "time": "Time",
         "bestTime": "Best time",
         "races": "Races",
@@ -489,10 +493,9 @@
       },
       "level": "Lvl {n}",
       "detailsLabel": "Details",
-      "category": {
-        "M": "M",
-        "F": "F"
-      }
+      "showAll": "Show all {count}",
+      "showLess": "Show less",
+      "empty": "No finishers in this category yet."
     }
   },
   "footer": {

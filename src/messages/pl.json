@@ -477,11 +477,15 @@
       "tabs": {
         "all": "Wszystkie"
       },
+      "boards": {
+        "M": "Mężczyźni",
+        "F": "Kobiety"
+      },
+      "boardCount": "{count, plural, one {# zawodnik} few {# zawodników} many {# zawodników} other {# zawodników}}",
       "cols": {
         "place": "Miejsce",
         "name": "Zawodnik",
         "level": "Poziom",
-        "category": "Kategoria",
         "time": "Czas",
         "bestTime": "Najlepszy czas",
         "races": "Biegi",
@@ -489,10 +493,9 @@
       },
       "level": "Poz. {n}",
       "detailsLabel": "Szczegóły",
-      "category": {
-        "M": "M",
-        "F": "K"
-      }
+      "showAll": "Pokaż wszystkich ({count})",
+      "showLess": "Pokaż mniej",
+      "empty": "Brak wyników w tej kategorii."
     }
   },
   "footer": {

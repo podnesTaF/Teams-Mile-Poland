@@ -4068,7 +4068,7 @@
 }
 
 /* =========================================================
- * Results — combined leaderboard table
+ * Results — gender-split leaderboards (men / women boards)
  * ========================================================= */
 .ace-landing .results__eyebrow {
   font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
@@ -4115,16 +4115,91 @@
   border-color: var(--acl-red);
   color: #fff;
 }
-.ace-landing .results__scroll {
+/* Two boards — men and women rank separately, side by side when width allows. */
+.ace-landing .results__boards {
   margin-top: clamp(28px, 4vw, 44px);
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2.5vw, 28px);
+  align-items: start;
+}
+.ace-landing .results__board {
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+}
+.ace-landing .results__board-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ace-landing .results__board-title {
+  margin: 0;
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: var(--fs-body-l, 1.125rem);
+}
+.ace-landing .results__board-count {
+  font-size: var(--fs-body-s);
+  color: rgba(255, 255, 255, 0.55);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ace-landing .results__empty {
+  margin: 0;
+  padding: 28px 18px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: var(--fs-body-m);
+}
+.ace-landing .results__more {
+  appearance: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 18px;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: var(--fs-body-s);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.ace-landing .results__more:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+.ace-landing .results__more svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.18s ease;
+}
+.ace-landing .results__more svg.is-open {
+  transform: rotate(180deg);
+}
+.ace-landing .results__scroll {
+  overflow-x: auto;
 }
 .ace-landing .results__table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 540px;
+  min-width: 380px;
   font-variant-numeric: tabular-nums;
 }
 .ace-landing .results__table thead th {
@@ -4155,11 +4230,6 @@
   font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
   font-weight: 700;
   font-style: italic;
-}
-.ace-landing .results__cat {
-  width: 1%;
-  white-space: nowrap;
-  color: rgba(255, 255, 255, 0.65);
 }
 .ace-landing .results__name {
   font-weight: 600;
@@ -4248,6 +4318,13 @@
   margin: 0;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+/* Boards stack once side-by-side would squeeze the tables. */
+@media (max-width: 960px) {
+  .ace-landing .results__boards {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 640px) {
