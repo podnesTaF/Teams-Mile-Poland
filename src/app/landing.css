@@ -4068,7 +4068,7 @@
 }
 
 /* =========================================================
- * Results — gender-split leaderboards (men / women boards)
+ * Results — latest race: podium + compact table, gender switch
  * ========================================================= */
 .ace-landing .results__eyebrow {
   font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
@@ -4079,6 +4079,8 @@
   color: var(--acl-red);
   font-size: var(--fs-body-m);
 }
+
+/* Race tabs — one per completed night, plus the season-rating link last. */
 .ace-landing .results__tabs {
   display: flex;
   flex-wrap: wrap;
@@ -4089,6 +4091,9 @@
 .ace-landing .results__tab {
   appearance: none;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 8px 18px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -4101,6 +4106,7 @@
   font-size: var(--fs-body-s);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-decoration: none;
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
@@ -4115,61 +4121,21 @@
   border-color: var(--acl-red);
   color: #fff;
 }
-/* Two boards — men and women rank separately, side by side when width allows. */
-.ace-landing .results__boards {
-  margin-top: clamp(28px, 4vw, 44px);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(16px, 2.5vw, 28px);
-  align-items: start;
+.ace-landing .results__tab--link {
+  border-style: dashed;
 }
-.ace-landing .results__board {
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
-  overflow: hidden;
-}
-.ace-landing .results__board-head {
+
+/* Category switch — a joined two-segment control, the standard M/W toggle. */
+.ace-landing .results__gender {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  justify-content: center;
+  margin-top: clamp(18px, 2.5vw, 26px);
 }
-.ace-landing .results__board-title {
-  margin: 0;
-  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
-  font-weight: 700;
-  font-style: italic;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: var(--fs-body-l, 1.125rem);
-}
-.ace-landing .results__board-count {
-  font-size: var(--fs-body-s);
-  color: rgba(255, 255, 255, 0.55);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.ace-landing .results__empty {
-  margin: 0;
-  padding: 28px 18px;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: var(--fs-body-m);
-}
-.ace-landing .results__more {
+.ace-landing .results__gender-btn {
   appearance: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px 18px;
-  border: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 9px 26px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   background: transparent;
   color: rgba(255, 255, 255, 0.75);
   font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
@@ -4179,35 +4145,114 @@
   font-size: var(--fs-body-s);
   transition:
     background 0.15s ease,
+    border-color 0.15s ease,
     color 0.15s ease;
 }
-.ace-landing .results__more:hover {
-  background: rgba(255, 255, 255, 0.05);
+.ace-landing .results__gender-btn:first-child {
+  border-radius: 999px 0 0 999px;
+  border-right-width: 0;
+}
+.ace-landing .results__gender-btn:last-child {
+  border-radius: 0 999px 999px 0;
+}
+.ace-landing .results__gender-btn:hover {
   color: #fff;
 }
-.ace-landing .results__more svg {
-  width: 18px;
-  height: 18px;
-  transition: transform 0.18s ease;
+.ace-landing .results__gender-btn[aria-pressed="true"] {
+  background: var(--acl-red);
+  border-color: var(--acl-red);
+  color: #fff;
 }
-.ace-landing .results__more svg.is-open {
-  transform: rotate(180deg);
+
+/* Podium — the top three as cards, 2 · 1 · 3 with the winner raised. */
+.ace-landing .results__podium {
+  list-style: none;
+  margin: clamp(26px, 4vw, 40px) auto 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 1.8vw, 18px);
+  align-items: end;
+  max-width: 860px;
 }
+.ace-landing .results__podium-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: clamp(18px, 2.6vw, 28px) 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  text-align: center;
+}
+.ace-landing .results__podium-card.is-p1 {
+  order: 2;
+  border-color: rgba(227, 6, 19, 0.55);
+  background:
+    linear-gradient(180deg, rgba(227, 6, 19, 0.12), rgba(255, 255, 255, 0.02));
+  padding-top: clamp(26px, 3.4vw, 40px);
+  padding-bottom: clamp(26px, 3.4vw, 40px);
+}
+.ace-landing .results__podium-card.is-p2 {
+  order: 1;
+}
+.ace-landing .results__podium-card.is-p3 {
+  order: 3;
+}
+.ace-landing .results__podium-place {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.15rem;
+}
+.ace-landing .results__podium-card.is-p1 .results__podium-place {
+  background: var(--acl-red);
+  border-color: var(--acl-red);
+  color: #fff;
+}
+.ace-landing .results__podium-name {
+  font-weight: 600;
+  font-size: var(--fs-body-m);
+  overflow-wrap: anywhere;
+}
+.ace-landing .results__podium-time {
+  font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+  font-variant-numeric: tabular-nums;
+}
+.ace-landing .results__podium-level {
+  font-size: var(--fs-body-s);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Places 4+ — a compact four-column table; fits a phone without collapsing. */
 .ace-landing .results__scroll {
+  margin: clamp(18px, 2.6vw, 26px) auto 0;
+  max-width: 860px;
   overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .ace-landing .results__table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 380px;
   font-variant-numeric: tabular-nums;
 }
 .ace-landing .results__table thead th {
-  position: sticky;
-  top: 0;
   background: var(--acl-ink-soft);
   text-align: left;
-  padding: 14px 18px;
+  padding: 12px 16px;
   font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
   font-weight: 700;
   text-transform: uppercase;
@@ -4217,7 +4262,7 @@
   white-space: nowrap;
 }
 .ace-landing .results__table tbody td {
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
   font-size: var(--fs-body-m);
 }
@@ -4234,121 +4279,89 @@
 .ace-landing .results__name {
   font-weight: 600;
 }
+.ace-landing .results__lvl {
+  width: 1%;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.65);
+}
 .ace-landing .results__time {
   text-align: right;
   white-space: nowrap;
   font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
   font-weight: 700;
 }
-.ace-landing .results__table tbody tr.is-podium .results__rank {
-  color: var(--acl-red);
+
+.ace-landing .results__empty {
+  margin: clamp(26px, 4vw, 40px) 0 0;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: var(--fs-body-m);
 }
-.ace-landing .results__lvl {
-  width: 1%;
-  white-space: nowrap;
+
+/* Bottom actions — expand in place, or leave for the race's own page. */
+.ace-landing .results__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: clamp(16px, 2.4vw, 24px);
+}
+.ace-landing .results__action {
+  appearance: none;
+  cursor: pointer;
+  padding: 9px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
   font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.82);
-}
-/* Person-level board only: races run, and the race the best time was set at. */
-.ace-landing .results__races,
-.ace-landing .results__race {
-  width: 1%;
-  white-space: nowrap;
-  color: rgba(255, 255, 255, 0.65);
-}
-
-/* Per-row expand control — hidden on desktop, shown when columns collapse. */
-.ace-landing .results__toggle-col,
-.ace-landing .results__toggle-cell {
-  display: none;
-}
-.ace-landing .results__toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  cursor: pointer;
-}
-.ace-landing .results__toggle:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-.ace-landing .results__toggle svg {
-  width: 20px;
-  height: 20px;
-  transition: transform 0.18s ease;
-}
-.ace-landing .results__toggle svg.is-open {
-  transform: rotate(180deg);
-}
-
-/* Stacked detail panel — an enhancement for the collapsed (mobile) layout. */
-.ace-landing .results__detail-row {
-  display: none;
-}
-.ace-landing .results__detail-row > td {
-  padding: 0;
-  border-top: 0;
-}
-.ace-landing .results__detail {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px 16px;
-  margin: 0;
-  padding: 2px 12px 16px;
-}
-.ace-landing .results__detail > div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.ace-landing .results__detail dt {
-  font-size: var(--fs-body-s);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--fs-body-s);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
-.ace-landing .results__detail dd {
-  margin: 0;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+.ace-landing .results__action:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
 }
 
-/* Boards stack once side-by-side would squeeze the tables. */
-@media (max-width: 960px) {
-  .ace-landing .results__boards {
+@media (max-width: 560px) {
+  /* Podium stacks in rank order; the raised-winner arrangement needs width. */
+  .ace-landing .results__podium {
     grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
   }
-}
-
-@media (max-width: 640px) {
-  .ace-landing .results__scroll {
-    overflow-x: visible;
+  .ace-landing .results__podium-card.is-p1 {
+    order: 1;
+    padding-top: 18px;
+    padding-bottom: 18px;
   }
-  .ace-landing .results__table {
-    min-width: 0;
+  .ace-landing .results__podium-card.is-p2 {
+    order: 2;
   }
-  .ace-landing .results__detail-col {
+  .ace-landing .results__podium-card.is-p3 {
+    order: 3;
+  }
+  .ace-landing .results__podium-card {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+    padding: 14px 16px;
+  }
+  .ace-landing .results__podium-name {
+    flex: 1;
+    margin: 0 12px;
+  }
+  .ace-landing .results__podium-level {
     display: none;
-  }
-  .ace-landing .results__toggle-col,
-  .ace-landing .results__toggle-cell {
-    display: table-cell;
-    width: 1%;
-    text-align: right;
-  }
-  .ace-landing .results__detail-row.is-open {
-    display: table-row;
   }
   .ace-landing .results__table thead th,
   .ace-landing .results__table tbody td {
-    padding: 12px 12px;
+    padding: 11px 12px;
   }
 }
 

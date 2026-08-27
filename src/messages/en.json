@@ -472,30 +472,49 @@
       "eyebrow": "Race results",
       "title": "Results",
       "subtitle": "{date} · {count} finishers",
-      "subtitleAthletes": "All races · {count} athletes · best time counts",
-      "tabsLabel": "Filter results by race",
-      "tabs": {
-        "all": "All"
-      },
-      "boards": {
+      "tabsLabel": "Pick a race",
+      "ratingLink": "Season rating",
+      "genderLabel": "Category",
+      "gender": {
         "M": "Men",
         "F": "Women"
       },
-      "boardCount": "{count, plural, one {# athlete} other {# athletes}}",
       "cols": {
         "place": "Place",
         "name": "Athlete",
         "level": "Level",
-        "time": "Time",
-        "bestTime": "Best time",
-        "races": "Races",
-        "race": "Race"
+        "time": "Time"
       },
       "level": "Lvl {n}",
-      "detailsLabel": "Details",
       "showAll": "Show all {count}",
       "showLess": "Show less",
+      "fullResults": "Full race results",
       "empty": "No finishers in this category yet."
+    }
+  },
+  "rating": {
+    "eyebrow": "Season 2026",
+    "title": "Season rating",
+    "back": "← Back to results",
+    "subtitle": "{races, plural, one {# race} other {# races}} · {count, plural, one {# athlete} other {# athletes}} · best time counts",
+    "boards": {
+      "M": "Men",
+      "F": "Women"
+    },
+    "count": "{count, plural, one {# athlete} other {# athletes}}",
+    "cols": {
+      "place": "Place",
+      "name": "Athlete",
+      "level": "Level",
+      "races": "Races",
+      "race": "Best race",
+      "bestTime": "Best time"
+    },
+    "level": "Lvl {n}",
+    "note": "One row per athlete — the best mile across all completed races counts. The rating updates as soon as new results are imported.",
+    "empty": {
+      "title": "No results yet",
+      "txt": "The season rating will appear here once the first race night's results are imported."
     }
   },
   "footer": {

@@ -472,30 +472,49 @@
       "eyebrow": "Wyniki biegu",
       "title": "Wyniki",
       "subtitle": "{date} · {count} zawodników",
-      "subtitleAthletes": "Wszystkie biegi · {count} zawodników · liczy się najlepszy czas",
-      "tabsLabel": "Filtruj wyniki według biegu",
-      "tabs": {
-        "all": "Wszystkie"
-      },
-      "boards": {
+      "tabsLabel": "Wybierz bieg",
+      "ratingLink": "Ranking sezonu",
+      "genderLabel": "Kategoria",
+      "gender": {
         "M": "Mężczyźni",
         "F": "Kobiety"
       },
-      "boardCount": "{count, plural, one {# zawodnik} few {# zawodników} many {# zawodników} other {# zawodników}}",
       "cols": {
         "place": "Miejsce",
         "name": "Zawodnik",
         "level": "Poziom",
-        "time": "Czas",
-        "bestTime": "Najlepszy czas",
-        "races": "Biegi",
-        "race": "Bieg"
+        "time": "Czas"
       },
       "level": "Poz. {n}",
-      "detailsLabel": "Szczegóły",
       "showAll": "Pokaż wszystkich ({count})",
       "showLess": "Pokaż mniej",
+      "fullResults": "Pełne wyniki biegu",
       "empty": "Brak wyników w tej kategorii."
+    }
+  },
+  "rating": {
+    "eyebrow": "Sezon 2026",
+    "title": "Ranking sezonu",
+    "back": "← Powrót do wyników",
+    "subtitle": "{races, plural, one {# bieg} few {# biegi} many {# biegów} other {# biegu}} · {count, plural, one {# zawodnik} few {# zawodnicy} many {# zawodników} other {# zawodnika}} · liczy się najlepszy czas",
+    "boards": {
+      "M": "Mężczyźni",
+      "F": "Kobiety"
+    },
+    "count": "{count, plural, one {# zawodnik} few {# zawodnicy} many {# zawodników} other {# zawodnika}}",
+    "cols": {
+      "place": "Miejsce",
+      "name": "Zawodnik",
+      "level": "Poziom",
+      "races": "Biegi",
+      "race": "Najlepszy bieg",
+      "bestTime": "Najlepszy czas"
+    },
+    "level": "Poz. {n}",
+    "note": "Jeden wiersz na zawodnika — liczy się najlepsza mila ze wszystkich ukończonych biegów. Ranking aktualizuje się zaraz po imporcie nowych wyników.",
+    "empty": {
+      "title": "Wyników jeszcze nie ma",
+      "txt": "Ranking sezonu pojawi się tutaj po zaimportowaniu wyników pierwszej nocy biegowej."
     }
   },
   "footer": {
