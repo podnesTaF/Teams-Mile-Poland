@@ -2448,6 +2448,21 @@
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.55);
 }
+/* External link in the iv shell — the RaceResult live/archive timing pages. */
+.ace-landing .iv-extlink {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.3);
+  text-underline-offset: 4px;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
+}
+.ace-landing .iv-extlink:hover,
+.ace-landing .iv-extlink:focus-visible {
+  color: #fff;
+  text-decoration-color: currentColor;
+}
 
 .ace-landing .iv-card {
   background: rgba(255, 255, 255, 0.04);

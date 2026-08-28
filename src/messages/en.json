@@ -489,6 +489,7 @@
       "showAll": "Show all {count}",
       "showLess": "Show less",
       "fullResults": "Full race results",
+      "raceResult": "Live & archive on RaceResult",
       "empty": "No finishers in this category yet."
     }
   },
@@ -1080,6 +1081,7 @@
       "back": "← Back to event",
       "cta": "Results",
       "provisionalNote": "Results are provisional and update live during the event — heats appear as the timing crew reports them.",
+      "raceResult": "Live & archive results on RaceResult",
       "heat": "Heat {number}",
       "finishers": "{count, plural, one {# finisher} other {# finishers}}",
       "colPlace": "Place",

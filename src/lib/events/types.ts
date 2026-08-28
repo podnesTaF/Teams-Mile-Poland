@@ -72,6 +72,13 @@ export type EventResults = {
  */
 export const DEFAULT_BIB_POOL = 50;
 
+/**
+ * The series' public group page on RaceResult — the timing system's own
+ * live view during a race night and its archive afterwards. One group covers
+ * every event in the series, so each results surface links here.
+ */
+export const RACE_RESULT_GROUP_URL = "https://my.raceresult.com/groups/7553/";
+
 /** Spacing between generated heats when config does not say otherwise. */
 export const DEFAULT_HEAT_INTERVAL_MINUTES = 10;
 

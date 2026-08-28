@@ -15,6 +15,7 @@ import { getPublicResults } from "@/lib/events/results-data";
 // is new API, and the shim exists only so the pre-DB call sites kept compiling.
 import { isPubliclyVisible } from "@/lib/events/store";
 import { formatEventLongDate } from "@/lib/events/time";
+import { RACE_RESULT_GROUP_URL } from "@/lib/events/types";
 
 /**
  * Fresh on every request — deliberately NOT the start list's
@@ -80,6 +81,20 @@ export default async function EventResultsPage({ params }: PageProps) {
           <h1 className="iv-title">{event.name}</h1>
           <p className="iv-sub">
             {formatEventLongDate(locale, event.date)} · {event.venue}, {event.city}
+          </p>
+          {/* Outside the results/empty fork on purpose: before the first heat
+              is imported, the timing system's own page is where live times
+              are — the link matters most when the tables below are empty. */}
+          <p className="iv-meta">
+            <a
+              className="iv-extlink"
+              href={RACE_RESULT_GROUP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("results.raceResult")}
+              <span aria-hidden="true"> ↗</span>
+            </a>
           </p>
 
           {results ? (

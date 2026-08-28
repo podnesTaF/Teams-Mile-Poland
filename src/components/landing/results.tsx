@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { computeLevel } from "@/lib/events/levels";
 import { formatTime } from "@/lib/events/time";
-import type { EventSummary, Gender } from "@/lib/events/types";
+import { type EventSummary, type Gender, RACE_RESULT_GROUP_URL } from "@/lib/events/types";
 
 /** Ranks shown before "show all" — podium (1–3) plus the table (4–10). */
 const VISIBLE_ROWS = 10;
@@ -173,28 +173,39 @@ export function Results({ events }: { events: EventSummary[] }) {
               </div>
             )}
 
-            {(hasMore || fullResultsHref) && (
-              <div className="results__actions">
-                {hasMore && (
-                  <button
-                    type="button"
-                    className="results__action"
-                    aria-expanded={showAll}
-                    onClick={() => setShowAll((v) => !v)}
-                  >
-                    {showAll ? t("showLess") : t("showAll", { count: rows.length })}
-                  </button>
-                )}
-                {fullResultsHref && (
-                  <Link href={fullResultsHref} className="results__action results__action--link">
-                    {t("fullResults")}
-                    <span aria-hidden="true"> →</span>
-                  </Link>
-                )}
-              </div>
-            )}
           </>
         )}
+
+        {/* Always rendered — the RaceResult group page (the timing system's
+            own live + archive view) applies to every race, empty category or
+            not, so it sits outside the rows fork above. */}
+        <div className="results__actions">
+          {rows.length > 0 && hasMore && (
+            <button
+              type="button"
+              className="results__action"
+              aria-expanded={showAll}
+              onClick={() => setShowAll((v) => !v)}
+            >
+              {showAll ? t("showLess") : t("showAll", { count: rows.length })}
+            </button>
+          )}
+          {rows.length > 0 && fullResultsHref && (
+            <Link href={fullResultsHref} className="results__action results__action--link">
+              {t("fullResults")}
+              <span aria-hidden="true"> →</span>
+            </Link>
+          )}
+          <a
+            href={RACE_RESULT_GROUP_URL}
+            className="results__action results__action--link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t("raceResult")}
+            <span aria-hidden="true"> ↗</span>
+          </a>
+        </div>
       </div>
     </section>
   );

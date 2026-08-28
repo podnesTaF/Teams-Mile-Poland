@@ -20,7 +20,7 @@ import { getPublicResults } from "@/lib/events/results-data";
 // is new API, and the shim exists only so the pre-DB call sites kept compiling.
 import { isPubliclyVisible } from "@/lib/events/store";
 import { formatEventLongDate } from "@/lib/events/time";
-import type { EventStatus } from "@/lib/events/types";
+import { type EventStatus, RACE_RESULT_GROUP_URL } from "@/lib/events/types";
 import { defaultLocale } from "@/lib/i18n/config";
 import { venueMapsUrl } from "@/lib/marketing/event";
 
@@ -301,6 +301,17 @@ export default async function EventDetailPage({ params }: PageProps) {
             <section className="detail-results" id="results" data-detail-results>
               <span className="ev-eyebrow">{t("results.eyebrow")}</span>
               <ResultsTables results={results} />
+              <p className="iv-meta">
+                <a
+                  className="iv-extlink"
+                  href={RACE_RESULT_GROUP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("results.raceResult")}
+                  <span aria-hidden="true"> ↗</span>
+                </a>
+              </p>
             </section>
           ) : null}
 

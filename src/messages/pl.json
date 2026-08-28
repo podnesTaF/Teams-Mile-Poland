@@ -489,6 +489,7 @@
       "showAll": "Pokaż wszystkich ({count})",
       "showLess": "Pokaż mniej",
       "fullResults": "Pełne wyniki biegu",
+      "raceResult": "Na żywo i archiwum w RaceResult",
       "empty": "Brak wyników w tej kategorii."
     }
   },
@@ -1080,6 +1081,7 @@
       "back": "← Powrót do wydarzenia",
       "cta": "Wyniki",
       "provisionalNote": "Wyniki są nieoficjalne i aktualizowane na bieżąco w trakcie wydarzenia — serie pojawiają się, gdy tylko obsługa pomiaru czasu je prześle.",
+      "raceResult": "Wyniki na żywo i archiwum w RaceResult",
       "heat": "Seria {number}",
       "finishers": "{count} na mecie",
       "colPlace": "Miejsce",
