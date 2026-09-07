@@ -1,0 +1,205 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-brand-bg text-brand-text font-body antialiased;
+    background-image: radial-gradient(
+        60% 50% at 50% -10%,
+        rgba(255, 85, 34, 0.14) 0%,
+        rgba(10, 12, 16, 0) 70%
+      ),
+      radial-gradient(
+        40% 40% at 100% 10%,
+        rgba(255, 201, 77, 0.06) 0%,
+        rgba(10, 12, 16, 0) 70%
+      );
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display uppercase tracking-tight;
+  }
+
+  /* Widoczny focus klawiaturowy — wymagane dla dostępności (WCAG). */
+  :focus-visible {
+    outline: 2px solid #ff8a3d;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-pill border border-brand-border bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-brand-textMuted;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-pill bg-brand-gradient px-6 py-3 text-sm font-bold uppercase tracking-wide text-brand-bg shadow-glow transition-transform duration-150 hover:scale-[1.02] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-pill border border-brand-borderStrong bg-white/5 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-brand-text transition-colors hover:bg-white/10;
+  }
+
+  .card {
+    @apply rounded-card border border-brand-border bg-brand-bgCard/80 shadow-card backdrop-blur;
+  }
+
+  .field-input {
+    @apply w-full rounded-xl border border-brand-border bg-brand-bgElevated px-4 py-3 text-sm text-brand-text placeholder:text-brand-textMuted/60 transition-colors focus:border-brand-accent;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-semibold text-brand-text;
+  }
+
+  .required-asterisk {
+    @apply ml-0.5 text-brand-accent;
+  }
+
+  /* ---------------------------------------------------------------------
+   * .legal-prose — typografia dla wstrzykiwanej treści prawnej (pełne
+   * teksty dokumentów z content/legal-texts/*.html). Używane zarówno na
+   * stronie /documents/[doc]/read (uczestnik czyta na jasnym tle w karcie),
+   * jak i w panelu administratora (podgląd + wydruk podpisanego dokumentu).
+   * ------------------------------------------------------------------- */
+  .legal-prose {
+    @apply text-[15px] leading-relaxed text-brand-text;
+  }
+  .legal-prose h1 {
+    @apply mb-4 mt-8 font-display text-2xl uppercase tracking-tight first:mt-0;
+  }
+  .legal-prose h2 {
+    @apply mb-3 mt-7 font-display text-xl uppercase tracking-tight;
+  }
+  .legal-prose h3 {
+    @apply mb-2 mt-6 font-display text-lg uppercase tracking-tight text-brand-accent;
+  }
+  .legal-prose p {
+    @apply mb-4;
+  }
+  .legal-prose strong {
+    @apply font-semibold text-brand-text;
+  }
+  .legal-prose ul,
+  .legal-prose ol {
+    @apply mb-4 ml-5 list-outside space-y-1.5;
+  }
+  .legal-prose ul {
+    @apply list-disc;
+  }
+  .legal-prose ol {
+    @apply list-decimal;
+  }
+  .legal-prose table {
+    @apply mb-5 w-full border-collapse overflow-hidden rounded-xl border border-brand-border text-sm;
+  }
+  .legal-prose th,
+  .legal-prose td {
+    @apply border border-brand-border px-3 py-2 text-left align-top;
+  }
+  .legal-prose thead th {
+    @apply bg-white/5 font-semibold;
+  }
+  .legal-prose hr {
+    @apply my-6 border-brand-border;
+  }
+  .legal-prose a {
+    @apply text-brand-accent underline decoration-dotted underline-offset-2;
+  }
+  .legal-prose .fill-blank {
+    @apply inline-block min-w-[220px] border-b border-dotted border-brand-textMuted/60;
+  }
+
+  /* UWAGA: .legal-prose--print NIE dostaje tu żadnych kolorów na siłę.
+     Na ekranie (w ciemnym panelu administratora) ma wyglądać dokładnie
+     jak zwykły .legal-prose — jasny tekst na ciemnym tle, czytelny.
+     Ciemny tekst na jasnym tle (jak na papierze) włącza się WYŁĄCZNIE
+     wewnątrz @media print, patrz na dole tego pliku. */
+}
+
+/* ---------------------------------------------------------------------
+ * Druk (panel administratora — podgląd i wydruk podpisanego dokumentu).
+ * Ukrywamy cały chrome aplikacji (nawigację, przyciski, tło) i zostawiamy
+ * tylko treść oznaczoną klasą .print-area.
+ * ------------------------------------------------------------------- */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+
+  /* Dopiero TERAZ, przy realnym drukowaniu (papier = białe tło),
+     przełączamy kartę i tekst na ciemny-na-jasnym — dokładnie
+     odwrotnie niż na ekranie. */
+  .print-area .card {
+    background: #ffffff !important;
+    border-color: #d4d4d4 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+  .print-area .legal-prose,
+  .print-area h1,
+  .print-area h2,
+  .print-area h3,
+  .print-area p,
+  .print-area li,
+  .print-area dt,
+  .print-area dd {
+    color: #171717 !important;
+  }
+  .print-area .legal-prose strong {
+    color: #171717 !important;
+  }
+  .print-area .legal-prose th,
+  .print-area .legal-prose td {
+    border-color: #d4d4d4 !important;
+  }
+  .print-area .legal-prose thead th {
+    background: #f5f5f5 !important;
+  }
+  .print-area .fill-blank {
+    border-color: #a3a3a3 !important;
+  }
+  .print-area .text-brand-textMuted {
+    color: #525252 !important;
+  }
+  .print-area .text-brand-accent {
+    color: #b3390f !important;
+  }
+}

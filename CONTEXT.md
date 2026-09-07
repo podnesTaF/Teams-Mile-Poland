@@ -8,18 +8,19 @@ The event site for the Teams Mile running events: one completed legacy team race
 ### Events
 
 **Event**:
-A single mile race in the series. Config-only — defined in the event registry
-(`src/lib/events/registry.ts`), never a DB row.
+A single mile race in the series. A row in the `events` table, read through
+`src/lib/events/store.ts` (ADR 0005); creating one is an admin action, not a
+deploy.
 _Avoid_: race (ambiguous), meet
 
 **Event series**:
 The set of individual mile events in Aug-2026, sharing one venue. The `individual`
-entries in the registry.
+rows.
 
 **Event lifecycle status**:
-Where an event sits in its timeline: `upcoming → registration_open →
-registration_closed → completed`. A property of the event config — never of a
-registration.
+Where an event sits in its timeline: `draft → upcoming → registration_open →
+registration_closed → completed`, plus `cancelled`. A property of the event —
+never of a registration.
 _Avoid_: event state, stage
 
 **Event type**:
@@ -78,6 +79,49 @@ _Avoid_: registration status, attendance, cancelled (dropped — see No-show)
 **Ticket**:
 The user-facing confirmation of a registration — the ticket page (`ticketUrl`) and
 its email. Not a separate entity; a view of the registration row.
+
+### Consent
+
+**Consent record**:
+One append-only `registration_consents` row: a single thing the runner ticked,
+bound to the registration it covers, naming the document, its version, the locale
+shown, the moment, and the request IP. Never updated (ADR 0006).
+_Avoid_: agreement, terms row, signature
+
+**Acceptance / Declaration / Consent**:
+The three `kind`s a consent record can be, and they are not interchangeable. An
+**acceptance** binds the runner to a document (the Rules). A **declaration** is
+testimony about a moment ("I am 18 and fit to run") and cannot be withdrawn,
+because it was true or false when made. A **consent** is GDPR art. 6(1)(a) —
+today only image use — and is the only kind that may carry a `withdrawnAt`.
+_Avoid_: using "consent" loosely for all three
+
+**Statement**:
+The Oświadczenie — the one document in each set that is personalised, and so the
+only printable per-registration artifact. Every other document is static text
+identified by version alone.
+_Avoid_: waiver, form, disclaimer
+
+**Document version**:
+The declared version string in the legal manifest, e.g. `2026-08-20`. What a
+consent record stores, and what `version → commit → bytes` reconstructs from git.
+A bump never invalidates consent already given; re-acceptance is a deliberate
+campaign, so two runners in one event may hold consent against different versions.
+_Avoid_: revision, doc hash (the hash guards the bytes; the version names them)
+
+**Snapshot**:
+The frozen copy of the runner's details written into a consent record at
+acceptance. Deliberately duplicates `users` data and is expected to drift from it
+— a statement rendered from the live profile would be a reconstruction, not a
+record.
+_Avoid_: cached fields, denormalised profile
+
+**Signature block**:
+What replaces the handwritten signature line in the Statement: an attestation
+rendered from the consent record (name, moment, document version, IP, record id).
+Acceptance here is a checkbox plus evidence; there is no wet signature and no
+drawn one.
+_Avoid_: e-signature, signed copy
 
 ### Outreach
 
