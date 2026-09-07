@@ -29,6 +29,9 @@ export function revalidateEventSurfaces(locale: string, slug: string): void {
   // media and results actions, which own what changes them.
   revalidatePath("/[locale]/events/[slug]", "page");
   revalidatePath("/[locale]/events/[slug]/heats", "page");
+  // The legal document previews print the event's real date into the document
+  // text (`__EVENT_DATE__`), so moving a date has to reach them too.
+  revalidatePath("/[locale]/events/[slug]/legal/[doc]", "page");
   // The admin index card and the event's own admin pages.
   revalidatePath(adminPath(locale, "/events"));
   revalidatePath(adminPath(locale, `/events/${slug}`));

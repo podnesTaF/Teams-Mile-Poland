@@ -1480,5 +1480,24 @@
       "profileCta": "Complete profile"
     },
     "backToProfile": "Back to profile"
+  },
+  "legal": {
+    "back": "← Back to event",
+    "meta": "Event: {event} · Document version {version}",
+    "previewNotice": "Preview. The personal fields, the date of signing and the signature are blank because nothing has been accepted yet — they are filled in at the moment you accept this document during registration.",
+    "fallbackNotice": "A translation into this language isn't available yet — the Polish version is shown below.",
+    "docs": {
+      "oswiadczenie": "Participant Statement",
+      "przepisy": "Public Regulations for the National Individual Ranking Mile",
+      "rodo": "GDPR Information Clause for Event Participants",
+      "team-oswiadczenie": "Participant Statement (TEAM MILE POLAND)",
+      "team-regulations": "Public Regulations (TEAM MILE POLAND)",
+      "team-rules": "Team Mile Rules",
+      "team-rodo": "GDPR Information Clause (Document No. 6)",
+      "team-appendix1": "Appendix 1 — Event Schedule for Participants",
+      "team-appendix3": "Appendix 3 — Categories and Prize Pool",
+      "team-appendix4": "Appendix 4 — Individual Ranking Criteria",
+      "team-appendix5": "Appendix 5 — Team Ranking Criteria"
+    }
   }
 }

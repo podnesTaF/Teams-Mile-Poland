@@ -1480,5 +1480,24 @@
       "profileCta": "Uzupełnij profil"
     },
     "backToProfile": "Wróć do profilu"
+  },
+  "legal": {
+    "back": "← Powrót do wydarzenia",
+    "meta": "Wydarzenie: {event} · Wersja dokumentu {version}",
+    "previewNotice": "Podgląd. Dane osobowe, data podpisania i podpis są puste, ponieważ nic nie zostało jeszcze zaakceptowane — zostaną uzupełnione w chwili akceptacji tego dokumentu podczas rejestracji.",
+    "fallbackNotice": "Tłumaczenie na ten język nie jest jeszcze dostępne — poniżej wersja polska.",
+    "docs": {
+      "oswiadczenie": "Oświadczenie Uczestnika Wydarzenia",
+      "przepisy": "Przepisy Publiczne na Krajowej Indywidualnej Mili Rankingowej",
+      "rodo": "Klauzula Informacyjna RODO dla uczestników wydarzenia",
+      "team-oswiadczenie": "Oświadczenie Uczestnika Wydarzenia (TEAM MILE POLAND)",
+      "team-regulations": "Regulamin Publiczny (TEAM MILE POLAND)",
+      "team-rules": "Zasady Przeprowadzania Drużynowego Biegu Rankingowego",
+      "team-rodo": "Klauzula Informacyjna RODO (Dokument nr 6)",
+      "team-appendix1": "Załącznik 1 — Harmonogram wydarzenia dla uczestników",
+      "team-appendix3": "Załącznik 3 — Kategorie i pula nagród",
+      "team-appendix4": "Załącznik 4 — Kryteria rankingu indywidualnego",
+      "team-appendix5": "Załącznik 5 — Kryteria rankingów zespołowych"
+    }
   }
 }

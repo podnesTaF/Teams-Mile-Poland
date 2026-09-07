@@ -30,5 +30,6 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "//exclude": "`legal-example/` is a standalone Next 14 app kept as the reference module for the legal corpus (PRD #50). It has its own tsconfig and its own `@/` root, so type-checking it from here resolves every one of its aliases against `src/` and fails the build. The corpus itself was imported into `src/content/legal/`; the module stays untouched as the record of how it was produced.",
+  "exclude": ["node_modules", "legal-example"]
 }

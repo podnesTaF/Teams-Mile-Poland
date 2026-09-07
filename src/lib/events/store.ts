@@ -279,6 +279,23 @@ export async function getIndividualEvents(): Promise<EventSummary[]> {
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
+/**
+ * Every event of every type, soonest first — the only selector that does not
+ * filter by `eventType`.
+ *
+ * One consumer: the legal document routes' `generateStaticParams`. Which corpus
+ * an event's participants read follows from its type (`DOC_SET_BY_EVENT_TYPE`),
+ * so both types have documents and both need pages — unlike every other public
+ * surface, which is the individual series' and says so with an `individual`
+ * filter. The caller applies {@link isPubliclyVisible} itself, exactly as
+ * {@link getIndividualEvents}' callers do, so a draft is never prerendered while
+ * the admin surfaces can still see one.
+ */
+export async function getAllEvents(): Promise<EventSummary[]> {
+  const all = await loadEvents();
+  return [...all].sort((a, b) => a.date.localeCompare(b.date));
+}
+
 /** Look up a single event by slug. */
 export async function getEventBySlug(slug: string): Promise<EventSummary | undefined> {
   const all = await loadEvents();

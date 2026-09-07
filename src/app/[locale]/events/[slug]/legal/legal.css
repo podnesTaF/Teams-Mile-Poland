@@ -1,0 +1,223 @@
+/* ===================================================================
+ * Legal document surfaces (PRD #50, slice #52).
+ *
+ * `.legal-prose` is the typography for injected document HTML — the
+ * pandoc output in `src/content/legal/`, which arrives as bare
+ * `<h1>/<p>/<ul>/<table>` with no classes of its own. Ported from the
+ * reference module's `.legal-prose` (Tailwind `@apply` over its own
+ * brand tokens) into plain CSS over this app's `--acl-*` tokens, scoped
+ * under `.ace-landing` like every other interior stylesheet.
+ *
+ * Two consumers: this route's unsigned preview, and the admin statement
+ * print surface (#54) — which is why the `@media print` block and
+ * `.print-area` / `.no-print` come across now rather than later. On
+ * screen the document is light-on-dark like the rest of the interior
+ * shell; on paper it flips to dark-on-white, and only inside
+ * `.print-area`.
+ * ================================================================= */
+
+.ace-landing .legal-head {
+  margin-bottom: clamp(24px, 3.5vw, 36px);
+}
+.ace-landing .legal-doc-meta {
+  margin: 12px 0 0;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* --- Notices ------------------------------------------------------
+ * The preview notice ("nothing has been accepted yet, so the personal
+ * fields are blank") and the fallback notice ("no translation yet").
+ * Both are the reader's explanation for something odd on the page, so
+ * they sit above the document, not below it. */
+.ace-landing .legal-notice {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line-d);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: var(--fs-body-s);
+  line-height: 1.6;
+}
+.ace-landing .legal-notice--fallback {
+  border-color: rgba(229, 31, 50, 0.35);
+  background: var(--red-soft);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* --- The document card -------------------------------------------- */
+.ace-landing .legal-card {
+  background: var(--card);
+  border: 1px solid var(--line-d);
+  border-radius: 12px;
+  padding: clamp(20px, 3vw, 36px);
+}
+
+/* --- Injected document typography --------------------------------- */
+.ace-landing .legal-prose {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: var(--fs-body-m);
+  line-height: 1.7;
+  max-width: 78ch;
+}
+.ace-landing .legal-prose > :first-child {
+  margin-top: 0;
+}
+.ace-landing .legal-prose h1,
+.ace-landing .legal-prose h2,
+.ace-landing .legal-prose h3,
+.ace-landing .legal-prose h4 {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  line-height: 1.15;
+  color: #fff;
+}
+.ace-landing .legal-prose h1 {
+  font-size: var(--fs-h2);
+  margin: 1.8em 0 0.6em;
+}
+.ace-landing .legal-prose h2 {
+  font-size: var(--fs-h3);
+  margin: 1.7em 0 0.5em;
+}
+.ace-landing .legal-prose h3 {
+  font-size: var(--fs-h4);
+  margin: 1.6em 0 0.45em;
+  color: var(--acl-red);
+}
+.ace-landing .legal-prose h4 {
+  font-size: var(--fs-h5);
+  margin: 1.5em 0 0.4em;
+}
+.ace-landing .legal-prose p {
+  margin: 0 0 1.1em;
+}
+.ace-landing .legal-prose strong {
+  color: #fff;
+  font-weight: 600;
+}
+.ace-landing .legal-prose em {
+  color: rgba(255, 255, 255, 0.72);
+}
+.ace-landing .legal-prose ul,
+.ace-landing .legal-prose ol {
+  margin: 0 0 1.1em;
+  padding-left: 1.5em;
+}
+.ace-landing .legal-prose li {
+  margin: 0.3em 0;
+}
+.ace-landing .legal-prose a {
+  color: var(--acl-red);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ace-landing .legal-prose hr {
+  border: 0;
+  border-top: 1px solid var(--line-d);
+  margin: 2em 0;
+}
+/* Pandoc emits real tables for the documents' parameter grids and the
+   signature block. They are wide; the wrapper below scrolls them rather
+   than letting the page scroll sideways. */
+.ace-landing .legal-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1.4em;
+  font-size: 0.94em;
+}
+.ace-landing .legal-prose th,
+.ace-landing .legal-prose td {
+  border: 1px solid var(--line-d);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.ace-landing .legal-prose thead th,
+.ace-landing .legal-prose tr.odd td:first-child {
+  background: rgba(255, 255, 255, 0.04);
+}
+.ace-landing .legal-prose col {
+  width: auto;
+}
+
+/* Horizontal scroll container for the document as a whole — the widest
+   table decides, and the page body must never scroll sideways. */
+.ace-landing .legal-scroll {
+  overflow-x: auto;
+}
+
+/* --- The blank a missing token renders as -------------------------
+ * Every personal token and `__SIGN_DATE__` become one of these on the
+ * public preview: a visible ruled gap that reads as "not filled in",
+ * which is the whole point of showing an unsigned document. */
+.ace-landing .legal-prose .fill-blank {
+  display: inline-block;
+  min-width: 220px;
+  max-width: 100%;
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.5);
+  vertical-align: baseline;
+}
+
+/* --- Print --------------------------------------------------------
+ * Hide the app chrome and flip the document to dark-on-white. Used by
+ * this page's Ctrl+P and by the admin statement print surface (#54);
+ * `.print-area` marks what survives, `.no-print` what never does. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .ace-landing .print-area .legal-card {
+    background: #fff !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+  .ace-landing .print-area .legal-prose,
+  .ace-landing .print-area .legal-prose h1,
+  .ace-landing .print-area .legal-prose h2,
+  .ace-landing .print-area .legal-prose h3,
+  .ace-landing .print-area .legal-prose h4,
+  .ace-landing .print-area .legal-prose strong,
+  .ace-landing .print-area .legal-prose em,
+  .ace-landing .print-area .legal-prose li {
+    color: #171717 !important;
+  }
+  .ace-landing .print-area .legal-prose th,
+  .ace-landing .print-area .legal-prose td {
+    border-color: #d4d4d4 !important;
+  }
+  .ace-landing .print-area .legal-prose thead th,
+  .ace-landing .print-area .legal-prose tr.odd td:first-child {
+    background: #f5f5f5 !important;
+  }
+  .ace-landing .print-area .legal-prose .fill-blank {
+    border-bottom-color: #a3a3a3 !important;
+  }
+  .ace-landing .print-area .legal-notice {
+    border-color: #d4d4d4 !important;
+    background: #f5f5f5 !important;
+    color: #525252 !important;
+  }
+  /* Each statement in a bulk print starts on its own sheet (#54). */
+  .legal-page-break {
+    break-before: page;
+  }
+}
