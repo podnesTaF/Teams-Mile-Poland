@@ -38,7 +38,15 @@ export type RegisterResult =
   | { ok: true; ticketUrl: string }
   | {
       ok: false;
-      reason: "auth" | "verify" | "profile" | "notfound" | "closed" | "duplicate" | "error";
+      reason:
+        | "auth"
+        | "verify"
+        | "profile"
+        | "age"
+        | "notfound"
+        | "closed"
+        | "duplicate"
+        | "error";
       message: string;
     };
 
@@ -67,7 +75,7 @@ export async function registerForEvent(eventSlug: string): Promise<RegisterResul
   if (!dob || !meetsMinParticipantAge(dob, parseDateOnly(event.date))) {
     return {
       ok: false,
-      reason: "profile",
+      reason: "age",
       message: MIN_PARTICIPANT_AGE_ERROR,
     };
   }
@@ -98,7 +106,7 @@ export type GuestRegisterResult =
   | { ok: true; pending: true }
   | {
       ok: false;
-      reason: "invalid" | "notfound" | "closed" | "exists" | "error";
+      reason: "invalid" | "age" | "notfound" | "closed" | "exists" | "error";
       message: string;
       fieldErrors?: Record<string, string[]>;
     };
@@ -146,8 +154,8 @@ export async function registerAsGuest(
   if (!meetsMinParticipantAge(data.dateOfBirth, parseDateOnly(event.date))) {
     return {
       ok: false,
-      reason: "invalid",
-      message: "Check the highlighted fields and try again.",
+      reason: "age",
+      message: MIN_PARTICIPANT_AGE_ERROR,
       fieldErrors: { dateOfBirth: [MIN_PARTICIPANT_AGE_ERROR] },
     };
   }
