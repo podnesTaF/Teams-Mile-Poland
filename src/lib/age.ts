@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 /** Minimum age to register as a participant. */
-export const MIN_PARTICIPANT_AGE = 16;
+export const MIN_PARTICIPANT_AGE = 18;
 
-export const MIN_PARTICIPANT_AGE_ERROR = "You must be at least 16 years old";
+export const MIN_PARTICIPANT_AGE_ERROR = "You must be at least 18 years old";
 
 /** Parse a YYYY-MM-DD string as a local calendar date (no UTC shift). */
 export function parseDateOnly(value: string): Date {

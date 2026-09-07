@@ -66,6 +66,14 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
       const result = await registerAsGuest(eventSlug, data, locale);
       if (!result.ok) {
         if (result.reason === "exists") setShowSignIn(true);
+        if (result.reason === "age") {
+          // Server-side refusal regardless of what the (bypassable) date
+          // input's `max` bound let through — its own clear reason, not the
+          // generic "check the highlighted fields" banner.
+          setError(t("ageBody"));
+          setFieldErrors({ dateOfBirth: [t("ageBody")] });
+          return;
+        }
         setError(result.message);
         setFieldErrors(result.fieldErrors ?? {});
         return;
@@ -176,7 +184,11 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
                 required
               />
             </Field>
-            <Field label={tp("fields.dateOfBirth")} error={fieldErrors.dateOfBirth?.[0]}>
+            <Field
+              label={tp("fields.dateOfBirth")}
+              error={fieldErrors.dateOfBirth?.[0]}
+              hint={fieldErrors.dateOfBirth ? undefined : t("ageBody")}
+            >
               <input
                 className="finput on-dark"
                 type="date"
@@ -255,11 +267,14 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
 function Field({
   label,
   error,
+  hint,
   full,
   children,
 }: {
   label: string;
   error?: string;
+  /** Neutral explanatory text shown when there is no error to display instead. */
+  hint?: string;
   full?: boolean;
   children: React.ReactNode;
 }) {
@@ -267,7 +282,13 @@ function Field({
     <label className={full ? "block col-2" : "block"}>
       <span className="flabel on-dark">{label}</span>
       {children}
-      {error ? <span className="field-msg">{error}</span> : null}
+      {error ? (
+        <span className="field-msg">{error}</span>
+      ) : hint ? (
+        <span className="iv-note" style={{ marginTop: 4, display: "block" }}>
+          {hint}
+        </span>
+      ) : null}
     </label>
   );
 }

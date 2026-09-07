@@ -42,6 +42,7 @@ export function RegisterConfirm({
   const autoConfirm = useSearchParams().get("verified") === "1";
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ageRefused, setAgeRefused] = useState(false);
   const [pending, startTransition] = useTransition();
   const fired = useRef(false);
 
@@ -57,6 +58,15 @@ export function RegisterConfirm({
         }
         if (result.reason === "verify") {
           router.push("/auth/verify-email");
+          return;
+        }
+        if (result.reason === "age") {
+          // A defence-in-depth refusal: the event-lifecycle check above the
+          // confirm step already screens this out server-side against the
+          // event date, so reaching this branch means the runner's stored DOB
+          // (or the event date) changed between page load and submit. Render
+          // it as its own state, not the generic error banner.
+          setAgeRefused(true);
           return;
         }
         setError(result.message);
@@ -76,6 +86,17 @@ export function RegisterConfirm({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoConfirm]);
+
+  // Under-18-on-event-date refusal — its own flow state, not a generic error.
+  // Checked after every hook call so this early return stays rules-of-hooks safe.
+  if (ageRefused) {
+    return (
+      <section className="iv-card center-narrow">
+        <span className="iv-eyebrow">{t("ageTitle")}</span>
+        <p className="iv-sub">{t("ageBody")}</p>
+      </section>
+    );
+  }
 
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
