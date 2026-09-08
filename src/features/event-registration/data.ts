@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 
 import {
   consentSubmissions,
@@ -233,6 +233,79 @@ export async function publishedHeatsByRegistration(
     .where(and(inArray(eventRegistrations.id, ids), isNotNull(eventHeats.publishedAt)));
 
   return new Map(rows.map((r) => [r.registrationId, { number: r.number, scheduledAt: r.scheduledAt }]));
+}
+
+/** One runner who refused image use — enough identity to check a gallery against. */
+export type ImageUseRefusal = {
+  registrationId: string;
+  /** Null when no bib was ever issued (a lease, not an identity — ADR 0003). */
+  bib: number | null;
+  /** From the consent snapshot's `fullName` — the evidence of record, not the live profile. */
+  name: string;
+};
+
+/**
+ * Runners registered for `eventSlug` whose **latest** consent submission carries
+ * an `imageUse` row with value `"disagree"` and no withdrawal (PRD #50 user
+ * story 24 / issue #56). `event_media` publishes a whole Drive folder with no
+ * per-runner exclusion, so this is an operational promise, not a technical
+ * gate: it surfaces who refused next to the publish action so a human can
+ * check the gallery before it goes live. Publishing itself is unchanged and is
+ * not blocked by this list.
+ *
+ * "Latest" matters, not "ever": a runner who re-consented and flipped to
+ * "agree" must not appear here just because an older submission once refused.
+ * `DISTINCT ON (registration_id)` picks each registration's newest submission
+ * — ordered by `accepted_at desc` — before the `imageUse` / `disagree` filter
+ * is applied, so a superseded refusal is excluded and a superseded agreement
+ * does not hide a live refusal either.
+ *
+ * The `itemId` + `value` equality is the indexed lookup from #53
+ * (`registration_consents_consent_value_idx`, partial `where kind = 'consent'`);
+ * the explicit `kind` equality here matches that partial predicate.
+ *
+ * Registrations that predate consent capture have no submission at all and are
+ * simply absent from the result — their absence is not itself evidence of
+ * anything, refusal or otherwise.
+ */
+export async function getImageUseRefusals(eventSlug: string): Promise<ImageUseRefusal[]> {
+  const db = getDb();
+
+  const latestSubmission = db
+    .selectDistinctOn([consentSubmissions.registrationId], {
+      registrationId: consentSubmissions.registrationId,
+      submissionId: consentSubmissions.id,
+      snapshot: consentSubmissions.snapshot,
+    })
+    .from(consentSubmissions)
+    .orderBy(consentSubmissions.registrationId, desc(consentSubmissions.acceptedAt))
+    .as("latest_submission");
+
+  const rows = await db
+    .select({
+      registrationId: eventRegistrations.id,
+      bib: eventRegistrations.bib,
+      snapshot: latestSubmission.snapshot,
+    })
+    .from(eventRegistrations)
+    .innerJoin(latestSubmission, eq(latestSubmission.registrationId, eventRegistrations.id))
+    .innerJoin(
+      registrationConsents,
+      and(
+        eq(registrationConsents.submissionId, latestSubmission.submissionId),
+        eq(registrationConsents.itemId, "imageUse"),
+        eq(registrationConsents.kind, "consent"),
+        eq(registrationConsents.value, "disagree"),
+        isNull(registrationConsents.withdrawnAt),
+      ),
+    )
+    .where(eq(eventRegistrations.eventSlug, eventSlug));
+
+  return rows.map((r) => ({
+    registrationId: r.registrationId,
+    bib: r.bib,
+    name: r.snapshot.fullName,
+  }));
 }
 
 /** Load one registration joined with its user, for ticket rendering. */

@@ -4,6 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminFlash } from "@/features/admin/components/admin-flash";
 import { ConfirmSubmit } from "@/features/admin/components/confirm-submit";
+import { ImageUseRefusals } from "@/features/admin/components/image-use-refusals";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
 import { adminButton } from "@/features/admin/components/shell/admin-button";
 import { ADMIN_NOTE, ADMIN_TITLE, adminCard } from "@/features/admin/components/shell/admin-card";
@@ -130,6 +131,8 @@ export default async function AdminEventMediaPage({ params, searchParams }: Page
           soon&rdquo; note.
         </p>
       )}
+
+      <ImageUseRefusals slug={slug} actor={actor} />
 
       {canEdit && completed ? (
         <section className={adminCard("mt-4 p-4 sm:p-5")}>
