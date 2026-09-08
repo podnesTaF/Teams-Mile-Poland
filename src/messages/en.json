@@ -1389,15 +1389,68 @@
       "manager_must_hand_over": "Hand management to another member before you leave.",
       "invalid": "Check the highlighted fields and try again."
     },
-    "roster": {},
+    "roster": {
+      "managerHint": "Hand over management before you leave, or dissolve the team if it is not coming together.",
+      "working": "Working…",
+      "cancel": "Cancel",
+      "leave": "Leave the team",
+      "leaveTitle": "Leave this team?",
+      "leaveMessage": "Your seat on the roster is removed. You can be invited or ask to join again later.",
+      "leaveConfirm": "Leave",
+      "remove": "Remove",
+      "removeTitle": "Remove this runner?",
+      "removeMessage": "{name} loses their seat on the roster and is told by email. You can invite them again later.",
+      "removeConfirm": "Remove",
+      "handOver": "Hand over management",
+      "handOverTitle": "Hand over management?",
+      "handOverMessage": "{name} becomes the manager and you become an ordinary member. Only they can hand it back.",
+      "handOverConfirm": "Hand over",
+      "dissolve": "Dissolve the team",
+      "dissolveTitle": "Dissolve this team?",
+      "dissolveMessage": "The team, its roster, its invitations and its join requests are deleted for good, and every remaining member is told by email. This cannot be undone.",
+      "dissolveConfirm": "Dissolve"
+    },
     "emails": {
       "invitation": {},
       "invitationAccepted": {},
       "requestReceived": {},
       "requestDecided": {},
-      "removed": {},
-      "handedOver": {},
-      "dissolved": {}
+      "removed": {
+        "subject": "You are no longer on {team}",
+        "preview": "Your seat on {team} has been removed.",
+        "eyebrow": "Team roster",
+        "title": "You have been removed",
+        "greeting": "Hi {name},",
+        "intro": "The manager of {team} has removed you from the roster. You are no longer part of that team.",
+        "teamLabel": "Team",
+        "outro": "If this looks wrong, talk to the manager — they can invite you back at any time.",
+        "cta": "Start your own team"
+      },
+      "handedOver": {
+        "subject": "You are now the manager of {team}",
+        "preview": "Management of {team} has been handed to you.",
+        "eyebrow": "Team management",
+        "title": "The team is yours",
+        "greeting": "Hi {name},",
+        "intro": "Management of {team} has been handed over to you. You are now the manager and the previous manager stays on as an ordinary member.",
+        "teamLabel": "Team",
+        "dutiesTitle": "What you can do now",
+        "duty1": "Invite runners by email and share the team code.",
+        "duty2": "Accept or decline the requests to join that come in.",
+        "duty3": "Edit the team, remove members, or hand management on again.",
+        "cta": "Open the team"
+      },
+      "dissolved": {
+        "subject": "{team} has been dissolved",
+        "preview": "{team} no longer exists.",
+        "eyebrow": "Team roster",
+        "title": "The team has been dissolved",
+        "greeting": "Hi {name},",
+        "intro": "{team} has been dissolved by its manager. The roster, its invitations and its join requests are gone, and the team page no longer opens.",
+        "teamLabel": "Team",
+        "outro": "You are free to join another team in this category, or to start one yourself.",
+        "cta": "Start your own team"
+      }
     }
   },
   "register": {

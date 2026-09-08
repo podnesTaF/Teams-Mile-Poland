@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 
 import type { RosterMember } from "../data";
 import type { TeamCompleteness } from "../eligibility";
+import { RosterControls } from "./roster-controls";
 import { TeamCompletenessTile } from "./team-completeness";
 
 /**
@@ -10,13 +11,19 @@ import { TeamCompletenessTile } from "./team-completeness";
  * the rule from.
  */
 export async function TeamRoster({
+  slug,
   roster,
   completeness,
   viewerUserId,
+  isManager,
 }: {
+  /** The team's slug — every roster-change action is addressed by it. */
+  slug: string;
   roster: RosterMember[];
   completeness: TeamCompleteness;
   viewerUserId: string | null;
+  /** The manager, or an admin holding `edit`. Decides which controls render. */
+  isManager: boolean;
 }) {
   const t = await getTranslations("teams.page");
 
@@ -47,12 +54,19 @@ export async function TeamRoster({
         ))}
       </div>
 
-      {/*
-        Slot for #62 (roster changes): the leave / remove / hand-over / dissolve
-        controls render here, one line, e.g.
-          <RosterControls team={team} roster={roster} viewerUserId={viewerUserId} isManager={isManager} />
-        Everything they need is already in this component's props.
-      */}
+      {/* SLOT — #62 roster changes: leave / remove / hand over / dissolve.
+          Projected to three fields on purpose: island props are serialized into
+          the page, and `RosterMember` carries every member's email. */}
+      <RosterControls
+        slug={slug}
+        roster={roster.map((m) => ({
+          userId: m.userId,
+          displayName: m.displayName,
+          role: m.role,
+        }))}
+        viewerUserId={viewerUserId}
+        isManager={isManager}
+      />
     </section>
   );
 }

@@ -1389,15 +1389,68 @@
       "manager_must_hand_over": "Przed odejściem przekaż zarządzanie innemu zawodnikowi.",
       "invalid": "Sprawdź zaznaczone pola i spróbuj ponownie."
     },
-    "roster": {},
+    "roster": {
+      "managerHint": "Zanim odejdziesz, przekaż zarządzanie innemu zawodnikowi — albo rozwiąż zespół, jeśli nie udało się go skompletować.",
+      "working": "Przetwarzanie…",
+      "cancel": "Anuluj",
+      "leave": "Opuść zespół",
+      "leaveTitle": "Opuścić ten zespół?",
+      "leaveMessage": "Twoje miejsce w składzie zostanie usunięte. Później możesz dostać zaproszenie albo ponownie poprosić o dołączenie.",
+      "leaveConfirm": "Opuść",
+      "remove": "Usuń",
+      "removeTitle": "Usunąć tego zawodnika?",
+      "removeMessage": "{name} traci miejsce w składzie i dostanie o tym wiadomość e-mail. Później możesz zaprosić tę osobę ponownie.",
+      "removeConfirm": "Usuń",
+      "handOver": "Przekaż zarządzanie",
+      "handOverTitle": "Przekazać zarządzanie?",
+      "handOverMessage": "{name} zostanie menedżerem, a Ty zwykłym zawodnikiem. Tylko ta osoba będzie mogła oddać Ci zarządzanie z powrotem.",
+      "handOverConfirm": "Przekaż",
+      "dissolve": "Rozwiąż zespół",
+      "dissolveTitle": "Rozwiązać ten zespół?",
+      "dissolveMessage": "Zespół, jego skład, zaproszenia i prośby o dołączenie zostaną trwale usunięte, a wszyscy pozostali zawodnicy dostaną wiadomość e-mail. Tej operacji nie można cofnąć.",
+      "dissolveConfirm": "Rozwiąż"
+    },
     "emails": {
       "invitation": {},
       "invitationAccepted": {},
       "requestReceived": {},
       "requestDecided": {},
-      "removed": {},
-      "handedOver": {},
-      "dissolved": {}
+      "removed": {
+        "subject": "Nie należysz już do zespołu {team}",
+        "preview": "Twoje miejsce w składzie zespołu {team} zostało usunięte.",
+        "eyebrow": "Skład zespołu",
+        "title": "Zostałeś usunięty ze składu",
+        "greeting": "Cześć {name},",
+        "intro": "Menedżer zespołu {team} usunął Cię ze składu. Nie należysz już do tego zespołu.",
+        "teamLabel": "Zespół",
+        "outro": "Jeśli to pomyłka, skontaktuj się z menedżerem — w każdej chwili może zaprosić Cię z powrotem.",
+        "cta": "Załóż własny zespół"
+      },
+      "handedOver": {
+        "subject": "Jesteś teraz menedżerem zespołu {team}",
+        "preview": "Zarządzanie zespołem {team} zostało przekazane Tobie.",
+        "eyebrow": "Zarządzanie zespołem",
+        "title": "Zespół jest teraz Twój",
+        "greeting": "Cześć {name},",
+        "intro": "Zarządzanie zespołem {team} zostało przekazane Tobie. Jesteś teraz menedżerem, a dotychczasowy menedżer pozostaje zwykłym zawodnikiem.",
+        "teamLabel": "Zespół",
+        "dutiesTitle": "Co możesz teraz robić",
+        "duty1": "Zapraszać zawodników e-mailem i udostępniać kod zespołu.",
+        "duty2": "Przyjmować lub odrzucać prośby o dołączenie.",
+        "duty3": "Edytować zespół, usuwać zawodników i przekazać zarządzanie dalej.",
+        "cta": "Otwórz zespół"
+      },
+      "dissolved": {
+        "subject": "Zespół {team} został rozwiązany",
+        "preview": "Zespół {team} już nie istnieje.",
+        "eyebrow": "Skład zespołu",
+        "title": "Zespół został rozwiązany",
+        "greeting": "Cześć {name},",
+        "intro": "Menedżer rozwiązał zespół {team}. Skład, zaproszenia i prośby o dołączenie zostały usunięte, a strona zespołu już się nie otwiera.",
+        "teamLabel": "Zespół",
+        "outro": "Możesz teraz dołączyć do innego zespołu w tej kategorii albo założyć własny.",
+        "cta": "Załóż własny zespół"
+      }
     }
   },
   "register": {
