@@ -121,6 +121,9 @@ export async function buildAdminNav(role: string | null | undefined): Promise<Ad
         // looking at the list. `Users` stays prefix-matched so a user *detail*
         // page keeps it lit; the cost is that both items light up here.
         { label: "Duplicates", href: "/admin/users/duplicates" },
+        // Team formation (#63). Prefix-matched, so a team's detail page keeps
+        // this item lit rather than dropping the sidebar's sense of place.
+        { label: "Teams", href: "/admin/teams" },
         { label: "Referrals", href: "/admin/referrals" },
         { label: "Admins", href: "/admin/admins" },
       ],

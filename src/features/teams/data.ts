@@ -202,6 +202,50 @@ export async function listRecruitingTeams(category?: TeamCategory): Promise<User
   return db.select().from(userTeams).where(where).orderBy(desc(userTeams.createdAt));
 }
 
+/** One line of the organiser's teams index (#63). */
+export type AdminTeamListRow = {
+  team: UserTeamRow;
+  completeness: TeamCompleteness;
+  /** The manager's full name, falling back to the account name then the email. */
+  managerName: string;
+};
+
+/**
+ * Every team, newest first, with its completeness and its manager — the read
+ * behind `/admin/teams` (#63).
+ *
+ * Admin-only by call site, not by anything in here: it is the *only* read that
+ * crosses team boundaries, and no public surface may use it. Two queries
+ * regardless of how many teams — the teams joined to their managers, then every
+ * seat of every team for the counts — the same shape as {@link getMyTeams}, so
+ * an index of a few hundred teams stays two round trips rather than 2n.
+ */
+export async function listAllTeamsForAdmin(): Promise<AdminTeamListRow[]> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      team: userTeams,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      name: users.name,
+      email: users.email,
+    })
+    .from(userTeams)
+    .innerJoin(users, eq(users.id, userTeams.managerUserId))
+    .orderBy(desc(userTeams.createdAt));
+
+  if (rows.length === 0) return [];
+
+  const seatsByTeam = await getRosterSeats(rows.map((row) => row.team.id));
+
+  return rows.map((row) => ({
+    team: row.team,
+    completeness: computeCompleteness(row.team.category, seatsByTeam.get(row.team.id) ?? []),
+    managerName:
+      [row.firstName, row.lastName].filter(Boolean).join(" ").trim() || row.name || row.email,
+  }));
+}
+
 /**
  * {@link getManagerFirstName} for a whole list in one query — the recruiting
  * list shows a manager's first name per card and must not fire a query each.
