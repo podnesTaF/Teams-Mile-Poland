@@ -712,9 +712,7 @@
         "sections": [
           {
             "h": "Data Controller",
-            "p": [
-              "The data controller within the meaning of GDPR is:"
-            ],
+            "p": ["The data controller within the meaning of GDPR is:"],
             "list": [
               "Company name: ACE BATTLE POLAND Sp. z o.o.",
               "Address: ul. Pańska 96/80, 00-837 Warszawa",
@@ -1074,7 +1072,8 @@
       "empty": {
         "title": "No start list",
         "txt": "There is no start list for this race night."
-      }
+      },
+      "team": {}
     },
     "results": {
       "eyebrow": "Results",
@@ -1092,7 +1091,8 @@
         "title": "No results yet",
         "txt": "Results appear here during and after the race night, as soon as the timing crew's files are imported."
       }
-    }
+    },
+    "teamEvent": {}
   },
   "auth": {
     "google": "Continue with Google",
@@ -1473,7 +1473,20 @@
       "expired": "That link has expired.",
       "used": "That link has already been used.",
       "manager_must_hand_over": "Hand management to another member before you leave.",
-      "invalid": "Check the highlighted fields and try again."
+      "invalid": "Check the highlighted fields and try again.",
+      "incomplete_team": "The team is not complete yet.",
+      "not_open": "Registration for this event is not open.",
+      "already_entered": "This team is already entered in this event.",
+      "member_underage": "A member will be under 18 on the event date.",
+      "already_checked_in": "The team is already checked in — the entry is locked.",
+      "consent_pending": "A member has not confirmed their participation yet.",
+      "invalid_composition": "The race composition does not meet the rules.",
+      "bib_pool": "Not enough bibs left in the pool.",
+      "heat_started": "The heat has already started.",
+      "not_reserve": "That runner is not a reserve on this entry.",
+      "remind_limit": "A reminder was already sent in the last 24 hours.",
+      "already_confirmed": "This participation is already confirmed.",
+      "cancelled": "This event has been cancelled."
     },
     "roster": {
       "managerHint": "Hand over management before you leave, or dissolve the team if it is not coming together.",
@@ -1603,8 +1616,12 @@
         "regionLabel": "Region",
         "outro": "You are free to join another team in this category, or to start one yourself.",
         "cta": "Start your own team"
-      }
-    }
+      },
+      "confirmRequest": {},
+      "entryWithdrawn": {}
+    },
+    "entry": {},
+    "entryPage": {}
   },
   "register": {
     "eyebrow": "Confirm registration",
@@ -1711,7 +1728,8 @@
       "completedTitle": "This event has finished",
       "completedBody": "This race has already taken place — see how it went.",
       "completedCta": "View results"
-    }
+    },
+    "teamConfirm": {}
   },
   "unsubscribe": {
     "eyebrow": "Email preferences",
@@ -1857,6 +1875,7 @@
       "team-appendix3": "Appendix 3 — Categories and Prize Pool",
       "team-appendix4": "Appendix 4 — Individual Ranking Criteria",
       "team-appendix5": "Appendix 5 — Team Ranking Criteria"
-    }
+    },
+    "teamItems": {}
   }
 }

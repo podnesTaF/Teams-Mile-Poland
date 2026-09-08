@@ -712,9 +712,7 @@
         "sections": [
           {
             "h": "Administrator danych osobowych (ADO)",
-            "p": [
-              "Administratorem danych osobowych w rozumieniu RODO jest:"
-            ],
+            "p": ["Administratorem danych osobowych w rozumieniu RODO jest:"],
             "list": [
               "Nazwa: ACE BATTLE POLAND Sp. z o.o.",
               "Adres: ul. Pańska 96/80, 00-837 Warszawa",
@@ -1074,7 +1072,8 @@
       "empty": {
         "title": "Brak listy startowej",
         "txt": "Dla tej nocy biegowej nie ma listy startowej."
-      }
+      },
+      "team": {}
     },
     "results": {
       "eyebrow": "Wyniki",
@@ -1092,7 +1091,8 @@
         "title": "Wyników jeszcze nie ma",
         "txt": "Wyniki pojawią się tutaj w trakcie i po nocy biegowej, gdy tylko pliki z pomiaru czasu zostaną zaimportowane."
       }
-    }
+    },
+    "teamEvent": {}
   },
   "auth": {
     "google": "Kontynuuj z Google",
@@ -1473,7 +1473,20 @@
       "expired": "Ten link wygasł.",
       "used": "Ten link został już wykorzystany.",
       "manager_must_hand_over": "Przed odejściem przekaż zarządzanie innemu zawodnikowi.",
-      "invalid": "Sprawdź zaznaczone pola i spróbuj ponownie."
+      "invalid": "Sprawdź zaznaczone pola i spróbuj ponownie.",
+      "incomplete_team": "Zespół nie jest jeszcze kompletny.",
+      "not_open": "Rejestracja na to wydarzenie nie jest otwarta.",
+      "already_entered": "Ten zespół jest już zgłoszony do tego wydarzenia.",
+      "member_underage": "Jeden z członków nie będzie mieć 18 lat w dniu wydarzenia.",
+      "already_checked_in": "Zespół został już odprawiony — zgłoszenie jest zablokowane.",
+      "consent_pending": "Jeden z członków nie potwierdził jeszcze udziału.",
+      "invalid_composition": "Skład na bieg nie spełnia wymogów regulaminu.",
+      "bib_pool": "W puli nie ma wystarczającej liczby numerów startowych.",
+      "heat_started": "Bieg już się rozpoczął.",
+      "not_reserve": "Ten biegacz nie jest rezerwowym w tym zgłoszeniu.",
+      "remind_limit": "Przypomnienie wysłano już w ciągu ostatnich 24 godzin.",
+      "already_confirmed": "Ten udział został już potwierdzony.",
+      "cancelled": "To wydarzenie zostało odwołane."
     },
     "roster": {
       "managerHint": "Zanim odejdziesz, przekaż zarządzanie innemu zawodnikowi — albo rozwiąż zespół, jeśli nie udało się go skompletować.",
@@ -1603,8 +1616,12 @@
         "regionLabel": "Region",
         "outro": "Możesz teraz dołączyć do innego zespołu w tej kategorii albo założyć własny.",
         "cta": "Załóż własny zespół"
-      }
-    }
+      },
+      "confirmRequest": {},
+      "entryWithdrawn": {}
+    },
+    "entry": {},
+    "entryPage": {}
   },
   "register": {
     "eyebrow": "Potwierdź zapis",
@@ -1711,7 +1728,8 @@
       "completedTitle": "To wydarzenie się zakończyło",
       "completedBody": "Ten bieg już się odbył — zobacz, jak poszło.",
       "completedCta": "Zobacz wyniki"
-    }
+    },
+    "teamConfirm": {}
   },
   "unsubscribe": {
     "eyebrow": "Preferencje e-mail",
@@ -1857,6 +1875,7 @@
       "team-appendix3": "Załącznik 3 — Kategorie i pula nagród",
       "team-appendix4": "Załącznik 4 — Kryteria rankingu indywidualnego",
       "team-appendix5": "Załącznik 5 — Kryteria rankingów zespołowych"
-    }
+    },
+    "teamItems": {}
   }
 }

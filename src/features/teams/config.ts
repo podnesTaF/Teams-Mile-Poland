@@ -75,7 +75,22 @@ export type TeamActionReason =
   | "expired"
   | "used"
   | "manager_must_hand_over"
-  | "invalid";
+  | "invalid"
+  // Team entry and race day (PRD #64): entry (#67), member confirmation (#68),
+  // team check-in (#69). Copy for each lives in `teams.reasons.<reason>` ×3.
+  | "incomplete_team"
+  | "not_open"
+  | "already_entered"
+  | "member_underage"
+  | "already_checked_in"
+  | "consent_pending"
+  | "invalid_composition"
+  | "bib_pool"
+  | "heat_started"
+  | "not_reserve"
+  | "remind_limit"
+  | "already_confirmed"
+  | "cancelled";
 
 /** The frozen failure half of every team action's return value. */
 export type TeamActionFailure = {

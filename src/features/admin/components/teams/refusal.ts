@@ -31,6 +31,20 @@ const REFUSALS: Record<TeamActionReason, string> = {
   used: "That invitation or request has already been answered.",
   manager_must_hand_over: "Hand management over before removing the manager.",
   invalid: "That value was rejected — check the field and try again.",
+  // Team entry and race day (PRD #64).
+  incomplete_team: "The team is not complete — it has not reached its roster minimum.",
+  not_open: "That event is not open for registration.",
+  already_entered: "That team is already entered in this event.",
+  member_underage: "A member of that team will be under 18 on the event date.",
+  already_checked_in: "That entry is checked in; its roster is locked.",
+  consent_pending: "A composed member has not confirmed their participation yet.",
+  invalid_composition: "The composition breaks the rules — see the specific reason.",
+  bib_pool: "The bib pool cannot cover this composition.",
+  heat_started: "That heat has already started; no swaps.",
+  not_reserve: "The runner coming in must be a reserve on this entry.",
+  remind_limit: "A reminder already went out to that member in the last 24 hours.",
+  already_confirmed: "That member has already confirmed.",
+  cancelled: "That event is cancelled.",
 };
 
 /** The panel's sentence for a refused team action. */

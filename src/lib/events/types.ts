@@ -22,11 +22,39 @@ export type EventStatus =
   | "cancelled"; // called off; public page says so, history kept
 
 /**
- * `team` — the legacy TEAMS MILE format (teams/runners/slot_counter stack).
+ * `team` — a team-format night. Historically only the frozen legacy TEAMS MILE
+ * event (teams/runners/slot_counter stack, see {@link LEGACY_TEAM_EVENT_SLUG});
+ * from PRD #64 on, a `team` event is entered by team managers through the
+ * `user_team_*` and `event_*` tables, exactly like an `individual` one.
  * `individual` — the Aug-2026 mile series: per-person entry, capped free +
  * paid slots, user accounts. Drives which registration flow a page links to.
  */
 export type EventType = "team" | "individual";
+
+/**
+ * The one frozen legacy TEAMS MILE event (ADR 0008). The only `team`-type row
+ * the current stack must keep treating as legacy.
+ */
+export const LEGACY_TEAM_EVENT_SLUG = "warsaw-2026";
+
+/** True for the frozen legacy event (and for a summary with no type at all). */
+export function isLegacyEvent(
+  event: Pick<EventSummary, "slug" | "eventType"> | null | undefined,
+): boolean {
+  if (!event) return false;
+  return event.slug === LEGACY_TEAM_EVENT_SLUG || event.eventType === undefined;
+}
+
+/**
+ * An event on the current stack — `individual`, or a `team` event entered by
+ * managers (PRD #64). Use this instead of `eventType !== "individual"` on every
+ * surface that serves both types (admin event pages, check-in, heats, tickets,
+ * consent, the public event page and start list). Surfaces that are genuinely
+ * individual-only (the per-person register flow) keep their `eventType` check.
+ */
+export function isSeriesEvent(event: EventSummary | null | undefined): event is EventSummary {
+  return Boolean(event) && !isLegacyEvent(event);
+}
 
 /** Local wall-clock time window for an event, e.g. { start: "09:15", end: "12:15" }. */
 export type TimeRange = { start: string; end: string };
