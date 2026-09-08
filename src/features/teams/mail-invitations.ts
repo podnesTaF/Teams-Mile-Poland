@@ -75,17 +75,21 @@ export async function sendTeamMail({
 }
 
 /** Just enough of a next-intl translator for the shared bits below. */
-type Translate = (key: string, values?: Record<string, string | number>) => string;
+export type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /**
  * The team facts and their field labels, in the recipient's locale. Every team
  * mail repeats this block, and `teamLabel` / `categoryLabel` / `regionLabel`
  * live in each template's own catalog object so no template depends on another's
  * keys.
+ *
+ * Exported so the join-request mails (#61) and the roster mails (#62) build the
+ * block the same way rather than each growing their own copy — the `t` they pass
+ * is their own namespace's translator, which is what keeps the catalogs separate.
  */
-async function teamFacts(
+export async function teamMailFacts(
   locale: TeamMailLocale,
-  team: UserTeamRow,
+  team: Pick<UserTeamRow, "name" | "category" | "region">,
   t: Translate,
 ): Promise<{ facts: TeamMailFacts; labels: TeamMailLabels }> {
   const tForm = (await getTranslations({ locale, namespace: "teams.form" })) as Translate;
@@ -138,7 +142,7 @@ export async function sendInvitationEmail({
     locale,
     namespace: "teams.emails.invitation",
   })) as Translate;
-  const { facts, labels } = await teamFacts(locale, team, t);
+  const { facts, labels } = await teamMailFacts(locale, team, t);
   const url = `${getAppUrl()}${localePath(locale, `/teams/invite/${rawToken}`)}`;
 
   return sendTeamMail({
@@ -190,7 +194,7 @@ export async function sendInvitationAcceptedEmail({
     locale,
     namespace: "teams.emails.invitationAccepted",
   })) as Translate;
-  const { facts, labels } = await teamFacts(locale, team, t);
+  const { facts, labels } = await teamMailFacts(locale, team, t);
   const url = `${getAppUrl()}${localePath(locale, `/teams/${team.slug}`)}`;
 
   return sendTeamMail({

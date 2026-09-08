@@ -1,14 +1,13 @@
-import { Text } from "@react-email/components";
-
-import { Btn, C, EmailShell, Field, HeroBand, SectionPad } from "@/emails/components";
+import { TeamMailShell, TeamMailText, type TeamMailFacts, type TeamMailLabels } from "./shell";
 
 /**
  * "This team no longer exists" — sent to every remaining member when a team is
  * dissolved (#62), never to whoever pressed the button.
  *
  * Dissolve is a hard delete, so this email is the only record the runner will
- * have; it names the team explicitly rather than saying "your team". Copy
- * arrives translated (see {@link RemovedFromTeamEmail} for why).
+ * have; it names the team explicitly rather than saying "your team", and the
+ * facts block is filled from the row captured *before* the delete. Copy arrives
+ * translated (see {@link RemovedFromTeamEmail} for why).
  */
 export type TeamDissolvedEmailProps = {
   preview: string;
@@ -16,9 +15,9 @@ export type TeamDissolvedEmailProps = {
   title: string;
   greeting: string;
   intro: string;
-  teamLabel: string;
-  teamName: string;
   outro: string;
+  team: TeamMailFacts;
+  labels: TeamMailLabels;
   /** Optional "start your own team" link. */
   cta?: { label: string; href: string };
 };
@@ -29,41 +28,24 @@ export function TeamDissolvedEmail({
   title,
   greeting,
   intro,
-  teamLabel,
-  teamName,
   outro,
+  team,
+  labels,
   cta,
 }: TeamDissolvedEmailProps) {
-  const para = { margin: "0 0 12px", fontSize: "14px", lineHeight: "1.6", color: C.text } as const;
-
   return (
-    <EmailShell preview={preview}>
-      <HeroBand eyebrow={eyebrow} title={title} />
-      <SectionPad>
-        <Text style={{ ...para, color: C.white, fontWeight: 700 }}>{greeting}</Text>
-        <Text style={para}>{intro}</Text>
-
-        <div
-          style={{
-            border: `1px solid ${C.border}`,
-            borderRadius: "8px",
-            padding: "16px 16px 4px",
-            margin: "4px 0 16px",
-            backgroundColor: C.cardSoft,
-          }}
-        >
-          <Field label={teamLabel} value={teamName} />
-        </div>
-
-        {cta ? (
-          <Btn href={cta.href} variant="primary">
-            {cta.label}
-          </Btn>
-        ) : null}
-
-        <Text style={{ ...para, margin: "16px 0 0", color: C.muted }}>{outro}</Text>
-      </SectionPad>
-    </EmailShell>
+    <TeamMailShell
+      preview={preview}
+      eyebrow={eyebrow}
+      title={title}
+      team={team}
+      labels={labels}
+      cta={cta ? { href: cta.href, label: cta.label } : undefined}
+      note={outro}
+    >
+      <TeamMailText>{greeting}</TeamMailText>
+      <TeamMailText>{intro}</TeamMailText>
+    </TeamMailShell>
   );
 }
 

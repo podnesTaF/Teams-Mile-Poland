@@ -186,6 +186,46 @@ export async function getMyTeams(userId: string): Promise<MyTeamSummary[]> {
 }
 
 /**
+ * The public recruiting list (#61): every team that has declared itself
+ * **Recruiting**, newest first, optionally narrowed to one category.
+ *
+ * Recruiting is the only flag there is — there is no team status — so this is
+ * the whole of "which teams are looking for runners". Ordered by `created_at`
+ * rather than by how close a roster is to Complete: a team that has just been
+ * founded is the one that most needs to be seen.
+ */
+export async function listRecruitingTeams(category?: TeamCategory): Promise<UserTeamRow[]> {
+  const db = getDb();
+  const where = category
+    ? and(eq(userTeams.recruiting, true), eq(userTeams.category, category))
+    : eq(userTeams.recruiting, true);
+  return db.select().from(userTeams).where(where).orderBy(desc(userTeams.createdAt));
+}
+
+/**
+ * {@link getManagerFirstName} for a whole list in one query — the recruiting
+ * list shows a manager's first name per card and must not fire a query each.
+ * Missing accounts simply do not appear in the map.
+ */
+export async function getManagerFirstNames(
+  managerUserIds: string[],
+): Promise<Map<string, string | null>> {
+  const byUser = new Map<string, string | null>();
+  if (managerUserIds.length === 0) return byUser;
+
+  const db = getDb();
+  const rows = await db
+    .select({ id: users.id, firstName: users.firstName, name: users.name })
+    .from(users)
+    .where(inArray(users.id, Array.from(new Set(managerUserIds))));
+
+  for (const row of rows) {
+    byUser.set(row.id, row.firstName?.trim() || row.name.split(" ")[0] || null);
+  }
+  return byUser;
+}
+
+/**
  * Seats (id + sex only, no names) for several teams at once — what completeness
  * needs on list surfaces where roster names must not be read.
  */

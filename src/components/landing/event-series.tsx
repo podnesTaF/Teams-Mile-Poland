@@ -68,11 +68,12 @@ export async function EventSeries() {
           </>
         ) : null}
 
-        {/* The one landing entry point into team formation. It points at
-          * `/teams/new` rather than `/teams` because the public recruiting list
-          * is a later slice (#61); flip the href when that ships. */}
+        {/* The one landing entry point into team formation. It points at the
+          * public recruiting list rather than at `/teams/new`: most people
+          * arriving here want a team, not to found one, and `/teams` carries
+          * the create link for the rest. */}
         <div style={{ display: "flex", justifyContent: "center", marginTop: 28 }}>
-          <Link href="/teams/new" className="btn btn-stroke">
+          <Link href="/teams" className="btn btn-stroke">
             {tTeams("landingCta")}
           </Link>
         </div>

@@ -1,13 +1,18 @@
-import type { ReactElement } from "react";
 import { getTranslations } from "next-intl/server";
 
+import type { UserTeamRow } from "@/db/schema/user-teams";
 import { ManagementHandedOverEmail } from "@/features/teams/emails/management-handed-over";
 import { RemovedFromTeamEmail } from "@/features/teams/emails/removed-from-team";
 import { TeamDissolvedEmail } from "@/features/teams/emails/team-dissolved";
 import { appAbsoluteUrl } from "@/lib/app-url";
-import { FROM_EMAIL, resend } from "@/lib/email";
 import { localePath } from "@/lib/i18n/config";
 
+import {
+  asTeamMailLocale,
+  sendTeamMail,
+  teamMailFacts,
+  type Translate,
+} from "./mail-invitations";
 import type { TeamMailRecipient } from "./roster-service";
 
 /**
@@ -15,64 +20,24 @@ import type { TeamMailRecipient } from "./roster-service";
  * over, team dissolved. Sent inline from `actions/roster.ts`, one recipient at
  * a time, in that account's own language.
  *
- * Deliberately small and self-contained: #60 owns the shared team-mail shell
- * and its own `mail-invitations.ts`, and the two slices were built in parallel.
- * Reconciling is a swap of {@link sendTeamRosterMail}'s body for that helper.
+ * Transport, locale narrowing and the team-facts block all come from
+ * `mail-invitations.ts`: there is **one** `sendTeamMail` for the whole feature,
+ * so every team mail logs the same `[teams] mail skipped/failed` line and the
+ * "Resend returns `{ error }` rather than throwing" trap is handled in one
+ * place. (#62 shipped its own copy of that helper because #60's did not exist in
+ * its worktree; #61 folded it back in.)
  *
  * Copy is resolved here, not in the templates: a React Email component is
  * rendered synchronously by Resend, so it cannot await `getTranslations`.
  */
 
-export type TeamMailLocale = "pl" | "en" | "ua";
-
-/** `users.locale` is free text; anything unexpected reads Polish, the default. */
-export function asTeamMailLocale(value: string | null | undefined): TeamMailLocale {
-  return value === "pl" || value === "en" || value === "ua" ? value : "pl";
-}
-
 /**
- * One send, null-safe and honest about the outcome.
- *
- * Resend's `send()` reports API failures in the returned `error` and does not
- * throw, so an unchecked call logs a success for mail that never left (the
- * standing pitfall in this codebase). Both branches log with the `[teams]`
- * prefix so a verification run can assert on the line without a mail account.
- *
- * Returns `true` only when Resend accepted the message.
+ * The team fields these emails name. Widened from slug + name when the three
+ * templates moved onto the shared shell, which shows the category and region
+ * with them — `actions/roster.ts` already passes a whole `UserTeamRow` (for
+ * dissolve, the row captured before the delete), so no caller changed.
  */
-export async function sendTeamRosterMail(args: {
-  /** Template name, for the log line only. */
-  kind: "removed" | "handedOver" | "dissolved";
-  to: string;
-  subject: string;
-  react: ReactElement;
-}): Promise<boolean> {
-  if (!resend) {
-    console.log(`[teams] mail skipped (no RESEND_API_KEY) ${args.kind} → ${args.to}`);
-    return false;
-  }
-
-  try {
-    const { error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: args.to,
-      subject: args.subject,
-      react: args.react,
-    });
-    if (error) {
-      console.error(`[teams] mail failed ${args.kind} → ${args.to}: ${error.message}`);
-      return false;
-    }
-    return true;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`[teams] mail failed ${args.kind} → ${args.to}: ${message}`);
-    return false;
-  }
-}
-
-/** The team fields every one of these emails names. */
-export type TeamMailTeam = { slug: string; name: string };
+export type TeamMailTeam = Pick<UserTeamRow, "slug" | "name" | "category" | "region">;
 
 /** Sent to the runner a manager (or an admin) removed from a roster. */
 export async function sendRemovedFromTeamMail(
@@ -80,11 +45,12 @@ export async function sendRemovedFromTeamMail(
   team: TeamMailTeam,
 ): Promise<boolean> {
   const locale = asTeamMailLocale(recipient.locale);
-  const t = await getTranslations({ locale, namespace: "teams.emails.removed" });
+  const t = (await getTranslations({ locale, namespace: "teams.emails.removed" })) as Translate;
+  const { facts, labels } = await teamMailFacts(locale, team, t);
 
-  return sendTeamRosterMail({
-    kind: "removed",
+  return sendTeamMail({
     to: recipient.email,
+    locale,
     subject: t("subject", { team: team.name }),
     react: RemovedFromTeamEmail({
       preview: t("preview", { team: team.name }),
@@ -92,9 +58,9 @@ export async function sendRemovedFromTeamMail(
       title: t("title"),
       greeting: t("greeting", { name: recipient.firstName }),
       intro: t("intro", { team: team.name }),
-      teamLabel: t("teamLabel"),
-      teamName: team.name,
       outro: t("outro"),
+      team: facts,
+      labels,
       cta: { label: t("cta"), href: appAbsoluteUrl(localePath(locale, "/teams/new")) },
     }),
   });
@@ -106,11 +72,12 @@ export async function sendManagementHandedOverMail(
   team: TeamMailTeam,
 ): Promise<boolean> {
   const locale = asTeamMailLocale(recipient.locale);
-  const t = await getTranslations({ locale, namespace: "teams.emails.handedOver" });
+  const t = (await getTranslations({ locale, namespace: "teams.emails.handedOver" })) as Translate;
+  const { facts, labels } = await teamMailFacts(locale, team, t);
 
-  return sendTeamRosterMail({
-    kind: "handedOver",
+  return sendTeamMail({
     to: recipient.email,
+    locale,
     subject: t("subject", { team: team.name }),
     react: ManagementHandedOverEmail({
       preview: t("preview", { team: team.name }),
@@ -118,10 +85,10 @@ export async function sendManagementHandedOverMail(
       title: t("title"),
       greeting: t("greeting", { name: recipient.firstName }),
       intro: t("intro", { team: team.name }),
-      teamLabel: t("teamLabel"),
-      teamName: team.name,
       dutiesTitle: t("dutiesTitle"),
       duties: [t("duty1"), t("duty2"), t("duty3")],
+      team: facts,
+      labels,
       ctaLabel: t("cta"),
       ctaHref: appAbsoluteUrl(localePath(locale, `/teams/${team.slug}`)),
     }),
@@ -130,18 +97,19 @@ export async function sendManagementHandedOverMail(
 
 /**
  * Sent to every remaining member of a dissolved team. The team row is already
- * gone by the time this runs, so the name is passed in rather than looked up.
+ * gone by the time this runs, so the facts are passed in rather than looked up.
  */
 export async function sendTeamDissolvedMail(
   recipient: TeamMailRecipient,
   team: TeamMailTeam,
 ): Promise<boolean> {
   const locale = asTeamMailLocale(recipient.locale);
-  const t = await getTranslations({ locale, namespace: "teams.emails.dissolved" });
+  const t = (await getTranslations({ locale, namespace: "teams.emails.dissolved" })) as Translate;
+  const { facts, labels } = await teamMailFacts(locale, team, t);
 
-  return sendTeamRosterMail({
-    kind: "dissolved",
+  return sendTeamMail({
     to: recipient.email,
+    locale,
     subject: t("subject", { team: team.name }),
     react: TeamDissolvedEmail({
       preview: t("preview", { team: team.name }),
@@ -149,9 +117,9 @@ export async function sendTeamDissolvedMail(
       title: t("title"),
       greeting: t("greeting", { name: recipient.firstName }),
       intro: t("intro", { team: team.name }),
-      teamLabel: t("teamLabel"),
-      teamName: team.name,
       outro: t("outro"),
+      team: facts,
+      labels,
       cta: { label: t("cta"), href: appAbsoluteUrl(localePath(locale, "/teams/new")) },
     }),
   });

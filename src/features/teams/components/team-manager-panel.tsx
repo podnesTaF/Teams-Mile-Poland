@@ -4,6 +4,7 @@ import type { UserTeamRow } from "@/db/schema/user-teams";
 import { localePath } from "@/lib/i18n/config";
 
 import { InvitationsPanel } from "./invitations-panel";
+import { JoinRequestQueue } from "./join-request-queue";
 import { RotateCodeButton } from "./rotate-code-button";
 import { TeamForm } from "./team-form";
 
@@ -36,11 +37,8 @@ export async function TeamManagerPanel({
       <InvitationsPanel team={team} locale={locale} />
 
 
-      {/*
-        SLOT — #61 join-request queue. One line goes here:
-          <JoinRequestQueue slug={team.slug} locale={locale} />
-        (pending requests with the runner's name, accept / decline).
-      */}
+      {/* SLOT — #61 join-request queue (pending requests, accept / decline). */}
+      <JoinRequestQueue slug={team.slug} locale={locale} />
 
       <TeamForm
         mode="edit"

@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 
 import { getMyTeams } from "../data";
 import { ProfileInvitations } from "./profile-invitations";
+import { ProfileJoinRequests } from "./profile-join-requests";
 
 /**
  * The profile's `#teams` section — one place for a runner's team life.
@@ -70,10 +71,8 @@ export async function ProfileTeamsSection({ userId }: { userId: string }) {
       <ProfileInvitations userId={userId} />
 
 
-      {/*
-        SLOT — #61 pending join requests on the profile (with withdraw). One line:
-          <ProfileJoinRequests userId={userId} />
-      */}
+      {/* SLOT — #61 pending join requests on the profile (with withdraw). */}
+      <ProfileJoinRequests userId={userId} />
 
       <div className="iv-actions" style={{ marginTop: 16 }}>
         <Link className="btn btn-red" href="/teams/new">
