@@ -14,6 +14,7 @@ import { getAllEvents } from "@/lib/events/store";
 import { isSeriesEvent, type EventSummary } from "@/lib/events/types";
 
 import { teamFailure, type TeamActionResult, type TeamRole, type TeamSex } from "./config";
+import { RATING_RULES_VERSION } from "./rating-rules";
 
 /**
  * Team entries — the reads and the transactional writes behind the entry
@@ -37,19 +38,9 @@ import { teamFailure, type TeamActionResult, type TeamRole, type TeamSex } from 
  */
 
 /**
- * The rating-rules version stamped onto every entry (PRD #64, user story 40).
- *
- * TODO(#66): import from `./rating-rules` — that module is this constant's home
- * and lands in the same wave; it did not exist in this slice's worktree. The
- * literal must stay identical until the orchestrator rewires the import.
- */
-export const RATING_RULES_VERSION = "2026-09-01";
-
-/**
  * Race role and stage option, derived from the row type rather than re-declared.
- * `team-entries.ts` already carries a stop-gap copy of the two unions (see its
- * TODO(#66)); deriving here keeps this file from becoming a third place they
- * could drift.
+ * The schema types them from `rating-rules.ts`; deriving here keeps this file
+ * from becoming a second place they could drift.
  */
 export type EntryRaceRole = NonNullable<TeamEntryMemberRow["raceRole"]>;
 export type EntryStageOption = NonNullable<TeamEntryMemberRow["stageOption"]>;

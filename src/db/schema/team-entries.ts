@@ -18,6 +18,7 @@ import { userTeams } from "./user-teams";
 // `consent.ts` and `user-teams.ts`). Type-only, so the module is erased before
 // drizzle-kit ever resolves it.
 import type { TeamCategory } from "../../features/teams/config";
+import type { RaceRole, StageOption } from "../../features/teams/rating-rules";
 
 /**
  * Team entry and race composition — a complete team racing a `team` event
@@ -60,20 +61,6 @@ import type { TeamCategory } from "../../features/teams/config";
  */
 export type TeamEntryStatus = "entered" | "checked_in" | "finished" | "dsq";
 
-/**
- * Race role inside a composition. **Duplicated from `rating-rules.ts` (#66) on
- * purpose and only for now** — this file is loaded by drizzle-kit, which must be
- * able to erase the import, and the schema slice landed in a worktree where
- * that module did not exist yet.
- *
- * TODO(#66): re-point both aliases at `../../features/teams/rating-rules`
- * (type-only, exactly like {@link TeamCategory} above). The unions must stay
- * character-identical; a mismatch is a compile error at every `$type<>` below.
- */
-type RaceRole = "racer" | "ace" | "joker";
-
-/** Where the ACE hands over — 1, 2 or 3 laps. See TODO on {@link RaceRole}. */
-type StageOption = "1lap" | "2lap" | "3lap";
 
 /** One team racing one event. Deleted outright when the entry is withdrawn. */
 export const teamEntries = pgTable(
