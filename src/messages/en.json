@@ -1073,7 +1073,23 @@
         "title": "No start list",
         "txt": "There is no start list for this race night."
       },
-      "team": {}
+      "team": {
+        "teams": "{count, plural, one {# team} other {# teams}}",
+        "colRunner": "Runner",
+        "colRole": "Role",
+        "role": {
+          "racer": "Racer",
+          "ace": "Ace",
+          "joker": "Joker"
+        },
+        "pair": "pair {number}",
+        "category": {
+          "men": "Men",
+          "women": "Women",
+          "mixed": "Mixed"
+        },
+        "heatEmpty": "No teams in this heat yet."
+      }
     },
     "results": {
       "eyebrow": "Results",

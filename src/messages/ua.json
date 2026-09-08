@@ -1073,7 +1073,23 @@
         "title": "Стартового списку немає",
         "txt": "Для цієї бігової ночі стартового списку немає."
       },
-      "team": {}
+      "team": {
+        "teams": "{count, plural, one {# команда} few {# команди} many {# команд} other {# команди}}",
+        "colRunner": "Учасник",
+        "colRole": "Роль",
+        "role": {
+          "racer": "Racer",
+          "ace": "Ace",
+          "joker": "Joker"
+        },
+        "pair": "пара {number}",
+        "category": {
+          "men": "Чоловіки",
+          "women": "Жінки",
+          "mixed": "Мікст"
+        },
+        "heatEmpty": "У цьому забігу ще немає команд."
+      }
     },
     "results": {
       "eyebrow": "Результати",

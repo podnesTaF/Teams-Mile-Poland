@@ -1073,7 +1073,23 @@
         "title": "Brak listy startowej",
         "txt": "Dla tej nocy biegowej nie ma listy startowej."
       },
-      "team": {}
+      "team": {
+        "teams": "{count, plural, one {# zespół} few {# zespoły} many {# zespołów} other {# zespołu}}",
+        "colRunner": "Zawodnik",
+        "colRole": "Rola",
+        "role": {
+          "racer": "Racer",
+          "ace": "Ace",
+          "joker": "Joker"
+        },
+        "pair": "para {number}",
+        "category": {
+          "men": "Mężczyźni",
+          "women": "Kobiety",
+          "mixed": "Mieszany"
+        },
+        "heatEmpty": "W tym biegu nie ma jeszcze zespołów."
+      }
     },
     "results": {
       "eyebrow": "Wyniki",

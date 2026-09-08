@@ -52,6 +52,8 @@ export function HeatBuilder({
   pool,
   bibMax,
   canEdit,
+  teamEvent = false,
+  maxTeams = 0,
 }: {
   locale: string;
   slug: string;
@@ -63,6 +65,16 @@ export function HeatBuilder({
   bibMax: number;
   /** Whether the reader holds `edit`; false renders the card read-only. */
   canEdit: boolean;
+  /**
+   * A team event's card is counted in **teams**, not runners (PRD #64): the
+   * fill meter reads `team_entries` seated in the heat, and the per-heat
+   * capacity field edits `capacity_teams`. Seeding is not done by hand here —
+   * team check-in seats a whole team — so the selection and the bulk-move bar
+   * stay exactly what they are, and are simply of no use on a team night.
+   */
+  teamEvent?: boolean;
+  /** Teams-per-heat ceiling the bib pool can chip; the team field's `max`. */
+  maxTeams?: number;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
@@ -303,6 +315,8 @@ export function HeatBuilder({
             onToggleAll={toggleAll}
             filtering={filtering}
             canEdit={canEdit}
+            teamEvent={teamEvent}
+            maxTeams={maxTeams}
           />
         ))
       )}
@@ -330,6 +344,8 @@ function HeatCard({
   onToggleAll,
   filtering,
   canEdit,
+  teamEvent,
+  maxTeams,
 }: {
   locale: string;
   slug: string;
@@ -343,14 +359,24 @@ function HeatCard({
   onToggleAll: (rows: SeedRow[]) => void;
   filtering: boolean;
   canEdit: boolean;
+  teamEvent: boolean;
+  maxTeams: number;
 }) {
-  const over = heat.fill > heat.capacity;
+  // A team heat is full of teams; an individual one of runners. One meter, two
+  // vocabularies, so "is this heat full" is answered in the unit the night is
+  // actually seeded in (PRD #64 user story 34).
+  const teamCapacity = heat.teamCapacity;
+  const fill = teamEvent ? heat.teams : heat.fill;
+  const capacity = teamEvent ? teamCapacity : heat.capacity;
+  const over = fill > capacity;
 
   return (
     <section
       data-admin-heat={heat.number}
       data-heat-state={heat.state}
-      data-heat-fill={`${heat.fill}/${heat.capacity}`}
+      data-heat-fill={`${fill}/${capacity}`}
+      data-heat-teams={teamEvent ? `${heat.teams}/${teamCapacity}` : undefined}
+      data-heat-started={heat.startedAt ? "1" : "0"}
       className={adminCard(cn("mt-4", over ? "border-admin-accent" : undefined))}
     >
       <div className="flex flex-wrap items-start justify-between gap-x-5 gap-y-4 p-4 sm:p-5">
@@ -360,6 +386,16 @@ function HeatCard({
               Heat {heat.number}
             </h3>
             <HeatStateBadge state={heat.state} />
+            {heat.startedAt ? (
+              <AdminPill tone="accent" dot title="Marked started — no more reserve swaps">
+                started
+              </AdminPill>
+            ) : null}
+            {teamEvent ? (
+              <AdminPill tone="ink" title="Team entries seated in this heat">
+                {heat.teams} {heat.teams === 1 ? "team" : "teams"}
+              </AdminPill>
+            ) : null}
             {toNotify > 0 ? (
               <AdminPill
                 tone="warn"
@@ -376,7 +412,7 @@ function HeatCard({
           </p>
         </div>
 
-        <FillMeter fill={heat.fill} capacity={heat.capacity} />
+        <FillMeter fill={fill} capacity={capacity} unit={teamEvent ? "teams" : "runners"} />
       </div>
 
       <div className="border-t border-admin-line p-4 sm:p-5">
@@ -421,16 +457,29 @@ function HeatCard({
               defaultValue={instantToWarsawLocal(heat.scheduledAt)}
             />
           </AdminField>
-          <AdminField label="Cap." className="w-[84px]">
-            <input
-              className={adminInput()}
-              type="number"
-              name="capacity"
-              min={1}
-              max={pool}
-              defaultValue={heat.capacity}
-            />
-          </AdminField>
+          {teamEvent ? (
+            <AdminField label="Teams" className="w-[92px]">
+              <input
+                className={adminInput()}
+                type="number"
+                name="capacityTeams"
+                min={1}
+                max={maxTeams}
+                defaultValue={teamCapacity}
+              />
+            </AdminField>
+          ) : (
+            <AdminField label="Cap." className="w-[84px]">
+              <input
+                className={adminInput()}
+                type="number"
+                name="capacity"
+                min={1}
+                max={pool}
+                defaultValue={heat.capacity}
+              />
+            </AdminField>
+          )}
           <button type="submit" className={adminButton("stroke")}>
             Save
           </button>
@@ -464,7 +513,16 @@ function HeatCard({
  * The bar's width is the one inline style left in the builder, because a
  * percentage computed per heat is not something a class can express.
  */
-function FillMeter({ fill, capacity }: { fill: number; capacity: number }) {
+function FillMeter({
+  fill,
+  capacity,
+  unit,
+}: {
+  fill: number;
+  capacity: number;
+  /** What the two numbers count — "runners" normally, "teams" on a team night. */
+  unit: "runners" | "teams";
+}) {
   const over = fill > capacity;
   const full = fill === capacity;
   const pct = capacity > 0 ? Math.min(100, Math.round((fill / capacity) * 100)) : 0;
@@ -482,7 +540,7 @@ function FillMeter({ fill, capacity }: { fill: number; capacity: number }) {
             over ? "text-admin-accent" : "text-admin-muted",
           )}
         >
-          {over ? "over capacity" : full ? "full" : `${capacity - fill} free`}
+          {over ? "over capacity" : full ? "full" : `${capacity - fill} ${unit} free`}
         </p>
       </div>
       <div className="mt-2.5 h-1.5 overflow-hidden rounded-pill bg-admin-surface-2">

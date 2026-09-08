@@ -96,9 +96,12 @@ export default async function EventStartListPage({ params }: PageProps) {
   // (PRD #26 cross-cutting decision 3 — "upcoming and completed show nothing").
   // Both land on the empty state without a DB round-trip.
   const dormant = event.status === "upcoming" || event.status === "completed";
+  // A team night's start list is grouped by team with roles and no bibs
+  // (PRD #64 user story 37); an individual one is exactly what it was.
+  const teamEvent = event.eventType === "team";
   const startList: StartList = dormant
     ? { totalHeats: 0, heats: [] }
-    : await getEventStartList(slug);
+    : await getEventStartList(slug, teamEvent ? "team" : "individual");
 
   // Whether to point the runner onward to the results page. A new dependency
   // for this cached page, and a deliberate one: the import commit revalidates
@@ -148,18 +151,67 @@ export default async function EventStartListPage({ params }: PageProps) {
                     a stadium wall, and it keeps the time next to the people it
                     applies to. */}
                 {startList.heats.map((heat) => (
-                  <article className="sl-heat" key={heat.number}>
+                  <article className="sl-heat" key={heat.number} data-start-list-heat={heat.number}>
                     <header className="sl-heat__head">
                       <h2 className="sl-heat__no">{t("heats.heat", { number: heat.number })}</h2>
                       <span className="sl-heat__time">
                         {t("heats.approxTime", { time: formatHeatTime(heat.scheduledAt) })}
                       </span>
                       <span className="sl-heat__count">
-                        {t("heats.runners", { count: heat.entries.length })}
+                        {teamEvent
+                          ? t("heats.team.teams", { count: heat.teams.length })
+                          : t("heats.runners", { count: heat.entries.length })}
                       </span>
                     </header>
 
-                    {heat.entries.length === 0 ? (
+                    {teamEvent ? (
+                      heat.teams.length === 0 ? (
+                        <p className="iv-empty">{t("heats.team.heatEmpty")}</p>
+                      ) : (
+                        // One block per team rather than one table with a team
+                        // column: a team is the unit that races (PRD #64), and
+                        // the roles only mean something inside it.
+                        heat.teams.map((team) => (
+                          <div
+                            className="iv-tablewrap"
+                            key={team.entryId}
+                            data-start-list-team={team.entryId}
+                            data-start-list-category={team.category}
+                          >
+                            <h3 className="sl-heat__no">
+                              {team.name}{" "}
+                              <span className="sl-table__club">
+                                · {t(`heats.team.category.${team.category}`)}
+                              </span>
+                            </h3>
+                            <table className="iv-table sl-table">
+                              <thead>
+                                <tr>
+                                  <th>{t("heats.team.colRunner")}</th>
+                                  <th>{t("heats.team.colRole")}</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {team.members.map((member) => (
+                                  <tr
+                                    key={member.registrationId}
+                                    data-start-list-role={member.role}
+                                  >
+                                    <td className="sl-table__name">{member.name}</td>
+                                    <td className="sl-table__club">
+                                      {t(`heats.team.role.${member.role}`)}
+                                      {member.pairNo
+                                        ? ` · ${t("heats.team.pair", { number: member.pairNo })}`
+                                        : ""}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ))
+                      )
+                    ) : heat.entries.length === 0 ? (
                       // A published heat nobody is seeded into yet — a real
                       // state on a card that is still being balanced.
                       <p className="iv-empty">{t("heats.heatEmpty")}</p>

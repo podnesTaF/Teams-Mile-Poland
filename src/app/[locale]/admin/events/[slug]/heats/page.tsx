@@ -15,9 +15,11 @@ import { plural } from "@/features/admin/format";
 import { generateHeats, publishHeats } from "@/features/admin/heat-actions";
 import { SeedFinalCard } from "@/features/admin/components/seed-final-card";
 import {
+  DEFAULT_HEAT_TEAM_CAPACITY,
   getEventHeats,
   getSeedPool,
   MAX_GENERATE_HEATS,
+  maxTeamsPerHeat,
   outOfOrderHeats,
 } from "@/features/admin/heats-data";
 import { heatsOutsideWindow } from "@/features/admin/event-schemas";
@@ -104,7 +106,15 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
   // below anchors on the stale card. So it is stated again where it costs
   // something.
   const stranded = heatsOutsideWindow(heats, event);
-  const totalCapacity = heats.reduce((sum, h) => sum + h.capacity, 0);
+  // A team night's card is counted in teams (PRD #64 user story 34): the
+  // capacity stat, the generate field and each card's editable capacity all
+  // switch unit, bounded by what the bib pool can chip.
+  const teamEvent = event.eventType === "team";
+  const maxTeams = maxTeamsPerHeat(pool);
+  const totalCapacity = teamEvent
+    ? heats.reduce((sum, h) => sum + h.teamCapacity, 0)
+    : heats.reduce((sum, h) => sum + h.capacity, 0);
+  const seatedTeams = heats.reduce((sum, h) => sum + h.teams, 0);
 
   // Prefill the next generated heat one interval past the latest heat already on
   // the card, so adding to an existing card does not land on top of heat 1. With
@@ -148,10 +158,10 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
         {/* The pool is confirmed runners *plus* anyone already seeded, so it is
             not the same number as the roster's "Confirmed" stat. */}
         <AdminStat label="Seedable" value={seeds.length} />
-        <AdminStat label="Seeded" value={seeded} />
+        <AdminStat label={teamEvent ? "Teams seated" : "Seeded"} value={teamEvent ? seatedTeams : seeded} />
         <AdminStat label="Unassigned" value={seeds.length - seeded} />
         <AdminStat label="To notify" value={pendingNotify} />
-        <AdminStat label="Capacity" value={totalCapacity} />
+        <AdminStat label={teamEvent ? "Team capacity" : "Capacity"} value={totalCapacity} />
         <AdminStat label="Bib pool" value={pool} />
       </div>
 
@@ -161,7 +171,10 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
         <h2 className={ADMIN_TITLE}>{heats.length === 0 ? "Generate heats" : "Add heats"}</h2>
         <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[78ch]")}>
           {heats.length === 0
-            ? `Start times are prefilled from the event's racing window at ${interval}-minute spacing. Capacity is capped at the ${pool}-bib pool.`
+            ? `Start times are prefilled from the event's racing window at ${interval}-minute spacing. ` +
+              (teamEvent
+                ? `A team heat holds whole teams — at most ${maxTeams} of them, which is what the ${pool}-bib pool can chip.`
+                : `Capacity is capped at the ${pool}-bib pool.`)
             : `New heats are numbered on from heat ${heats[heats.length - 1].number} — existing heats and their times are left alone.`}
         </p>
         <form action={generateHeats} className="mt-4 flex flex-wrap items-end gap-2.5">
@@ -177,16 +190,29 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
               defaultValue={heats.length === 0 ? 9 : 1}
             />
           </AdminField>
-          <AdminField label="Capacity" className="w-[104px]">
-            <input
-              className={adminInput()}
-              type="number"
-              name="capacity"
-              min={1}
-              max={pool}
-              defaultValue={Math.min(12, pool)}
-            />
-          </AdminField>
+          {teamEvent ? (
+            <AdminField label="Teams / heat" className="w-[112px]">
+              <input
+                className={adminInput()}
+                type="number"
+                name="capacityTeams"
+                min={1}
+                max={maxTeams}
+                defaultValue={Math.min(DEFAULT_HEAT_TEAM_CAPACITY, maxTeams)}
+              />
+            </AdminField>
+          ) : (
+            <AdminField label="Capacity" className="w-[104px]">
+              <input
+                className={adminInput()}
+                type="number"
+                name="capacity"
+                min={1}
+                max={pool}
+                defaultValue={Math.min(12, pool)}
+              />
+            </AdminField>
+          )}
           <AdminField label="First start" className="w-full sm:w-[210px]">
             <input
               className={adminInput()}
@@ -296,6 +322,8 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
             pool={pool}
             bibMax={bibMax}
             canEdit={canEdit}
+            teamEvent={teamEvent}
+            maxTeams={maxTeams}
           />
         </div>
       )}

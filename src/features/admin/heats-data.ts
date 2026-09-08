@@ -4,26 +4,72 @@ import {
   eventHeats,
   eventRegistrations,
   heatState,
+  teamEntries,
   users,
   type HeatState,
   type ParticipationStatus,
 } from "@/db/schema";
+import { COMPOSITION } from "@/features/teams/rating-rules";
 import { getDb } from "@/lib/db";
+
+/**
+ * How many **teams** a team-event heat holds when nothing says otherwise
+ * (PRD #64, "Heats hold whole teams" — default 7, bounded by the bib pool).
+ *
+ * A default rather than a backfill: heats generated before `capacity_teams`
+ * existed carry `null`, and a null there has to mean "the contract's seven"
+ * everywhere it is read, or the seeding query and the builder's fill meter
+ * would disagree about whether a heat is full.
+ */
+export const DEFAULT_HEAT_TEAM_CAPACITY = 7;
+
+/**
+ * The largest composition any category names (mixed: 4 RACERS + 2 pairs = 8).
+ *
+ * A team event hosts all three categories on one night, so a heat's runner
+ * bound cannot be computed from *a* category — only from the worst case. Used
+ * to translate a teams-per-heat figure into the runner capacity the column
+ * still stores, and to bound it by the bib pool (ADR 0003: a heat the timing
+ * system cannot chip is not a heat).
+ */
+export const MAX_COMPOSED_SEATS = Math.max(
+  ...Object.values(COMPOSITION).map((rules) => rules.racers + rules.pairs * 2),
+);
 
 /** A heat plus how full it is — the unit the builder renders. */
 export type HeatWithFill = {
   id: string;
   number: number;
   capacity: number;
+  /** The `capacity_teams` column verbatim — `null` on an individual heat, and on a team heat generated before the column existed. */
+  capacityTeams: number | null;
+  /**
+   * The effective teams-per-heat bound: `capacityTeams` or
+   * {@link DEFAULT_HEAT_TEAM_CAPACITY}.
+   *
+   * Resolved here rather than at each reader because the heat builder is a
+   * **client** component: importing the constant into it would drag
+   * `heats-data` — and with it the Postgres driver — into the browser bundle.
+   * One definition of the default, in the module that owns heats.
+   */
+  teamCapacity: number;
   scheduledAt: Date;
   publishedAt: Date | null;
+  startedAt: Date | null;
   finishedAt: Date | null;
   state: HeatState;
   /** Registrations currently seeded into this heat. */
   fill: number;
+  /** Team entries seeded into this heat — 0 on every individual heat. */
+  teams: number;
   /** Bib leases its members are still holding — what finishing it would free. */
   bibsHeld: number;
 };
+
+/** The teams-per-heat bound a bib pool can actually chip, never below 1. */
+export function maxTeamsPerHeat(bibPool: number): number {
+  return Math.max(1, Math.floor(bibPool / MAX_COMPOSED_SEATS));
+}
 
 /** What a runner has last been told about the heat they are currently in. */
 export type HeatNotifyState = "none" | "stale" | "notified";
@@ -76,6 +122,12 @@ export type SeedRow = {
  * lane on the card whether or not they have checked in yet. `bibsHeld` counts only
  * live leases, so the race-morning desk can see what marking the heat finished
  * would actually return to the pool.
+ *
+ * `teams` is the same fill counted in **team entries** (PRD #64) and comes from
+ * a second grouped query rather than a second `LEFT JOIN`: joining both
+ * `event_registrations` and `team_entries` onto the heat multiplies the rows,
+ * and every count above would silently inflate. Zero on every individual heat,
+ * where no team entry references it.
  */
 export async function getEventHeats(eventSlug: string): Promise<HeatWithFill[]> {
   const db = getDb();
@@ -84,8 +136,10 @@ export async function getEventHeats(eventSlug: string): Promise<HeatWithFill[]> 
       id: eventHeats.id,
       number: eventHeats.number,
       capacity: eventHeats.capacity,
+      capacityTeams: eventHeats.capacityTeams,
       scheduledAt: eventHeats.scheduledAt,
       publishedAt: eventHeats.publishedAt,
+      startedAt: eventHeats.startedAt,
       finishedAt: eventHeats.finishedAt,
       fill: sql<number>`count(${eventRegistrations.id})::int`,
       bibsHeld: sql<number>`(count(${eventRegistrations.bib}) filter (
@@ -97,7 +151,19 @@ export async function getEventHeats(eventSlug: string): Promise<HeatWithFill[]> 
     .groupBy(eventHeats.id)
     .orderBy(asc(eventHeats.number));
 
-  return rows.map((r) => ({ ...r, state: heatState(r) }));
+  const teamRows = await db
+    .select({ heatId: teamEntries.heatId, teams: sql<number>`count(*)::int` })
+    .from(teamEntries)
+    .where(and(eq(teamEntries.eventSlug, eventSlug), isNotNull(teamEntries.heatId)))
+    .groupBy(teamEntries.heatId);
+  const teamsByHeat = new Map(teamRows.map((r) => [r.heatId as string, r.teams]));
+
+  return rows.map((r) => ({
+    ...r,
+    teams: teamsByHeat.get(r.id) ?? 0,
+    teamCapacity: r.capacityTeams ?? DEFAULT_HEAT_TEAM_CAPACITY,
+    state: heatState(r),
+  }));
 }
 
 /**
@@ -201,10 +267,21 @@ async function maxHeatNumber(eventSlug: string): Promise<number> {
  *
  * `capacity` is expected to be within the event's bib pool; the caller validates
  * it so the admin sees why a value was refused (ADR 0003).
+ *
+ * `capacityTeams` is set on team events only (PRD #64). `capacity` is still
+ * written there — the column is `not null`, and the runner figure remains the
+ * honest bound on how many people the heat can chip — so the caller derives it
+ * from the teams figure ({@link MAX_COMPOSED_SEATS}).
  */
 export async function createHeats(
   eventSlug: string,
-  opts: { count: number; capacity: number; firstStart: Date; intervalMinutes: number },
+  opts: {
+    count: number;
+    capacity: number;
+    capacityTeams?: number;
+    firstStart: Date;
+    intervalMinutes: number;
+  },
 ): Promise<number> {
   const db = getDb();
   const from = await maxHeatNumber(eventSlug);
@@ -212,6 +289,7 @@ export async function createHeats(
     eventSlug,
     number: from + i + 1,
     capacity: opts.capacity,
+    ...(opts.capacityTeams !== undefined ? { capacityTeams: opts.capacityTeams } : {}),
     scheduledAt: new Date(opts.firstStart.getTime() + i * opts.intervalMinutes * 60_000),
   }));
 
@@ -230,9 +308,15 @@ export async function createHeats(
 export async function updateHeatRow(
   eventSlug: string,
   heatId: string,
-  patch: { capacity?: number; scheduledAt?: Date },
+  patch: { capacity?: number; capacityTeams?: number; scheduledAt?: Date },
 ): Promise<"updated" | "missing" | "nothing-to-do"> {
-  if (patch.capacity === undefined && patch.scheduledAt === undefined) return "nothing-to-do";
+  if (
+    patch.capacity === undefined &&
+    patch.capacityTeams === undefined &&
+    patch.scheduledAt === undefined
+  ) {
+    return "nothing-to-do";
+  }
   const db = getDb();
   const rows = await db
     .update(eventHeats)
@@ -368,6 +452,64 @@ export async function placeWalkUp(
   return rows.length > 0
     ? { placed: true, heatNumber: heat.number }
     : { placed: false, reason: "already-seeded" };
+}
+
+/**
+ * When a heat was sent off and when it came back — the two facts a swap is
+ * judged against (PRD #64: `swapComposed` refuses `heat_started`).
+ *
+ * A separate narrow read rather than a use of `getEventHeats`: the swap needs
+ * one heat's timestamps and nothing else, and it is called from a server action
+ * that has an entry id, not an event slug.
+ */
+export async function getHeatRunState(
+  heatId: string,
+): Promise<{ eventSlug: string; number: number; startedAt: Date | null; finishedAt: Date | null } | null> {
+  const db = getDb();
+  const [row] = await db
+    .select({
+      eventSlug: eventHeats.eventSlug,
+      number: eventHeats.number,
+      startedAt: eventHeats.startedAt,
+      finishedAt: eventHeats.finishedAt,
+    })
+    .from(eventHeats)
+    .where(eq(eventHeats.id, heatId))
+    .limit(1);
+  return row ?? null;
+}
+
+export type StartOutcome =
+  | { result: "started"; number: number }
+  | { result: "already" }
+  | { result: "not-published" }
+  | { result: "missing" };
+
+/**
+ * Stamp a heat as started — the swap deadline (PRD #64, brief Decision 1).
+ *
+ * Only a null timestamp is written, for the same reason `publishEventHeats`
+ * only writes null `publishedAt`: this records when the gun actually went, and
+ * a second press must not move it. A draft heat cannot start — nobody was told
+ * to run it — which keeps the card's order draft → published → started →
+ * finished rather than letting a heat skip its release.
+ *
+ * Deliberately **not** part of `heatState()`: a started heat is still a
+ * published one as far as the public start list is concerned.
+ */
+export async function markHeatStartedRow(heatId: string): Promise<StartOutcome> {
+  const db = getDb();
+  const state = await getHeatRunState(heatId);
+  if (!state) return { result: "missing" };
+  if (state.startedAt || state.finishedAt) return { result: "already" };
+
+  const rows = await db
+    .update(eventHeats)
+    .set({ startedAt: new Date() })
+    .where(and(eq(eventHeats.id, heatId), isNull(eventHeats.startedAt), isNotNull(eventHeats.publishedAt)))
+    .returning({ number: eventHeats.number });
+  if (rows.length === 0) return { result: "not-published" };
+  return { result: "started", number: rows[0].number };
 }
 
 export type FinishOutcome =

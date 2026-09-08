@@ -19,7 +19,9 @@ import {
   createHeats,
   deleteHeatRow,
   heatBelongsToEvent,
+  MAX_COMPOSED_SEATS,
   MAX_GENERATE_HEATS,
+  maxTeamsPerHeat,
   setHeatForRegistrations,
   updateHeatRow,
 } from "./heats-data";
@@ -59,6 +61,31 @@ function readInt(formData: FormData, key: string): number | null {
 }
 
 /**
+ * A team heat's two capacities from the one number the admin types.
+ *
+ * The card counts teams on a team event (PRD #64, "Heats hold whole teams"),
+ * but `event_heats.capacity` is `not null` and is what every runner-level read
+ * bounds itself by, so both are written: the teams figure verbatim, and the
+ * runner figure as the worst case those teams can bring
+ * ({@link MAX_COMPOSED_SEATS} — a mixed team composes eight), clamped to the
+ * bib pool because a lane the timing system cannot chip is not a lane
+ * (ADR 0003).
+ *
+ * `null` when the typed value is not a teams count this pool can chip; the
+ * caller flashes `error=capacity`, the same refusal an out-of-pool runner
+ * capacity gets.
+ */
+function teamCapacities(
+  capacityTeams: number | null,
+  pool: number,
+): { capacity: number; capacityTeams: number } | null {
+  if (capacityTeams === null || capacityTeams < 1 || capacityTeams > maxTeamsPerHeat(pool)) {
+    return null;
+  }
+  return { capacityTeams, capacity: Math.min(pool, capacityTeams * MAX_COMPOSED_SEATS) };
+}
+
+/**
  * Generate N heats for an event, spaced `intervalMinutes` apart from
  * `firstStart` (a Warsaw wall-clock `datetime-local` value). Numbering continues
  * from the event's existing heats.
@@ -77,10 +104,15 @@ export async function generateHeats(formData: FormData) {
   }
 
   const count = readInt(formData, "count");
-  const capacity = readInt(formData, "capacity");
   const intervalMinutes = readInt(formData, "intervalMinutes");
   const firstStart = warsawLocalToInstant(String(formData.get("firstStart") ?? ""));
   const pool = await getBibPool(slug);
+
+  // A team event's card is laid out in teams per heat; an individual one in
+  // runners. One form field either way, read from the name the page renders.
+  const teams =
+    event.eventType === "team" ? teamCapacities(readInt(formData, "capacityTeams"), pool) : null;
+  const capacity = teams ? teams.capacity : readInt(formData, "capacity");
 
   if (count === null || count < 1 || count > MAX_GENERATE_HEATS) {
     back(locale, slug, "error=count");
@@ -95,7 +127,13 @@ export async function generateHeats(formData: FormData) {
     back(locale, slug, "error=time");
   }
 
-  await createHeats(slug, { count, capacity, firstStart, intervalMinutes });
+  await createHeats(slug, {
+    count,
+    capacity,
+    ...(teams ? { capacityTeams: teams.capacityTeams } : {}),
+    firstStart,
+    intervalMinutes,
+  });
   revalidateHeatSurfaces(locale, slug);
   back(locale, slug, `ok=generated&n=${count}`);
 }
@@ -115,9 +153,21 @@ export async function updateHeat(formData: FormData) {
     back(locale, slug, "error=input");
   }
 
-  const capacity = readInt(formData, "capacity");
+  const event = await getEventBySlug(slug);
+  if (!isSeriesEvent(event)) {
+    back(locale, slug, "error=input");
+  }
+
   const pool = await getBibPool(slug);
-  if (capacity !== null && (capacity < 1 || capacity > pool)) {
+  // Same one-field rule as generate: teams per heat on a team event, runners on
+  // an individual one. A blank field means "leave the capacity alone".
+  const teamsRaw = event.eventType === "team" ? readInt(formData, "capacityTeams") : null;
+  const teams = teamsRaw === null ? null : teamCapacities(teamsRaw, pool);
+  if (teamsRaw !== null && teams === null) {
+    back(locale, slug, "error=capacity");
+  }
+  const capacity = teams ? teams.capacity : readInt(formData, "capacity");
+  if (!teams && capacity !== null && (capacity < 1 || capacity > pool)) {
     back(locale, slug, "error=capacity");
   }
 
@@ -129,6 +179,7 @@ export async function updateHeat(formData: FormData) {
 
   const result = await updateHeatRow(slug, heatId, {
     ...(capacity !== null ? { capacity } : {}),
+    ...(teams ? { capacityTeams: teams.capacityTeams } : {}),
     ...(scheduledAt ? { scheduledAt } : {}),
   });
   if (result === "missing") {

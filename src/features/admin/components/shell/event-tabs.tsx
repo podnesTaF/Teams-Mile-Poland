@@ -6,9 +6,9 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 /**
- * The Roster / Heats / Check-in / Results / Media / Settings tab bar shared by
- * the per-event pages, replacing the cross-link button clusters each of them
- * used to carry.
+ * The Roster / Heats / Check-in / Teams / Results / Media / Settings tab bar
+ * shared by the per-event pages, replacing the cross-link button clusters each
+ * of them used to carry.
  *
  * Active state comes from `useSelectedLayoutSegment`, which reports the child
  * segment of the event layout this bar lives in — `null` on the roster (the
@@ -16,6 +16,14 @@ import { cn } from "@/lib/utils";
  * the same component is correct under `/admin`, `/en/admin` and `/ua/admin`
  * without any pathname arithmetic. It also updates the moment a navigation
  * starts, so the tab highlights while the tab content is still shimmering.
+ *
+ * **Which tabs a night has depends on its type** (PRD #64). A `team` event gets
+ * Teams — the entries list and the composition desk — and loses Results and
+ * Media, which have no team flow yet: results, stage times and levels are the
+ * next PRD, and a team night has no gallery mailing. An `individual` event is
+ * exactly what it was. The decision arrives as a plain boolean, like `canEdit`:
+ * this is a client component and must not import the event store or the role
+ * helpers itself (same reason `buildAdminNav` filters server-side).
  *
  * `data-admin-tab` / `data-active` are stable markers for end-to-end checks.
  */
@@ -25,8 +33,14 @@ const TABS = [
   { key: "roster", label: "Roster", segment: null, suffix: "" },
   { key: "heats", label: "Heats", segment: "heats", suffix: "/heats" },
   { key: "checkin", label: "Check-in", segment: "checkin", suffix: "/checkin" },
-  { key: "results", label: "Results", segment: "results", suffix: "/results" },
-  { key: "media", label: "Media", segment: "media", suffix: "/media" },
+  /**
+   * Team events only. Gated on nothing beyond the admin gate itself: the page
+   * behind it renders for `view` (an `admin_viewer` may read the entries list),
+   * and its presses gate themselves — the same rule the Check-in tab follows.
+   */
+  { key: "teams", label: "Teams", segment: "teams", suffix: "/teams", only: "team" },
+  { key: "results", label: "Results", segment: "results", suffix: "/results", only: "individual" },
+  { key: "media", label: "Media", segment: "media", suffix: "/media", only: "individual" },
   /**
    * `personal_data`, not `edit`: the statements behind this tab carry a date of
    * birth, a home address, a phone and an emergency contact, and the volunteer
@@ -62,13 +76,17 @@ export function AdminEventTabs({
   slug,
   canEdit,
   canReadPersonalData,
+  teamEvent = false,
 }: {
   slug: string;
   canEdit: boolean;
   canReadPersonalData: boolean;
+  /** `event.eventType === "team"` — decided in the layout, passed as a fact. */
+  teamEvent?: boolean;
 }) {
   const selected = useSelectedLayoutSegment();
   const allows = (tab: (typeof TABS)[number]) => {
+    if ("only" in tab && tab.only !== (teamEvent ? "team" : "individual")) return false;
     if (!("requires" in tab)) return true;
     return tab.requires === "edit" ? canEdit : canReadPersonalData;
   };

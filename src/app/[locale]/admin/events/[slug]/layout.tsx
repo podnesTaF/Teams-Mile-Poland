@@ -85,6 +85,10 @@ export default async function AdminEventLayout({
         slug={slug}
         canEdit={userCan(actor, "edit")}
         canReadPersonalData={userCan(actor, "personal_data")}
+        // Which tabs this night has: a `team` event gets the Teams desk and
+        // loses Results and Media (PRD #64 — no team results flow yet). Decided
+        // here because the bar is a client component.
+        teamEvent={event.eventType === "team"}
       />
 
       <div className="mt-5">{children}</div>
