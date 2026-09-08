@@ -41,7 +41,7 @@ import {
 } from "@/features/admin/roster-view";
 import { userCan } from "@/lib/auth/user-session";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
-import type { EventStatus } from "@/lib/events/types";
+import { isSeriesEvent, type EventStatus } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 
@@ -83,7 +83,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
   const actor = await requireAdmin(locale);
 
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") notFound();
+  if (!isSeriesEvent(event)) notFound();
   // The pool the flash copy needs to bound its refusal sentences; `flash.ts`
   // stays synchronous, so the page resolves it.
   const bibPool = await getBibPool(slug);

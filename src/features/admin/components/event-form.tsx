@@ -195,14 +195,8 @@ export function EventForm({
             <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[78ch]")}>
               Pick <strong className="font-semibold text-admin-ink-2">individual</strong> unless you
               know otherwise: that is the mile series — per-person entry, bibs, heats, check-in.{" "}
-              <strong className="font-semibold text-admin-ink-2">team</strong> is the legacy TEAMS
-              MILE format and{" "}
-              <strong className="font-semibold text-admin-ink-2">
-                has no working registration flow
-              </strong>
-              : nobody can enter it, and it gets no roster, heats, check-in or settings pages
-              either. It is selectable so an old-format night can be recorded, not so one can be
-              run. This cannot be changed after creation.
+              <strong className="font-semibold text-admin-ink-2">team</strong> nights are entered by
+              team managers, not by individual runners. This cannot be changed after creation.
             </p>
           </div>
         )}

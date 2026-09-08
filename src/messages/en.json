@@ -1876,6 +1876,13 @@
       "team-appendix4": "Appendix 4 — Individual Ranking Criteria",
       "team-appendix5": "Appendix 5 — Team Ranking Criteria"
     },
-    "teamItems": {}
+    "teamItems": {
+      "rulesAndRegulations": "I have read the Rules for conducting the team ranking race and the Public Regulations of ACE BATTLE RUN — TEAM MILE POLAND, and I agree to follow the course, the procedure for my race role and the instructions of the Organizer, judges and safety services.",
+      "ageHealthRisks": "I declare that on the day of the event I am 18 years of age or older, I take part voluntarily as a member of my team, and my health allows me to safely run my stage — and I knowingly accept the typical risks of a team ranking race (falls, collisions in the handover zone, dehydration, injuries and others).",
+      "dataTruthfulAndRodo": "I confirm that the details I have provided are true, and I have read the GDPR Information Clause for participants of the TEAM MILE event.",
+      "publicResultsAwareness": "I understand that my name, surname, team, race role, times and ranking position may be published publicly, while my contact details, address, date of birth and health information are NOT published.",
+      "prizeDataUnderstanding": "I understand that if my team finishes in a prize position, payout of the prize requires providing bank transfer details and, where necessary, tax data.",
+      "imageUse": "I AGREE to the use and dissemination of my individually recognizable image captured during the event in the Organizer's informational, reporting and promotional materials (website, social media), without separate remuneration. I may withdraw this consent for the future at any time."
+    }
   }
 }

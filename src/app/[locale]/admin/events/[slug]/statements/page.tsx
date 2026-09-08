@@ -10,6 +10,7 @@ import {
 } from "@/features/admin/components/statements-table";
 import { getStatementRoster } from "@/features/admin/statements";
 import { getEventBySlug } from "@/lib/events/registry";
+import { isSeriesEvent } from "@/lib/events/types";
 import { docSetForEventType, getDocsForSet } from "@/lib/legal/manifest";
 import { cn } from "@/lib/utils";
 
@@ -47,7 +48,7 @@ export default async function AdminEventStatementsPage({ params }: PageProps) {
   await requireAdmin(locale, "personal_data");
 
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") notFound();
+  if (!isSeriesEvent(event)) notFound();
 
   const rows = await getStatementRoster(slug);
   const withConsent = rows.filter((row) => row.consent).length;

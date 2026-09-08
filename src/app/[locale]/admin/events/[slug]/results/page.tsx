@@ -14,6 +14,7 @@ import {
 import { userCan } from "@/lib/auth/user-session";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 import { formatTime } from "@/lib/events/time";
+import { isSeriesEvent } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
 
 type PageProps = {
@@ -47,7 +48,7 @@ export default async function AdminEventResultsPage({ params, searchParams }: Pa
   const actor = await requireAdmin(locale);
 
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") notFound();
+  if (!isSeriesEvent(event)) notFound();
   // The pool the flash copy needs to bound its refusal sentences; `flash.ts`
   // stays synchronous, so the page resolves it.
   const bibPool = await getBibPool(slug);

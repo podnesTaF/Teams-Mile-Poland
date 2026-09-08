@@ -13,7 +13,7 @@ import type { ParticipationStatus } from "@/features/admin/events-data";
 import { getDb } from "@/lib/db";
 import { getEventBySlug } from "@/lib/events/registry";
 import { formatEventLongDate } from "@/lib/events/time";
-import type { EventSummary } from "@/lib/events/types";
+import { isSeriesEvent, type EventSummary } from "@/lib/events/types";
 import { defaultLocale, type Locale, locales } from "@/lib/i18n/config";
 import { loadLegalDoc } from "@/lib/legal/content";
 import { fillLegalTokens } from "@/lib/legal/fill";
@@ -358,7 +358,11 @@ export type StatementsForPrint = {
  * The Statements for a set of registrations, ready to print.
  *
  * Gated on `personal_data` (ADR 0007) before a single row is read. Returns
- * `null` when the slug names no individual event, which is the caller's 404.
+ * `null` when the slug names no event on the current stack (an unknown slug, or
+ * the frozen legacy team event), which is the caller's 404. A manager-entered
+ * `team` night belongs here: its members' consent is recorded by the same
+ * `consent_submissions` rows against the team document set (PRD #64), so the
+ * printer needs no team branch.
  *
  * `printLocale` overrides the language of every document in the batch; omitted,
  * each one renders in the locale its own submission recorded — that is the text
@@ -373,7 +377,7 @@ export async function getStatementsForPrint(
   await requireAdmin(defaultLocale, "personal_data");
 
   const event = await getEventBySlug(eventSlug);
-  if (!event || event.eventType !== "individual") return null;
+  if (!isSeriesEvent(event)) return null;
 
   const ids = [...new Set(registrationIds)].filter(Boolean);
   if (ids.length === 0) return { event, statements: [], unknownIds: [] };

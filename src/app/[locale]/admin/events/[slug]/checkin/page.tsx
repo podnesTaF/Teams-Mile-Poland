@@ -20,6 +20,7 @@ import { Link } from "@/i18n/navigation";
 import { userCan } from "@/lib/auth/user-session";
 import { formatBibSlots } from "@/lib/events/bib-slots";
 import { getBibSlots, getEventBySlug } from "@/lib/events/registry";
+import { isSeriesEvent } from "@/lib/events/types";
 
 /**
  * The check-in desk, designed for the way it is used: standing in the start area
@@ -75,7 +76,7 @@ export default async function AdminCheckinPage({ params, searchParams }: PagePro
   const canCheckin = userCan(actor, "checkin");
 
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") notFound();
+  if (!isSeriesEvent(event)) notFound();
 
   const q = query.q?.trim() ?? "";
 

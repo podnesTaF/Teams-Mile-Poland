@@ -30,6 +30,7 @@ import {
   getFirstHeatTime,
   getHeatIntervalMinutes,
 } from "@/lib/events/registry";
+import { isSeriesEvent } from "@/lib/events/types";
 import { userCan } from "@/lib/auth/user-session";
 import { cn } from "@/lib/utils";
 
@@ -66,7 +67,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
   const canEdit = userCan(actor, "edit");
 
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") notFound();
+  if (!isSeriesEvent(event)) notFound();
 
   const [heats, seeds, resultsState] = await Promise.all([
     getEventHeats(slug),

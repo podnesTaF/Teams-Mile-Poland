@@ -15,6 +15,7 @@ import {
 import { AdminEventTabs } from "@/features/admin/components/shell/event-tabs";
 import { getRosterStats } from "@/features/admin/events-data";
 import { getEventBySlug } from "@/lib/events/registry";
+import { isSeriesEvent } from "@/lib/events/types";
 import { userCan } from "@/lib/auth/user-session";
 
 /**
@@ -36,7 +37,10 @@ import { userCan } from "@/lib/auth/user-session";
  * no extra session lookup.)
  *
  * The registry guard is duplicated for the same reason: an unknown slug, or the
- * frozen team event, must not get a header before the page 404s.
+ * frozen legacy team event, must not get a header before the page 404s.
+ * `isSeriesEvent` is what draws that line now: an `individual` night and a
+ * manager-entered `team` night (PRD #64) both belong here, only `warsaw-2026`
+ * does not.
  */
 export default async function AdminEventLayout({
   children,
@@ -50,7 +54,7 @@ export default async function AdminEventLayout({
   const actor = await requireAdmin(locale);
 
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") notFound();
+  if (!isSeriesEvent(event)) notFound();
 
   return (
     <AdminPage eyebrow="Events" title={event.name}>

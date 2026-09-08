@@ -5,14 +5,11 @@ import { revalidatePath } from "next/cache";
 
 import { revalidateStartList } from "@/features/event-heats/start-list";
 import { verifyEventTicket } from "@/features/ticket/sign";
-import { getBibSlots } from "@/lib/events/registry";
 import { localePath } from "@/lib/i18n/config";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
+import { LEASE_ATTEMPTS, leaseBib } from "./bib-lease";
 import {
-  checkInWithBib,
-  checkInWithoutBib,
-  getHeldBib,
   getRegistrationEventSlug,
   isUniqueViolation,
   leaseBibForCheckedIn,
@@ -45,51 +42,6 @@ function revalidateRaceMorning(locale: string, slug: string) {
   revalidatePath(checkinPath(locale, slug));
   revalidatePath(adminPath(locale, `/events/${slug}`));
   revalidatePath(adminPath(locale, `/events/${slug}/heats`));
-}
-
-/**
- * How many times to re-suggest a bib when another desk takes the one we were
- * given. Only a genuine two-desk race gets here — an exhausted pool is reported
- * as such and never retried.
- */
-const LEASE_ATTEMPTS = 5;
-
-type LeaseResult =
-  | { ok: "bib"; bib: number }
-  | { ok: "pending" }
-  /** Lost every suggestion to other desks while bibs were still free. */
-  | { ok: "race" };
-
-/**
- * Lease the lowest free bib and mark the runner present.
- *
- * An exhausted pool is not a failure (ADR 0003): the runner is checked in bib-less
- * and joins the waiting list.
- */
-async function leaseAndCheckIn(slug: string, registrationId: string): Promise<LeaseResult> {
-  // A bib pre-assigned in the heat builder is already this runner's lease —
-  // checking in confirms it rather than stacking a second number on top.
-  const held = await getHeldBib(registrationId);
-  if (held !== null) {
-    await checkInWithBib(registrationId, held);
-    return { ok: "bib", bib: held };
-  }
-
-  for (let attempt = 0; attempt < LEASE_ATTEMPTS; attempt += 1) {
-    const bib = await suggestNextBib(slug);
-    if (bib === null) {
-      await checkInWithoutBib(registrationId);
-      return { ok: "pending" };
-    }
-    try {
-      await checkInWithBib(registrationId, bib);
-      return { ok: "bib", bib };
-    } catch (error) {
-      if (isUniqueViolation(error)) continue;
-      throw error;
-    }
-  }
-  return { ok: "race" };
 }
 
 /** `&heat=…` for a walk-up that was seeded, `&heat=none` for an unplaced one. */
@@ -189,6 +141,12 @@ async function resolveSurface(formData: FormData): Promise<{
  *
  * A runner with no heat is a walk-up: they are auto-seeded into a published heat
  * with room, and left for deliberate placement when none has any.
+ *
+ * The inventory decision itself lives in `bib-lease.ts` (PRD #64): team check-in
+ * runs the same procedure per composed member, and one desk deciding which
+ * number a runner gets differently from the other would be a bug nobody would
+ * find until race night. This action keeps what is genuinely its own — the admin
+ * gate, the walk-up seeding, the revalidation and which flash the surface reads.
  */
 export async function assignBibAndCheckIn(formData: FormData) {
   const { locale, slug, registrationId, back } = await resolveSurface(formData);
@@ -198,29 +156,15 @@ export async function assignBibAndCheckIn(formData: FormData) {
     redirect(back("error=input"));
   }
 
-  // Explicit bib: one attempt, surface conflicts.
-  if (bibRaw) {
-    const bib = Number.parseInt(bibRaw, 10);
-    // Membership, not a range: the event's issuable bibs may be an explicit
-    // slot list ("101-115, 203"), and a typed number outside it is exactly the
-    // mistake this refusal exists to catch.
-    if (!Number.isInteger(bib) || !(await getBibSlots(slug)).includes(bib)) {
-      redirect(back("error=bib"));
-    }
-    try {
-      await checkInWithBib(registrationId, bib);
-    } catch (error) {
-      if (isUniqueViolation(error)) {
-        redirect(back("error=bib_held"));
-      }
-      throw error;
-    }
-    const placement = await placeWalkUpAndRevalidate(slug, registrationId);
-    revalidateRaceMorning(locale, slug);
-    redirect(back(`ok=${bib}${placementFlash(placement)}`));
+  // Blank `bib` means "lowest free number"; a typed one is used verbatim, with
+  // conflicts surfaced rather than retried.
+  const lease = await leaseBib(slug, registrationId, { bib: bibRaw });
+  if (lease.ok === "bib_invalid") {
+    redirect(back("error=bib"));
   }
-
-  const lease = await leaseAndCheckIn(slug, registrationId);
+  if (lease.ok === "bib_held") {
+    redirect(back("error=bib_held"));
+  }
   if (lease.ok === "race") {
     redirect(back("error=bib_race"));
   }

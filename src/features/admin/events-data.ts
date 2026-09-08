@@ -12,7 +12,7 @@ import {
   type ParticipationStatus,
 } from "@/db/schema";
 import { awardCheckInRewards } from "@/features/wallet/accruals";
-import { getDb } from "@/lib/db";
+import { executor, getDb, type DbExecutor } from "@/lib/db";
 import { getBibSlots, getEventBySlug } from "@/lib/events/registry";
 import { formatTime } from "@/lib/events/time";
 
@@ -292,8 +292,8 @@ export function holdsBib(row: Pick<RosterRow, "bib" | "bibReturnedAt">): boolean
 }
 
 /** The bibs currently held for an event — the numbers that are out on loan. */
-async function heldBibs(eventSlug: string): Promise<Set<number>> {
-  const db = getDb();
+async function heldBibs(eventSlug: string, tx?: DbExecutor): Promise<Set<number>> {
+  const db = executor(tx);
   const rows = await db
     .select({ bib: eventRegistrations.bib })
     .from(eventRegistrations)
@@ -316,14 +316,29 @@ async function heldBibs(eventSlug: string): Promise<Set<number>> {
  *
  * Exhaustion is a normal expected state, not an error: callers check a runner in
  * bib-less and tell the desk to free bibs by marking a finished heat complete.
+ *
+ * `tx` reads the held set inside an open transaction, so a caller leasing
+ * several numbers in one transaction sees its own earlier leases and never
+ * suggests the same number twice (`bib-lease.ts`, PRD #64).
  */
-export async function suggestNextBib(eventSlug: string): Promise<number | null> {
+export async function suggestNextBib(eventSlug: string, tx?: DbExecutor): Promise<number | null> {
+  return (await freeBibs(eventSlug, tx))[0] ?? null;
+}
+
+/**
+ * Every bib the event may issue that nobody currently holds, ascending —
+ * {@link suggestNextBib} without the `[0]`.
+ *
+ * Team check-in needs the *list*: a unique violation inside a transaction aborts
+ * the whole transaction, so leasing seven numbers one suggestion at a time and
+ * retrying on a clash is not available there. It picks N free numbers up front
+ * instead and retries the whole transaction if it loses the race
+ * (`pickFreeBibs` in `bib-lease.ts`, PRD #64).
+ */
+export async function freeBibs(eventSlug: string, tx?: DbExecutor): Promise<number[]> {
   const slots = await getBibSlots(eventSlug);
-  const held = await heldBibs(eventSlug);
-  for (const bib of slots) {
-    if (!held.has(bib)) return bib;
-  }
-  return null;
+  const held = await heldBibs(eventSlug, tx);
+  return slots.filter((bib) => !held.has(bib));
 }
 
 /**
@@ -442,9 +457,17 @@ export function isUniqueViolation(error: unknown): boolean {
  * this function credits ACER). It only runs on a successful transition — a lost
  * bib race throws above this line — and `awardCheckInRewards` never throws, so a
  * wallet problem can never cost the runner their check-in.
+ *
+ * `tx` runs the UPDATE inside an open transaction — team check-in leases every
+ * composed member's bib in one transaction (PRD #64). The accrual is *not*
+ * transactional either way: it writes through the pool, so a transaction that
+ * later rolls back leaves the credit standing. That is the ledger's own rule
+ * (append-only, corrected by a `reversal` row, never deleted) and the amount is
+ * 1 ACER, so it is deliberately not worth threading a second executor through
+ * the wallet for.
  */
-export async function checkInWithBib(registrationId: string, bib: number) {
-  const db = getDb();
+export async function checkInWithBib(registrationId: string, bib: number, tx?: DbExecutor) {
+  const db = executor(tx);
   const [row] = await db
     .update(eventRegistrations)
     .set({ bib, bibReturnedAt: null, status: "checked_in", checkedInAt: new Date() })
@@ -586,8 +609,8 @@ export async function clearPreassignedBib(
 }
 
 /** The bib a registration is currently holding, or null when it has no lease. */
-export async function getHeldBib(registrationId: string): Promise<number | null> {
-  const db = getDb();
+export async function getHeldBib(registrationId: string, tx?: DbExecutor): Promise<number | null> {
+  const db = executor(tx);
   const [row] = await db
     .select({ bib: eventRegistrations.bib })
     .from(eventRegistrations)
@@ -609,8 +632,8 @@ export async function getHeldBib(registrationId: string): Promise<number | null>
  * value is left alone: it is already returned, so it reads as history, not a
  * lease.
  */
-export async function checkInWithoutBib(registrationId: string) {
-  const db = getDb();
+export async function checkInWithoutBib(registrationId: string, tx?: DbExecutor) {
+  const db = executor(tx);
   const [row] = await db
     .update(eventRegistrations)
     .set({ status: "checked_in", checkedInAt: new Date() })

@@ -287,8 +287,9 @@ export const LEGAL_DOCS: readonly LegalDoc[] = [
  *
  * Total over {@link EventType} on purpose: adding a format is a compile error
  * here, not a runtime "no documents" that ships a registration with nothing to
- * accept. Both corpora are in the repository today; only the individual set has
- * a consent flow wired (#53).
+ * accept. Both corpora are in the repository today, and both now carry a consent
+ * form: the individual one at registration (#53), the team one on the member
+ * confirmation screen (#68).
  */
 export const DOC_SET_BY_EVENT_TYPE: Record<EventType, DocSet> = {
   individual: "individual",
@@ -305,7 +306,7 @@ export function docSetForEventType(eventType: EventType | undefined): DocSet {
 }
 
 /**
- * The individual set's consent form, as data.
+ * Both sets' consent forms, as data.
  *
  * Ported from the reference module's unified `register` dictionary — the five
  * required checkboxes plus the separate image question — rather than from its
@@ -319,8 +320,29 @@ export function docSetForEventType(eventType: EventType | undefined): DocSet {
  * that is precisely why it is a separate `consent`-kind item rather than another
  * acceptance box.
  *
- * The team set has no items yet. Team registration is a parallel feature and
- * shipping speculative ids would freeze them before anyone has read the form.
+ * **The team set carries the same six ids** (PRD #64, "Team consent items are
+ * frozen here"). PRD #50 left it empty on purpose — shipping speculative ids
+ * before anyone had read the team form would have frozen the wrong ones — and
+ * the member confirmation screen (#68) cannot exist without them, so #66 freezes
+ * them against the TEAM MILE documents. Identical ids, different `docSlug` and
+ * different labels: the statements printer (#54), `validateConsentItems`,
+ * `buildConsentRows` and `termsAcceptedFrom` are then set-agnostic and needed no
+ * team branch, and a `registration_consents` row still says which document
+ * version was accepted because `docSlug` and `docVersion` travel with it
+ * (ADR 0006).
+ *
+ * The mapping mirrors the individual one document for document: the item that
+ * accepts the terms points at the set's **Public Regulations** (`przepisy` →
+ * `team-regulations`), the declarations about age, health and prize data at the
+ * **Statement** (`oswiadczenie` → `team-oswiadczenie`), the data ones at the
+ * **GDPR clause** (`rodo` → `team-rodo`), and the image consent at the Statement
+ * that contains it. `team-rules` — the sporting rulebook the composition and
+ * check-in procedure come from — is deliberately *not* an item's document: it is
+ * published for reading and linked from the team event page and from the label,
+ * exactly as the individual set publishes documents nobody ticks separately.
+ * Naming it here instead of the Regulations would have made the team member's
+ * one contractual acceptance mean something different from the individual
+ * runner's, which is the one thing a shared item id must not do.
  */
 export const CONSENT_ITEMS: readonly ConsentItem[] = [
   {
@@ -365,6 +387,48 @@ export const CONSENT_ITEMS: readonly ConsentItem[] = [
     kind: "consent",
     required: true,
   },
+  {
+    id: "rulesAndRegulations",
+    set: "team",
+    docSlug: "team-regulations",
+    kind: "acceptance",
+    required: true,
+  },
+  {
+    id: "ageHealthRisks",
+    set: "team",
+    docSlug: "team-oswiadczenie",
+    kind: "declaration",
+    required: true,
+  },
+  {
+    id: "dataTruthfulAndRodo",
+    set: "team",
+    docSlug: "team-rodo",
+    kind: "declaration",
+    required: true,
+  },
+  {
+    id: "publicResultsAwareness",
+    set: "team",
+    docSlug: "team-rodo",
+    kind: "declaration",
+    required: true,
+  },
+  {
+    id: "prizeDataUnderstanding",
+    set: "team",
+    docSlug: "team-oswiadczenie",
+    kind: "declaration",
+    required: true,
+  },
+  {
+    id: "imageUse",
+    set: "team",
+    docSlug: "team-oswiadczenie",
+    kind: "consent",
+    required: true,
+  },
 ];
 
 /** Every registered slug, publication order. */
@@ -385,7 +449,10 @@ export function getSignableDocs(set: DocSet): LegalDoc[] {
   return getDocsForSet(set).filter((d) => d.signable);
 }
 
-/** The consent form for a set — empty for `team`, see {@link CONSENT_ITEMS}. */
+/**
+ * The consent form for a set, in manifest order — six items for either set,
+ * with the same six ids and each set's own documents (see {@link CONSENT_ITEMS}).
+ */
 export function getConsentItems(set: DocSet): ConsentItem[] {
   return CONSENT_ITEMS.filter((i) => i.set === set);
 }

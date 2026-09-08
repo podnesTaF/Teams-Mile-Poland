@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { buildEventRosterWorkbook, rosterExportFilename } from "@/features/admin/events-data";
 import { getEventBySlug } from "@/lib/events/registry";
+import { isSeriesEvent } from "@/lib/events/types";
 import { getAdminUser } from "@/lib/auth/user-session";
 
 export const runtime = "nodejs";
@@ -13,7 +14,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
 
   const { slug } = await params;
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") {
+  if (!isSeriesEvent(event)) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 

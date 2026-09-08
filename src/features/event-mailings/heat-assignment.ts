@@ -9,6 +9,7 @@ import { getDb } from "@/lib/db";
 import { FROM_EMAIL, resend } from "@/lib/email";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { getEventBySlug } from "@/lib/events/registry";
+import { isSeriesEvent } from "@/lib/events/types";
 
 import { asMailLocale, heatAssignmentSubject, type MailLocale } from "./copy";
 
@@ -137,8 +138,8 @@ async function seededRunners(eventSlug: string): Promise<SeededRunner[]> {
  */
 export async function publishHeatsAndNotify(eventSlug: string): Promise<PublishHeatsSummary> {
   const event = await getEventBySlug(eventSlug);
-  if (!event || event.eventType !== "individual") {
-    throw new HeatPublishNotEligibleError("This slug isn't an individual event.");
+  if (!isSeriesEvent(event)) {
+    throw new HeatPublishNotEligibleError("This slug isn't an event on the current stack.");
   }
   // Refuse before anything is stamped or sent: `publishEventHeats` below is the
   // point of no return for the mail. See {@link PUBLISHABLE_STATUSES}.

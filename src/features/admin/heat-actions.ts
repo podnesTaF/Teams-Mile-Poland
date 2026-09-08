@@ -11,6 +11,7 @@ import {
 } from "@/features/event-mailings/heat-assignment";
 import { warsawLocalToInstant } from "@/lib/events/heat-time";
 import { getBibPool, getBibSlots, getEventBySlug } from "@/lib/events/registry";
+import { isSeriesEvent } from "@/lib/events/types";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 import { clearPreassignedBib, isUniqueViolation, preassignBib } from "./events-data";
@@ -71,7 +72,7 @@ export async function generateHeats(formData: FormData) {
 
   const slug = String(formData.get("slug") ?? "");
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") {
+  if (!isSeriesEvent(event)) {
     back(locale, slug, "error=input");
   }
 
@@ -240,7 +241,7 @@ export async function seedFinalFromResults(formData: FormData) {
   const slug = String(formData.get("slug") ?? "");
   const heatId = String(formData.get("heatId") ?? "");
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") {
+  if (!isSeriesEvent(event)) {
     back(locale, slug, "error=input");
   }
   if (!heatId) {

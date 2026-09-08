@@ -17,6 +17,7 @@ import { userCan } from "@/lib/auth/user-session";
 import { GALLERY_THUMB_SIZE, driveAlbumUrl, driveThumbUrl } from "@/lib/events/drive-urls";
 import { getEventMediaConfig } from "@/lib/events/media-config";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
+import { isSeriesEvent } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
 
 type PageProps = {
@@ -41,7 +42,7 @@ export default async function AdminEventMediaPage({ params, searchParams }: Page
   const canEdit = userCan(actor, "edit");
 
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") notFound();
+  if (!isSeriesEvent(event)) notFound();
 
   if (!process.env.DATABASE_URL) {
     return <NoDatabaseNotice>manage this event&apos;s gallery</NoDatabaseNotice>;

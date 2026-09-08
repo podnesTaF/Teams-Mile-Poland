@@ -1876,6 +1876,13 @@
       "team-appendix4": "Załącznik 4 — Kryteria rankingu indywidualnego",
       "team-appendix5": "Załącznik 5 — Kryteria rankingów zespołowych"
     },
-    "teamItems": {}
+    "teamItems": {
+      "rulesAndRegulations": "Zapoznałem/-am się z Zasadami Przeprowadzania Drużynowego Biegu Rankingowego oraz z Regulaminem Publicznym ACE BATTLE RUN – TEAM MILE POLAND i zobowiązuję się przestrzegać trasy, procedury właściwej dla mojej roli w biegu oraz poleceń Organizatora, sędziów i służb bezpieczeństwa.",
+      "ageHealthRisks": "Oświadczam, że w dniu wydarzenia mam ukończone 18 lat, biorę udział dobrowolnie jako członek/członkini swojej drużyny, a mój stan zdrowia pozwala mi bezpiecznie przebiec swój odcinek — i świadomie przyjmuję typowe ryzyka drużynowego biegu rankingowego (upadek, zderzenie w strefie zmiany, odwodnienie, urazy i inne).",
+      "dataTruthfulAndRodo": "Potwierdzam prawdziwość podanych przeze mnie danych oraz zapoznałem/-am się z Klauzulą Informacyjną RODO dla uczestników wydarzenia TEAM MILE.",
+      "publicResultsAwareness": "Rozumiem, że moje imię, nazwisko, drużyna, rola w biegu, czasy i miejsce w rankingu mogą zostać opublikowane publicznie, natomiast dane kontaktowe, adres, data urodzenia i informacje o zdrowiu NIE są publikowane.",
+      "prizeDataUnderstanding": "Rozumiem, że w przypadku zajęcia przez moją drużynę miejsca nagrodzonego wypłata nagrody wymaga podania danych do przelewu i — jeśli to niezbędne — rozliczenia podatkowego.",
+      "imageUse": "WYRAŻAM ZGODĘ na wykorzystywanie i rozpowszechnianie mojego indywidualnie rozpoznawalnego wizerunku utrwalonego podczas wydarzenia w materiałach informacyjnych, sprawozdawczych i promocyjnych Organizatora (strona internetowa, media społecznościowe), bez odrębnego wynagrodzenia. Zgodę mogę wycofać na przyszłość w dowolnym momencie."
+    }
   }
 }

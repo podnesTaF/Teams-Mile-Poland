@@ -25,6 +25,7 @@ import { getBibPool, getEventBySlug } from "@/lib/events/registry";
 import {
   DEFAULT_BIB_POOL,
   DEFAULT_HEAT_INTERVAL_MINUTES,
+  isSeriesEvent,
   type EventSummary,
 } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
@@ -56,7 +57,7 @@ export default async function AdminEventSettingsPage({ params, searchParams }: P
   await requireAdmin(locale, "edit");
 
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") notFound();
+  if (!isSeriesEvent(event)) notFound();
 
   if (!process.env.DATABASE_URL) {
     return (
