@@ -34,6 +34,7 @@ import {
   makeReferralUrl,
 } from "@/features/referral/data";
 import { InviteLink } from "@/features/team/components/invite-link";
+import { ProfileTeamsSection } from "@/features/teams/components/profile-teams-section";
 import { WalletBalanceCard } from "@/features/wallet/components/balance-card";
 import { getWalletBalances } from "@/features/wallet/data";
 import { isAcerPurchaseEnabled } from "@/features/wallet/purchase";
@@ -292,6 +293,9 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                 {t("nav.results")}
               </a>
             ) : null}
+            <a className="pf-nav__link" href="#teams">
+              {t("nav.teams")}
+            </a>
             <a className="pf-nav__link" href="#referrals">
               {t("nav.invite")}
             </a>
@@ -477,6 +481,12 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
               </div>
             </section>
           ) : null}
+
+          {/* Team formation (PRD #57): "my teams", the create link, and the
+            * slots #60 and #61 hang their pending-invitation and pending-request
+            * lists off. Its own component so the section can grow without this
+            * page growing with it. */}
+          <ProfileTeamsSection userId={user.id} />
 
           <section className="regs-section pf-section" id="referrals">
             <div className="section-label">

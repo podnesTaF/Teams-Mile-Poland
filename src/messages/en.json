@@ -1189,6 +1189,7 @@
       "label": "Profile sections",
       "races": "Races",
       "results": "Results",
+      "teams": "Teams",
       "invite": "Invite",
       "settings": "Settings",
       "wallet": "Wallet"
@@ -1292,6 +1293,111 @@
       "signups": "Sign-ups",
       "raceRegistrations": "Race registrations",
       "participations": "Took part"
+    },
+    "teams": {
+      "title": "My teams",
+      "heading": "Your teams"
+    }
+  },
+  "teams": {
+    "landingCta": "Form a team",
+    "form": {
+      "eyebrow": "Team",
+      "back": "Back to profile",
+      "createTitle": "Create a team",
+      "createSubtitle": "Your team exists the moment you save it. You become its manager and its first runner.",
+      "name": "Team name",
+      "nameHint": "Must be unique. The rules ask for your region in the name.",
+      "region": "Region",
+      "regionHint": "The city or voivodeship the team runs for.",
+      "regionWarning": "Your team name does not mention the region. The rules ask for it — you can still save.",
+      "category": "Category",
+      "categoryOption": {
+        "men": "Men",
+        "women": "Women",
+        "mixed": "Mixed"
+      },
+      "recruitingQuestion": "Do you already have all your teammates, or are you looking for runners?",
+      "recruitingYes": "We are looking for runners — list us publicly",
+      "description": "Description",
+      "descriptionHint": "Up to 280 characters. Shown on your public team card.",
+      "rulesLink": "Read the team rules",
+      "submitCreate": "Create the team",
+      "submitSave": "Save changes",
+      "submitting": "Saving…",
+      "saved": "Saved.",
+      "verifyTitle": "Confirm your email first",
+      "verifyBody": "Teams are formed by verified accounts. Open the link we sent you, then come back here.",
+      "verifyCta": "Resend the link",
+      "profileTitle": "Finish your profile",
+      "profileBody": "A team is built from runners, so we need your name, date of birth, sex and phone before you can create one.",
+      "profileCta": "Go to your profile",
+      "ageTitle": "You must be 18",
+      "ageBody": "The team rules admit runners who are 18 or older. Check the date of birth on your profile if this is wrong."
+    },
+    "page": {
+      "eyebrow": "Team",
+      "back": "Back to profile",
+      "category": "Category",
+      "region": "Region",
+      "managerIs": "Managed by {name}",
+      "recruitingOn": "Looking for runners",
+      "publicRosterHidden": "Roster names are shown to this team's members only.",
+      "completenessLabel": "Runners",
+      "completenessComplete": "{count} of {min} — complete",
+      "completenessNeeded": "{count} of {min} — {missing} more needed",
+      "completenessSplit": "{men} men · {women} women (at least {minPerSex} of each)",
+      "role": {
+        "manager": "Manager",
+        "member": "Member"
+      },
+      "rosterTitle": "Roster",
+      "rosterHeading": "Who is on the team",
+      "rosterYou": "(you)",
+      "codeHint": "Share the code or the link. Knowing it only lets someone ask to join — you decide.",
+      "codeLabel": "Team code",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "manageTitle": "Manage",
+      "manageHeading": "Team settings",
+      "rotate": "Issue a new code",
+      "rotating": "Issuing…",
+      "rotateHint": "A new code stops the old one working. Requests already sent to you are not affected."
+    },
+    "invitations": {},
+    "profile": {
+      "empty": "You are not on a team yet. Create one, or ask a manager for their team code.",
+      "create": "Create a team",
+      "open": "Open"
+    },
+    "requests": {},
+    "reasons": {
+      "auth": "Sign in to continue.",
+      "verify": "Confirm your email address first.",
+      "profile": "Complete your profile first — we need your name, date of birth, sex and phone.",
+      "age": "You must be 18 or older to be on a team.",
+      "notfound": "That team no longer exists.",
+      "forbidden": "Only the team's manager can do that.",
+      "name_taken": "That team name is already taken.",
+      "roster_full": "This team is already at its maximum.",
+      "sex_balance": "A mixed team must keep room for at least four men and four women.",
+      "wrong_category": "This team's category does not admit you.",
+      "already_member": "You are already on this team.",
+      "already_in_category": "You already hold a team in this category. Leave it first.",
+      "expired": "That link has expired.",
+      "used": "That link has already been used.",
+      "manager_must_hand_over": "Hand management to another member before you leave.",
+      "invalid": "Check the highlighted fields and try again."
+    },
+    "roster": {},
+    "emails": {
+      "invitation": {},
+      "invitationAccepted": {},
+      "requestReceived": {},
+      "requestDecided": {},
+      "removed": {},
+      "handedOver": {},
+      "dissolved": {}
     }
   },
   "register": {

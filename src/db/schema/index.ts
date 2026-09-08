@@ -21,3 +21,4 @@ export * from "./news-articles";
 export * from "./wallet";
 export * from "./events";
 export * from "./consent";
+export * from "./user-teams";

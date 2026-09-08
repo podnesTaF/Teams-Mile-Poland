@@ -1189,6 +1189,7 @@
       "label": "Sekcje profilu",
       "races": "Starty",
       "results": "Wyniki",
+      "teams": "Zespoły",
       "invite": "Zaproś",
       "settings": "Ustawienia",
       "wallet": "Portfel"
@@ -1292,6 +1293,111 @@
       "signups": "Rejestracje konta",
       "raceRegistrations": "Zapisy na biegi",
       "participations": "Wzięli udział"
+    },
+    "teams": {
+      "title": "Moje zespoły",
+      "heading": "Twoje zespoły"
+    }
+  },
+  "teams": {
+    "landingCta": "Załóż zespół",
+    "form": {
+      "eyebrow": "Zespół",
+      "back": "Wróć do profilu",
+      "createTitle": "Załóż zespół",
+      "createSubtitle": "Zespół powstaje od razu po zapisaniu. Zostajesz jego menedżerem i pierwszym zawodnikiem.",
+      "name": "Nazwa zespołu",
+      "nameHint": "Musi być unikalna. Regulamin prosi o region w nazwie.",
+      "region": "Region",
+      "regionHint": "Miasto lub województwo, dla którego biega zespół.",
+      "regionWarning": "Nazwa zespołu nie zawiera regionu. Regulamin o to prosi — mimo to możesz zapisać.",
+      "category": "Kategoria",
+      "categoryOption": {
+        "men": "Mężczyźni",
+        "women": "Kobiety",
+        "mixed": "Mieszany"
+      },
+      "recruitingQuestion": "Masz już cały skład, czy szukasz zawodników?",
+      "recruitingYes": "Szukamy zawodników — pokażcie nas publicznie",
+      "description": "Opis",
+      "descriptionHint": "Do 280 znaków. Widoczny na publicznej karcie zespołu.",
+      "rulesLink": "Przeczytaj regulamin zespołów",
+      "submitCreate": "Załóż zespół",
+      "submitSave": "Zapisz zmiany",
+      "submitting": "Zapisywanie…",
+      "saved": "Zapisano.",
+      "verifyTitle": "Najpierw potwierdź e-mail",
+      "verifyBody": "Zespoły zakładają konta z potwierdzonym adresem. Otwórz link, który wysłaliśmy, i wróć tutaj.",
+      "verifyCta": "Wyślij link ponownie",
+      "profileTitle": "Uzupełnij profil",
+      "profileBody": "Zespół tworzą zawodnicy, więc zanim go założysz, potrzebujemy Twojego imienia, daty urodzenia, płci i telefonu.",
+      "profileCta": "Przejdź do profilu",
+      "ageTitle": "Wymagane 18 lat",
+      "ageBody": "Regulamin zespołów dopuszcza osoby, które ukończyły 18 lat. Sprawdź datę urodzenia w profilu, jeśli to pomyłka."
+    },
+    "page": {
+      "eyebrow": "Zespół",
+      "back": "Wróć do profilu",
+      "category": "Kategoria",
+      "region": "Region",
+      "managerIs": "Menedżer: {name}",
+      "recruitingOn": "Szuka zawodników",
+      "publicRosterHidden": "Nazwiska ze składu widzą tylko członkowie tego zespołu.",
+      "completenessLabel": "Zawodnicy",
+      "completenessComplete": "{count} z {min} — komplet",
+      "completenessNeeded": "{count} z {min} — brakuje {missing}",
+      "completenessSplit": "{men} mężczyzn · {women} kobiet (co najmniej {minPerSex} każdej płci)",
+      "role": {
+        "manager": "Menedżer",
+        "member": "Zawodnik"
+      },
+      "rosterTitle": "Skład",
+      "rosterHeading": "Kto jest w zespole",
+      "rosterYou": "(Ty)",
+      "codeHint": "Udostępnij kod lub link. Sam kod pozwala tylko poprosić o dołączenie — decyzja należy do Ciebie.",
+      "codeLabel": "Kod zespołu",
+      "copy": "Kopiuj link",
+      "copied": "Skopiowano",
+      "manageTitle": "Zarządzanie",
+      "manageHeading": "Ustawienia zespołu",
+      "rotate": "Wygeneruj nowy kod",
+      "rotating": "Generowanie…",
+      "rotateHint": "Nowy kod unieważnia stary. Prośby o dołączenie, które już do Ciebie trafiły, pozostają ważne."
+    },
+    "invitations": {},
+    "profile": {
+      "empty": "Nie należysz jeszcze do żadnego zespołu. Załóż własny albo poproś menedżera o kod.",
+      "create": "Załóż zespół",
+      "open": "Otwórz"
+    },
+    "requests": {},
+    "reasons": {
+      "auth": "Zaloguj się, aby kontynuować.",
+      "verify": "Najpierw potwierdź swój adres e-mail.",
+      "profile": "Najpierw uzupełnij profil — potrzebujemy imienia, daty urodzenia, płci i telefonu.",
+      "age": "Aby należeć do zespołu, trzeba mieć ukończone 18 lat.",
+      "notfound": "Ten zespół już nie istnieje.",
+      "forbidden": "Może to zrobić tylko menedżer zespołu.",
+      "name_taken": "Ta nazwa zespołu jest już zajęta.",
+      "roster_full": "Ten zespół osiągnął już maksymalną liczbę zawodników.",
+      "sex_balance": "Zespół mieszany musi zostawić miejsce dla co najmniej czterech mężczyzn i czterech kobiet.",
+      "wrong_category": "Kategoria tego zespołu Cię nie obejmuje.",
+      "already_member": "Już należysz do tego zespołu.",
+      "already_in_category": "Masz już zespół w tej kategorii. Najpierw go opuść.",
+      "expired": "Ten link wygasł.",
+      "used": "Ten link został już wykorzystany.",
+      "manager_must_hand_over": "Przed odejściem przekaż zarządzanie innemu zawodnikowi.",
+      "invalid": "Sprawdź zaznaczone pola i spróbuj ponownie."
+    },
+    "roster": {},
+    "emails": {
+      "invitation": {},
+      "invitationAccepted": {},
+      "requestReceived": {},
+      "requestDecided": {},
+      "removed": {},
+      "handedOver": {},
+      "dissolved": {}
     }
   },
   "register": {
