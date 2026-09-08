@@ -1837,7 +1837,42 @@
       "completedBody": "Ten bieg już się odbył — zobacz, jak poszło.",
       "completedCta": "Zobacz wyniki"
     },
-    "teamConfirm": {}
+    "teamConfirm": {
+      "eyebrow": "Zgłoszenie drużyny",
+      "title": "Potwierdź swój udział",
+      "subtitle": "Twój menedżer zgłosił drużynę. Przeczytaj dokumenty, zaznacz każde oświadczenie i potwierdź — to wszystko, o co Cię prosimy.",
+      "details": {
+        "race": "Bieg",
+        "dateTime": "Data",
+        "venue": "Miejsce",
+        "team": "Drużyna",
+        "member": "Zawodnik",
+        "birthDate": "Data urodzenia",
+        "phone": "Telefon"
+      },
+      "submit": "Potwierdzam swój udział",
+      "submitting": "Potwierdzanie…",
+      "note": "Bilet wyślemy Ci e-mailem od razu po potwierdzeniu.",
+      "validationError": "Odpowiedz na każdy wymagany punkt, aby potwierdzić.",
+      "already": {
+        "title": "Już potwierdzone",
+        "body": "Potwierdziłeś swój udział w tym biegu — Twój bilet jest gotowy.",
+        "cta": "Zobacz bilet"
+      },
+      "age": {
+        "title": "W dniu biegu musisz mieć 18 lat",
+        "body": "Nie możemy przyjąć Twojego oświadczenia, ponieważ w dniu tego biegu nie będziesz mieć ukończonych 18 lat. Poproś menedżera drużyny o wykreślenie Cię ze zgłoszenia."
+      },
+      "cancelled": {
+        "title": "Ten bieg został odwołany",
+        "body": "Organizator odwołał to wydarzenie, więc nie ma już czego potwierdzać. Zgłoszenie Twojej drużyny nie zajmuje już miejsca."
+      },
+      "gate": {
+        "title": "Nie można otworzyć tego linku",
+        "body": "Link do potwierdzenia jest nieprawidłowy lub wygasł. Zaloguj się na adres e-mail, którego użył menedżer drużyny, i potwierdź z poziomu swojego profilu.",
+        "cta": "Zaloguj się"
+      }
+    }
   },
   "unsubscribe": {
     "eyebrow": "Preferencje e-mail",

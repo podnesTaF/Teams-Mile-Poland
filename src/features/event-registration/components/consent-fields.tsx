@@ -16,6 +16,20 @@ export type ConsentItemView = {
   docSlug: string;
   /** True for a genuine agree/disagree question (a GDPR `consent`), not a tick. */
   twoAnswer: boolean;
+  /**
+   * The checkbox label, already resolved by the server (for `twoAnswer`, the
+   * AGREE sentence).
+   *
+   * Absent for the individual set, which keeps reading
+   * `register.consent.items.<id>` / `register.consent.image.agree` from this
+   * island — unchanged behaviour. The team set (#68) passes it, because its
+   * labels live under `legal.teamItems.<id>` and are the *same six ids* against
+   * different documents and different wording: a `t()` branch inside a client
+   * island would have to know which namespace an item id belongs to, which is
+   * exactly the knowledge the server already has. Passing the resolved string
+   * in keeps this island ignorant of both catalogs.
+   */
+  label?: string;
 };
 
 type Props = {
@@ -74,6 +88,7 @@ export function ConsentFields({
             key={item.id}
             style={{ border: 0, padding: 0, margin: "18px 0 0" }}
             aria-invalid={flagged.has(item.id) || undefined}
+            data-consent-item={item.id}
           >
             <legend className="flabel" style={{ marginBottom: 10 }}>
               {t(`consent.image.question`)}
@@ -88,7 +103,7 @@ export function ConsentFields({
                   disabled={disabled}
                 />
                 <span>
-                  {t("consent.image.agree")}
+                  {item.label ?? t("consent.image.agree")}
                   <small style={{ display: "block", opacity: 0.7 }}>
                     {t("consent.image.agreeNote")}
                   </small>
@@ -114,7 +129,7 @@ export function ConsentFields({
             {flagged.has(item.id) ? <span className="field-msg">{t("consent.answerRequired")}</span> : null}
           </fieldset>
         ) : (
-          <div key={item.id} style={{ marginTop: 18 }}>
+          <div key={item.id} style={{ marginTop: 18 }} data-consent-item={item.id}>
             <label className="auth-check" style={{ color: "var(--ink)" }}>
               <input
                 type="checkbox"
@@ -122,7 +137,7 @@ export function ConsentFields({
                 onChange={(e) => onChange(item.id, e.target.checked ? true : undefined)}
                 disabled={disabled}
               />
-              <span>{t(`consent.items.${item.id}`)}</span>
+              <span>{item.label ?? t(`consent.items.${item.id}`)}</span>
             </label>
             <DocLink eventSlug={eventSlug} docSlug={item.docSlug} />
             {flagged.has(item.id) ? <span className="field-msg">{t("consent.itemRequired")}</span> : null}
@@ -180,6 +195,13 @@ export function ConsentFields({
  *
  * `target="_blank"`: opening the 4000-word Regulamin in place would throw away a
  * half-filled form, and the confirm step may itself be a modal.
+ *
+ * The event-scoped route serves **both** document sets, so the team
+ * confirmation screen (#68) needs no second link shape: of the team items' three
+ * documents only `team-regulations` carries the manifest's `eventless` flag, so
+ * `/legal/team-oswiadczenie` and `/legal/team-rodo` 404 by design (see
+ * `src/app/[locale]/legal/[doc]/page.tsx`) — and this route is in any case the
+ * only one that prints the night's date into the text.
  */
 function DocLink({ eventSlug, docSlug }: { eventSlug: string; docSlug: string }) {
   const t = useTranslations("register");
