@@ -1520,6 +1520,16 @@
     "meta": "Wydarzenie: {event} · Wersja dokumentu {version}",
     "previewNotice": "Podgląd. Dane osobowe, data podpisania i podpis są puste, ponieważ nic nie zostało jeszcze zaakceptowane — zostaną uzupełnione w chwili akceptacji tego dokumentu podczas rejestracji.",
     "fallbackNotice": "Tłumaczenie na ten język nie jest jeszcze dostępne — poniżej wersja polska.",
+    "attestation": {
+      "heading": "Poświadczenie elektroniczne",
+      "acceptedBy": "Zaakceptowane przez:",
+      "acceptedAt": "Data i godzina akceptacji:",
+      "document": "Dokument i wersja:",
+      "ip": "Adres IP zgłoszenia:",
+      "ipUnknown": "nie zarejestrowano",
+      "record": "Identyfikator wpisu:",
+      "explanation": "To jest poświadczenie elektroniczne zarejestrowane przez system rejestracji w chwili akceptacji. Zastępuje podpis własnoręczny, a dowodem jest wskazany powyżej wpis."
+    },
     "docs": {
       "oswiadczenie": "Oświadczenie Uczestnika Wydarzenia",
       "przepisy": "Przepisy Publiczne na Krajowej Indywidualnej Mili Rankingowej",

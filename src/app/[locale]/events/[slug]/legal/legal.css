@@ -165,11 +165,52 @@
   vertical-align: baseline;
 }
 
+/* --- The electronic attestation (#54) ------------------------------
+ * What `__SIGNATURE_BLOCK__` becomes on a printed Statement: the
+ * consent record stated where the pen-and-paper line used to be. It is
+ * injected into a pandoc `<td>`, so the markup is inline elements made
+ * to stack rather than a nested table. */
+.ace-landing .legal-prose .legal-attestation {
+  display: block;
+  font-size: 0.92em;
+  line-height: 1.55;
+}
+.ace-landing .legal-prose .legal-attestation__head {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 0.82em;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--acl-red);
+}
+.ace-landing .legal-prose .legal-attestation__line {
+  display: block;
+}
+.ace-landing .legal-prose .legal-attestation__label {
+  color: rgba(255, 255, 255, 0.55);
+}
+.ace-landing .legal-prose .legal-attestation code {
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.92em;
+  word-break: break-all;
+}
+.ace-landing .legal-prose .legal-attestation__note {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.86em;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 /* --- Print --------------------------------------------------------
  * Hide the app chrome and flip the document to dark-on-white. Used by
  * this page's Ctrl+P and by the admin statement print surface (#54);
  * `.print-area` marks what survives, `.no-print` what never does. */
 @media print {
+  @page {
+    margin: 14mm;
+  }
   body * {
     visibility: hidden;
   }
@@ -177,10 +218,16 @@
   .print-area * {
     visibility: visible;
   }
+  /* Pinned to the top-left of the sheet, but deliberately *not* `inset: 0`:
+     a fixed-height box is one page tall, and both a full Statement and the
+     admin's multi-statement batch run longer than that. Height stays auto so
+     the content paginates. */
   .print-area {
     position: absolute;
-    inset: 0;
-    width: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
   }
   .no-print {
     display: none !important;
@@ -214,6 +261,20 @@
   .ace-landing .print-area .legal-notice {
     border-color: #d4d4d4 !important;
     background: #f5f5f5 !important;
+    color: #525252 !important;
+  }
+  /* The attestation carries its own greys on screen; on paper they have to
+     survive the flip to dark-on-white, and the block must not be split across
+     two sheets — half a signature is worse than a page break above it. */
+  .ace-landing .print-area .legal-prose .legal-attestation {
+    break-inside: avoid;
+    color: #171717 !important;
+  }
+  .ace-landing .print-area .legal-prose .legal-attestation__head {
+    color: #171717 !important;
+  }
+  .ace-landing .print-area .legal-prose .legal-attestation__label,
+  .ace-landing .print-area .legal-prose .legal-attestation__note {
     color: #525252 !important;
   }
   /* Each statement in a bulk print starts on its own sheet (#54). */

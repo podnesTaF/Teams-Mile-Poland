@@ -28,27 +28,57 @@ const TABS = [
   { key: "results", label: "Results", segment: "results", suffix: "/results" },
   { key: "media", label: "Media", segment: "media", suffix: "/media" },
   /**
+   * `personal_data`, not `edit`: the statements behind this tab carry a date of
+   * birth, a home address, a phone and an emergency contact, and the volunteer
+   * check-in role must not be shown a door it would 404 on (ADR 0007).
+   */
+  {
+    key: "statements",
+    label: "Statements",
+    segment: "statements",
+    suffix: "/statements",
+    requires: "personal_data",
+  },
+  /**
    * Last on purpose: the lifecycle control, the edit form and the delete panel
    * are what you reach for once, not the tabs you work the race night from.
    *
-   * `editOnly` because the page behind it asks for `edit`: the panel's rule is
+   * `requires` because the page behind it asks for `edit`: the panel's rule is
    * that it never offers a door that is locked. The decision is made on the
-   * server and arrives as a plain boolean — this bar is a client component, so
+   * server and arrives as plain booleans — this bar is a client component, so
    * it must not import the role helpers itself, the same reason `buildAdminNav`
    * filters server-side and hands the sidebar finished data.
    */
-  { key: "settings", label: "Settings", segment: "settings", suffix: "/settings", editOnly: true },
+  {
+    key: "settings",
+    label: "Settings",
+    segment: "settings",
+    suffix: "/settings",
+    requires: "edit",
+  },
 ] as const;
 
-export function AdminEventTabs({ slug, canEdit }: { slug: string; canEdit: boolean }) {
+export function AdminEventTabs({
+  slug,
+  canEdit,
+  canReadPersonalData,
+}: {
+  slug: string;
+  canEdit: boolean;
+  canReadPersonalData: boolean;
+}) {
   const selected = useSelectedLayoutSegment();
+  const allows = (tab: (typeof TABS)[number]) => {
+    if (!("requires" in tab)) return true;
+    return tab.requires === "edit" ? canEdit : canReadPersonalData;
+  };
 
   return (
     <nav
       aria-label="Event sections"
       className="admin-scroll mt-4 flex gap-1 overflow-x-auto border-b border-admin-line"
     >
-      {TABS.filter((tab) => canEdit || !("editOnly" in tab && tab.editOnly)).map((tab) => {
+      {TABS.filter(allows).map((tab) => {
         const active = tab.segment === selected;
         return (
           <Link

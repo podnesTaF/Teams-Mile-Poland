@@ -77,7 +77,11 @@ export default async function AdminEventLayout({
         }
       />
 
-      <AdminEventTabs slug={slug} canEdit={userCan(actor, "edit")} />
+      <AdminEventTabs
+        slug={slug}
+        canEdit={userCan(actor, "edit")}
+        canReadPersonalData={userCan(actor, "personal_data")}
+      />
 
       <div className="mt-5">{children}</div>
     </AdminPage>

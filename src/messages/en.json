@@ -1520,6 +1520,16 @@
     "meta": "Event: {event} · Document version {version}",
     "previewNotice": "Preview. The personal fields, the date of signing and the signature are blank because nothing has been accepted yet — they are filled in at the moment you accept this document during registration.",
     "fallbackNotice": "A translation into this language isn't available yet — the Polish version is shown below.",
+    "attestation": {
+      "heading": "Electronic attestation",
+      "acceptedBy": "Accepted by:",
+      "acceptedAt": "Accepted on:",
+      "document": "Document and version:",
+      "ip": "IP address of the request:",
+      "ipUnknown": "not recorded",
+      "record": "Record id:",
+      "explanation": "This is an electronic attestation recorded by the registration system at the moment of acceptance. It replaces a handwritten signature and is evidenced by the record identified above."
+    },
     "docs": {
       "oswiadczenie": "Participant Statement",
       "przepisy": "Public Regulations for the National Individual Ranking Mile",
