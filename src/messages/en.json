@@ -1623,7 +1623,10 @@
   },
   "legal": {
     "back": "← Back to event",
+    "backHome": "← Back to home",
+    "eyebrow": "Documents",
     "meta": "Event: {event} · Document version {version}",
+    "versionMeta": "Document version {version}",
     "previewNotice": "Preview. The personal fields, the date of signing and the signature are blank because nothing has been accepted yet — they are filled in at the moment you accept this document during registration.",
     "fallbackNotice": "A translation into this language isn't available yet — the Polish version is shown below.",
     "attestation": {

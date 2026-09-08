@@ -1623,7 +1623,10 @@
   },
   "legal": {
     "back": "← Powrót do wydarzenia",
+    "backHome": "← Powrót na stronę główną",
+    "eyebrow": "Dokumenty",
     "meta": "Wydarzenie: {event} · Wersja dokumentu {version}",
+    "versionMeta": "Wersja dokumentu {version}",
     "previewNotice": "Podgląd. Dane osobowe, data podpisania i podpis są puste, ponieważ nic nie zostało jeszcze zaakceptowane — zostaną uzupełnione w chwili akceptacji tego dokumentu podczas rejestracji.",
     "fallbackNotice": "Tłumaczenie na ten język nie jest jeszcze dostępne — poniżej wersja polska.",
     "attestation": {
