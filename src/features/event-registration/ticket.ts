@@ -117,7 +117,8 @@ export async function sendEventTicketEmail(input: {
   });
 
   if (!resend) {
-    return { ticketUrl };
+    // No transport (local runs, verify scripts): a skip, not a send.
+    return { ticketUrl, sent: false };
   }
 
   const db = getDb();
@@ -133,13 +134,19 @@ export async function sendEventTicketEmail(input: {
     )
     .limit(1);
   if (already) {
-    return { ticketUrl };
+    return { ticketUrl, sent: true };
   }
 
   const qrCid = "event-ticket-qr";
   const qrBuffer = await generateTicketQrPng(ticketUrl);
 
-  await resend.emails.send({
+  // Resend's `send()` RETURNS `{ error }` rather than throwing, so the result
+  // has to be read — the unchecked idiom logged a rejected send as `sent` and
+  // the runner never got a ticket (PRD #64 #68, "with the Resend result
+  // checked"). A failure is logged as `failed` with the message; the `already`
+  // guard above only honours `sent`, so the next call retries the send and the
+  // upsert below flips the row to `sent` when it goes through.
+  const { error } = await resend.emails.send({
     from: FROM_EMAIL,
     to: view.email,
     subject: eventTicketSubject(view),
@@ -152,12 +159,32 @@ export async function sendEventTicketEmail(input: {
     attachments: [{ filename: "ticket-qr.png", content: qrBuffer, contentId: qrCid }],
   });
 
-  // Log after a successful send. The unique (registration, kind) index makes a
-  // concurrent double-insert a no-op, so exactly one `confirmation` row exists.
+  const sent = !error;
+  if (error) {
+    console.error(
+      `[ticket] confirmation mail failed for registration ${input.registration.id}:`,
+      error,
+    );
+  }
+
+  // One `confirmation` row per registration: the unique (registration, kind)
+  // index turns a concurrent double-insert into an update of the same row.
   await db
     .insert(eventEmailLog)
-    .values({ eventRegistrationId: input.registration.id, kind: "confirmation", status: "sent" })
-    .onConflictDoNothing();
+    .values({
+      eventRegistrationId: input.registration.id,
+      kind: "confirmation",
+      status: sent ? "sent" : "failed",
+      error: sent ? null : String(error?.message ?? error),
+    })
+    .onConflictDoUpdate({
+      target: [eventEmailLog.eventRegistrationId, eventEmailLog.kind],
+      set: {
+        status: sent ? "sent" : "failed",
+        error: sent ? null : String(error?.message ?? error),
+        sentAt: new Date(),
+      },
+    });
 
-  return { ticketUrl };
+  return { ticketUrl, sent };
 }

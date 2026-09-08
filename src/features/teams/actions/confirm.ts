@@ -215,12 +215,10 @@ export async function confirmTeamParticipation(
   // Outside the transaction, and its outcome is checked rather than assumed.
   //
   // `sendEventTicketEmail` is the existing single choke point for this mail
-  // (idempotent per `(registration, "confirmation")`) and it returns the ticket
-  // URL rather than a send verdict — its Resend call is not `{ error }`-checked,
-  // which is a pre-existing repo-wide idiom and is flagged as a follow-up rather
-  // than fixed from this slice, which does not own `ticket.ts`. What *is* in
-  // reach here: a throw must not surface as a failed confirmation, because the
-  // consent is committed and irreversible. So the failure is logged with the
+  // (idempotent per `(registration, "confirmation")`); it reads Resend's
+  // `{ error }` and reports `sent` back, logging a refusal as `failed`. A throw
+  // or a refusal must not surface as a failed confirmation, because the consent
+  // is committed and irreversible. So the failure is logged with the
   // registration id — the operator needs to know a ticket did not go out — and
   // the member is still told they are confirmed.
   //
@@ -233,9 +231,17 @@ export async function confirmTeamParticipation(
       registration: { ...registration, locale: submission.locale },
       user,
     });
-    console.info(
-      `[teams] confirmation ticket dispatched for registration ${registrationId} → ${sent.ticketUrl}`,
-    );
+    if (sent.sent) {
+      console.info(
+        `[teams] confirmation ticket dispatched for registration ${registrationId} → ${sent.ticketUrl}`,
+      );
+    } else {
+      // A skip (no transport) or a Resend refusal, already logged by the sender
+      // as `failed` in `event_email_log`; the member is confirmed either way.
+      console.warn(
+        `[teams] confirmed registration ${registrationId} but no ticket email went out`,
+      );
+    }
   } catch (error) {
     console.error(
       `[teams] confirmed registration ${registrationId} but the ticket email failed:`,
