@@ -33,8 +33,11 @@ type PageProps = {
  * `legal.css`'s print rules, so what comes out of the dialog is the document and
  * nothing else.
  *
- * The query is the whole selection API, which is what lets #55 add roster
- * selection without touching this page: it already takes a list.
+ * The query is the whole selection API, which is what let #55 add roster and
+ * list selection without changing how anything here works: it already took a
+ * list. What #55 did add is the toolbar's batch header — a stack of forty sheets
+ * cannot be checked by looking at it, so the count, the number of "no consent"
+ * sheets in it and the language rule in force are stated before the press.
  *
  * `lang` is optional and applies to the batch. Omitted, each Statement renders
  * in the locale its own submission recorded — a mixed-language field prints as a
@@ -42,6 +45,14 @@ type PageProps = {
  * text and a convenience translation is not.
  */
 
+/**
+ * How many ids one press may carry. A race night is a few dozen entries, so this
+ * is a bound on a crafted or pasted URL rather than on any real batch — but the
+ * read it guards fills a legal document per id, so it is a hard cap and not a
+ * hint. `PRINT_IDS_LIMIT` in `statement-print-bar.tsx` mirrors it, so a
+ * selection over the cap is *said* before it is pressed instead of being
+ * silently truncated here.
+ */
 const IDS_LIMIT = 200;
 
 /**
@@ -81,12 +92,24 @@ export default async function AdminEventStatementsPrintPage({ params, searchPara
 
   const listHref = `/admin/events/${slug}/statements`;
   const printable = statements.filter((s) => s.state === "statement").length;
+  const noConsent = statements.length - printable;
   const missing = unknownIds.length + malformed;
+  /** Nothing was asked for at all, as opposed to nothing being found. */
+  const askedForNothing = rawIds.length === 0;
 
   return (
     <>
       <div className="no-print">
         <Toolbar slug={slug} ids={ids} lang={lang} listHref={listHref} />
+
+        {statements.length > 0 && (
+          <BatchHeader
+            statements={statements}
+            printable={printable}
+            noConsent={noConsent}
+            lang={lang}
+          />
+        )}
 
         {missing > 0 && (
           <div className="mt-3" data-statements-ignored={String(missing)}>
@@ -98,17 +121,40 @@ export default async function AdminEventStatementsPrintPage({ params, searchPara
           </div>
         )}
 
+        {/* Two different nothings, said differently: an empty `?ids=` is a
+            print pressed with no selection — an ordinary slip, and the fix is
+            to go and tick someone. Ids that matched nothing is a stale or
+            copied link, which is a different problem and gets the warning
+            above as well. */}
         {statements.length === 0 && (
-          <div className="mt-3" data-statements-empty="none">
-            <AdminEmptyState title="Nothing to print">
-              This link names no registration of this event. Pick a runner on the{" "}
-              <Link
-                href={listHref}
-                className="text-admin-ink underline decoration-admin-line-2 underline-offset-2 hover:decoration-admin-accent"
-              >
-                statements list
-              </Link>{" "}
-              and open their statement from there.
+          <div className="mt-3" data-statements-empty={askedForNothing ? "no-selection" : "none"}>
+            <AdminEmptyState
+              title={askedForNothing ? "Nothing selected to print" : "Nothing to print"}
+            >
+              {askedForNothing ? (
+                <>
+                  No registrations were selected, so there is nothing to assemble. Tick the runners
+                  you need on the{" "}
+                  <Link
+                    href={listHref}
+                    className="text-admin-ink underline decoration-admin-line-2 underline-offset-2 hover:decoration-admin-accent"
+                  >
+                    statements list
+                  </Link>{" "}
+                  — or on the event roster — and press Print selected.
+                </>
+              ) : (
+                <>
+                  This link names no registration of this event. Pick a runner on the{" "}
+                  <Link
+                    href={listHref}
+                    className="text-admin-ink underline decoration-admin-line-2 underline-offset-2 hover:decoration-admin-accent"
+                  >
+                    statements list
+                  </Link>{" "}
+                  and open their statement from there.
+                </>
+              )}
             </AdminEmptyState>
           </div>
         )}
@@ -129,6 +175,63 @@ export default async function AdminEventStatementsPrintPage({ params, searchPara
     </>
   );
 }
+
+/**
+ * What is about to come out of the printer, before it does (#55).
+ *
+ * A batch is the case where the admin cannot check the output by looking at it:
+ * forty sheets, some in Polish, some in Ukrainian, one of them a "no consent"
+ * notice. So the toolbar states the three facts that decide whether the stack is
+ * the right stack — how many sheets, how many of those are the absence of a
+ * document rather than one, and which language rule is in force — and it states
+ * them in `.no-print`, so none of it reaches the paper.
+ *
+ * "As recorded" names the languages actually in the batch rather than just
+ * saying "mixed": a mixed batch is the correct default, and an admin who can see
+ * it is PL + UK does not have to wonder whether something went wrong.
+ */
+function BatchHeader({
+  statements,
+  printable,
+  noConsent,
+  lang,
+}: {
+  statements: PrintedStatement[];
+  printable: number;
+  noConsent: number;
+  lang: DocLocale | undefined;
+}) {
+  const langs = [
+    ...new Set(
+      statements.flatMap((s) => (s.state === "statement" ? [DOC_LANG_LABEL[s.lang]] : [])),
+    ),
+  ];
+  const mode = lang
+    ? `forced to ${lang.toUpperCase()}`
+    : langs.length === 0
+      ? "as recorded"
+      : `as recorded (${langs.join(" + ")})`;
+
+  return (
+    <p
+      data-statements-batch={statements.length}
+      data-statements-batch-printable={printable}
+      data-statements-batch-noconsent={noConsent}
+      data-print-lang-mode={lang ?? "recorded"}
+      className="mt-2 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-admin-muted"
+    >
+      {statements.length} {statements.length === 1 ? "sheet" : "sheets"}
+      {" · "}
+      {printable} {printable === 1 ? "statement" : "statements"}
+      {noConsent > 0 ? ` · ${noConsent} without consent on record` : ""}
+      {" · "}
+      Language {mode}
+    </p>
+  );
+}
+
+/** The document language, as the toolbar names it — `ua` prints as UK, its tag. */
+const DOC_LANG_LABEL: Record<DocLocale, string> = { pl: "PL", en: "EN", ua: "UK" };
 
 /** Print, switch the language of the batch, go back. All of it `.no-print`. */
 function Toolbar({

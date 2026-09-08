@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight, ChevronUp } from "lucide-react";
 import { adminButton } from "@/features/admin/components/shell/admin-button";
 import { ADMIN_NOTE } from "@/features/admin/components/shell/admin-card";
 import { AdminField, adminInput } from "@/features/admin/components/shell/admin-field";
+import { StatementPrintBar } from "@/features/admin/components/statement-print-bar";
 import { ParticipationBadge } from "@/features/admin/components/shell/participation-badge";
 import type {
   ParticipationStatus,
@@ -41,15 +42,32 @@ import { RosterDrawer } from "./roster-drawer";
  * rather than re-implemented here, and the confirmation lands on the Heats tab
  * that action redirects to.
  *
+ * That one Set now feeds two acts, and they read it differently (#55). The heat
+ * move posts **the ticks on the page in view** — #41's rule, unchanged: it
+ * writes to the rows it names, so it was scoped to what the admin can see. Batch
+ * statement printing takes **the whole selection**, because a race night is
+ * printed by paging down the roster ticking as you go, and a stack of paper
+ * quietly missing page 1 is worse than a long one. Neither ever gains a row the
+ * admin did not tick: the header box covers the rows in view and nothing else,
+ * and no filter, sort or page change touches the Set. Both strips label the
+ * scope of their own count, so the two numbers are readable side by side.
+ *
+ * The Set surviving a page change is not incidental — it is the mechanism #55
+ * relies on. Search, filter, sort and paging are all client navigations to this
+ * same route, so this island stays mounted and its state stays put; only a hard
+ * reload starts a fresh selection, which is the honest behaviour for a list of
+ * ids the admin assembled by eye.
+ *
  * There is deliberately **no bulk remove and no bulk no-show**: removing or
  * absenting a runner stays one deliberate act behind a confirm dialog, in the
  * drawer.
  *
  * What renders depends on the reader's admin level, because a control whose
  * action would 404 is worse than no control: without `edit` the bulk-move bar
- * and the row checkboxes that feed it are gone (selection has nothing to do),
- * and without `checkin` the drawer's status action goes too. The table itself —
- * search, sort, page, drawer — is the same read for every level.
+ * goes, without `personal_data` the print strip goes, without either the row
+ * checkboxes go too (selection would have nothing to do), and without `checkin`
+ * the drawer's status action goes. The table itself — search, sort, page,
+ * drawer — is the same read for every level.
  *
  * `data-roster-*` markers are stable hooks for end-to-end checks — a streamed
  * page cannot be told apart by status code, so assertions grep for content.
@@ -64,6 +82,7 @@ export function RosterTable({
   heats,
   canEdit,
   canCheckin,
+  canPrintStatements,
 }: {
   rows: RosterRowView[];
   slug: string;
@@ -78,6 +97,13 @@ export function RosterTable({
   canEdit: boolean;
   /** The drawer's no-show / undo are the desk's actions, gated at `checkin`. */
   canCheckin: boolean;
+  /**
+   * Batch statement printing asks for `personal_data` (ADR 0007) — a Statement
+   * carries a date of birth, a home address, a phone and an emergency contact.
+   * False hides the strip *and* the "Print selected" door entirely, so the
+   * check-in volunteer is never shown a control that would 404.
+   */
+  canPrintStatements: boolean;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [openId, setOpenId] = useState<string | null>(null);
@@ -96,6 +122,16 @@ export function RosterTable({
     () => rows.filter((r) => selected.has(r.id)).map((r) => r.id),
     [rows, selected],
   );
+
+  /**
+   * The whole selection, in the order it was ticked — what the batch print
+   * takes. A `Set` preserves insertion order, so the stack comes out in the
+   * order the admin built it rather than in whatever order the current sort
+   * happens to be. Ids whose registration has since been removed are not a
+   * problem to solve here: the print route scopes every id to this event and
+   * reports the ones that name nothing.
+   */
+  const selectedAll = useMemo(() => [...selected], [selected]);
 
   /** The row whose drawer is open, if it is still in the list. */
   const openRow = useMemo(() => rows.find((r) => r.id === openId) ?? null, [rows, openId]);
@@ -124,6 +160,9 @@ export function RosterTable({
 
   const allShown = rows.length > 0 && selectedOnPage.length === rows.length;
 
+  /** A tick has something to feed if either bulk act is offered to this reader. */
+  const selectable = canEdit || canPrintStatements;
+
   return (
     <>
       <section className="overflow-hidden rounded-admin-lg border border-admin-line bg-admin-surface">
@@ -137,11 +176,20 @@ export function RosterTable({
           />
         ) : null}
 
+        {canPrintStatements ? (
+          <StatementPrintBar
+            slug={slug}
+            ids={selectedAll}
+            onPage={selectedOnPage.length}
+            onClear={() => setSelected(new Set())}
+          />
+        ) : null}
+
         <div className="admin-scroll overflow-x-auto">
           <table data-roster-table className="w-full border-collapse text-left">
             <thead className="border-b border-admin-line bg-admin-surface-2">
               <tr>
-                {canEdit ? (
+                {selectable ? (
                   <th scope="col" className={cn(HEAD_CELL, "w-[44px] pr-0")}>
                     <input
                       type="checkbox"
@@ -197,7 +245,7 @@ export function RosterTable({
                   ticked={selected.has(row.id)}
                   onToggle={toggle}
                   onOpen={setOpenId}
-                  selectable={canEdit}
+                  selectable={selectable}
                 />
               ))}
             </tbody>
@@ -311,7 +359,9 @@ function BulkAssign({
           none ? "text-admin-muted" : "text-admin-ink",
         )}
       >
-        {ids.length} selected
+        {/* "on this page" because the strip below may be counting more: the
+            move takes what is in view, the print takes the whole selection. */}
+        {ids.length} selected on this page
       </p>
 
       <p
@@ -411,7 +461,10 @@ function RosterTableRow({
   ticked: boolean;
   onToggle: (id: string) => void;
   onOpen: (id: string) => void;
-  /** False without `edit`: there is no bulk move for the tick to feed. */
+  /**
+   * False without `edit` *and* without `personal_data`: neither bulk act is on
+   * offer, so a tick would feed nothing.
+   */
   selectable: boolean;
 }) {
   return (

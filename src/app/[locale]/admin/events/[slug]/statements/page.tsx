@@ -5,12 +5,12 @@ import { requireAdmin } from "@/features/admin/action-helpers";
 import { ADMIN_NOTE, ADMIN_TITLE, adminCard } from "@/features/admin/components/shell/admin-card";
 import { AdminEmptyState } from "@/features/admin/components/shell/admin-empty-state";
 import {
-  getStatementRoster,
-  type StatementRosterRow,
-} from "@/features/admin/statements";
-import { Link } from "@/i18n/navigation";
+  StatementsTable,
+  type StatementListRow,
+} from "@/features/admin/components/statements-table";
+import { getStatementRoster } from "@/features/admin/statements";
 import { getEventBySlug } from "@/lib/events/registry";
-import { type DocLocale, docSetForEventType, getDocsForSet } from "@/lib/legal/manifest";
+import { docSetForEventType, getDocsForSet } from "@/lib/legal/manifest";
 import { cn } from "@/lib/utils";
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
@@ -28,16 +28,11 @@ type PageProps = { params: Promise<{ locale: string; slug: string }> };
  * per row is a different thing entirely — it is the language of the legal text,
  * and its default is the locale the submission recorded, because that is the
  * copy the runner actually read.
+ *
+ * The rows and their ticks live in a client island (#55) so a whole night can go
+ * to the print route in one press; this page still does every read and every
+ * format, and hands the island plain strings.
  */
-
-const HEAD_CELL =
-  "px-3 py-2 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-admin-muted";
-const CELL = "px-3 py-2 align-middle text-[13px] text-admin-ink-2";
-
-/** The three languages a Statement can be printed in, in publication order. */
-const PRINT_LOCALES: readonly DocLocale[] = ["pl", "en", "ua"];
-
-const LOCALE_LABEL: Record<DocLocale, string> = { pl: "PL", en: "EN", ua: "UA" };
 
 /** Warsaw-local stamp for the "accepted" column — the same tone the roster uses. */
 const ACCEPTED_FMT = new Intl.DateTimeFormat("en-GB", {
@@ -76,6 +71,17 @@ export default async function AdminEventStatementsPage({ params }: PageProps) {
     );
   }
 
+  // Formatted here, not in the island: the island is a set of ticks, and every
+  // value it renders should already be a string by the time it gets there.
+  const listRows: StatementListRow[] = rows.map((row) => ({
+    registrationId: row.registrationId,
+    name: row.name,
+    email: row.email,
+    bib: row.bib === null ? "—" : String(row.bib),
+    acceptedAtLabel: row.consent ? ACCEPTED_FMT.format(row.consent.acceptedAt) : null,
+    recordedLocale: row.consent?.locale ?? null,
+  }));
+
   return (
     <section className={adminCard("overflow-hidden")} data-statements-list="">
       <header className="border-b border-admin-line px-4 py-3.5 sm:px-5">
@@ -84,98 +90,12 @@ export default async function AdminEventStatementsPage({ params }: PageProps) {
           {withConsent} of {rows.length}{" "}
           {rows.length === 1 ? "registration has" : "registrations have"} a consent record. Each
           statement opens in the language the runner read it in; the other two are convenience
-          translations of the same document — the recorded language is the operative one.
+          translations of the same document — the recorded language is the operative one. Tick
+          runners to print a batch: one sheet each, in one pass.
         </p>
       </header>
 
-      <div className="admin-scroll overflow-x-auto">
-        <table className="w-full min-w-[720px] border-collapse">
-          <thead>
-            <tr className="border-b border-admin-line text-left">
-              <th className={HEAD_CELL}>Runner</th>
-              <th className={HEAD_CELL}>Bib</th>
-              <th className={HEAD_CELL}>Consent</th>
-              <th className={HEAD_CELL}>Statement</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <StatementRow key={row.registrationId} slug={slug} row={row} />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <StatementsTable slug={slug} rows={listRows} />
     </section>
-  );
-}
-
-/** One registration: who it is, what was recorded, and the way into the print view. */
-function StatementRow({ slug, row }: { slug: string; row: StatementRosterRow }) {
-  const base = `/admin/events/${slug}/statements/print?ids=${encodeURIComponent(row.registrationId)}`;
-
-  return (
-    <tr
-      className="border-b border-admin-line last:border-0"
-      data-statement-row={row.registrationId}
-      data-consent={row.consent ? "recorded" : "none"}
-    >
-      <td className={CELL}>
-        <span className="block text-admin-ink">{row.name}</span>
-        <span className="block text-[12px] text-admin-muted">{row.email}</span>
-      </td>
-      <td className={cn(CELL, "font-mono")}>{row.bib ?? "—"}</td>
-      <td className={CELL}>
-        {row.consent ? (
-          <>
-            <span className="block">{ACCEPTED_FMT.format(row.consent.acceptedAt)}</span>
-            <span className="block text-[12px] text-admin-muted">
-              Read in {LOCALE_LABEL[row.consent.locale]} · Europe/Warsaw
-            </span>
-          </>
-        ) : (
-          <span
-            className="inline-flex items-center rounded-pill border border-admin-line-2 px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-admin-muted"
-            data-statement-state="no-consent"
-          >
-            No consent on record
-          </span>
-        )}
-      </td>
-      <td className={CELL}>
-        {row.consent ? (
-          <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <Link
-              href={base}
-              className="text-admin-ink underline decoration-admin-line-2 underline-offset-2 hover:decoration-admin-accent"
-              data-statement-view={row.registrationId}
-            >
-              View statement
-            </Link>
-            <span className="flex items-center gap-1.5 text-[11px] text-admin-muted">
-              {PRINT_LOCALES.map((lang) => (
-                <Link
-                  key={lang}
-                  href={`${base}&lang=${lang}`}
-                  aria-label={`View this statement in ${LOCALE_LABEL[lang]}`}
-                  className={cn(
-                    "rounded-admin px-1.5 py-0.5 hover:bg-admin-surface-2 hover:text-admin-ink",
-                    // The recorded language is not a preference among three —
-                    // it is the text that was accepted, so it reads as the
-                    // default and the other two as translations.
-                    lang === row.consent?.locale && "text-admin-ink",
-                  )}
-                >
-                  {LOCALE_LABEL[lang]}
-                </Link>
-              ))}
-            </span>
-          </span>
-        ) : (
-          <span className="text-[12px] text-admin-muted">
-            Registered before consent was captured — nothing to print.
-          </span>
-        )}
-      </td>
-    </tr>
   );
 }

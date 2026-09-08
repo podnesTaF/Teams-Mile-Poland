@@ -63,9 +63,15 @@ type PageProps = {
  *
  * What *is* client state is the table's two interactions (slice #41), and only
  * because neither is a view: which registration's drawer is open, and which rows
- * are ticked for a bulk move into a heat. This page still reads and formats every
- * value they render, so `RosterTable` receives plain strings and the browser
- * bundle stays free of the admin data modules.
+ * are ticked — for a bulk move into a heat, and now for a batch statement print
+ * (#55). This page still reads and formats every value they render, so
+ * `RosterTable` receives plain strings and the browser bundle stays free of the
+ * admin data modules.
+ *
+ * The ticks staying out of the URL is exactly what lets a selection outlive a
+ * filter, a re-sort or a page turn: each of those is a client navigation to this
+ * same route, so the island is never remounted and the `Set` it holds is never
+ * rebuilt.
  *
  * The event itself — name, date, lifecycle status, totals, exports — belongs to
  * the layout above (slice #39), so this page states only the roster.
@@ -177,6 +183,12 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
             heats={heats}
             canEdit={userCan(actor, "edit")}
             canCheckin={userCan(actor, "checkin")}
+            // The batch statement print (#55) hangs off this table's selection.
+            // `personal_data`, not `edit`: a Statement carries a date of birth,
+            // a home address, a phone and an emergency contact, so the strip and
+            // its "Print selected" door are hidden from the check-in volunteer
+            // and the view-only reader rather than 404ing under them (ADR 0007).
+            canPrintStatements={userCan(actor, "personal_data")}
           />
           <RosterPager
             slug={slug}
