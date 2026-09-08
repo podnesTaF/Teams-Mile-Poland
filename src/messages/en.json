@@ -1821,7 +1821,42 @@
       "completedBody": "This race has already taken place — see how it went.",
       "completedCta": "View results"
     },
-    "teamConfirm": {}
+    "teamConfirm": {
+      "eyebrow": "Team entry",
+      "title": "Confirm your participation",
+      "subtitle": "Your manager has entered your team. Read the documents, tick each statement and confirm — that is all we need from you.",
+      "details": {
+        "race": "Race",
+        "dateTime": "Date",
+        "venue": "Venue",
+        "team": "Team",
+        "member": "Runner",
+        "birthDate": "Date of birth",
+        "phone": "Phone"
+      },
+      "submit": "Confirm my participation",
+      "submitting": "Confirming…",
+      "note": "Your ticket is emailed to you the moment you confirm.",
+      "validationError": "Please answer every required item before confirming.",
+      "already": {
+        "title": "Already confirmed",
+        "body": "You have confirmed your participation in this race — your ticket is ready.",
+        "cta": "View ticket"
+      },
+      "age": {
+        "title": "You must be 18 on race day",
+        "body": "We cannot accept your declaration, because you will be under 18 on the day of this event. Ask your team manager to take you off the entry."
+      },
+      "cancelled": {
+        "title": "This race has been called off",
+        "body": "The organiser has cancelled this event, so there is nothing left to confirm. Your team's entry no longer holds a place."
+      },
+      "gate": {
+        "title": "This link cannot be opened",
+        "body": "The confirmation link is invalid or has expired. Sign in with the email address your team manager used, and confirm from your profile instead.",
+        "cta": "Sign in"
+      }
+    }
   },
   "unsubscribe": {
     "eyebrow": "Email preferences",
