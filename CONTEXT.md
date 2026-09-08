@@ -196,6 +196,99 @@ A registered runner who never checked in; participation status `no_show`, set
 passively at check-in. This is the only "didn't participate" outcome — there is no
 separate proactive cancellation.
 
+### Teams (current — team format)
+
+**Team**:
+A standing roster of runners with a unique name, owned by a user account, that
+outlives any single event. A team is created once and then *enters* team-type
+events; it is not created by registering. Distinct from the frozen legacy `teams`
+table (see Legacy below) and from **Club** (the free-text field on a profile).
+_Avoid_: squad, crew, group, club (that is the free-text profile field)
+
+**Team category**:
+Men, women, or mixed — fixed when the team is created. Decides who may join (men's
+teams take `M`, women's take `F`, mixed take both) and the team's numbers — see
+**Roster limits**. A runner holds at most one membership per category, so at most two
+teams: their own sex category and one mixed.
+_Avoid_: division, gender (of a team), type (that is the event type)
+
+**Roster limits**:
+Men's and women's teams hold 7 to 11 members; mixed teams 8 to 12 with at least 4 of
+each sex. The lower bound is **Complete**; the upper bound is the **Roster cap**, at
+which invitations and accepts are refused. On a mixed team a member is refused when
+their sex could no longer leave room for four of the other (so at most 8 of one sex).
+_Avoid_: team size (the legacy captain-declared number), capacity (that is a heat)
+
+**Member**:
+A runner on a team's roster — a `users` account, never a separate per-person row.
+Becomes one by accepting an **Invitation** or having a **Join request** accepted;
+both require a complete profile, because eligibility is read from `sex`.
+_Avoid_: player, participant, runner row
+
+**Team entry**:
+A team's registration into one team-type event — the team-level counterpart of a
+runner's **Registration**. One team, one event, at most once.
+_Avoid_: team registration (ambiguous with creating the team), team signup
+
+**Complete (team)**:
+A roster property: the team has reached the lower **Roster limit** — 7 members, or 8
+with at least 4 of each sex for mixed — all with complete profiles. Read at admission
+into an event, never a stored flag; a team drops back to incomplete when someone
+leaves. The regulation text (`team-rules` §2.3.1) currently states 11/12 and is to be
+corrected to match.
+_Avoid_: full (a full team can still take members; complete is a threshold), ready
+
+**Race composition**:
+The 7 members (8 for mixed) of a team entry who actually run, each holding a **Race
+role**. Fixed at check-in on event day, on the team entry — never on the roster.
+Men's and women's: 3 RACER + 2 ACE + 2 JOKER; mixed: 4 RACER + 2 ACE + 2 JOKER.
+_Avoid_: lineup, squad, starting seven
+
+**Race role**:
+What a member does in one race: **RACER** runs the full mile; **ACE** runs to the
+joker zone and hands over the mace; **JOKER** takes the mace and finishes. ACE and
+JOKER form a pair. A race role belongs to a race composition, not to the member — the
+same runner may be a RACER one night and a JOKER the next.
+_Avoid_: position, team role (that is manager / member)
+
+**Manager**:
+The one member who owns a team on the platform: creates it, invites, accepts join
+requests, and is the organiser's contact. A manager is also a runner on the roster. The
+role can be handed to another member; a team always has exactly one.
+_Avoid_: owner, admin (of a team), leader, captain (see below)
+
+**Captain**:
+A rules term (team rules §2.3.3) for the runner who speaks for the team on race day.
+Not a platform role in team formation; expected to be picked with the race composition
+at check-in. Never use it for the **Manager**.
+_Avoid_: using it for the team owner
+
+**Recruiting**:
+A team's declared state of wanting more runners. Set by the manager (first asked at
+creation), it lists the team publicly for join requests and marks it in admin for the
+organiser to place solo runners. Off means the roster is considered full by the team.
+_Avoid_: open (that is a legacy team status), looking-for-players
+
+**Invitation**:
+A manager's offer to one email address to join the team: a persisted, single-use,
+expiring record with a status (pending → accepted / declined / revoked / expired).
+Addressed to an email, but accepted by whichever account opens it. Resending reissues
+the same invitation rather than creating a second one.
+_Avoid_: invite link (the link is a view of the invitation), invite code (that is the
+team code)
+
+**Team code**:
+A short, typable, rotatable identifier a manager shares so runners can find the team
+and ask to join. Knowing the code never admits anyone by itself — it only lets you
+knock. Distinct from the legacy code, which was the invite.
+_Avoid_: invite code, join code, password
+
+**Join request**:
+A signed-in runner's ask to become a member, created by entering the team code or
+from the public recruiting list. Pending until the manager accepts or declines, or the
+runner withdraws. The mirror image of an **Invitation**: the runner initiates.
+_Avoid_: application, request (bare), candidacy
+
 ### Legacy (frozen — warsaw-2026 team format)
 
 **Legacy participation**:
@@ -215,7 +308,7 @@ The one-time script that reads the frozen `runners` table (read-only), creates
 unverified `users` accounts per unique email, and writes legacy participations.
 Results entries with no matching runner row (no email) are reported, not imported.
 
-**Team / captain / slot**:
+**Legacy team / captain / slot**:
 The legacy team-registration stack (`teams`, `runners`, `slot_counter`). Frozen with
 the completed warsaw-2026 event; never revived for the individual series, which uses
 `event_registrations` keyed by `event_slug` with no team concept.
