@@ -65,3 +65,15 @@ export function dateOfBirthFormatSchema() {
     .regex(/^\d{4}-\d{2}-\d{2}$/, DATE_FORMAT_ERROR)
     .refine((v) => !Number.isNaN(Date.parse(v)), DATE_FORMAT_ERROR);
 }
+
+/**
+ * Format a local calendar date as YYYY-MM-DD — the inverse of `parseDateOnly`.
+ * Never `toISOString().slice(0, 10)` on a local date: that converts to UTC first
+ * and lands one day early on any host east of Greenwich (#53 snapshot bug).
+ */
+export function formatDateOnly(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}

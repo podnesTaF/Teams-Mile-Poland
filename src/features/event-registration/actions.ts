@@ -34,6 +34,7 @@ import {
   meetsMinParticipantAge,
   MIN_PARTICIPANT_AGE_ERROR,
   parseDateOnly,
+  formatDateOnly,
 } from "@/lib/age";
 
 /**
@@ -213,7 +214,7 @@ export async function registerForEvent(
         locale,
         snapshot: {
           fullName,
-          birthDate: dob.toISOString().slice(0, 10),
+          birthDate: formatDateOnly(dob),
           phoneEmail: phoneEmailLine({ email: user.email, phone: profile.phone }),
           address: submission.address ?? "",
           emergencyContact: submission.emergencyContact,
