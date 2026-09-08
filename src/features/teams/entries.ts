@@ -253,6 +253,7 @@ export async function getEntryMembers(entryId: string): Promise<EntryMemberView[
       dateOfBirth: users.dateOfBirth,
       consentPending: eventRegistrations.consentPending,
       bib: eventRegistrations.bib,
+      bibReturnedAt: eventRegistrations.bibReturnedAt,
     })
     .from(teamEntryMembers)
     .innerJoin(users, eq(users.id, teamEntryMembers.userId))
@@ -275,7 +276,9 @@ export async function getEntryMembers(entryId: string): Promise<EntryMemberView[
       dateOfBirth: coerceDob(row.dateOfBirth),
       consentPending: row.consentPending,
       confirmed: !row.consentPending,
-      bib: row.bib,
+      // A bib is a lease (ADR 0003): the number is retained after it returns to
+      // the pool, so a swapped-out reserve must not read as still wearing it.
+      bib: row.bibReturnedAt ? null : row.bib,
       raceRole: row.raceRole,
       pairNo: row.pairNo,
       stageOption: row.stageOption,
