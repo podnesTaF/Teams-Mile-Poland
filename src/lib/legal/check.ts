@@ -15,6 +15,14 @@
  *     missing `pl`/`en`/`ua` file fails the build rather than falling back
  *     (PRD cross-cutting decision 1). Read-only appendices are exempt: they fall
  *     back to Polish with a notice.
+ *  3. **An `eventless` document that still contains a fill token.** The flag
+ *     claims the text names no race night, and `/[locale]/legal/[doc]` serves it
+ *     with no event and therefore no values: a surviving `__EVENT_DATE__` would
+ *     reach the reader as literal prose. Same accident as (1) — a pandoc rerun
+ *     over a re-issued `.docx` reintroducing a token — so the same remedy, but
+ *     it needs saying separately because a *deliberate* re-issue that adds a
+ *     token would be hashed happily by `npm run legal:hash -- --write` and only
+ *     this check would notice the document is no longer event-independent.
  *
  * A missing *file* for a registered locale is reported as drift too — it is the
  * same class of accident (a regeneration that dropped a language) and the same
@@ -27,17 +35,25 @@
 import fs from "node:fs";
 
 import { hashFile, legalDocPath, LEGAL_CONTENT_DIR } from "./content";
+import { LEGAL_TOKENS } from "./fill";
 import { type DocLocale, LEGAL_DOCS } from "./manifest";
 
 /** The three locales every signable document must ship in. */
 const REQUIRED_LOCALES: readonly DocLocale[] = ["pl", "en", "ua"];
+
+/**
+ * Every `__TOKEN__` the corpus knows about, straight from the filler so the two
+ * cannot drift: a token added to `fill.ts` is a token this guard rejects in an
+ * `eventless` document from the same commit.
+ */
+const FILL_TOKENS: readonly string[] = Object.keys(LEGAL_TOKENS);
 
 export type LegalManifestProblem = {
   /** Repo-relative path of the offending file — always named, so the fix is obvious. */
   file: string;
   slug: string;
   locale: DocLocale;
-  reason: "missing-file" | "missing-translation" | "hash-mismatch";
+  reason: "missing-file" | "missing-translation" | "hash-mismatch" | "eventless-token";
   detail: string;
 };
 
@@ -106,6 +122,27 @@ export function checkLegalManifest(): LegalManifestProblem[] {
             `and run \`npm run legal:hash -- --write\`. If you did not mean to change ` +
             `it, a pandoc rerun has almost certainly wiped the __TOKEN__ fills — ` +
             `restore the file from git.`,
+        });
+      }
+
+      // 3. An `eventless` document is served with no event and no consent
+      // record behind it, so there is nothing a token could be filled from.
+      if (!doc.eventless) continue;
+      const text = fs.readFileSync(absolute, "utf8");
+      const found = FILL_TOKENS.filter((token) => text.includes(token));
+      if (found.length > 0) {
+        problems.push({
+          file: repoPath(locale, doc.slug),
+          slug: doc.slug,
+          locale,
+          reason: "eventless-token",
+          detail:
+            `"${doc.slug}" is marked \`eventless\` in src/lib/legal/manifest.ts but this ` +
+            `file still contains ${found.join(", ")}. An event-independent document is ` +
+            `served at /[locale]/legal/${doc.slug} with no event and no consent record, so ` +
+            `the token has nothing to fill it and would print to the reader as literal ` +
+            `prose. Either remove the token from the document, or drop \`eventless\` and ` +
+            `keep serving it under an event slug.`,
         });
       }
     }

@@ -86,6 +86,16 @@ export type DocFile = { sha256: string };
  * partial with `pl` required as the fallback source. Collapsing both into one
  * partial map would have weakened the signable case — the case the whole feature
  * exists to protect — so the split is deliberate.
+ *
+ * `eventless` is optional and absent by default, because the event-scoped route
+ * is the norm: a document is only flagged when its text names no race night at
+ * all. Concretely that means *no fill token in any registered locale* — a
+ * flagged document is published at `/[locale]/legal/<slug>` with nothing to fill
+ * it from, so a surviving `__EVENT_DATE__` would print as literal prose to a
+ * reader with no way to know what date was meant. The flag is a claim about the
+ * bytes, so `src/lib/legal/check.ts` verifies it against the bytes and fails the
+ * build naming the file — the same treatment the sha256 gets, for the same
+ * reason: a pandoc rerun can reintroduce a token without touching this file.
  */
 export type LegalDoc =
   | {
@@ -96,6 +106,8 @@ export type LegalDoc =
       signable: true;
       /** True only for the Statement: the document that prints personal tokens. */
       personalised: boolean;
+      /** See {@link LegalDoc} — publishable at `/[locale]/legal/<slug>`. */
+      eventless?: true;
       locales: Record<DocLocale, DocFile>;
     }
   | {
@@ -104,7 +116,8 @@ export type LegalDoc =
       version: string;
       signable: false;
       personalised: boolean;
-      /** `pl` is required — it is what a missing translation falls back to. */
+      /** See {@link LegalDoc} — publishable at `/[locale]/legal/<slug>`. */
+      eventless?: true;
       locales: { pl: DocFile } & Partial<Record<DocLocale, DocFile>>;
     };
 
@@ -183,6 +196,7 @@ export const LEGAL_DOCS: readonly LegalDoc[] = [
     version: "2026-09-01",
     signable: true,
     personalised: false,
+    eventless: true,
     locales: {
       pl: { sha256: "888338486a89474bc35e337ba6b426472720aaa2056b5d2f901f70edeb27fc0f" },
       en: { sha256: "41d54ed39ccc5448f185d88633ff6452715a9b04afd3752e97766ca0bdf78c12" },
@@ -195,6 +209,7 @@ export const LEGAL_DOCS: readonly LegalDoc[] = [
     version: "2026-09-01",
     signable: true,
     personalised: false,
+    eventless: true,
     locales: {
       pl: { sha256: "493c085b309742fa98dff37b2de81ac072876efe0071493d6300615565718eda" },
       en: { sha256: "a3a110808be7e24d7a9b1cb3f6cf56fb74ffca8ee416b014b087e7fc308138b4" },
@@ -219,6 +234,7 @@ export const LEGAL_DOCS: readonly LegalDoc[] = [
     version: "2026-09-01",
     signable: false,
     personalised: false,
+    eventless: true,
     locales: {
       pl: { sha256: "32f50865d2be4d6253ec33fb88fc17e4a79333e1202af7eac496bf4d8097d9db" },
       en: { sha256: "6423003198e67072b6008a58ed1ea31e87b0c8c55253f5611adc864e3f95fef6" },
@@ -231,6 +247,7 @@ export const LEGAL_DOCS: readonly LegalDoc[] = [
     version: "2026-09-01",
     signable: false,
     personalised: false,
+    eventless: true,
     locales: {
       pl: { sha256: "51ffde1344e2b8ef16737bb94af89627ec52908c5a86e70f9deabbf002989ee1" },
       en: { sha256: "f8da443715f340eb78aed8e20a56f4d489de3e2b357db6e24306aa58e0239866" },
@@ -243,6 +260,7 @@ export const LEGAL_DOCS: readonly LegalDoc[] = [
     version: "2026-09-01",
     signable: false,
     personalised: false,
+    eventless: true,
     locales: {
       pl: { sha256: "dba59b2512a9f81c63abd687c2df7ce9f7a942f1db2435b8ac1db4e9873509f5" },
       en: { sha256: "f835a62c5427f79bddabab8a209caa557aefddb247bbbb9226d61567b7d35d85" },
@@ -255,6 +273,7 @@ export const LEGAL_DOCS: readonly LegalDoc[] = [
     version: "2026-09-01",
     signable: false,
     personalised: false,
+    eventless: true,
     locales: {
       pl: { sha256: "c8e23bb95c411d22a4b435bc2733443005eae6c2fe159dd5ef1d396e32138ea7" },
       en: { sha256: "e01db767afdff3206ead62f68fa9f7bc924727ab08f8b507712fe35f7c2c8435" },
@@ -369,6 +388,18 @@ export function getSignableDocs(set: DocSet): LegalDoc[] {
 /** The consent form for a set — empty for `team`, see {@link CONSENT_ITEMS}. */
 export function getConsentItems(set: DocSet): ConsentItem[] {
   return CONSENT_ITEMS.filter((i) => i.set === set);
+}
+
+/**
+ * The documents publishable without an event, publication order.
+ *
+ * The one source for `/[locale]/legal/[doc]`: both its `generateStaticParams`
+ * and its 404 check read this list, so a slug is prerendered exactly when it is
+ * servable there and the event-scoped Statement can never leak onto a URL that
+ * would imply it applied to no event in particular.
+ */
+export function getEventlessDocs(): LegalDoc[] {
+  return LEGAL_DOCS.filter((d) => d.eventless === true);
 }
 
 /** Whether a document declares a file for a locale (read-only docs may not). */
