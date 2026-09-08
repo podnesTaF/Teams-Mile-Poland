@@ -1092,7 +1092,14 @@
         "txt": "Results appear here during and after the race night, as soon as the timing crew's files are imported."
       }
     },
-    "teamEvent": {}
+    "teamEvent": {
+      "enteredLabel": "Teams entered",
+      "enteredSub": "Complete teams on the entry list",
+      "notice": "This is a team night. Entry is by team — a manager enters a complete team, and every member then confirms their own participation.",
+      "cta": "Find or create a team",
+      "rulesLink": "Team Mile Rules",
+      "regulationsLink": "Public Regulations"
+    }
   },
   "auth": {
     "google": "Continue with Google",
@@ -1269,7 +1276,9 @@
         "already": "Your attendance is already confirmed.",
         "failed": "We could not confirm that registration. Open the link from your ticket email and try again.",
         "ineligible": "This registration is marked as a no-show. Please contact the organizers."
-      }
+      },
+      "awaitingConfirmation": "Awaiting your confirmation — your manager entered you, and we still need your acceptances.",
+      "confirmCta": "Confirm"
     },
     "results": {
       "title": "My results",
@@ -1617,11 +1626,94 @@
         "outro": "You are free to join another team in this category, or to start one yourself.",
         "cta": "Start your own team"
       },
-      "confirmRequest": {},
-      "entryWithdrawn": {}
+      "confirmRequest": {
+        "subject": "Confirm your participation — {event}",
+        "subjectReminder": "Reminder: confirm your participation — {event}",
+        "preview": "One link, one button — confirm your place at {event}.",
+        "eyebrow": "Team entry",
+        "title": "Confirm your participation",
+        "greeting": "Hi {name},",
+        "introEntry": "{team} has entered {event}, and you are on the entry.",
+        "introAdded": "You have been added to {team}'s entry for {event}.",
+        "introReminder": "A reminder: {team} has entered {event} and we still need your confirmation.",
+        "body": "Open the link below. Your name, date of birth and phone number are already filled in — read the team rules and regulations, tick each acceptance, answer the image question and press one button.",
+        "outro": "Until you confirm, we cannot check you in on the night.",
+        "cta": "Confirm my participation",
+        "note": "This link is personal to you. Please do not forward it.",
+        "teamLabel": "Team",
+        "categoryLabel": "Category",
+        "regionLabel": "Region"
+      },
+      "entryWithdrawn": {
+        "subject": "Withdrawn from {event}",
+        "preview": "{team} is no longer racing {event}.",
+        "eyebrow": "Team entry",
+        "title": "Your team has been withdrawn",
+        "greeting": "Hi {name},",
+        "intro": "{team}'s entry for {event} has been withdrawn. You are no longer registered for that night — please do not travel to the venue.",
+        "outro": "Your manager can enter the team again while registration is open.",
+        "cta": "Open my team",
+        "teamLabel": "Team",
+        "categoryLabel": "Category",
+        "regionLabel": "Region"
+      }
     },
-    "entry": {},
-    "entryPage": {}
+    "entry": {
+      "heading": "Enter an event",
+      "hint": "Your team enters as a unit. Every member then gets one email with one link to confirm their own participation.",
+      "noOpenEvents": "No team event is taking entries right now.",
+      "enter": "Enter this event",
+      "working": "Working…",
+      "entered": "Entered",
+      "openEntry": "Open entry",
+      "listHeading": "Entries",
+      "confirmedOf": "{confirmed} of {total} confirmed",
+      "status": {
+        "entered": "Entered",
+        "checked_in": "Checked in",
+        "finished": "Finished",
+        "dsq": "Disqualified"
+      },
+      "incompleteDetail": "Your team is not complete yet — {count} more needed.",
+      "underageDetail": "{name} will be under 18 on the event date."
+    },
+    "entryPage": {
+      "back": "Back to {team}",
+      "eyebrow": "Team entry",
+      "teamLine": "Entered by {team}",
+      "rulesVersion": "Rating rules {version}",
+      "checklistHeading": "Confirmations",
+      "confirmedSummary": "{confirmed} of {total} members have confirmed.",
+      "lockedNotice": "This team has checked in. The race composition is final.",
+      "confirmed": "Confirmed",
+      "awaiting": "Awaiting confirmation",
+      "reserve": "Reserve",
+      "role": {
+        "racer": "RACER",
+        "ace": "ACE",
+        "joker": "JOKER"
+      },
+      "memberNotice": "Only your team's manager can change this entry.",
+      "controlsHeading": "Manager controls",
+      "lockedControls": "The team has checked in — the entry can no longer be changed.",
+      "remind": "Remind",
+      "remindHint": "A reminder can be sent to each member once a day.",
+      "remindSent": "Reminder sent to {name}.",
+      "remove": "Remove",
+      "removeTitle": "Remove from the entry?",
+      "removeMessage": "{name} will lose their registration for this event.",
+      "removeConfirm": "Remove",
+      "cancel": "Cancel",
+      "addLabel": "Add a member",
+      "addHint": "Roster members who are not on this entry.",
+      "addPlaceholder": "Choose a member…",
+      "add": "Add",
+      "withdraw": "Withdraw the team",
+      "withdrawTitle": "Withdraw this entry?",
+      "withdrawMessage": "The entry and every member's registration will be deleted, and all members will be emailed.",
+      "withdrawConfirm": "Withdraw",
+      "working": "Working…"
+    }
   },
   "register": {
     "eyebrow": "Confirm registration",

@@ -3,6 +3,10 @@ import { boolean, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid }
 
 import { users } from "./auth";
 import { eventHeats } from "./event-heats";
+// Circular by construction — `team_entry_members.registration_id` points back
+// here — and safe because every Drizzle `references()` is a lazy callback that
+// runs long after both modules have finished loading.
+import { teamEntries } from "./team-entries";
 
 /**
  * Participation lifecycle for individual events. Live model:
@@ -76,6 +80,34 @@ export const eventRegistrations = pgTable(
     notifiedHeatId: uuid("notified_heat_id"),
     notifiedHeatTime: timestamp("notified_heat_time", { withTimezone: true }),
     checkedInAt: timestamp("checked_in_at", { withTimezone: true }),
+    /**
+     * The team entry this registration was created by (PRD #64). `null` for
+     * every individually-registered row, which is all of them until a manager
+     * enters a team — the individual path never writes this column.
+     *
+     * `set null` rather than cascade, because it is only a back-link: it must
+     * never be the reason a registration disappears. (Withdrawal deletes the
+     * registrations *explicitly*, in the same transaction as the entry.)
+     */
+    teamEntryId: uuid("team_entry_id").references(() => teamEntries.id, {
+      onDelete: "set null",
+    }),
+    /**
+     * True between team entry and the member's own confirmation: the
+     * registration exists, its consent evidence does not yet (PRD #64,
+     * "Consent is pending, not absent").
+     *
+     * A flag rather than a new `participation_status` value on purpose — the
+     * participation enum is deprecated territory (see above) and this state is
+     * transient. `confirmed member` is defined as exactly `consent_pending =
+     * false`, and no consent row is ever written on a member's behalf, so this
+     * is the one column team check-in tests before admitting a runner.
+     *
+     * Defaults to `false`, which is what keeps the individual path untouched:
+     * `registerForEvent` writes consent and registration together and never
+     * mentions this column.
+     */
+    consentPending: boolean("consent_pending").default(false).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [

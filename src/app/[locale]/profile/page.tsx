@@ -46,7 +46,7 @@ import { formatTime } from "@/lib/events/time";
 import type { EventSummary } from "@/lib/events/types";
 import { getDirectResultRefs, getMergedResults } from "@/lib/events/results-data";
 import { findUserResults } from "@/lib/events/user-results";
-import { defaultLocale } from "@/lib/i18n/config";
+import { defaultLocale, localePath } from "@/lib/i18n/config";
 import { getUser, isAdmin, isProfileComplete } from "@/lib/auth/user-session";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -361,7 +361,16 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                   const [y, m, d] = (event?.date ?? "").split("-");
                   const day = d ? String(parseInt(d, 10)) : reg.eventSlug;
                   const month = m ? MONTHS[parseInt(m, 10) - 1] ?? "" : "";
+                  // A team-entered registration whose member has not opened
+                  // their link yet (PRD #64, user story 24). It is *not* the
+                  // same thing as the remote attendance confirmation below:
+                  // this one is the Statement and the team document set, and
+                  // until it is done the runner cannot be checked in at all —
+                  // so it takes over the card's action slot entirely. No ticket
+                  // button either: there is nothing to show at the desk yet.
+                  const awaitingTeamConfirm = reg.consentPending;
                   const canConfirm =
+                    !awaitingTeamConfirm &&
                     awaitingConfirmation(reg) &&
                     isConfirmationOpen({
                       event,
@@ -396,6 +405,11 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                             </span>
                           ) : null}
                         </div>
+                        {awaitingTeamConfirm ? (
+                          <div className="reg-card__ask" data-awaiting-confirmation={reg.id}>
+                            {t("registrations.awaitingConfirmation")}
+                          </div>
+                        ) : null}
                         {canConfirm ? (
                           <div className="reg-card__ask">{t("registrations.confirm.ask")}</div>
                         ) : null}
@@ -412,7 +426,22 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                             surface="profile"
                           />
                         ) : null}
-                        {active ? (
+                        {awaitingTeamConfirm ? (
+                          // The signed-in route into the confirmation screen
+                          // (#68) — the same page the emailed link opens, minus
+                          // the `?s=` signature, which the screen only needs
+                          // when there is no session (user story 21).
+                          <a
+                            className="btn btn-sm btn-red"
+                            href={localePath(
+                              locale,
+                              `/events/${reg.eventSlug}/confirm/${reg.id}`,
+                            )}
+                            data-confirm-cta={reg.id}
+                          >
+                            {t("registrations.confirmCta")}
+                          </a>
+                        ) : active ? (
                           <a
                             className={`btn btn-sm ${canConfirm ? "btn-stroke-dark" : "btn-red"}`}
                             href={makeEventTicketUrl(reg.id, { locale })}

@@ -1092,7 +1092,14 @@
         "txt": "Wyniki pojawią się tutaj w trakcie i po nocy biegowej, gdy tylko pliki z pomiaru czasu zostaną zaimportowane."
       }
     },
-    "teamEvent": {}
+    "teamEvent": {
+      "enteredLabel": "Zgłoszone drużyny",
+      "enteredSub": "Kompletne drużyny na liście zgłoszeń",
+      "notice": "To bieg drużynowy. Zgłoszenia przyjmujemy tylko od drużyn — menedżer zgłasza kompletną drużynę, a każdy zawodnik potwierdza swój udział sam.",
+      "cta": "Znajdź lub utwórz drużynę",
+      "rulesLink": "Zasady biegu drużynowego",
+      "regulationsLink": "Regulamin Publiczny"
+    }
   },
   "auth": {
     "google": "Kontynuuj z Google",
@@ -1269,7 +1276,9 @@
         "already": "Twoja obecność jest już potwierdzona.",
         "failed": "Nie udało się potwierdzić tej rejestracji. Otwórz link z e-maila z biletem i spróbuj ponownie.",
         "ineligible": "Ta rejestracja jest oznaczona jako nieobecność. Skontaktuj się z organizatorami."
-      }
+      },
+      "awaitingConfirmation": "Czeka na Twoje potwierdzenie — menedżer zgłosił Cię do biegu, brakuje jeszcze Twoich zgód.",
+      "confirmCta": "Potwierdź"
     },
     "results": {
       "title": "Moje wyniki",
@@ -1617,11 +1626,94 @@
         "outro": "Możesz teraz dołączyć do innego zespołu w tej kategorii albo założyć własny.",
         "cta": "Załóż własny zespół"
       },
-      "confirmRequest": {},
-      "entryWithdrawn": {}
+      "confirmRequest": {
+        "subject": "Potwierdź swój udział — {event}",
+        "subjectReminder": "Przypomnienie: potwierdź swój udział — {event}",
+        "preview": "Jeden link, jeden przycisk — potwierdź udział w {event}.",
+        "eyebrow": "Zgłoszenie drużyny",
+        "title": "Potwierdź swój udział",
+        "greeting": "Cześć {name},",
+        "introEntry": "Zespół {team} zgłosił się na {event}, a Ty jesteś na liście zgłoszenia.",
+        "introAdded": "Zostałeś dopisany do zgłoszenia zespołu {team} na {event}.",
+        "introReminder": "Przypominamy: zespół {team} zgłosił się na {event} i wciąż czekamy na Twoje potwierdzenie.",
+        "body": "Otwórz link poniżej. Imię, nazwisko, data urodzenia i telefon są już wypełnione — przeczytaj zasady i regulamin drużynowy, zaznacz każdą zgodę, odpowiedz na pytanie o wizerunek i kliknij jeden przycisk.",
+        "outro": "Bez potwierdzenia nie będziemy mogli odprawić Cię w dniu biegu.",
+        "cta": "Potwierdzam udział",
+        "note": "Ten link jest przeznaczony tylko dla Ciebie. Prosimy go nie przekazywać.",
+        "teamLabel": "Zespół",
+        "categoryLabel": "Kategoria",
+        "regionLabel": "Region"
+      },
+      "entryWithdrawn": {
+        "subject": "Wycofanie zgłoszenia — {event}",
+        "preview": "Zespół {team} nie startuje w {event}.",
+        "eyebrow": "Zgłoszenie drużyny",
+        "title": "Twoja drużyna została wycofana",
+        "greeting": "Cześć {name},",
+        "intro": "Zgłoszenie zespołu {team} na {event} zostało wycofane. Nie jesteś już zarejestrowany na ten bieg — prosimy nie przyjeżdżać na miejsce.",
+        "outro": "Menedżer może zgłosić drużynę ponownie, dopóki zapisy są otwarte.",
+        "cta": "Otwórz moją drużynę",
+        "teamLabel": "Zespół",
+        "categoryLabel": "Kategoria",
+        "regionLabel": "Region"
+      }
     },
-    "entry": {},
-    "entryPage": {}
+    "entry": {
+      "heading": "Zgłoś drużynę na bieg",
+      "hint": "Drużyna startuje jako całość. Każdy zawodnik otrzyma potem jednego e-maila z jednym linkiem do potwierdzenia swojego udziału.",
+      "noOpenEvents": "Żaden bieg drużynowy nie przyjmuje teraz zgłoszeń.",
+      "enter": "Zgłoś drużynę",
+      "working": "Przetwarzamy…",
+      "entered": "Zgłoszona",
+      "openEntry": "Otwórz zgłoszenie",
+      "listHeading": "Zgłoszenia",
+      "confirmedOf": "Potwierdzeń: {confirmed} z {total}",
+      "status": {
+        "entered": "Zgłoszona",
+        "checked_in": "Odprawiona",
+        "finished": "Ukończony",
+        "dsq": "Dyskwalifikacja"
+      },
+      "incompleteDetail": "Drużyna nie jest jeszcze kompletna — brakuje {count}.",
+      "underageDetail": "{name} nie będzie mieć 18 lat w dniu biegu."
+    },
+    "entryPage": {
+      "back": "Wróć do {team}",
+      "eyebrow": "Zgłoszenie drużyny",
+      "teamLine": "Zgłoszenie drużyny {team}",
+      "rulesVersion": "Zasady punktacji {version}",
+      "checklistHeading": "Potwierdzenia",
+      "confirmedSummary": "Potwierdziło {confirmed} z {total} zawodników.",
+      "lockedNotice": "Drużyna została odprawiona. Skład na bieg jest zamknięty.",
+      "confirmed": "Potwierdzone",
+      "awaiting": "Oczekuje na potwierdzenie",
+      "reserve": "Rezerwa",
+      "role": {
+        "racer": "RACER",
+        "ace": "ACE",
+        "joker": "JOKER"
+      },
+      "memberNotice": "Tylko menedżer drużyny może zmienić to zgłoszenie.",
+      "controlsHeading": "Panel menedżera",
+      "lockedControls": "Drużyna została odprawiona — zgłoszenia nie można już zmienić.",
+      "remind": "Przypomnij",
+      "remindHint": "Przypomnienie można wysłać do każdego zawodnika raz na dobę.",
+      "remindSent": "Przypomnienie wysłane do {name}.",
+      "remove": "Usuń",
+      "removeTitle": "Usunąć ze zgłoszenia?",
+      "removeMessage": "{name} utraci rejestrację na ten bieg.",
+      "removeConfirm": "Usuń",
+      "cancel": "Anuluj",
+      "addLabel": "Dodaj zawodnika",
+      "addHint": "Zawodnicy z rosteru, których nie ma w tym zgłoszeniu.",
+      "addPlaceholder": "Wybierz zawodnika…",
+      "add": "Dodaj",
+      "withdraw": "Wycofaj drużynę",
+      "withdrawTitle": "Wycofać to zgłoszenie?",
+      "withdrawMessage": "Zgłoszenie i rejestracje wszystkich zawodników zostaną usunięte, a zawodnicy otrzymają e-mail.",
+      "withdrawConfirm": "Wycofaj",
+      "working": "Przetwarzamy…"
+    }
   },
   "register": {
     "eyebrow": "Potwierdź zapis",
