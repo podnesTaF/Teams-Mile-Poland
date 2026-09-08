@@ -19,14 +19,22 @@ function splitName(full: string): { firstName: string; lastName: string } {
 export function SignUpForm({
   locale,
   redirectTo = "/profile",
+  email: invitedEmail,
 }: {
   locale: string;
   redirectTo?: string;
+  /**
+   * Prefilled address (the `?email=` parameter). A team invitation is addressed
+   * to an email, so the invitee should not have to retype it — the field stays
+   * editable, and an existing unverified account for it follows the normal
+   * idempotent resend path.
+   */
+  email?: string;
 }) {
   const t = useTranslations("auth");
   const router = useRouter();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(invitedEmail?.trim() ?? "");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);

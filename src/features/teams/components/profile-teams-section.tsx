@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
 import { getMyTeams } from "../data";
+import { ProfileInvitations } from "./profile-invitations";
 
 /**
  * The profile's `#teams` section — one place for a runner's team life.
@@ -65,10 +66,9 @@ export async function ProfileTeamsSection({ userId }: { userId: string }) {
         </div>
       )}
 
-      {/*
-        SLOT — #60 pending invitations on the profile. One line goes here:
-          <ProfileInvitations userId={userId} />
-      */}
+      {/* SLOT — #60 pending invitations on the profile (accept / decline). */}
+      <ProfileInvitations userId={userId} />
+
 
       {/*
         SLOT — #61 pending join requests on the profile (with withdraw). One line:

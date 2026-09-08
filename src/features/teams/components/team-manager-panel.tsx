@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import type { UserTeamRow } from "@/db/schema/user-teams";
 import { localePath } from "@/lib/i18n/config";
 
+import { InvitationsPanel } from "./invitations-panel";
 import { RotateCodeButton } from "./rotate-code-button";
 import { TeamForm } from "./team-form";
 
@@ -31,11 +32,9 @@ export async function TeamManagerPanel({
       </div>
       <h2 className="iv-title pf-h2">{t("manageHeading")}</h2>
 
-      {/*
-        SLOT — #60 invitations panel. One line goes here:
-          <InvitationsPanel slug={team.slug} locale={locale} />
-        (invite-by-email form + pending invitations with expiry, resend, revoke).
-      */}
+      {/* SLOT — #60 invitations panel (invite by email, resend, revoke). */}
+      <InvitationsPanel team={team} locale={locale} />
+
 
       {/*
         SLOT — #61 join-request queue. One line goes here:
