@@ -72,9 +72,11 @@ export default async function TeamPage({ params }: PageProps) {
           {isMember ? (
             <>
               <TeamRoster
+                slug={team.slug}
                 roster={roster}
                 completeness={completeness}
                 viewerUserId={user?.id ?? null}
+                isManager={isManager}
               />
               <TeamShare code={team.code} joinUrl={joinUrl} />
             </>
