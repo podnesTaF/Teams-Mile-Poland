@@ -1320,6 +1320,7 @@
       "detailsSub": "We'll email a link to confirm your address and finish your registration.",
       "email": "Email",
       "passwordNote": "First confirm your email; your ticket (with a set-password link) arrives right after.",
+      "consentNote": "After confirming your email you'll be shown the event documents — the rules, the participant statement and the GDPR clause — and asked for your consents there.",
       "submit": "Register",
       "signInPrompt": "Already have an account?",
       "signIn": "Sign in"
@@ -1357,6 +1358,39 @@
     "profileCta": "Complete profile",
     "ageTitle": "Minimum age",
     "ageBody": "You must be at least 18 years old on race day to register.",
+    "consent": {
+      "title": "Documents and consents",
+      "subtitle": "Read each document and confirm the statements below. They are recorded with your registration — the version you read, in the language you read it in.",
+      "readDoc": "Read the full document",
+      "itemRequired": "This confirmation is required.",
+      "answerRequired": "Choose one of the two answers.",
+      "requiredNotice": "We cannot admit you to the start line without the required consents.",
+      "incompleteHint": "Answer every item and give an emergency contact to confirm.",
+      "items": {
+        "rulesAndRegulations": "I have read the event rules (\"Public Regulations\") and I agree to follow the course and the instructions of the Organizer, judges and safety services.",
+        "ageHealthRisks": "I declare that on the day of the event I am 18 years of age or older, I take part voluntarily, and my health allows me to safely take part — and I knowingly accept the typical risks of a street race (falls, collisions, dehydration, injuries and others).",
+        "dataTruthfulAndRodo": "I confirm that the details I have provided are true, and I have read the GDPR Information Clause for event participants.",
+        "publicResultsAwareness": "I understand that my name, surname, finishing time, ranking position and sport category may be published publicly, while my contact details, address, date of birth and health information are NOT published.",
+        "prizeDataUnderstanding": "I understand that if I finish in a prize position, payout of the prize requires providing bank transfer details and, where necessary, tax data (§ 7A of the Rules)."
+      },
+      "image": {
+        "question": "Image, photos and recordings — separate voluntary consent",
+        "agree": "I AGREE to the use and dissemination of my individually recognizable image captured during the event in the Organizer's informational, reporting and promotional materials (website, social media), without separate remuneration. I may withdraw this consent for the future at any time.",
+        "agreeNote": "Voluntary consent — you can withdraw it at any time.",
+        "disagree": "I DO NOT CONSENT to the use of my individually recognizable image on the basis of voluntary consent.",
+        "disagreeNote": "Declining does not affect your right to take part in the event."
+      },
+      "emergencyContact": {
+        "label": "Emergency contact (name and phone)",
+        "placeholder": "Anna Kowalska, +48 500 111 222",
+        "hint": "Required — who we call if something happens to you on race night."
+      },
+      "address": {
+        "label": "Home address",
+        "placeholder": "Street, number, postcode, city",
+        "hint": "Optional — never published with the results."
+      }
+    },
     "lifecycle": {
       "upcomingTitle": "Registration opens soon",
       "upcomingBody": "Registration for this race on {date} isn't open yet — check back soon.",

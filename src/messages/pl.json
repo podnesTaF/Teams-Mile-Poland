@@ -1320,6 +1320,7 @@
       "detailsSub": "Wyślemy link, aby potwierdzić Twój adres i dokończyć rejestrację.",
       "email": "E-mail",
       "passwordNote": "Najpierw potwierdź e-mail; bilet (z linkiem do ustawienia hasła) przyjdzie zaraz potem.",
+      "consentNote": "Po potwierdzeniu e-maila pokażemy Ci dokumenty wydarzenia — przepisy, oświadczenie uczestnika i klauzulę RODO — i tam poprosimy o zgody.",
       "submit": "Zarejestruj się",
       "signInPrompt": "Masz już konto?",
       "signIn": "Zaloguj się"
@@ -1357,6 +1358,39 @@
     "profileCta": "Uzupełnij profil",
     "ageTitle": "Minimalny wiek",
     "ageBody": "Aby się zapisać, w dniu wyścigu musisz mieć ukończone co najmniej 18 lat.",
+    "consent": {
+      "title": "Dokumenty i zgody",
+      "subtitle": "Zapoznaj się z każdym dokumentem i potwierdź poniższe oświadczenia. Zapisujemy je razem z Twoim zgłoszeniem — wersję, którą przeczytałeś/-aś, w języku, w którym ją przeczytałeś/-aś.",
+      "readDoc": "Przeczytaj pełny dokument",
+      "itemRequired": "To potwierdzenie jest wymagane.",
+      "answerRequired": "Wybierz jedną z dwóch odpowiedzi.",
+      "requiredNotice": "Bez zaznaczenia wymaganych zgód nie będziemy mogli dopuścić Cię do startu.",
+      "incompleteHint": "Odpowiedz na wszystkie punkty i podaj osobę do kontaktu w nagłym wypadku, aby potwierdzić.",
+      "items": {
+        "rulesAndRegulations": "Zapoznałem/-am się z zasadami wydarzenia („Przepisy Publiczne”) i zobowiązuję się przestrzegać trasy oraz poleceń Organizatora, sędziów i służb bezpieczeństwa.",
+        "ageHealthRisks": "Oświadczam, że w dniu wydarzenia mam ukończone 18 lat, biorę udział dobrowolnie, a mój stan zdrowia pozwala mi na bezpieczny udział — i świadomie przyjmuję typowe ryzyka biegu ulicznego (upadek, zderzenie, odwodnienie, urazy i inne).",
+        "dataTruthfulAndRodo": "Potwierdzam prawdziwość podanych przeze mnie danych oraz zapoznałem/-am się z Klauzulą Informacyjną RODO dla uczestników wydarzenia.",
+        "publicResultsAwareness": "Rozumiem, że moje imię, nazwisko, czas biegu, miejsce w rankingu i kategoria sportowa mogą zostać opublikowane publicznie, natomiast dane kontaktowe, adres, data urodzenia i informacje o zdrowiu NIE są publikowane.",
+        "prizeDataUnderstanding": "Rozumiem, że w przypadku zajęcia miejsca nagrodzonego wypłata nagrody wymaga podania danych do przelewu i — jeśli to niezbędne — rozliczenia podatkowego (§ 7A Regulaminu)."
+      },
+      "image": {
+        "question": "Wizerunek, zdjęcia i nagrania — odrębna dobrowolna zgoda",
+        "agree": "WYRAŻAM ZGODĘ na wykorzystywanie i rozpowszechnianie mojego indywidualnie rozpoznawalnego wizerunku utrwalonego podczas wydarzenia w materiałach informacyjnych, sprawozdawczych i promocyjnych Organizatora (strona internetowa, media społecznościowe), bez odrębnego wynagrodzenia. Zgodę mogę wycofać na przyszłość w dowolnym momencie.",
+        "agreeNote": "Zgoda dobrowolna — możesz ją wycofać w każdej chwili.",
+        "disagree": "NIE WYRAŻAM ZGODY na wykorzystywanie mojego indywidualnie rozpoznawalnego wizerunku na podstawie dobrowolnej zgody.",
+        "disagreeNote": "Brak zgody nie wpływa na Twoje prawo udziału w wydarzeniu."
+      },
+      "emergencyContact": {
+        "label": "Osoba do kontaktu w nagłym wypadku (imię i telefon)",
+        "placeholder": "Anna Kowalska, +48 500 111 222",
+        "hint": "Wymagane — do kogo zadzwonimy, jeśli coś Ci się stanie w trakcie biegu."
+      },
+      "address": {
+        "label": "Adres zamieszkania",
+        "placeholder": "Ulica, numer, kod pocztowy, miasto",
+        "hint": "Opcjonalnie — nie jest publikowany w wynikach."
+      }
+    },
     "lifecycle": {
       "upcomingTitle": "Rejestracja wkrótce się otworzy",
       "upcomingBody": "Rejestracja na ten bieg ({date}) nie jest jeszcze otwarta — zajrzyj wkrótce.",

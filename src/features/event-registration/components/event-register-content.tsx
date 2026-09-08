@@ -3,7 +3,10 @@ import { getTranslations } from "next-intl/server";
 
 import { GuestRegisterForm } from "@/features/event-registration/components/guest-register-form";
 import { RegisterConfirm } from "@/features/event-registration/components/register-confirm";
-import { getRegistration } from "@/features/event-registration/data";
+import {
+  getLatestConsentSnapshot,
+  getRegistration,
+} from "@/features/event-registration/data";
 import { makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import type { ProfileInput } from "@/features/profile/schemas";
@@ -16,6 +19,8 @@ import type { EventSummary } from "@/lib/events/types";
 import { getUser, canRegister } from "@/lib/auth/user-session";
 import { coerceToDate, meetsMinParticipantAge, parseDateOnly } from "@/lib/age";
 import { defaultLocale } from "@/lib/i18n/config";
+import { isTwoAnswerItem } from "@/lib/legal/consent";
+import { docSetForEventType, getConsentItems } from "@/lib/legal/manifest";
 
 /** Serialize a stored DOB (Date via mode:"date", or string) to YYYY-MM-DD. */
 function toDateInput(value: unknown): string {
@@ -151,6 +156,19 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
   const runnerName =
     [u.firstName, u.lastName].filter(Boolean).join(" ").trim() || user.name || user.email;
 
+  // The event's own corpus, and the items it asks for — resolved server-side so
+  // the client never chooses which documents apply to it (ADR 0006).
+  const docSet = docSetForEventType(event.eventType);
+  const consentItems = getConsentItems(docSet).map((item) => ({
+    id: item.id,
+    docSlug: item.docSlug,
+    twoAnswer: isTwoAnswerItem(item),
+  }));
+  // Emergency contact (and address) carried over from the runner's most recent
+  // registration, so a second race night is not a retype (user story 10). Never
+  // read from `users` — it is not a profile field, deliberately.
+  const snapshot = await getLatestConsentSnapshot(user.id);
+
   return (
     <RegisterConfirm
       eventSlug={slug}
@@ -160,6 +178,11 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
       venue={`${event.venue}, ${event.city}`}
       runnerName={runnerName}
       runnerEmail={user.email}
+      docSet={docSet}
+      docLocale={locale as "pl" | "en" | "ua"}
+      consentItems={consentItems}
+      prefillEmergencyContact={snapshot?.emergencyContact ?? ""}
+      prefillAddress={snapshot?.address ?? ""}
     />
   );
 }

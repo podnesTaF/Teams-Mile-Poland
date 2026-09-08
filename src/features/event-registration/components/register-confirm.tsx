@@ -1,12 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 
-import { Link, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
+import type { ConsentItemsInput } from "@/lib/legal/consent";
+import type { DocSet } from "@/lib/legal/manifest";
 
 import { registerForEvent } from "../actions";
+import { ConsentFields, type ConsentItemView } from "./consent-fields";
 
 type Props = {
   eventSlug: string;
@@ -16,17 +18,32 @@ type Props = {
   venue: string;
   runnerName: string;
   runnerEmail: string;
+  /** Which corpus this event's participants accept — the event's, not a guess. */
+  docSet: DocSet;
+  /** The language the documents are being shown in, stored with the evidence. */
+  docLocale: "pl" | "en" | "ua";
+  consentItems: ConsentItemView[];
+  /** From the runner's most recent snapshot, or "" for a first registration. */
+  prefillEmergencyContact: string;
+  prefillAddress: string;
 };
 
 /**
- * Auth-gated confirm step (design `f-register`): a white commit-list summary +
- * a terms/confirm aside. Registration is free, so success routes straight to
- * the ticket. Guard failures (verify/profile) route to the right fix.
+ * Auth-gated confirm step (design `f-register`): a white commit-list summary
+ * plus the consent section, and a confirm aside. Registration is free, so
+ * success routes straight to the ticket.
  *
- * When reached with `?verified=1` (a guest returning from the verification
- * link, now auto-signed-in), it **auto-submits on mount** — no extra click —
- * reusing the same `registerForEvent` path that records `terms=true` and fires
- * the confirmation ticket email. Manual signed-in visits show the confirm form.
+ * **This is where consent is captured** (ADR 0006). Every declaration and
+ * acceptance is its own checkbox linking to its full document, the image
+ * question is a genuine yes/no, and an emergency contact is required — all of it
+ * submitted with the registration so the two are written in one transaction.
+ *
+ * The `?verified=1` auto-submit is gone. A guest returning from the verification
+ * link now sees the documents and confirms, because a registration whose
+ * acceptance was inherited from a form filled days earlier is exactly the
+ * evidence gap this feature closes. Guard failures (verify/profile) still route
+ * to the right fix; age, duplicate and closed each render their own state rather
+ * than a generic banner.
  */
 export function RegisterConfirm({
   eventSlug,
@@ -36,21 +53,53 @@ export function RegisterConfirm({
   venue,
   runnerName,
   runnerEmail,
+  docSet,
+  docLocale,
+  consentItems,
+  prefillEmergencyContact,
+  prefillAddress,
 }: Props) {
   const t = useTranslations("register");
   const router = useRouter();
-  const autoConfirm = useSearchParams().get("verified") === "1";
-  const [terms, setTerms] = useState(false);
+  const [items, setItems] = useState<ConsentItemsInput>({});
+  const [emergencyContact, setEmergencyContact] = useState(prefillEmergencyContact);
+  const [address, setAddress] = useState(prefillAddress);
   const [error, setError] = useState<string | null>(null);
-  const [ageRefused, setAgeRefused] = useState(false);
+  const [problemItems, setProblemItems] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [outcome, setOutcome] = useState<"age" | "duplicate" | "closed" | null>(null);
   const [pending, startTransition] = useTransition();
-  const fired = useRef(false);
+
+  function setItem(id: string, value: true | "agree" | "disagree" | undefined) {
+    setItems((current) => {
+      const next = { ...current };
+      if (value === undefined) delete next[id];
+      else next[id] = value;
+      return next;
+    });
+  }
+
+  /**
+   * Which items the *client* can already see are unanswered. Purely to keep the
+   * submit button honest and to highlight without a round-trip — the decision
+   * that matters is the server's, re-derived from the manifest.
+   */
+  const unanswered = consentItems.filter((item) => items[item.id] === undefined).map((i) => i.id);
+  const complete = unanswered.length === 0 && emergencyContact.trim().length > 0;
 
   function run() {
     if (pending) return;
     setError(null);
+    setProblemItems([]);
+    setFieldErrors({});
     startTransition(async () => {
-      const result = await registerForEvent(eventSlug);
+      const result = await registerForEvent(eventSlug, {
+        docSet,
+        locale: docLocale,
+        items,
+        emergencyContact,
+        address,
+      });
       if (!result.ok) {
         if (result.reason === "profile") {
           router.push(`/profile?redirectTo=/events/${eventSlug}/register`);
@@ -66,7 +115,31 @@ export function RegisterConfirm({
           // event date, so reaching this branch means the runner's stored DOB
           // (or the event date) changed between page load and submit. Render
           // it as its own state, not the generic error banner.
-          setAgeRefused(true);
+          setOutcome("age");
+          return;
+        }
+        if (result.reason === "duplicate") {
+          // Registered in another tab (or a double submit). Refresh so the
+          // server re-renders the already-registered card with its ticket link
+          // rather than this form inventing one.
+          setOutcome("duplicate");
+          router.refresh();
+          return;
+        }
+        if (result.reason === "closed") {
+          setOutcome("closed");
+          router.refresh();
+          return;
+        }
+        if (result.reason === "consent") {
+          const refusal = result.consent;
+          setProblemItems([
+            ...(refusal?.missing ?? []),
+            ...(refusal?.invalid ?? []),
+            ...(refusal?.unknown ?? []),
+          ]);
+          setFieldErrors(refusal?.fields ?? {});
+          setError(result.message);
           return;
         }
         setError(result.message);
@@ -77,52 +150,25 @@ export function RegisterConfirm({
     });
   }
 
-  // Auto-complete for a returning verified guest (terms already accepted on the
-  // guest form). Fire once; a StrictMode double-mount is guarded by the ref.
-  useEffect(() => {
-    if (autoConfirm && !fired.current) {
-      fired.current = true;
-      run();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoConfirm]);
-
-  // Under-18-on-event-date refusal — its own flow state, not a generic error.
-  // Checked after every hook call so this early return stays rules-of-hooks safe.
-  if (ageRefused) {
-    return (
-      <section className="iv-card center-narrow">
-        <span className="iv-eyebrow">{t("ageTitle")}</span>
-        <p className="iv-sub">{t("ageBody")}</p>
-      </section>
-    );
-  }
-
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!terms) return;
+    // Never block silently: an incomplete form submits and comes back with the
+    // server's list of what is missing, which is the only list that counts.
     run();
   }
 
   const dateTime = eventTime ? `${eventDate} · ${eventTime}` : eventDate;
 
-  // Returning verified guest: show a finishing state while we auto-register.
-  // If the auto-submit fails (e.g. a transient error), offer a retry rather
-  // than dead-ending on a static message.
-  if (autoConfirm) {
-    return (
-      <section className="iv-card center-narrow">
-        <span className="iv-eyebrow">{t("confirm.eyebrow")}</span>
-        <p className="iv-sub">{error ?? t("confirm.finishing")}</p>
-        {error ? (
-          <div className="iv-actions">
-            <button type="button" className="btn btn-red" onClick={run} disabled={pending}>
-              {pending ? t("submitting") : t("confirm.submit")}
-            </button>
-          </div>
-        ) : null}
-      </section>
-    );
+  // Terminal states, each its own card rather than a banner over a dead form.
+  // Checked after every hook call so these early returns stay rules-of-hooks safe.
+  if (outcome === "age") {
+    return <StateCard title={t("ageTitle")} body={t("ageBody")} />;
+  }
+  if (outcome === "duplicate") {
+    return <StateCard title={t("alreadyTitle")} body={t("alreadyBody")} />;
+  }
+  if (outcome === "closed") {
+    return <StateCard title={t("lifecycle.closedTitle")} body={t("lifecycle.closedBody")} />;
   }
 
   return (
@@ -143,31 +189,48 @@ export function RegisterConfirm({
             <Row k={t("confirm.runner")} v={runnerName} sub={runnerEmail} />
             <Row k={t("confirm.cost")} v={t("summary.free")} priceTag />
           </div>
+
+          <ConsentFields
+            eventSlug={eventSlug}
+            items={consentItems}
+            values={items}
+            onChange={setItem}
+            emergencyContact={emergencyContact}
+            onEmergencyContact={setEmergencyContact}
+            address={address}
+            onAddress={setAddress}
+            problemItems={problemItems}
+            fieldErrors={fieldErrors}
+            disabled={pending}
+          />
         </div>
 
         <aside>
           <div className="slots-card">
             {error ? <div className="banner banner--red">{error}</div> : null}
-            <label className="auth-check" style={{ color: "var(--ink)" }}>
-              <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
-              <span>
-                {t.rich("terms", {
-                  link: (chunks) => (
-                    <Link href="/terms" target="_blank" rel="noopener noreferrer">
-                      {chunks}
-                    </Link>
-                  ),
-                })}
-              </span>
-            </label>
-            <button type="submit" className="btn btn-red btn-block" disabled={!terms || pending}>
+            <p className="slots-note" style={{ marginBottom: 12 }}>
+              {t("consent.requiredNotice")}
+            </p>
+            <button type="submit" className="btn btn-red btn-block" disabled={pending}>
               {pending ? t("submitting") : t("confirm.submit")}
             </button>
+            {!complete && !pending ? (
+              <p className="slots-note">{t("consent.incompleteHint")}</p>
+            ) : null}
             <p className="slots-note">{t("confirm.note")}</p>
           </div>
         </aside>
       </div>
     </form>
+  );
+}
+
+function StateCard({ title, body }: { title: string; body: string }) {
+  return (
+    <section className="iv-card center-narrow">
+      <span className="iv-eyebrow">{title}</span>
+      <p className="iv-sub">{body}</p>
+    </section>
   );
 }
 

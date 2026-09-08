@@ -14,8 +14,20 @@ import { defaultLocale } from "@/lib/i18n/config";
 import { toE164 } from "@/lib/phone";
 import { applyReferralAttribution, REF_COOKIE } from "@/features/referral/data";
 
-import { createFreeRegistration, hasRegistration } from "./data";
-import { guestRegisterSchema, type GuestRegisterInput } from "./schemas";
+import {
+  buildConsentRows,
+  termsAcceptedFrom,
+  validateConsentItems,
+} from "@/lib/legal/consent";
+import { docSetForEventType } from "@/lib/legal/manifest";
+
+import { createRegistrationWithConsent, hasRegistration } from "./data";
+import {
+  consentSubmissionSchema,
+  type ConsentSubmissionInput,
+  guestRegisterSchema,
+  type GuestRegisterInput,
+} from "./schemas";
 import { makeEventTicketUrl, sendEventTicketEmail } from "./ticket";
 import {
   coerceToDate,
@@ -26,13 +38,31 @@ import {
 
 /**
  * Locale-aware return path baked into the verification link. On click, Better
- * Auth verifies + auto-signs-in, then redirects here; the `?verified=1` marker
- * tells the confirm island to auto-complete the registration.
+ * Auth verifies + auto-signs-in, then redirects here — to the confirm step,
+ * which shows the documents and waits for a real submission.
+ *
+ * The `?verified=1` marker that used to auto-complete the registration is gone
+ * (ADR 0006). Acceptance and the participation it covers have to be one atomic
+ * act: a guest who filled the form on Tuesday cannot be deemed on Thursday to
+ * have accepted a set of documents they were never shown. That costs one click
+ * and buys the invariant.
  */
 function verifiedCallbackPath(locale: string, eventSlug: string): string {
   const prefix = locale === defaultLocale ? "" : `/${locale}`;
-  return `${prefix}/events/${eventSlug}/register?verified=1`;
+  return `${prefix}/events/${eventSlug}/register`;
 }
+
+/**
+ * Field-level detail for a refused consent submission, so the form can point at
+ * the box the runner missed instead of showing a banner and letting them hunt
+ * (user story 12). Ids are `ConsentItem.id`s; `fields` names a text input.
+ */
+export type ConsentRefusal = {
+  missing: string[];
+  invalid: string[];
+  unknown: string[];
+  fields: Record<string, string>;
+};
 
 export type RegisterResult =
   | { ok: true; ticketUrl: string }
@@ -46,17 +76,50 @@ export type RegisterResult =
         | "notfound"
         | "closed"
         | "duplicate"
+        | "consent"
         | "error";
       message: string;
+      /** Present only when `reason === "consent"`. */
+      consent?: ConsentRefusal;
     };
 
+/** The `phoneEmail` line the Statement prints, from whatever the profile holds. */
+function phoneEmailLine(user: { email: string; phone?: string | null }): string {
+  return [user.phone?.trim(), user.email].filter(Boolean).join(" · ");
+}
+
 /**
- * Register the signed-in user for an individual event. Registration is free and
- * uncapped. Guards, in order: session → email verified → profile complete →
- * event open → not already registered. On success a ticket email is sent.
+ * Best-effort request IP. `x-forwarded-for` is a comma-separated chain where the
+ * client is first; Vercel additionally sets `x-real-ip`. Nullable on purpose —
+ * an absent IP is recorded as absent, never as a guess.
  */
-export async function registerForEvent(eventSlug: string): Promise<RegisterResult> {
-  const session = await auth.api.getSession({ headers: await headers() });
+function requestIp(h: Headers): string | null {
+  const forwarded = h.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0]!.trim() || null;
+  return h.get("x-real-ip");
+}
+
+/**
+ * Register the signed-in user for an individual event **and record what they
+ * accepted**, in one transaction (ADR 0006). Registration is free and uncapped.
+ *
+ * Guards, in order: session → email verified → profile complete → 18 on the
+ * event date → event open → not already registered → the consent submission is
+ * valid against the manifest. The last one is re-derived server-side from
+ * `CONSENT_ITEMS`, so a client that omits a required box, ticks the image
+ * question instead of answering it, or invents an item id is refused regardless
+ * of what it rendered.
+ *
+ * On success a ticket email is sent. The email is deliberately *outside* the
+ * transaction: a failed send must not roll back a valid registration and its
+ * consent evidence, and the ticket can be re-sent.
+ */
+export async function registerForEvent(
+  eventSlug: string,
+  consent: ConsentSubmissionInput,
+): Promise<RegisterResult> {
+  const requestHeaders = await headers();
+  const session = await auth.api.getSession({ headers: requestHeaders });
   const user = session?.user;
   if (!user) return { ok: false, reason: "auth", message: "Please sign in to register." };
   if (!user.emailVerified) {
@@ -88,10 +151,78 @@ export async function registerForEvent(eventSlug: string): Promise<RegisterResul
     return { ok: false, reason: "duplicate", message: "You're already registered for this event." };
   }
 
-  const locale = (user as { locale?: string | null }).locale ?? "pl";
+  const parsed = consentSubmissionSchema.safeParse(consent);
+  if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors as Record<string, string[]>;
+    return {
+      ok: false,
+      reason: "consent",
+      message: "Check the consent section and try again.",
+      consent: {
+        missing: [],
+        invalid: [],
+        unknown: [],
+        fields: Object.fromEntries(
+          Object.entries(fieldErrors).map(([key, messages]) => [key, messages[0] ?? "Invalid"]),
+        ),
+      },
+    };
+  }
+  const submission = parsed.data;
+
+  // The set is the event's, not the client's. A submission naming the other
+  // corpus would otherwise be validated against items this event never showed.
+  const docSet = docSetForEventType(event.eventType);
+  if (submission.docSet !== docSet) {
+    return { ok: false, reason: "consent", message: "Check the consent section and try again." };
+  }
+
+  const problem = validateConsentItems(docSet, submission.items);
+  if (problem) {
+    return {
+      ok: false,
+      reason: "consent",
+      message: "Please answer every required item before confirming.",
+      consent: { ...problem, fields: {} },
+    };
+  }
+
+  // The language the documents were actually shown in — not the profile
+  // preference, which may differ from the page the runner read.
+  const locale = submission.locale;
+  const profile = user as typeof user & {
+    firstName?: string | null;
+    lastName?: string | null;
+    phone?: string | null;
+  };
+  const fullName =
+    [profile.firstName, profile.lastName].filter(Boolean).join(" ").trim() ||
+    user.name ||
+    user.email;
 
   try {
-    const registration = await createFreeRegistration({ eventSlug, userId: user.id, locale });
+    const registration = await createRegistrationWithConsent({
+      registration: {
+        eventSlug,
+        userId: user.id,
+        locale,
+        terms: termsAcceptedFrom(docSet, submission.items),
+      },
+      submission: {
+        docSet,
+        locale,
+        snapshot: {
+          fullName,
+          birthDate: dob.toISOString().slice(0, 10),
+          phoneEmail: phoneEmailLine({ email: user.email, phone: profile.phone }),
+          address: submission.address ?? "",
+          emergencyContact: submission.emergencyContact,
+        },
+        ip: requestIp(requestHeaders),
+        userAgent: requestHeaders.get("user-agent"),
+      },
+      consents: buildConsentRows(docSet, submission.items),
+    });
     await sendEventTicketEmail({ registration, user });
     return { ok: true, ticketUrl: makeEventTicketUrl(registration.id, { locale }) };
   } catch (error) {
@@ -117,7 +248,8 @@ export type GuestRegisterResult =
  * `signUpEmail` (random placeholder password; profile fields as
  * additionalFields) — no registration row and no ticket yet. Better Auth's
  * `sendOnSignUp` mails the verification link, whose `callbackURL` returns to
- * `/events/[slug]/register?verified=1`; the confirm island then completes the
+ * `/events/[slug]/register` — the confirm step, where the runner reads the
+ * documents, gives their consents and submits. Only that submission creates the
  * registration and sends the ticket.
  *
  * Repeat submissions of an **unverified** email refresh the stored profile

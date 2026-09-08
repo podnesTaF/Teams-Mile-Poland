@@ -33,15 +33,19 @@ const EMPTY: GuestRegisterInput = {
 
 /**
  * Passwordless "register for this race" form for logged-out visitors. Collects
- * the runner details, creates the account + registration in one step, and (via
- * the server action) emails the ticket + a set-password link. Existing emails
- * are pointed at sign-in instead.
+ * the runner details and creates an **unverified** account; the server action
+ * mails a verification link whose callback returns here, signed in, at the
+ * confirm step. Existing verified emails are pointed at sign-in instead.
+ *
+ * It captures **no consent** (ADR 0006): the documents, the declarations and the
+ * image question all live at the confirm step, so acceptance and the
+ * registration it covers are one atomic act rather than a box ticked days
+ * earlier against a document nobody was shown.
  */
 export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIso, eventTime, venue, locale }: Props) {
   const t = useTranslations("register");
   const tp = useTranslations("profile");
   const [data, setData] = useState<GuestRegisterInput>(EMPTY);
-  const [terms, setTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSignIn, setShowSignIn] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
@@ -87,12 +91,12 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
 
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!terms) return;
     submit(false);
   }
 
-  // "Check your email" state — registration completes only after the visitor
-  // clicks the verification link (which returns them here with ?verified=1).
+  // "Check your email" state — no registration exists until the visitor clicks
+  // the verification link, which returns them to this same page, now signed in,
+  // at the confirm step where the documents are.
   if (sent) {
     return (
       <section className="iv-card center-narrow">
@@ -233,22 +237,18 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
           </div>
         </div>
 
-        <label className="auth-check">
-          <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
-          <span>
-            {t.rich("terms", {
-              link: (chunks) => (
-                <Link href="/terms" target="_blank" rel="noopener noreferrer">
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </span>
-        </label>
+        {/*
+          No terms checkbox here any more (ADR 0006). Consent is captured at the
+          confirm step, after the address is verified and next to the documents
+          themselves — ticking a blanket box days earlier, on a form that names
+          no document and no version, is precisely the evidence gap this feature
+          closes. What this form does is create an unverified account.
+        */}
+        <p className="iv-note">{t("guest.consentNote")}</p>
 
         <div className="form-actions">
           <span className="form-actions__note">{t("guest.passwordNote")}</span>
-          <button type="submit" className="btn btn-red" disabled={!terms || pending}>
+          <button type="submit" className="btn btn-red" disabled={pending}>
             {pending ? t("submitting") : t("guest.submit")}
           </button>
         </div>

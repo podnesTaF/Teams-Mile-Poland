@@ -55,6 +55,17 @@ export const eventRegistrations = pgTable(
     bib: integer("bib"),
     /** Set while the runner holds the bib lease; stamped when it returns to the pool. */
     bibReturnedAt: timestamp("bib_returned_at", { withTimezone: true }),
+    /**
+     * @deprecated Superseded by `consent_submissions` / `registration_consents`
+     * (ADR 0006). It was written as a hardcoded `true` and so records nothing:
+     * not which document, which version, which language, when, or from where.
+     * Retained — not dropped — because the 197 registrations that predate the
+     * consent tables have no other trace of acceptance, and no rows are
+     * backfilled for them. It is no longer written as a literal: the consent
+     * path derives it from the set's `acceptance`-kind items, and paths that
+     * capture no consent (an admin registering a runner by hand) leave it
+     * `false`. Read the consent rows, never this column.
+     */
     terms: boolean("terms").default(false).notNull(),
     locale: text("locale").default("pl").notNull(),
     /** The heat the runner is seeded into; cleared if the heat is deleted. */
