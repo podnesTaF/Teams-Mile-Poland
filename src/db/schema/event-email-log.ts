@@ -27,6 +27,17 @@ export const eventEmailKindEnum = pgEnum("event_email_kind", [
   // (registration, kind) row here records only that the runner has been told
   // about their heat at least once.
   "heat_assignment",
+  // Team entry (PRD #64, slice #67). "Your manager entered you — confirm your
+  // participation", carrying the signed link to the confirmation screen. One
+  // row per (registration, 'team_confirm_request'), which makes it both the
+  // idempotency record *and* the reminder clock: `remindMember` reads `sentAt`
+  // off this row, refuses inside 24 h, and bumps it on a re-send rather than
+  // inserting a second row.
+  "team_confirm_request",
+  // "Your manager withdrew the team." Written in the withdrawal transaction and
+  // then deleted with the registration it belongs to — see the note in
+  // `mail-entries.ts` on why that is still the right place to log it.
+  "team_entry_withdrawn",
 ]);
 
 export const eventEmailLog = pgTable(

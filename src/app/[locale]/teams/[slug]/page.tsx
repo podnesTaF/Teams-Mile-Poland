@@ -5,15 +5,22 @@ import "@/app/landing.css";
 import "@/app/series-flows.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
+import {
+  EntryEnterButton,
+  type EnterableEvent,
+} from "@/features/teams/components/entry-enter-button";
+import { EntryList } from "@/features/teams/components/entry-list";
 import { TeamCard } from "@/features/teams/components/team-card";
 import { TeamManagerPanel } from "@/features/teams/components/team-manager-panel";
 import { TeamRoster } from "@/features/teams/components/team-roster";
 import { TeamShare } from "@/features/teams/components/team-share";
 import { getManagerFirstName, getTeamBySlug, getTeamRoster } from "@/features/teams/data";
 import { computeCompleteness } from "@/features/teams/eligibility";
+import { getOpenTeamEvents, listEntriesForTeam } from "@/features/teams/entries";
 import { Link } from "@/i18n/navigation";
 import { getAppUrl } from "@/lib/app-url";
 import { getUser, userCan } from "@/lib/auth/user-session";
+import { getAllEvents } from "@/lib/events/store";
 import { localePath } from "@/lib/i18n/config";
 
 type PageProps = {
@@ -54,6 +61,29 @@ export default async function TeamPage({ params }: PageProps) {
 
   const joinUrl = `${getAppUrl()}${localePath(locale, `/teams/join/${team.code}`)}`;
 
+  // Team entry (PRD #64, #67). Two blocks, both read here so the components
+  // stay dumb: the manager's "Enter" list of open team events, and the Entries
+  // list every member sees.
+  //
+  // The Enter list is read for the manager only — a plain member cannot enter,
+  // and offering them a button that answers `forbidden` is worse than not
+  // offering it. `getOpenTeamEvents` already excludes the frozen legacy night.
+  const entries = isMember ? await listEntriesForTeam(team.id) : [];
+  const enterableEvents: EnterableEvent[] = isManager
+    ? (await getOpenTeamEvents()).map((event) => ({
+        slug: event.slug,
+        name: event.name,
+        shortDate: event.shortDate,
+        entryId: entries.find((row) => row.entry.eventSlug === event.slug)?.entry.id ?? null,
+      }))
+    : [];
+  // Names for the Entries list, including events that have since closed — the
+  // entry outlives `registration_open`, so `getOpenTeamEvents` cannot name it.
+  const eventNames: Record<string, string> =
+    entries.length > 0
+      ? Object.fromEntries((await getAllEvents()).map((event) => [event.slug, event.name]))
+      : {};
+
   return (
     <div className="ace-landing iv">
       <InteriorHeader />
@@ -85,6 +115,14 @@ export default async function TeamPage({ params }: PageProps) {
               {t("publicRosterHidden")}
             </p>
           )}
+
+          {isManager ? (
+            <EntryEnterButton teamSlug={team.slug} events={enterableEvents} locale={locale} />
+          ) : null}
+
+          {isMember ? (
+            <EntryList teamSlug={team.slug} entries={entries} eventNames={eventNames} />
+          ) : null}
 
           {isManager ? <TeamManagerPanel team={team} locale={locale} /> : null}
         </div>

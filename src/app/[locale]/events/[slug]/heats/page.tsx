@@ -15,6 +15,7 @@ import { getMergedResults } from "@/lib/events/results-data";
 // Straight from the store, not the `registry` compat shim: `isPubliclyVisible`
 // is new API, and the shim exists only so the pre-DB call sites kept compiling.
 import { isPubliclyVisible } from "@/lib/events/store";
+import { isSeriesEvent } from "@/lib/events/types";
 import { formatEventLongDate } from "@/lib/events/time";
 
 /**
@@ -54,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Same gate as the page, so an unannounced night has no title to leak into a
   // tab, a share card or a crawler — metadata renders before the page body and
   // would otherwise answer for a slug the page itself 404s.
-  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
+  if (!event || !isSeriesEvent(event) || !isPubliclyVisible(event)) {
     notFound();
   }
   const t = await getTranslations({ locale, namespace: "events" });
@@ -75,11 +76,15 @@ export default async function EventStartListPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const event = await getEventBySlug(slug);
-  // Fully public — no auth gate. Heats exist for individual events only, and a
-  // draft has no public surface at all (`isPubliclyVisible`) — its start list
-  // would be the one page that names an unannounced night's runners. A cancelled
-  // night passes: its heats stay readable as the record of what was seeded.
-  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
+  // Fully public — no auth gate. Heats exist for every event on the current
+  // stack, individual and `team` alike (PRD #64: a team event's heats hold
+  // whole teams, and #69 groups this list by team), but never for the frozen
+  // legacy night — hence `isSeriesEvent` rather than an `individual` test. A
+  // draft has no public surface at all (`isPubliclyVisible`): its start list
+  // would be the one page that names an unannounced night's runners. A
+  // cancelled night passes — its heats stay readable as the record of what was
+  // seeded.
+  if (!event || !isSeriesEvent(event) || !isPubliclyVisible(event)) {
     notFound();
   }
 

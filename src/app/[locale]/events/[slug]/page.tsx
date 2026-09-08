@@ -10,17 +10,18 @@ import "./heats/heats.css";
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { EventRegisterCta } from "@/features/event-registration/components/event-register-cta";
 import { ResultsTables } from "@/features/event-results/results-tables";
+import { countEntriesForEvent } from "@/features/teams/entries";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { getEventDocuments, resolveDocumentFile } from "@/lib/events/documents";
 import { getEventMediaConfig } from "@/lib/events/media-config";
-import { getEventBySlug, getFirstHeatTime, getIndividualEvents } from "@/lib/events/registry";
+import { getEventBySlug, getFirstHeatTime } from "@/lib/events/registry";
 import { getPublicResults } from "@/lib/events/results-data";
 // Straight from the store, not the `registry` compat shim: `isPubliclyVisible`
 // is new API, and the shim exists only so the pre-DB call sites kept compiling.
-import { isPubliclyVisible } from "@/lib/events/store";
+import { getAllEvents, isPubliclyVisible } from "@/lib/events/store";
 import { formatEventLongDate } from "@/lib/events/time";
-import { type EventStatus, RACE_RESULT_GROUP_URL } from "@/lib/events/types";
+import { isSeriesEvent, type EventStatus, RACE_RESULT_GROUP_URL } from "@/lib/events/types";
 import { defaultLocale } from "@/lib/i18n/config";
 import { venueMapsUrl } from "@/lib/marketing/event";
 
@@ -79,10 +80,17 @@ const BANNER_TONE: Record<DetailState, string> = {
 export const revalidate = 300;
 
 export async function generateStaticParams() {
-  // Individual events including completed ones — a race night that flips to
-  // `completed` must keep its detail page (gallery teaser, gallery back-link,
-  // and the media-live mailing CTA all point at it). `getSeriesEvents` drops
-  // completed events and drives landing cards, so it can't back the params.
+  // Every event on the current stack, including completed ones — a race night
+  // that flips to `completed` must keep its detail page (gallery teaser,
+  // gallery back-link, and the media-live mailing CTA all point at it).
+  // `getSeriesEvents` drops completed events and drives landing cards, so it
+  // can't back the params.
+  //
+  // `isSeriesEvent` rather than an `individual` filter (PRD #64): a `team`
+  // event now has a public page too — the entered-teams count and the
+  // entry-by-team notice — and it has to be prerendered like the rest. The
+  // predicate still excludes the one frozen legacy TEAMS MILE night, whose
+  // public surface is the untouched `/team` stack (ADR 0008).
   //
   // Filtered by `isPubliclyVisible`, which drops drafts and keeps cancelled
   // nights: a cancelled night's page still renders (with its banner), an
@@ -90,8 +98,8 @@ export async function generateStaticParams() {
   // slug — and the name, date and venue on it — the moment it was created.
   // `dynamicParams` stays at its default `true`, so a draft that is later
   // announced renders on first request without a deploy.
-  return (await getIndividualEvents())
-    .filter(isPubliclyVisible)
+  return (await getAllEvents())
+    .filter((event) => isSeriesEvent(event) && isPubliclyVisible(event))
     .map((event) => ({ slug: event.slug }));
 }
 
@@ -106,12 +114,28 @@ export default async function EventDetailPage({ params }: PageProps) {
   // so not found — for an admin reading this page too, since the admin's view of
   // a draft lives in `/admin`. `dynamicParams` means an un-prerendered slug still
   // reaches this handler, so the gate has to be here and not only in the params.
-  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
+  //
+  // `isSeriesEvent` admits `team` events (PRD #64) and still 404s the frozen
+  // legacy night, whose public page is the `/team` stack.
+  if (!event || !isSeriesEvent(event) || !isPubliclyVisible(event)) {
     notFound();
   }
 
   const t = await getTranslations("events");
   const state = detailState(event.status);
+  /**
+   * A team event is entered by its manager, never by a person (PRD #64, user
+   * stories 1 and 2). That changes exactly two things on this page — the count
+   * in the sidebar and the CTA — and nothing else: the facts, the banner, the
+   * documents, the results and the gallery all read the same.
+   *
+   * The count is a `count(*)` and never a list: this page is statically
+   * generated and public, and a team's roster names are not (PRD #57). The
+   * enter/withdraw actions revalidate this route, so the number moves without a
+   * deploy.
+   */
+  const isTeamEvent = event.eventType === "team";
+  const enteredTeams = isTeamEvent ? await countEntriesForEvent(slug) : 0;
   // The event's results — imported rows or a legacy config sheet. Read at
   // build/revalidate time: this page is SSG, and the import commit revalidates
   // it, so results appear with the first mid-event import rather than waiting
@@ -230,7 +254,49 @@ export default async function EventDetailPage({ params }: PageProps) {
                   <div className="slots-val slots-val--free">{t("detail.slots.free")}</div>
                 </div>
 
-                {state === "open" ? (
+                {/* How many teams have entered — the one number a guest needs
+                    to judge a team night (user story 1). Rendered for every
+                    lifecycle state, including 0, because "no teams yet" is the
+                    answer on the day registration opens. */}
+                {isTeamEvent ? (
+                  <div className="slots-row" data-team-entered-count={enteredTeams}>
+                    <div className="slots-lbl">
+                      <b>{t("teamEvent.enteredLabel")}</b>
+                      <small>{t("teamEvent.enteredSub")}</small>
+                    </div>
+                    <div className="slots-val">{enteredTeams}</div>
+                  </div>
+                ) : null}
+
+                {/* A team event has no individual register CTA at all — there
+                    is no per-person entry into one (PRD #64). What replaces it
+                    is the notice that entry is by team and the two documents a
+                    member will be asked to accept, on the eventless legal route
+                    (#58) so they can be read before anyone commits. */}
+                {isTeamEvent ? (
+                  <div data-team-entry-notice="1">
+                    <p className="slots-note">{t("teamEvent.notice")}</p>
+                    {state === "open" ? (
+                      <Link href="/teams" className="btn btn-red btn-block">
+                        {t("teamEvent.cta")}
+                      </Link>
+                    ) : null}
+                    <Link
+                      href="/legal/team-rules"
+                      className="btn btn-stroke-dark btn-block slots-link"
+                      data-team-rules-link="1"
+                    >
+                      {t("teamEvent.rulesLink")}
+                    </Link>
+                    <Link
+                      href="/legal/team-regulations"
+                      className="btn btn-stroke-dark btn-block slots-link"
+                      data-team-regulations-link="1"
+                    >
+                      {t("teamEvent.regulationsLink")}
+                    </Link>
+                  </div>
+                ) : state === "open" ? (
                   <EventRegisterCta
                     slug={slug}
                     registerLabel={t("detail.states.open.cta")}

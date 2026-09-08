@@ -183,6 +183,13 @@
       "when": 1788886597332,
       "tag": "0025_violet_spencer_smythe",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1788898663841,
+      "tag": "0026_gigantic_sentinel",
+      "breakpoints": true
     }
   ]
 }
