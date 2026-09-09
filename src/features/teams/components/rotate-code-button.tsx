@@ -33,12 +33,12 @@ export function RotateCodeButton({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="iv-actions">
+    <div className="team-codebox__action">
       <button type="button" className="btn btn-stroke-dark btn-sm" onClick={rotate} disabled={pending}>
         {pending ? t("rotating") : t("rotate")}
       </button>
       {error ? (
-        <span className="ff-error-msg" role="alert">
+        <span className="field-msg" role="alert">
           {error}
         </span>
       ) : null}

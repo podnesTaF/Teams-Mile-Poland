@@ -80,9 +80,11 @@ export function EntryEnterButton({
 
   if (events.length === 0) {
     return (
-      <section className="iv-share" data-entry-enter="empty">
-        <span className="iv-eyebrow">{t("heading")}</span>
-        <p className="iv-share__hint">{t("noOpenEvents")}</p>
+      <section className="regs-section pf-section" id="enter" data-entry-enter="empty">
+        <div className="section-label">
+          <span className="iv-eyebrow">{t("heading")}</span>
+        </div>
+        <div className="regs-empty">{t("noOpenEvents")}</div>
       </section>
     );
   }
@@ -98,7 +100,7 @@ export function EntryEnterButton({
         setFailedSlug(eventSlug);
         return;
       }
-      // Straight to the entry page: the next thing the manager wants is the
+      // Straight to the entry page: the next thing the captain wants is the
       // checklist of who has confirmed.
       router.push(`/teams/${teamSlug}/entries/${eventSlug}`);
       router.refresh();
@@ -106,13 +108,15 @@ export function EntryEnterButton({
   }
 
   return (
-    <section className="iv-share" data-entry-enter="1">
-      <span className="iv-eyebrow">{t("heading")}</span>
-      <p className="iv-share__hint">{t("hint")}</p>
+    <section className="regs-section pf-section" id="enter" data-entry-enter="1">
+      <div className="section-label">
+        <span className="iv-eyebrow">{t("heading")}</span>
+      </div>
+      <p className="pf-block__sub">{t("hint")}</p>
 
       <div className="reg-list">
         {events.map((event) => (
-          <div key={event.slug} className="reg-card" data-entry-event={event.slug}>
+          <div key={event.slug} className="reg-card reg-card--plain" data-entry-event={event.slug}>
             <div className="reg-card__body">
               <span className="reg-card__title">{event.name}</span>
               <div className="reg-card__meta">
@@ -148,7 +152,7 @@ export function EntryEnterButton({
               )}
             </div>
             {error && failedSlug === event.slug ? (
-              <span className="ff-error-msg" role="alert" data-entry-error={event.slug}>
+              <span className="field-msg" role="alert" data-entry-error={event.slug}>
                 {error}
               </span>
             ) : null}

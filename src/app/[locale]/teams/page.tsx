@@ -21,7 +21,7 @@ type PageProps = {
  * account can browse the whole list and only meets the gate chain when they
  * press "Ask to join" on a team's join page. That is also why the landing CTA
  * points here rather than at `/teams/new`: most people arrive looking for a
- * team, not to found one, and the create link sits on this page for the rest.
+ * team, not to found one, and the create link sits under the list for the rest.
  *
  * Dynamic, not static: recruiting flags change whenever a manager edits a team,
  * and a cached list would send runners to teams that have stopped looking.
@@ -41,7 +41,7 @@ export default async function TeamsPage({ params, searchParams }: PageProps) {
       <InteriorHeader />
       <main className="iv-main">
         <div className="iv-wrap">
-          <div className="page-head" style={{ marginBottom: 16 }}>
+          <div className="page-head team-list__head">
             <span className="iv-eyebrow">{t("listEyebrow")}</span>
             <h1 className="iv-title">{t("listTitle")}</h1>
             <p className="iv-sub">{t("listSubtitle")}</p>
@@ -49,7 +49,7 @@ export default async function TeamsPage({ params, searchParams }: PageProps) {
 
           <RecruitingList category={category} />
 
-          <div className="iv-actions" style={{ marginTop: 24 }}>
+          <div className="team-list__cta">
             <Link className="btn btn-stroke-dark" href="/teams/new">
               {t("listCreateCta")}
             </Link>

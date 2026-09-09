@@ -9,6 +9,10 @@ import { TeamCompletenessTile } from "./team-completeness";
  * The roster with names and roles — **members and admin only**. The page decides
  * who sees it; this component never gates itself, so there is one place to read
  * the rule from.
+ *
+ * The captain's row is marked with a pill and an accent edge; everyone else is a
+ * plain row. Rows use the two-column `reg-card--plain` frame — the default
+ * three-column `reg-card` reserves its first column for a race date.
  */
 export async function TeamRoster({
   slug,
@@ -22,7 +26,7 @@ export async function TeamRoster({
   roster: RosterMember[];
   completeness: TeamCompleteness;
   viewerUserId: string | null;
-  /** The manager, or an admin holding `edit`. Decides which controls render. */
+  /** The captain (`manager` role), or an admin holding `edit`. Decides which controls render. */
   isManager: boolean;
 }) {
   const t = await getTranslations("teams.page");
@@ -40,21 +44,34 @@ export async function TeamRoster({
 
       <div className="reg-list" data-team-roster="1">
         {roster.map((member) => (
-          <div key={member.userId} className="reg-card">
+          <div
+            key={member.userId}
+            className="reg-card reg-card--plain"
+            data-role={member.role}
+          >
             <div className="reg-card__body">
               <span className="reg-card__title">
                 {member.displayName}
-                {member.userId === viewerUserId ? ` ${t("rosterYou")}` : ""}
+                {member.userId === viewerUserId ? (
+                  <span className="reg-card__you"> {t("rosterYou")}</span>
+                ) : null}
               </span>
-              <div className="reg-card__meta">
-                <span>{t(`role.${member.role}`)}</span>
-              </div>
+            </div>
+            <div className="reg-card__actions">
+              {member.role === "manager" ? (
+                <span className="status status--captain">
+                  <span className="status__dot" />
+                  {t("role.manager")}
+                </span>
+              ) : (
+                <span className="reg-card__meta">{t("role.member")}</span>
+              )}
             </div>
           </div>
         ))}
       </div>
 
-      {/* SLOT — #62 roster changes: leave / remove / hand over / dissolve.
+      {/* #62 roster changes: leave / remove / hand over / dissolve.
           Projected to three fields on purpose: island props are serialized into
           the page, and `RosterMember` carries every member's email. */}
       <RosterControls

@@ -47,7 +47,7 @@ export function JoinRequestWithdraw({ requestId }: { requestId: string }) {
         {pending ? t("withdrawing") : t("withdraw")}
       </button>
       {error ? (
-        <span className="ff-error-msg" role="alert">
+        <span className="field-msg" role="alert">
           {error}
         </span>
       ) : null}

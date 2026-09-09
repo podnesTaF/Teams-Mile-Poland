@@ -65,7 +65,7 @@ export function DecisionButtons({ token }: { token: string }) {
         {pending && decision === "decline" ? t("declining") : t("decline")}
       </button>
       {error ? (
-        <span className="ff-error-msg" role="alert">
+        <span className="field-msg" role="alert">
           {error}
         </span>
       ) : null}

@@ -65,7 +65,7 @@ export function JoinRequestDecision({ requestId }: { requestId: string }) {
         {pending && decision === "decline" ? t("declining") : t("decline")}
       </button>
       {error ? (
-        <span className="ff-error-msg" role="alert" data-join-request-error="1">
+        <span className="field-msg" role="alert" data-join-request-error="1">
           {error}
         </span>
       ) : null}

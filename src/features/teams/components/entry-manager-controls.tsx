@@ -213,7 +213,7 @@ export function EntryManagerControls({
         </span>
       ) : null}
       {error ? (
-        <span className="ff-error-msg" role="alert" data-entry-error="1">
+        <span className="field-msg" role="alert" data-entry-error="1">
           {error}
         </span>
       ) : null}

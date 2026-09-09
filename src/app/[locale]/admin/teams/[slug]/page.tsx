@@ -175,7 +175,7 @@ export default async function AdminTeamDetailPage({ params }: PageProps) {
                     <td className={cn(CELL, "text-admin-ink")}>{member.displayName}</td>
                     <td className={CELL}>
                       {member.role === "manager" ? (
-                        <AdminPill tone="accent">Manager</AdminPill>
+                        <AdminPill tone="accent">Captain</AdminPill>
                       ) : (
                         "Member"
                       )}

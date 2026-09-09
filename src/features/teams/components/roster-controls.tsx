@@ -79,11 +79,11 @@ export function RosterControls({
   if (!isOnRoster && !isManager) return null;
 
   return (
-    <div className="iv-actions" data-roster-controls="1" data-roster-manager={isManager ? "1" : "0"}>
+    <div className="roster-controls" data-roster-controls="1" data-roster-manager={isManager ? "1" : "0"}>
       {isManager && others.length > 0 ? (
         <div className="reg-list" data-roster-manager-rows="1">
           {others.map((member) => (
-            <div key={member.userId} className="reg-card">
+            <div key={member.userId} className="reg-card reg-card--plain">
               <div className="reg-card__body">
                 <span className="reg-card__title">{member.displayName}</span>
                 <div className="reg-card__meta">
@@ -116,7 +116,7 @@ export function RosterControls({
         </div>
       ) : null}
 
-      {isManager ? <p className="iv-share__hint">{t("managerHint")}</p> : null}
+      {isManager ? <p className="pf-block__sub roster-controls__hint">{t("managerHint")}</p> : null}
 
       <div className="iv-actions">
         {isOnRoster ? (
@@ -148,9 +148,9 @@ export function RosterControls({
         ) : null}
       </div>
 
-      {pending ? <span className="iv-share__hint">{t("working")}</span> : null}
+      {pending ? <span className="fhint">{t("working")}</span> : null}
       {error ? (
-        <span className="ff-error-msg" role="alert" data-roster-error="1">
+        <span className="field-msg" role="alert" data-roster-error="1">
           {error}
         </span>
       ) : null}

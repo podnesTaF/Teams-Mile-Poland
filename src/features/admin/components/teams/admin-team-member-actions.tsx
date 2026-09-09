@@ -51,8 +51,8 @@ export function AdminTeamMemberActions({
         action="handover"
         target={userId}
         label="Hand over"
-        title="Make this member the manager?"
-        message={`${name} becomes the manager of this team and the current manager becomes a plain member. They are emailed about it.`}
+        title="Make this member the captain?"
+        message={`${name} becomes the captain of this team and the current captain becomes a plain member. They are emailed about it.`}
         confirmLabel="Hand over"
         cancelLabel="Cancel"
         disabled={pending}

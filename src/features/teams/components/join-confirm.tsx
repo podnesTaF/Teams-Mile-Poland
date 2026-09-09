@@ -61,7 +61,7 @@ export function JoinConfirm({ code }: { code: string }) {
         {pending ? t("asking") : t("askToJoin")}
       </button>
       {error ? (
-        <span className="ff-error-msg" role="alert" data-join-error="1">
+        <span className="field-msg" role="alert" data-join-error="1">
           {error}
         </span>
       ) : null}

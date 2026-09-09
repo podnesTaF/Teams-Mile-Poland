@@ -83,7 +83,7 @@ export default async function AdminTeamsPage({
                     Recruiting
                   </th>
                   <th scope="col" className={HEAD_CELL}>
-                    Manager
+                    Captain
                   </th>
                   <th scope="col" className={HEAD_CELL}>
                     Created

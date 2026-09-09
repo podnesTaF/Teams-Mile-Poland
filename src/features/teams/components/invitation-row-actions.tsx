@@ -59,7 +59,7 @@ export function InvitationRowActions({ invitationId }: { invitationId: string })
         {busy === "revoke" ? t("revoking") : t("revoke")}
       </button>
       {error ? (
-        <span className="ff-error-msg" role="alert">
+        <span className="field-msg" role="alert">
           {error}
         </span>
       ) : null}

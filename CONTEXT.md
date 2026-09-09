@@ -239,9 +239,24 @@ both require a complete profile, because eligibility is read from `sex`.
 _Avoid_: player, participant, runner row
 
 **Team entry**:
-A team's registration into one team-type event — the team-level counterpart of a
-runner's **Registration**. One team, one event, at most once.
+A team's registration into one team-type event, made by the **Manager** once the team
+is **Complete**. Creates one **Registration** per entered member in the same
+transaction, so tickets, consent, check-in, bibs, heats and results work unchanged.
+One team, one event, at most once. Members confirm their own consent from one link;
+the manager does everything else.
 _Avoid_: team registration (ambiguous with creating the team), team signup
+
+**Team check-in**:
+The one on-site act, with the manager present, that fixes a team entry's **Race
+composition** — roles, pairs and each pair's **Stage option** — validates it, and
+leases a bib to every composed member. Replaces per-runner check-in for team events.
+_Avoid_: roster confirmation, line-up submission
+
+**Reserve**:
+An entered member left out of the race composition at team check-in. Holds no bib and
+is not checked in, but can be swapped in for an absent composed member until the heat
+starts.
+_Avoid_: bench, substitute (the act is a swap; the person is a reserve)
 
 **Complete (team)**:
 A roster property: the team has reached the lower **Roster limit** — 7 members, or 8
@@ -263,6 +278,48 @@ joker zone and hands over the mace; **JOKER** takes the mace and finishes. ACE a
 JOKER form a pair. A race role belongs to a race composition, not to the member — the
 same runner may be a RACER one night and a JOKER the next.
 _Avoid_: position, team role (that is manager / member)
+
+**Stage**:
+The part of the mile one member of an ACE+JOKER pair runs. The ACE stage runs from
+the start to the joker zone; the JOKER stage from the zone to the finish. Lengths are
+**nominal**: the zone is 40–60 m before the line, so a pair declares one of the
+**Stage options** — about 360+1249, 760+849 or 1160+449 m — and the ±10 m is accepted
+as tolerance. A RACER has no stages.
+_Avoid_: leg, split (a split is a timing reading; a stage is the distance)
+
+**Stage time**:
+The time one pair member took for their stage, read primarily from a timing point in
+the joker zone and only as a fallback hand-entered by the zone judge. Two per pair per
+race.
+_Avoid_: lap time, partial
+
+**Mile-equivalent**:
+The mile time a stage time is worth: the stage time scaled to the nearest World
+Athletics distance, converted to WA points for the runner's sex, and read back as the
+mile time carrying the same points. What an ACE or JOKER's **Level** is computed from.
+_Avoid_: adjusted time, virtual mile, WA points (an intermediate, never shown as the
+result)
+
+**Pair time**:
+The ACE+JOKER pair's ranking time for the team result: ACE stage time + JOKER stage
+time + 24 s (men) or 26 s (women). A team-result component only; nobody's personal
+level is read from it.
+_Avoid_: relay time, combined time
+
+**Team time**:
+A team's result in one race: the sum of its RACER mile times and its two pair times
+(3 RACERS + 2 pairs; mixed: 4 male RACERS + 2 female pairs). Lower is better. Read
+against the division table to place the team in a league and team level.
+_Avoid_: team score, points
+
+**Level**:
+A runner's rating: the best (lowest-numbered) of the 16 AB-mile levels whose time bar
+their best official mile-equivalent meets, sex-aware, from the Runners column. RACERS
+use their mile time; ACEs and JOKERs their stage's **Mile-equivalent**. One level per
+runner across all roles and races; derived at read time, never stored, never lowered.
+There is no points system.
+_Avoid_: rating (the level *is* the rating), rank (that is a position in a list),
+grade, tier
 
 **Manager**:
 The one member who owns a team on the platform: creates it, invites, accepts join

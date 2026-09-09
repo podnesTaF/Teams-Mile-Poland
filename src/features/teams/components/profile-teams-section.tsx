@@ -36,7 +36,7 @@ export async function ProfileTeamsSection({ userId }: { userId: string }) {
       ) : (
         <div className="reg-list" data-my-teams={teams.length}>
           {teams.map(({ team, role, completeness }) => (
-            <div key={team.id} className="reg-card">
+            <div key={team.id} className="reg-card reg-card--plain">
               <div className="reg-card__body">
                 <span className="reg-card__title">{team.name}</span>
                 <div className="reg-card__meta">

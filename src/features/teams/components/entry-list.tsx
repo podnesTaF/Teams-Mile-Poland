@@ -9,10 +9,10 @@ import type { EntrySummary } from "../entries";
  * event this team has entered, with how many members have confirmed.
  *
  * A server component, not an island: nothing here is interactive. Each row is a
- * link into the entry page, which is where the manager's controls live — the
+ * link into the entry page, which is where the captain's controls live — the
  * team page stays a summary and does not grow a second copy of them.
  *
- * Shown to members as well as the manager. A member wants to know who else has
+ * Shown to members as well as the captain. A member wants to know who else has
  * confirmed (user story 26), and the count is the answer without naming
  * anybody.
  */
@@ -31,14 +31,21 @@ export async function EntryList({
   const t = await getTranslations("teams.entry");
 
   return (
-    <section className="iv-share" data-entry-list="1" data-entry-count={entries.length}>
-      <span className="iv-eyebrow">{t("listHeading")}</span>
+    <section
+      className="regs-section pf-section"
+      id="entries"
+      data-entry-list="1"
+      data-entry-count={entries.length}
+    >
+      <div className="section-label">
+        <span className="iv-eyebrow">{t("listHeading")}</span>
+      </div>
 
       <div className="reg-list">
         {entries.map(({ entry, total, confirmed }) => (
           <div
             key={entry.id}
-            className="reg-card"
+            className="reg-card reg-card--plain"
             data-entry-row={entry.eventSlug}
             data-entry-status={entry.status}
           >

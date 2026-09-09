@@ -6,13 +6,13 @@ import { formatTeamDate } from "../mail-invitations";
 import { JoinRequestDecision } from "./join-request-decision";
 
 /**
- * The manager panel's join-request queue: who has knocked, and Accept / Decline
+ * The captain panel's join-request queue: who has knocked, and Accept / Decline
  * for each (PRD #57, user story 32).
  *
  * Names appear here and nowhere public — this block renders only inside the
- * manager view, which is already behind `requireTeamManagerOrAdmin`'s page-side
+ * captain view, which is already behind `requireTeamManagerOrAdmin`'s page-side
  * twin. The empty state is stated rather than hidden: "nobody has asked" is
- * information a manager who has just shared the code wants.
+ * information a captain who has just shared the code wants.
  */
 export async function JoinRequestQueue({ slug, locale }: { slug: string; locale: string }) {
   const t = await getTranslations("teams.requests");
@@ -26,17 +26,17 @@ export async function JoinRequestQueue({ slug, locale }: { slug: string; locale:
   const requests = await listPendingJoinRequests(team.id);
 
   return (
-    <div data-join-request-queue={slug}>
-      <h3 className="iv-title pf-h2">{t("queueHeading")}</h3>
+    <div className="pf-block" data-join-request-queue={slug}>
+      <h3 className="pf-h3">{t("queueHeading")}</h3>
 
       {requests.length === 0 ? (
-        <div className="regs-empty" data-join-requests="empty">
+        <div className="regs-empty regs-empty--tight" data-join-requests="empty">
           {t("queueEmpty")}
         </div>
       ) : (
         <div className="reg-list" data-join-requests={requests.length}>
           {requests.map(({ request, displayName }) => (
-            <div key={request.id} className="reg-card">
+            <div key={request.id} className="reg-card reg-card--plain">
               <div className="reg-card__body">
                 <span className="reg-card__title">{displayName}</span>
                 <div className="reg-card__meta">
