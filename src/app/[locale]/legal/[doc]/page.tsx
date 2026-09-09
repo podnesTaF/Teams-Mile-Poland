@@ -15,6 +15,7 @@ import { InteriorHeader } from "@/components/landing/interior-header";
 import { Link } from "@/i18n/navigation";
 import { locales } from "@/lib/i18n/config";
 import { loadLegalDoc } from "@/lib/legal/content";
+import { resolveLegalDownload } from "@/lib/legal/downloads";
 import { type DocLocale, getEventlessDocs, type LegalDoc } from "@/lib/legal/manifest";
 
 /**
@@ -93,6 +94,8 @@ export default async function EventlessLegalDocumentPage({ params }: PageProps) 
   // guard sees to it), so the fallback arm can only fire for a read-only
   // appendix — and then the notice below says so.
   const { html, lang, usedFallback } = loadLegalDoc(doc, readerLocale);
+  // The approved source file, in the reader's language when it exists.
+  const download = resolveLegalDownload(doc, readerLocale);
 
   return (
     <div className="ace-landing iv">
@@ -107,6 +110,17 @@ export default async function EventlessLegalDocumentPage({ params }: PageProps) 
             <span className="iv-eyebrow">{t("eyebrow")}</span>
             <h1 className="iv-title">{t(`docs.${doc.slug}`)}</h1>
             <p className="legal-doc-meta">{t("versionMeta", { version: doc.version })}</p>
+            {download ? (
+              <a
+                className="btn btn-stroke legal-download"
+                href={download.href}
+                download
+                data-legal-download={download.lang}
+              >
+                {t("download", { lang: download.lang.toUpperCase() })}
+                {download.isFallback ? ` · ${t("downloadFallback")}` : ""}
+              </a>
+            ) : null}
           </header>
 
           <div className="print-area">

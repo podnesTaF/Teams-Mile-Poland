@@ -30,6 +30,20 @@ and the Team Captain provisions are working papers) and **every `ru` file**, sin
 `ru` is not an application locale. They are in the repository, they are not
 published, and the build guard does not hash them.
 
+## Downloadable sources
+
+The approved `.docx` files themselves live under
+`public/docs/legal/<locale>/<slug>.docx` — same locale and slug as the HTML — and
+are offered with a "Download the document" button on both legal routes and as
+attached files on team and mixed event pages. Which documents are offered is
+the static list `DOWNLOADABLE_DOCS` in `src/lib/legal/downloads.ts`: today the
+team corpus (regulations, rules, RODO, statement, appendices 1/3/4/5) in
+pl/en/ua. The individual set has no source files in the repository and shows
+no download. The internal papers (`team-appendix2`, `team-lia`,
+`team-potwierdzenie`, `team-captain`) sit in the same folders, unlinked, like
+their HTML. The build guard fails when a listed document lacks a language's
+file, or when an unlisted document has one.
+
 ## Fill tokens
 
 The documents carry hand-placed `__TOKEN__` markers where the `.docx` had either

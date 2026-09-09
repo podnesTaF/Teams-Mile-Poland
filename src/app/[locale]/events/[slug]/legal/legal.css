@@ -19,6 +19,10 @@
 .ace-landing .legal-head {
   margin-bottom: clamp(24px, 3.5vw, 36px);
 }
+.ace-landing .legal-download {
+  display: inline-flex;
+  margin-top: 14px;
+}
 .ace-landing .legal-doc-meta {
   margin: 12px 0 0;
   font-family: var(--font-cta), "Exo 2", sans-serif;

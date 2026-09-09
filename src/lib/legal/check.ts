@@ -35,6 +35,7 @@
 import fs from "node:fs";
 
 import { hashFile, legalDocPath, LEGAL_CONTENT_DIR } from "./content";
+import { DOWNLOADABLE_DOCS, LEGAL_DOWNLOADS_DIR, legalDownloadPath } from "./downloads";
 import { LEGAL_TOKENS } from "./fill";
 import { type DocLocale, LEGAL_DOCS } from "./manifest";
 
@@ -53,7 +54,12 @@ export type LegalManifestProblem = {
   file: string;
   slug: string;
   locale: DocLocale;
-  reason: "missing-file" | "missing-translation" | "hash-mismatch" | "eventless-token";
+  reason:
+    | "missing-file"
+    | "missing-translation"
+    | "hash-mismatch"
+    | "eventless-token"
+    | "missing-download";
   detail: string;
 };
 
@@ -143,6 +149,43 @@ export function checkLegalManifest(): LegalManifestProblem[] {
             `the token has nothing to fill it and would print to the reader as literal ` +
             `prose. Either remove the token from the document, or drop \`eventless\` and ` +
             `keep serving it under an event slug.`,
+        });
+      }
+    }
+  }
+
+  // 4. The approved `.docx` offered for download next to the rendering
+  // (`downloads.ts`) is a static list, held to the disk here: a listed
+  // document must have its file in every registered language — one reader
+  // must not be handed a file in a language they did not choose while their
+  // neighbour gets their own — and an unlisted document must have none, or the
+  // file is there and nothing links to it.
+  for (const doc of LEGAL_DOCS) {
+    const listed = DOWNLOADABLE_DOCS.includes(doc.slug);
+    for (const locale of Object.keys(doc.locales) as DocLocale[]) {
+      const file = legalDownloadPath(doc.slug, locale);
+      const exists = fs.existsSync(file);
+      if (listed && !exists) {
+        problems.push({
+          file,
+          slug: doc.slug,
+          locale,
+          reason: "missing-download",
+          detail:
+            `"${doc.slug}" is in DOWNLOADABLE_DOCS but its ${locale} source is not at ` +
+            `public/${LEGAL_DOWNLOADS_DIR}/${locale}/${doc.slug}.docx. Place the approved file ` +
+            `there, or take the document off the list so no page offers the download.`,
+        });
+      } else if (!listed && exists) {
+        problems.push({
+          file,
+          slug: doc.slug,
+          locale,
+          reason: "missing-download",
+          detail:
+            `"${doc.slug}" has a source file at ${file} but is not in DOWNLOADABLE_DOCS ` +
+            `(src/lib/legal/downloads.ts), so nothing links to it. Add the slug to the list ` +
+            `once every registered language has its file.`,
         });
       }
     }

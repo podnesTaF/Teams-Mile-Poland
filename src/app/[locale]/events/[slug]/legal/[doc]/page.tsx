@@ -17,6 +17,7 @@ import { formatEventLongDate } from "@/lib/events/time";
 import type { EventSummary } from "@/lib/events/types";
 import { locales } from "@/lib/i18n/config";
 import { loadLegalDoc } from "@/lib/legal/content";
+import { resolveLegalDownload } from "@/lib/legal/downloads";
 import { fillLegalTokens } from "@/lib/legal/fill";
 import {
   type DocLocale,
@@ -117,6 +118,9 @@ export default async function LegalDocumentPage({ params }: PageProps) {
     : "pl";
 
   const { html: source, lang, usedFallback } = loadLegalDoc(doc, readerLocale);
+  // The approved source file, in the reader's language when it exists. The
+  // blank `.docx` — no event date or personal fill in it, unlike the rendering.
+  const download = resolveLegalDownload(doc, readerLocale);
   // The document is read in the reader's language but dated in it too, so the
   // event date is spelled in the language of the *bytes* rather than the URL —
   // a Polish fallback document must not carry a Ukrainian month name.
@@ -147,6 +151,17 @@ export default async function LegalDocumentPage({ params }: PageProps) {
                 version: doc.version,
               })}
             </p>
+            {download ? (
+              <a
+                className="btn btn-stroke legal-download"
+                href={download.href}
+                download
+                data-legal-download={download.lang}
+              >
+                {t("download", { lang: download.lang.toUpperCase() })}
+                {download.isFallback ? ` · ${t("downloadFallback")}` : ""}
+              </a>
+            ) : null}
           </header>
 
           <div className="print-area">

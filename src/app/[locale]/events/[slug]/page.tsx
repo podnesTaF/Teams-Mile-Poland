@@ -158,7 +158,7 @@ export default async function EventDetailPage({ params }: PageProps) {
   // note into the teaser without a deploy.
   const media = state === "completed" ? await getEventMediaConfig(slug) : null;
   const docLocale = hasLocale(routing.locales, locale) ? locale : defaultLocale;
-  const docs = getEventDocuments(slug).flatMap((doc) => {
+  const docs = getEventDocuments(event).flatMap((doc) => {
     const resolved = resolveDocumentFile(doc, docLocale);
     return resolved ? [{ id: doc.id, labelKey: doc.labelKey, ...resolved }] : [];
   });
@@ -220,8 +220,9 @@ export default async function EventDetailPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Attached files. Static for now — every event shares the same
-                  regulations PDF, picked to match the reader's locale. */}
+              {/* Attached files, picked to match the reader's locale: the
+                  regulations PDF on nights with an individual path, the team
+                  corpus as .docx on nights with a team path (ADR 0009). */}
               {docs.length > 0 && (
                 <div className="detail-docs">
                   <span className="ev-eyebrow">{t("docs.heading")}</span>
@@ -230,14 +231,14 @@ export default async function EventDetailPage({ params }: PageProps) {
                       <li key={doc.id}>
                         <a className="doc-row" href={doc.file.href} target="_blank" rel="noopener">
                           <span className="doc-row__ic" aria-hidden>
-                            PDF
+                            {(doc.file.format ?? "pdf").toUpperCase()}
                           </span>
                           <span className="doc-row__body">
                             <span className="doc-row__title">
                               {t(`docs.items.${doc.labelKey}`)}
                             </span>
                             <span className="doc-row__meta">
-                              {`PDF · ${doc.file.lang.toUpperCase()}`}
+                              {`${(doc.file.format ?? "pdf").toUpperCase()} · ${doc.file.lang.toUpperCase()}`}
                               {doc.isFallback ? ` · ${t("docs.fallback")}` : ""}
                             </span>
                           </span>

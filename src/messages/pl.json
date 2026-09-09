@@ -1027,7 +1027,14 @@
       "download": "Pobierz",
       "fallback": "Bez tłumaczenia",
       "items": {
-        "regulations": "Regulamin zawodów"
+        "regulations": "Regulamin zawodów",
+        "team-regulations": "Regulamin Publiczny (TEAM MILE POLAND)",
+        "team-rules": "Zasady Przeprowadzania Drużynowego Biegu Rankingowego",
+        "team-rodo": "Klauzula Informacyjna RODO (Dokument nr 6)",
+        "team-appendix1": "Załącznik 1 — Harmonogram wydarzenia dla uczestników",
+        "team-appendix3": "Załącznik 3 — Kategorie i pula nagród",
+        "team-appendix4": "Załącznik 4 — Kryteria rankingu indywidualnego",
+        "team-appendix5": "Załącznik 5 — Kryteria rankingów zespołowych"
       }
     },
     "timetable": {
@@ -2011,6 +2018,8 @@
     "meta": "Wydarzenie: {event} · Wersja dokumentu {version}",
     "versionMeta": "Wersja dokumentu {version}",
     "previewNotice": "Podgląd. Dane osobowe, data podpisania i podpis są puste, ponieważ nic nie zostało jeszcze zaakceptowane — zostaną uzupełnione w chwili akceptacji tego dokumentu podczas rejestracji.",
+    "download": "Pobierz dokument (DOCX · {lang})",
+    "downloadFallback": "bez tłumaczenia",
     "fallbackNotice": "Tłumaczenie na ten język nie jest jeszcze dostępne — poniżej wersja polska.",
     "attestation": {
       "heading": "Poświadczenie elektroniczne",
