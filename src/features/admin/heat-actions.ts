@@ -11,7 +11,7 @@ import {
 } from "@/features/event-mailings/heat-assignment";
 import { warsawLocalToInstant } from "@/lib/events/heat-time";
 import { getBibPool, getBibSlots, getEventBySlug } from "@/lib/events/registry";
-import { isSeriesEvent } from "@/lib/events/types";
+import { isSeriesEvent, typeAcceptsTeams } from "@/lib/events/types";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 import { clearPreassignedBib, isUniqueViolation, preassignBib } from "./events-data";
@@ -109,9 +109,12 @@ export async function generateHeats(formData: FormData) {
   const pool = await getBibPool(slug);
 
   // A team event's card is laid out in teams per heat; an individual one in
-  // runners. One form field either way, read from the name the page renders.
-  const teams =
-    event.eventType === "team" ? teamCapacities(readInt(formData, "capacityTeams"), pool) : null;
+  // runners. On a mixed night (ADR 0009) the form offers both fields and the
+  // teams figure decides: filled in, these are team heats; blank, individual
+  // ones — a heat's kind is `capacity_teams is not null`, nothing else.
+  const teamsField = typeAcceptsTeams(event.eventType) ? readInt(formData, "capacityTeams") : null;
+  const wantsTeamHeats = event.eventType === "team" || teamsField !== null;
+  const teams = wantsTeamHeats ? teamCapacities(teamsField, pool) : null;
   const capacity = teams ? teams.capacity : readInt(formData, "capacity");
 
   if (count === null || count < 1 || count > MAX_GENERATE_HEATS) {
@@ -160,8 +163,10 @@ export async function updateHeat(formData: FormData) {
 
   const pool = await getBibPool(slug);
   // Same one-field rule as generate: teams per heat on a team event, runners on
-  // an individual one. A blank field means "leave the capacity alone".
-  const teamsRaw = event.eventType === "team" ? readInt(formData, "capacityTeams") : null;
+  // an individual one; on a mixed night the card renders the field only on a
+  // team heat, so its presence says which kind this is. A blank field means
+  // "leave the capacity alone".
+  const teamsRaw = typeAcceptsTeams(event.eventType) ? readInt(formData, "capacityTeams") : null;
   const teams = teamsRaw === null ? null : teamCapacities(teamsRaw, pool);
   if (teamsRaw !== null && teams === null) {
     back(locale, slug, "error=capacity");

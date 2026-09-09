@@ -53,6 +53,7 @@ export function HeatBuilder({
   bibMax,
   canEdit,
   teamEvent = false,
+  mixedEvent = false,
   maxTeams = 0,
 }: {
   locale: string;
@@ -73,6 +74,13 @@ export function HeatBuilder({
    * stay exactly what they are, and are simply of no use on a team night.
    */
   teamEvent?: boolean;
+  /**
+   * A mixed night (ADR 0009) has both kinds of heat on one card: a heat with a
+   * teams figure (`capacity_teams` set) is a team heat and reads like one on a
+   * team night; a heat without one is an individual heat. Solo runners are
+   * moved between the individual heats only.
+   */
+  mixedEvent?: boolean;
   /** Teams-per-heat ceiling the bib pool can chip; the team field's `max`. */
   maxTeams?: number;
 }) {
@@ -217,11 +225,15 @@ export function HeatBuilder({
               defaultValue={heats[0]?.id ?? ""}
               disabled={heats.length === 0}
             >
-              {heats.map((h) => (
-                <option key={h.id} value={h.id}>
-                  Heat {h.number} · {formatHeatTime(h.scheduledAt)} · {h.fill}/{h.capacity}
-                </option>
-              ))}
+              {heats
+                // On a mixed night a team heat is seated by the team desk, so
+                // it is not a target for a solo runner.
+                .filter((h) => !(mixedEvent && h.capacityTeams !== null))
+                .map((h) => (
+                  <option key={h.id} value={h.id}>
+                    Heat {h.number} · {formatHeatTime(h.scheduledAt)} · {h.fill}/{h.capacity}
+                  </option>
+                ))}
             </select>
           </AdminField>
 
@@ -315,7 +327,7 @@ export function HeatBuilder({
             onToggleAll={toggleAll}
             filtering={filtering}
             canEdit={canEdit}
-            teamEvent={teamEvent}
+            teamHeat={teamEvent || (mixedEvent && heat.capacityTeams !== null)}
             maxTeams={maxTeams}
           />
         ))
@@ -344,7 +356,7 @@ function HeatCard({
   onToggleAll,
   filtering,
   canEdit,
-  teamEvent,
+  teamHeat,
   maxTeams,
 }: {
   locale: string;
@@ -359,15 +371,16 @@ function HeatCard({
   onToggleAll: (rows: SeedRow[]) => void;
   filtering: boolean;
   canEdit: boolean;
-  teamEvent: boolean;
+  /** Counted in teams: every heat of a team night, and a mixed night's heats with a teams figure. */
+  teamHeat: boolean;
   maxTeams: number;
 }) {
   // A team heat is full of teams; an individual one of runners. One meter, two
-  // vocabularies, so "is this heat full" is answered in the unit the night is
+  // vocabularies, so "is this heat full" is answered in the unit the heat is
   // actually seeded in (PRD #64 user story 34).
   const teamCapacity = heat.teamCapacity;
-  const fill = teamEvent ? heat.teams : heat.fill;
-  const capacity = teamEvent ? teamCapacity : heat.capacity;
+  const fill = teamHeat ? heat.teams : heat.fill;
+  const capacity = teamHeat ? teamCapacity : heat.capacity;
   const over = fill > capacity;
 
   return (
@@ -375,7 +388,8 @@ function HeatCard({
       data-admin-heat={heat.number}
       data-heat-state={heat.state}
       data-heat-fill={`${fill}/${capacity}`}
-      data-heat-teams={teamEvent ? `${heat.teams}/${teamCapacity}` : undefined}
+      data-heat-kind={teamHeat ? "team" : "individual"}
+      data-heat-teams={teamHeat ? `${heat.teams}/${teamCapacity}` : undefined}
       data-heat-started={heat.startedAt ? "1" : "0"}
       className={adminCard(cn("mt-4", over ? "border-admin-accent" : undefined))}
     >
@@ -391,7 +405,7 @@ function HeatCard({
                 started
               </AdminPill>
             ) : null}
-            {teamEvent ? (
+            {teamHeat ? (
               <AdminPill tone="ink" title="Team entries seated in this heat">
                 {heat.teams} {heat.teams === 1 ? "team" : "teams"}
               </AdminPill>
@@ -412,7 +426,7 @@ function HeatCard({
           </p>
         </div>
 
-        <FillMeter fill={fill} capacity={capacity} unit={teamEvent ? "teams" : "runners"} />
+        <FillMeter fill={fill} capacity={capacity} unit={teamHeat ? "teams" : "runners"} />
       </div>
 
       <div className="border-t border-admin-line p-4 sm:p-5">
@@ -457,7 +471,7 @@ function HeatCard({
               defaultValue={instantToWarsawLocal(heat.scheduledAt)}
             />
           </AdminField>
-          {teamEvent ? (
+          {teamHeat ? (
             <AdminField label="Teams" className="w-[92px]">
               <input
                 className={adminInput()}

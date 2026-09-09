@@ -12,6 +12,7 @@ import { defaultLocale } from "@/lib/i18n/config";
 
 import { eligibleForEvent } from "./audience";
 import { mediaLiveMailContent, type MailLocale } from "./copy";
+import { acceptsIndividuals } from "@/lib/events/types";
 
 /** The manual, admin-triggered mailing kind — never sent by the cron chain. */
 const MEDIA_LIVE_KIND = "media_live" as const;
@@ -63,7 +64,7 @@ export async function sendMediaLiveMailing(eventSlug: string): Promise<MediaLive
   const event = await getEventBySlug(eventSlug);
   if (
     !event ||
-    event.eventType !== "individual" ||
+    !acceptsIndividuals(event) ||
     event.status !== "completed" ||
     !(await getEventMediaConfig(eventSlug))
   ) {

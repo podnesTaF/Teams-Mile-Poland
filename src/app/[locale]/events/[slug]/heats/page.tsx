@@ -97,11 +97,17 @@ export default async function EventStartListPage({ params }: PageProps) {
   // Both land on the empty state without a DB round-trip.
   const dormant = event.status === "upcoming" || event.status === "completed";
   // A team night's start list is grouped by team with roles and no bibs
-  // (PRD #64 user story 37); an individual one is exactly what it was.
+  // (PRD #64 user story 37); an individual one is exactly what it was; a mixed
+  // night (ADR 0009) shows, heat by heat, the teams seated in it and the solo
+  // runners seeded into it — a heat is one or the other in practice, and the
+  // rendering below simply shows whichever it holds.
   const teamEvent = event.eventType === "team";
   const startList: StartList = dormant
     ? { totalHeats: 0, heats: [] }
-    : await getEventStartList(slug, teamEvent ? "team" : "individual");
+    : await getEventStartList(
+        slug,
+        teamEvent ? "team" : event.eventType === "mixed" ? "mixed" : "individual",
+      );
 
   // Whether to point the runner onward to the results page. A new dependency
   // for this cached page, and a deliberate one: the import commit revalidates
@@ -158,13 +164,13 @@ export default async function EventStartListPage({ params }: PageProps) {
                         {t("heats.approxTime", { time: formatHeatTime(heat.scheduledAt) })}
                       </span>
                       <span className="sl-heat__count">
-                        {teamEvent
+                        {teamEvent || heat.teams.length > 0
                           ? t("heats.team.teams", { count: heat.teams.length })
                           : t("heats.runners", { count: heat.entries.length })}
                       </span>
                     </header>
 
-                    {teamEvent ? (
+                    {teamEvent || heat.teams.length > 0 ? (
                       heat.teams.length === 0 ? (
                         <p className="iv-empty">{t("heats.team.heatEmpty")}</p>
                       ) : (

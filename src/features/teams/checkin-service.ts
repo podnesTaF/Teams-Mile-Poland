@@ -86,6 +86,10 @@ export async function findHeatWithRoomForTeam(
     .where(
       and(
         eq(eventHeats.eventSlug, eventSlug),
+        // A team heat is one with a teams figure. On a mixed night (ADR 0009)
+        // the individual heats carry none and must never take a team; every
+        // heat a team night generates carries one (`teamCapacities`).
+        isNotNull(eventHeats.capacityTeams),
         isNotNull(eventHeats.publishedAt),
         isNull(eventHeats.startedAt),
         isNull(eventHeats.finishedAt),

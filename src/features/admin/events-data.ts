@@ -246,6 +246,23 @@ export async function getRosterRowById(
  * QR carries no slug), so the event it acts on is resolved from the row rather
  * than trusted from the form.
  */
+/**
+ * Whether a registration was created by a team entry (`team_entry_id` set).
+ * The individual desk asks before leasing a bib: a team member is checked in
+ * with their whole team at the Teams desk, which fixes the composition and
+ * leases every bib in one transaction (PRD #64) — a solo check-in would leave
+ * the entry half done. Matters on a mixed night, where both desks are open.
+ */
+export async function isTeamEnteredRegistration(registrationId: string): Promise<boolean> {
+  const db = getDb();
+  const [row] = await db
+    .select({ teamEntryId: eventRegistrations.teamEntryId })
+    .from(eventRegistrations)
+    .where(eq(eventRegistrations.id, registrationId))
+    .limit(1);
+  return row?.teamEntryId != null;
+}
+
 export async function getRegistrationEventSlug(registrationId: string): Promise<string | null> {
   const db = getDb();
   const [row] = await db

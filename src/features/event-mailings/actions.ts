@@ -8,6 +8,7 @@ import { getEventBySlug } from "@/lib/events/registry";
 
 import { runDueEventMailings, sendEventKind } from "./dispatch";
 import { EVENT_SCHEDULED_KINDS, type EventScheduledKind } from "./schedule";
+import { acceptsIndividuals } from "@/lib/events/types";
 
 /**
  * The lifecycle states a scheduled event mail may be sent for.
@@ -58,7 +59,7 @@ export async function sendEventKindNowAction(formData: FormData) {
   const kind = String(formData.get("kind") ?? "") as EventScheduledKind;
   const event = await getEventBySlug(slug);
 
-  if (!event || event.eventType !== "individual") {
+  if (!acceptsIndividuals(event)) {
     back(locale, "Unknown event.");
   }
   // Status is checked here and not only in the UI: a cancelled event drops off

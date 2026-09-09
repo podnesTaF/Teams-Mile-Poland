@@ -10,6 +10,7 @@ import { listEventMedia } from "@/lib/events/media";
 import { getEventBySlug } from "@/lib/events/registry";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
+import { acceptsIndividuals } from "@/lib/events/types";
 
 /**
  * Publishing / unpublishing an event's Drive gallery — the admin actions behind
@@ -56,7 +57,7 @@ export async function publishEventMedia(formData: FormData): Promise<void> {
   // Completed individual events only — the same predicate the mailing and the
   // public pages apply, enforced server-side so a crafted post can't publish a
   // gallery for a race that hasn't run.
-  if (!event || event.eventType !== "individual" || event.status !== "completed") {
+  if (!acceptsIndividuals(event) || event.status !== "completed") {
     redirect(`${mediaPage}?error=input`);
   }
 

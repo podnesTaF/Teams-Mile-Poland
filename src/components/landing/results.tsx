@@ -6,7 +6,12 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { computeLevel } from "@/lib/events/levels";
 import { formatTime } from "@/lib/events/time";
-import { type EventSummary, type Gender, RACE_RESULT_GROUP_URL } from "@/lib/events/types";
+import {
+  acceptsIndividuals,
+  type EventSummary,
+  type Gender,
+  RACE_RESULT_GROUP_URL,
+} from "@/lib/events/types";
 
 /** Ranks shown before "show all" — podium (1–3) plus the table (4–10). */
 const VISIBLE_ROWS = 10;
@@ -63,10 +68,9 @@ export function Results({ events }: { events: EventSummary[] }) {
   const podium = rows.slice(0, 3);
   const rest = showAll ? rows.slice(3) : rows.slice(3, VISIBLE_ROWS);
   const hasMore = rows.length > VISIBLE_ROWS;
-  // The heat-by-heat results page exists for individual events only — the
-  // legacy team night keeps its rows here and expands inline instead.
-  const fullResultsHref =
-    (event.eventType ?? "team") === "individual" ? `/events/${event.slug}/results` : null;
+  // The heat-by-heat results page exists for nights with an individual path —
+  // the legacy team night keeps its rows here and expands inline instead.
+  const fullResultsHref = acceptsIndividuals(event) ? `/events/${event.slug}/results` : null;
 
   const selectRace = (slug: string) => {
     setSelected(slug);

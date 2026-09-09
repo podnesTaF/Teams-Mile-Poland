@@ -3,6 +3,7 @@
 import { useSelectedLayoutSegment } from "next/navigation";
 
 import { Link } from "@/i18n/navigation";
+import { typeAcceptsIndividuals, typeAcceptsTeams, type EventType } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -34,11 +35,13 @@ const TABS = [
   { key: "heats", label: "Heats", segment: "heats", suffix: "/heats" },
   { key: "checkin", label: "Check-in", segment: "checkin", suffix: "/checkin" },
   /**
-   * Team events only. Gated on nothing beyond the admin gate itself: the page
-   * behind it renders for `view` (an `admin_viewer` may read the entries list),
-   * and its presses gate themselves — the same rule the Check-in tab follows.
+   * Nights with a team path (`team` and `mixed`). Gated on nothing beyond the
+   * admin gate itself: the page behind it renders for `view` (an `admin_viewer`
+   * may read the entries list), and its presses gate themselves — the same rule
+   * the Check-in tab follows.
    */
   { key: "teams", label: "Teams", segment: "teams", suffix: "/teams", only: "team" },
+  /** Nights with an individual path (`individual` and `mixed`) — no team results flow yet. */
   { key: "results", label: "Results", segment: "results", suffix: "/results", only: "individual" },
   { key: "media", label: "Media", segment: "media", suffix: "/media", only: "individual" },
   /**
@@ -76,17 +79,21 @@ export function AdminEventTabs({
   slug,
   canEdit,
   canReadPersonalData,
-  teamEvent = false,
+  eventType = "individual",
 }: {
   slug: string;
   canEdit: boolean;
   canReadPersonalData: boolean;
-  /** `event.eventType === "team"` — decided in the layout, passed as a fact. */
-  teamEvent?: boolean;
+  /** The event's type — decided in the layout, passed as a fact; a `mixed` night gets both families of tab. */
+  eventType?: EventType;
 }) {
   const selected = useSelectedLayoutSegment();
   const allows = (tab: (typeof TABS)[number]) => {
-    if ("only" in tab && tab.only !== (teamEvent ? "team" : "individual")) return false;
+    if ("only" in tab) {
+      const admitted =
+        tab.only === "team" ? typeAcceptsTeams(eventType) : typeAcceptsIndividuals(eventType);
+      if (!admitted) return false;
+    }
     if (!("requires" in tab)) return true;
     return tab.requires === "edit" ? canEdit : canReadPersonalData;
   };

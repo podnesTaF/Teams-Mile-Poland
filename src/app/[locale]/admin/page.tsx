@@ -13,8 +13,8 @@ import {
   RECENT_REGISTRATION_DAYS,
   type OverviewStats,
 } from "@/features/admin/overview-data";
-import { getFeaturedEvent, getIndividualEvents } from "@/lib/events/registry";
-import type { EventSummary } from "@/lib/events/types";
+import { getFeaturedEvent, getStackEvents } from "@/lib/events/registry";
+import { isSeriesEvent, type EventSummary } from "@/lib/events/types";
 import { Link } from "@/i18n/navigation";
 
 /**
@@ -38,12 +38,12 @@ export default async function AdminOverviewPage({
 
   // Completed nights included, as in the sidebar and the events index: a race
   // that has run keeps its pages, and its counts are the record of it.
-  const events = await getIndividualEvents();
+  const events = await getStackEvents();
   const featured = await getFeaturedEvent();
-  // The registry's featured event can in principle be the frozen team event;
-  // it has no admin surfaces to link to, so the dashboard only ever leads with
-  // an individual one.
-  const featuredEvent = featured?.eventType === "individual" ? featured : null;
+  // The registry's featured event can in principle be the frozen legacy team
+  // event; it has no admin surfaces to link to, so the dashboard only ever
+  // leads with a night on the current stack.
+  const featuredEvent = isSeriesEvent(featured) ? featured : null;
 
   if (!process.env.DATABASE_URL) {
     return (

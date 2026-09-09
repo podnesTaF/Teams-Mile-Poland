@@ -6,6 +6,7 @@ import "@/app/landing.css";
 import "@/app/series-flows.css";
 import "@/app/gallery.css";
 import "./heats/heats.css";
+import "./mixed-choice.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { EventRegisterCta } from "@/features/event-registration/components/event-register-cta";
@@ -21,7 +22,13 @@ import { getPublicResults } from "@/lib/events/results-data";
 // is new API, and the shim exists only so the pre-DB call sites kept compiling.
 import { getAllEvents, isPubliclyVisible } from "@/lib/events/store";
 import { formatEventLongDate } from "@/lib/events/time";
-import { isSeriesEvent, type EventStatus, RACE_RESULT_GROUP_URL } from "@/lib/events/types";
+import {
+  acceptsIndividuals,
+  acceptsTeams,
+  isSeriesEvent,
+  type EventStatus,
+  RACE_RESULT_GROUP_URL,
+} from "@/lib/events/types";
 import { defaultLocale } from "@/lib/i18n/config";
 import { venueMapsUrl } from "@/lib/marketing/event";
 
@@ -125,24 +132,26 @@ export default async function EventDetailPage({ params }: PageProps) {
   const state = detailState(event.status);
   /**
    * A team event is entered by its manager, never by a person (PRD #64, user
-   * stories 1 and 2). That changes exactly two things on this page — the count
-   * in the sidebar and the CTA — and nothing else: the facts, the banner, the
-   * documents, the results and the gallery all read the same.
+   * stories 1 and 2); a mixed night takes both paths and asks the visitor to
+   * pick one (ADR 0009). That changes exactly two things on this page — the
+   * count in the sidebar and the CTA — and nothing else: the facts, the banner,
+   * the documents, the results and the gallery all read the same.
    *
    * The count is a `count(*)` and never a list: this page is statically
    * generated and public, and a team's roster names are not (PRD #57). The
    * enter/withdraw actions revalidate this route, so the number moves without a
    * deploy.
    */
-  const isTeamEvent = event.eventType === "team";
-  const enteredTeams = isTeamEvent ? await countEntriesForEvent(slug) : 0;
+  const teamPath = acceptsTeams(event);
+  const individualPath = acceptsIndividuals(event);
+  const isTeamEvent = teamPath && !individualPath;
+  const enteredTeams = teamPath ? await countEntriesForEvent(slug) : 0;
   // The event's results — imported rows or a legacy config sheet. Read at
   // build/revalidate time: this page is SSG, and the import commit revalidates
   // it, so results appear with the first mid-event import rather than waiting
   // for a redeploy. Mid-event (`closed`) they only drive the sidebar link;
   // once `completed` they render inline — this page is the event's archive.
-  const results =
-    state === "closed" || state === "completed" ? await getPublicResults(slug) : null;
+  const results = state === "closed" || state === "completed" ? await getPublicResults(slug) : null;
   const hasResults = results !== null;
   // Published media (the `event_media` row an admin created). Same caching
   // story: the publish action revalidates this page, flipping the coming-soon
@@ -258,7 +267,7 @@ export default async function EventDetailPage({ params }: PageProps) {
                     to judge a team night (user story 1). Rendered for every
                     lifecycle state, including 0, because "no teams yet" is the
                     answer on the day registration opens. */}
-                {isTeamEvent ? (
+                {teamPath ? (
                   <div className="slots-row" data-team-entered-count={enteredTeams}>
                     <div className="slots-lbl">
                       <b>{t("teamEvent.enteredLabel")}</b>
@@ -294,6 +303,43 @@ export default async function EventDetailPage({ params }: PageProps) {
                       data-team-regulations-link="1"
                     >
                       {t("teamEvent.regulationsLink")}
+                    </Link>
+                  </div>
+                ) : teamPath && state === "open" ? (
+                  // A mixed night, open: the visitor is asked how they want to
+                  // run before anything else (ADR 0009). Two doors, one card —
+                  // the individual register flow, or the team the manager
+                  // enters. A runner takes one path per night; the register
+                  // flow and the entry action each refuse the other's holder.
+                  <div className="mixed-choice" data-mixed-entry-choice="1">
+                    <p className="mixed-choice__title">{t("mixedEvent.choiceTitle")}</p>
+                    <div className="mixed-choice__option" data-mixed-option="individual">
+                      <b>{t("mixedEvent.individualTitle")}</b>
+                      <small>{t("mixedEvent.individualSub")}</small>
+                      <EventRegisterCta
+                        slug={slug}
+                        registerLabel={t("mixedEvent.individualCta")}
+                        createLabel={t("detail.cta.create")}
+                        signInPrompt={t("detail.cta.signInPrompt")}
+                        signInLabel={t("detail.cta.signIn")}
+                      />
+                    </div>
+                    <div className="mixed-choice__or" aria-hidden>
+                      {t("mixedEvent.or")}
+                    </div>
+                    <div className="mixed-choice__option" data-mixed-option="team">
+                      <b>{t("mixedEvent.teamTitle")}</b>
+                      <small>{t("mixedEvent.teamSub")}</small>
+                      <Link href="/teams" className="btn btn-stroke-dark btn-block">
+                        {t("mixedEvent.teamCta")}
+                      </Link>
+                    </div>
+                    <Link
+                      href="/legal/team-rules"
+                      className="link slots-note"
+                      data-team-rules-link="1"
+                    >
+                      {t("teamEvent.rulesLink")}
                     </Link>
                   </div>
                 ) : state === "open" ? (

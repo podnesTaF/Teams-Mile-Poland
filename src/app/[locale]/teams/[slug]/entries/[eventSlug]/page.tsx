@@ -14,7 +14,7 @@ import { getUser, userCan } from "@/lib/auth/user-session";
 import { getEventBySlug } from "@/lib/events/registry";
 import { isPubliclyVisible } from "@/lib/events/store";
 import { formatEventLongDate } from "@/lib/events/time";
-import { isSeriesEvent } from "@/lib/events/types";
+import { acceptsTeams } from "@/lib/events/types";
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string; eventSlug: string }>;
@@ -51,7 +51,7 @@ export default async function TeamEntryPage({ params }: PageProps) {
   // Same gate as the public event page: a `draft` is indistinguishable from a
   // slug that does not exist, and the frozen legacy night is not entered
   // through these tables at all (ADR 0008).
-  if (!event || event.eventType !== "team" || !isSeriesEvent(event) || !isPubliclyVisible(event)) {
+  if (!acceptsTeams(event) || !isPubliclyVisible(event)) {
     notFound();
   }
 

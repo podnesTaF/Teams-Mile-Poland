@@ -28,8 +28,48 @@ export type EventStatus =
  * `user_team_*` and `event_*` tables, exactly like an `individual` one.
  * `individual` — the Aug-2026 mile series: per-person entry, capped free +
  * paid slots, user accounts. Drives which registration flow a page links to.
+ * `mixed` — a night that hosts both (from 2026-09-22, ADR 0009): a runner
+ * registers alone through the individual flow **or** is entered by their team
+ * manager, never both — the unique `(event_slug, user_id)` registration index
+ * is what keeps one person to one entry path per night.
+ *
+ * Do not compare `eventType` against a literal on a shared surface; ask
+ * {@link acceptsIndividuals} / {@link acceptsTeams} instead, so a `mixed`
+ * night is admitted wherever either path is.
  */
-export type EventType = "team" | "individual";
+export type EventType = "team" | "individual" | "mixed";
+
+/** Whether a night of this type takes per-person registrations. */
+export function typeAcceptsIndividuals(eventType: EventType | undefined): boolean {
+  return eventType === "individual" || eventType === "mixed";
+}
+
+/** Whether a night of this type takes team entries (`team_entries`, PRD #64). */
+export function typeAcceptsTeams(eventType: EventType | undefined): boolean {
+  return eventType === "team" || eventType === "mixed";
+}
+
+/**
+ * The event has an individual registration path: `individual` or `mixed`.
+ * Replaces every `eventType === "individual"` gate on the per-person flow, the
+ * individual results/gallery surfaces and the reminder mailings.
+ */
+export function acceptsIndividuals<T extends Pick<EventSummary, "slug" | "eventType">>(
+  event: T | null | undefined,
+): event is T {
+  return Boolean(event) && typeAcceptsIndividuals(event?.eventType);
+}
+
+/**
+ * The event has a team entry path on the current stack: a `team` or `mixed`
+ * night that is not the frozen legacy event. Replaces every
+ * `eventType === "team"` gate on the team entry, confirmation and desk flows.
+ */
+export function acceptsTeams<T extends Pick<EventSummary, "slug" | "eventType">>(
+  event: T | null | undefined,
+): event is T {
+  return Boolean(event) && !isLegacyEvent(event) && typeAcceptsTeams(event?.eventType);
+}
 
 /**
  * The one frozen legacy TEAMS MILE event (ADR 0008). The only `team`-type row

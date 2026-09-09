@@ -7,13 +7,14 @@ import type { UserTeamRow } from "@/db/schema/user-teams";
 import { meetsMinParticipantAge, parseDateOnly } from "@/lib/age";
 import { getEventBySlug } from "@/lib/events/registry";
 import { isPubliclyVisible } from "@/lib/events/store";
-import { isSeriesEvent, type EventSummary } from "@/lib/events/types";
+import { acceptsTeams, type EventSummary } from "@/lib/events/types";
 
 import { teamFailure, type TeamActionFailure } from "../config";
 import { computeCompleteness } from "../eligibility";
 import {
   addMemberRows,
   createEntryRows,
+  findIndividuallyRegistered,
   getEntryByTeamAndEvent,
   getEntryMembers,
   getEntryWithTeam,
@@ -64,7 +65,8 @@ import {
 export type EntryFailure = TeamActionFailure & {
   /** `incomplete_team`: members still needed to reach the category's minimum. */
   missing?: number;
-  /** `member_underage`: the member who will not be 18 on the event date. */
+  /** `member_underage`: the member who will not be 18 on the event date;
+   * `registered_individually`: the member already registered alone (ADR 0009). */
   memberName?: string;
 };
 
@@ -138,7 +140,7 @@ async function gateEntry(entryId: string): Promise<
 async function loadTeamEvent(eventSlug: string): Promise<EventSummary | null> {
   const event = await getEventBySlug(eventSlug);
   if (!event) return null;
-  if (event.eventType !== "team" || !isSeriesEvent(event) || !isPubliclyVisible(event)) return null;
+  if (!acceptsTeams(event) || !isPubliclyVisible(event)) return null;
   return event;
 }
 
@@ -183,6 +185,18 @@ export async function enterTeam(
   );
   if (underage) {
     return { ...teamFailure("member_underage"), memberName: underage.displayName };
+  }
+
+  // One entry path per runner per night (ADR 0009): on a mixed night a member
+  // who already registered alone is named, and the manager sorts it out with
+  // them — the platform never silently converts their registration.
+  const solo = await findIndividuallyRegistered(
+    eventSlug,
+    roster.map((member) => member.userId),
+  );
+  const soloMember = roster.find((member) => solo.has(member.userId));
+  if (soloMember) {
+    return { ...teamFailure("registered_individually"), memberName: soloMember.displayName };
   }
 
   const created = await createEntryRows({
@@ -242,6 +256,9 @@ export async function addEntryMember(
   const eventDate = parseDateOnly(event.date);
   if (!candidate.dateOfBirth || !meetsMinParticipantAge(candidate.dateOfBirth, eventDate)) {
     return { ...teamFailure("member_underage"), memberName: candidate.displayName };
+  }
+  if ((await findIndividuallyRegistered(gate.entry.eventSlug, [userId])).has(userId)) {
+    return { ...teamFailure("registered_individually"), memberName: candidate.displayName };
   }
 
   const added = await addMemberRows({

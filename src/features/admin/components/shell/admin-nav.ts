@@ -1,5 +1,5 @@
 import { roleHasCapability, type AdminCapability } from "@/lib/auth/roles";
-import { getIndividualEvents } from "@/lib/events/registry";
+import { getStackEvents } from "@/lib/events/registry";
 import type { EventStatus } from "@/lib/events/types";
 
 /**
@@ -88,7 +88,7 @@ function eventLabel(date: string): string {
  * sidebar comes back empty rather than advertising the panel.
  */
 export async function buildAdminNav(role: string | null | undefined): Promise<AdminNav> {
-  const events: AdminNavEvent[] = (await getIndividualEvents()).map((event) => ({
+  const events: AdminNavEvent[] = (await getStackEvents()).map((event) => ({
     slug: event.slug,
     label: eventLabel(event.date),
     status: event.status,

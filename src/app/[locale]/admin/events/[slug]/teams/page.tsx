@@ -12,7 +12,7 @@ import { getEntryMembers, listEntriesForEvent } from "@/features/teams/entries";
 import { userCan } from "@/lib/auth/user-session";
 import { parseDateOnly } from "@/lib/age";
 import { getBibSlots, getEventBySlug } from "@/lib/events/registry";
-import { isSeriesEvent } from "@/lib/events/types";
+import { acceptsTeams } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -49,7 +49,7 @@ export default async function AdminEventTeamsPage({ params, searchParams }: Page
   const canEdit = userCan(actor, "edit");
 
   const event = await getEventBySlug(slug);
-  if (!isSeriesEvent(event) || event.eventType !== "team") notFound();
+  if (!acceptsTeams(event)) notFound();
 
   const [entries, heats, slots] = await Promise.all([
     listEntriesForEvent(slug),

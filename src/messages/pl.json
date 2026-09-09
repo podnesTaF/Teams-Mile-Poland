@@ -1108,6 +1108,16 @@
         "txt": "Wyniki pojawią się tutaj w trakcie i po nocy biegowej, gdy tylko pliki z pomiaru czasu zostaną zaimportowane."
       }
     },
+    "mixedEvent": {
+      "choiceTitle": "Jak chcesz pobiec tego wieczoru?",
+      "individualTitle": "Mila indywidualna",
+      "individualSub": "Pobiegnij milę samodzielnie — zapisy zajmują minutę i są bezpłatne.",
+      "individualCta": "Zapisz się indywidualnie →",
+      "or": "albo",
+      "teamTitle": "Z drużyną",
+      "teamSub": "Menedżer drużyny zgłasza całą drużynę; każdy członek potem potwierdza swoje miejsce. Jeden biegacz, jedno zgłoszenie na wieczór.",
+      "teamCta": "Znajdź lub załóż drużynę"
+    },
     "teamEvent": {
       "enteredLabel": "Zgłoszone drużyny",
       "enteredSub": "Kompletne drużyny na liście zgłoszeń",
@@ -1510,6 +1520,7 @@
       "heat_started": "Bieg już się rozpoczął.",
       "not_reserve": "Ten biegacz nie jest rezerwowym w tym zgłoszeniu.",
       "remind_limit": "Przypomnienie wysłano już w ciągu ostatnich 24 godzin.",
+      "registered_individually": "Jeden z członków jest już zapisany indywidualnie na ten wieczór — jedno zgłoszenie na biegacza na wieczór.",
       "already_confirmed": "Ten udział został już potwierdzony.",
       "cancelled": "To wydarzenie zostało odwołane."
     },
@@ -1791,6 +1802,11 @@
     "verifyBody": "Potwierdź adres e-mail przed zapisem.",
     "verifyCta": "Potwierdź e-mail",
     "profileTitle": "Uzupełnij profil",
+    "teamAlternative": "Biegniesz tego wieczoru z drużyną?",
+    "teamAlternativeCta": "Zgłoś się przez swoją drużynę",
+    "alreadyTeamTitle": "Zgłoszony z drużyną",
+    "alreadyTeamBody": "Jesteś na liście tego wieczoru jako członek drużyny {team}. Potwierdzenie i bilet otrzymujesz przez drużynę, więc nie ma tu czego zapisywać.",
+    "alreadyTeamCta": "Otwórz swoją drużynę",
     "profileBody": "Dodaj swoje dane przed zapisem na wydarzenia.",
     "profileCta": "Uzupełnij profil",
     "ageTitle": "Minimalny wiek",

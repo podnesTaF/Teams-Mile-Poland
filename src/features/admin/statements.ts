@@ -20,7 +20,7 @@ import { fillLegalTokens } from "@/lib/legal/fill";
 import {
   type DocLocale,
   type DocSet,
-  docSetForEventType,
+  docSetsForEventType,
   getDocsForSet,
   type LegalDoc,
 } from "@/lib/legal/manifest";
@@ -448,7 +448,10 @@ export async function getStatementsForPrint(
       continue;
     }
 
-    const doc = personalisedDoc(submission.docSet ?? docSetForEventType(event.eventType));
+    // Every submission since #53/#68 records its own set; the fallback only
+    // covers rows older than that, which predate mixed nights, so the event's
+    // first set is the right one for them.
+    const doc = personalisedDoc(submission.docSet ?? docSetsForEventType(event.eventType)[0]);
     if (!doc) {
       // A set with no personalised document has no Statement to print. Not
       // reachable for either shipped set; treated as "nothing on record"

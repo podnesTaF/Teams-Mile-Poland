@@ -11,6 +11,7 @@ import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 import { LEASE_ATTEMPTS, leaseBib } from "./bib-lease";
 import {
   getRegistrationEventSlug,
+  isTeamEnteredRegistration,
   isUniqueViolation,
   leaseBibForCheckedIn,
   setRegistrationStatus,
@@ -154,6 +155,10 @@ export async function assignBibAndCheckIn(formData: FormData) {
 
   if (!slug || !registrationId) {
     redirect(back("error=input"));
+  }
+  // A team-entered runner is checked in with their team at the Teams desk.
+  if (await isTeamEnteredRegistration(registrationId)) {
+    redirect(back("error=team_member"));
   }
 
   // Blank `bib` means "lowest free number"; a typed one is used verbatim, with

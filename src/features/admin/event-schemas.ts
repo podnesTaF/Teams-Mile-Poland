@@ -2,7 +2,12 @@ import { z } from "zod";
 
 import { instantToWarsawLocal } from "@/lib/events/heat-time";
 import { firstHeatTime } from "@/lib/events/timetables";
-import type { EventStatus, EventType, TimeRange } from "@/lib/events/types";
+import {
+  typeAcceptsIndividuals,
+  type EventStatus,
+  type EventType,
+  type TimeRange,
+} from "@/lib/events/types";
 
 import { isEventDate } from "./event-slug";
 
@@ -163,30 +168,30 @@ export const eventWindowSchema = z
 export type EventWindow = z.infer<typeof eventWindowSchema>;
 
 /**
- * The two event formats. `individual` is the Aug-2026 mile series and the only
- * one with a registration flow; `team` is the legacy TEAMS MILE stack, which the
- * create form may select but which has no entry path — stated plainly in the
- * form rather than offered as a trap.
+ * The three event formats. `individual` is the mile series with the per-person
+ * registration flow; `team` is entered by team managers (PRD #64); `mixed`
+ * takes both paths on one night (ADR 0009) — a runner picks one on the event
+ * page.
  *
  * Create-only. A slug's family, its registrations, its heats and its results all
  * assume one format, so the type is as immutable as the slug: `updateEvent` does
  * not read this field.
  */
-const EVENT_TYPES = ["individual", "team"] as const satisfies readonly EventType[];
+const EVENT_TYPES = ["individual", "team", "mixed"] as const satisfies readonly EventType[];
 
 export const eventTypeSchema = z.enum(EVENT_TYPES);
 
 /**
  * Whether an event with this window may be saved without one.
  *
- * Only `individual` events require a window: the timetable, the heat-time
- * prefill and the public event page all derive from the start time, so an
- * individual night without one is a page with no schedule. The legacy team event
- * has no window at all (`start_time` / `end_time` are nullable for exactly that
- * row), so a blank window is valid there and stores as null.
+ * Every night with an individual path requires a window: the timetable, the
+ * heat-time prefill and the public event page all derive from the start time, so
+ * a night without one is a page with no schedule. The legacy team event has no
+ * window at all (`start_time` / `end_time` are nullable for exactly that row),
+ * so a blank window is valid on a `team` night and stores as null.
  */
 export function windowRequired(eventType: EventType): boolean {
-  return eventType === "individual";
+  return typeAcceptsIndividuals(eventType);
 }
 
 /* ── date in the past ───────────────────────────────────────────────── */

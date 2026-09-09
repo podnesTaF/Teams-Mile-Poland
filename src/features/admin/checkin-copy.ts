@@ -87,6 +87,8 @@ export function checkinErrorText(
       return `Cannot un-finish that heat: bib ${
         opts.bibs?.split(",").join(", ") || "numbers it freed"
       } already went to another runner. Nothing was changed — undo that check-in first, or leave the heat finished.`;
+    case "team_member":
+      return "This runner is entered with a team — check the whole team in at the Teams desk.";
     case "input":
       return "Missing runner or event.";
     case "scan":

@@ -5,7 +5,7 @@ import { eventMedia, type EventMediaRow } from "@/db/schema";
 import { db } from "@/lib/db";
 
 import { getPastEvents } from "./registry";
-import type { EventSummary } from "./types";
+import { acceptsIndividuals, type EventSummary } from "./types";
 
 /**
  * The DB-backed media publication state — which completed events have a
@@ -83,5 +83,5 @@ export async function getPublishedMedia(slugs: string[]): Promise<Map<string, Ev
  * because non-individual slugs have no event detail page to link to.
  */
 export async function getArchiveEvents(): Promise<EventSummary[]> {
-  return (await getPastEvents()).filter((e) => e.eventType === "individual");
+  return (await getPastEvents()).filter(acceptsIndividuals);
 }

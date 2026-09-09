@@ -283,26 +283,34 @@ export const LEGAL_DOCS: readonly LegalDoc[] = [
 ];
 
 /**
- * Which corpus applies to an event.
+ * Which corpora apply to an event.
  *
  * Total over {@link EventType} on purpose: adding a format is a compile error
  * here, not a runtime "no documents" that ships a registration with nothing to
- * accept. Both corpora are in the repository today, and both now carry a consent
+ * accept. Both corpora are in the repository today, and both carry a consent
  * form: the individual one at registration (#53), the team one on the member
  * confirmation screen (#68).
+ *
+ * A `mixed` night lists both, because the set a runner signs follows the **entry
+ * path**, not the event (ADR 0009): the individual register flow always asks for
+ * the `individual` set and the team confirmation screen always for the `team`
+ * set, whatever the night's type. This table therefore answers "which documents
+ * does this event publish" — the legal route and the statements title — never
+ * "which set does this registration sign".
  */
-export const DOC_SET_BY_EVENT_TYPE: Record<EventType, DocSet> = {
-  individual: "individual",
-  team: "team",
+export const DOC_SETS_BY_EVENT_TYPE: Record<EventType, readonly DocSet[]> = {
+  individual: ["individual"],
+  team: ["team"],
+  mixed: ["individual", "team"],
 };
 
 /**
- * {@link DOC_SET_BY_EVENT_TYPE} applied to an `EventSummary`, whose `eventType`
+ * {@link DOC_SETS_BY_EVENT_TYPE} applied to an `EventSummary`, whose `eventType`
  * is optional and documented to default to `"team"` for the legacy events that
  * omit it. Callers should not re-spell that default.
  */
-export function docSetForEventType(eventType: EventType | undefined): DocSet {
-  return DOC_SET_BY_EVENT_TYPE[eventType ?? "team"];
+export function docSetsForEventType(eventType: EventType | undefined): readonly DocSet[] {
+  return DOC_SETS_BY_EVENT_TYPE[eventType ?? "team"];
 }
 
 /**

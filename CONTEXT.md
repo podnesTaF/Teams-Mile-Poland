@@ -24,8 +24,21 @@ never of a registration.
 _Avoid_: event state, stage
 
 **Event type**:
-`individual` (Aug-2026 mile series, per-person registration) or `team` (legacy
-warsaw-2026 stack). Selects which registration flow a page links to.
+`individual` (per-person registration), `team` (entered by team managers; also
+the legacy warsaw-2026 stack) or `mixed` (both paths on one night, from
+2026-09-22 — ADR 0009). Selects which entry flow a page offers. Code asks
+`acceptsIndividuals` / `acceptsTeams`, never a literal, so a mixed night is
+admitted wherever either path is.
+_Avoid_: format (that is the team format vs. the individual mile), hybrid
+
+**Mixed night**:
+A `mixed`-type event. A runner joins it by exactly one path — registering alone
+or being entered by their team — and the event page asks which first. One
+`event_registrations` row per person per night either way; a team-entered row
+carries `team_entry_id`. The corpus a runner signs follows their path, not the
+night. Heats on a mixed night are team heats (a teams figure is set) or
+individual heats (none), never both at once.
+_Avoid_: combined event, double event, open night
 
 ### Registration
 

@@ -17,6 +17,7 @@ import {
 import { sendEventTicketEmail } from "@/features/event-registration/ticket";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
+import { acceptsIndividuals } from "@/lib/events/types";
 
 /** Redirect back to a users path with a status message. */
 function back(locale: string, suffix: string, msg: string): never {
@@ -102,7 +103,7 @@ export async function adminRegisterUserForEvent(formData: FormData) {
   }
 
   const event = await getEventBySlug(eventSlug);
-  if (!event || event.eventType !== "individual") back(locale, suffix, "Event not found.");
+  if (!acceptsIndividuals(event)) back(locale, suffix, "Event not found.");
   if (event.status === "completed") {
     back(locale, suffix, "Cannot register a user for a completed event.");
   }

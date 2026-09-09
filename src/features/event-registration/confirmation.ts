@@ -3,9 +3,9 @@ import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { eventHeats, eventRegistrations } from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { sendAt } from "@/features/event-mailings/schedule";
-import type { EventSummary } from "@/lib/events/types";
 
 import type { EventRegistrationRow } from "./data";
+import { acceptsIndividuals, type EventSummary } from "@/lib/events/types";
 
 /**
  * Attendance confirmation — the runner's remote, pre-race "I am coming"
@@ -39,7 +39,7 @@ export function isConfirmationOpen(input: {
   heatsPublished: boolean;
 }): boolean {
   const { event, now, heatsPublished } = input;
-  if (!event || event.eventType !== "individual") return false;
+  if (!acceptsIndividuals(event)) return false;
   if (event.status === "completed") return false;
   if (heatsPublished) return false;
   return now.getTime() >= confirmationOpensAt(event).getTime();

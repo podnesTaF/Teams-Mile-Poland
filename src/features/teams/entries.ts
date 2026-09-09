@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { users } from "@/db/schema/auth";
 import { eventRegistrations } from "@/db/schema/event-registrations";
@@ -11,7 +11,7 @@ import {
 import { userTeamMembers, userTeams, type UserTeamRow } from "@/db/schema/user-teams";
 import { getDb } from "@/lib/db";
 import { getAllEvents } from "@/lib/events/store";
-import { isSeriesEvent, type EventSummary } from "@/lib/events/types";
+import { acceptsTeams, type EventSummary } from "@/lib/events/types";
 
 import { teamFailure, type TeamActionResult, type TeamRole, type TeamSex } from "./config";
 import { RATING_RULES_VERSION } from "./rating-rules";
@@ -383,13 +383,38 @@ export async function getTeamEntryCandidates(teamId: string): Promise<EntryCandi
 export async function getOpenTeamEvents(): Promise<EventSummary[]> {
   const all = await getAllEvents();
   return all
-    .filter(
-      (event) =>
-        event.eventType === "team" &&
-        isSeriesEvent(event) &&
-        event.status === "registration_open",
-    )
+    .filter((event) => acceptsTeams(event) && event.status === "registration_open")
     .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/**
+ * Which of `userIds` already hold an **individual** registration for the event —
+ * a row with no `team_entry_id`.
+ *
+ * The mixed-night rule (ADR 0009): a runner is either registered alone or
+ * entered by a team, never both. `upsertMemberRegistration` below resolves the
+ * unique `(event_slug, user_id)` conflict by adopting the existing row into the
+ * entry, which is right when the row is a stale seat from a withdrawn entry and
+ * wrong when it is a registration the runner made themselves — so the entry
+ * actions ask here first and refuse by name.
+ */
+export async function findIndividuallyRegistered(
+  eventSlug: string,
+  userIds: string[],
+): Promise<Set<string>> {
+  if (userIds.length === 0) return new Set();
+  const db = getDb();
+  const rows = await db
+    .select({ userId: eventRegistrations.userId })
+    .from(eventRegistrations)
+    .where(
+      and(
+        eq(eventRegistrations.eventSlug, eventSlug),
+        inArray(eventRegistrations.userId, userIds),
+        isNull(eventRegistrations.teamEntryId),
+      ),
+    );
+  return new Set(rows.map((row) => row.userId));
 }
 
 /* ----------------------------------------------------------------- writers */

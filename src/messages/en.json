@@ -1108,6 +1108,16 @@
         "txt": "Results appear here during and after the race night, as soon as the timing crew's files are imported."
       }
     },
+    "mixedEvent": {
+      "choiceTitle": "How do you want to run this night?",
+      "individualTitle": "Individual mile",
+      "individualSub": "Run the mile on your own — registration takes a minute and is free.",
+      "individualCta": "Register as an individual →",
+      "or": "or",
+      "teamTitle": "With a team",
+      "teamSub": "Your team manager enters the whole team; every member then confirms their own place. One runner, one entry per night.",
+      "teamCta": "Find or create a team"
+    },
     "teamEvent": {
       "enteredLabel": "Teams entered",
       "enteredSub": "Complete teams on the entry list",
@@ -1510,6 +1520,7 @@
       "heat_started": "The heat has already started.",
       "not_reserve": "That runner is not a reserve on this entry.",
       "remind_limit": "A reminder was already sent in the last 24 hours.",
+      "registered_individually": "A member is already registered individually for this night — one entry per runner per night.",
       "already_confirmed": "This participation is already confirmed.",
       "cancelled": "This event has been cancelled."
     },
@@ -1791,6 +1802,11 @@
     "verifyBody": "Confirm your email address before registering.",
     "verifyCta": "Verify email",
     "profileTitle": "Complete your profile",
+    "teamAlternative": "Running with a team this night?",
+    "teamAlternativeCta": "Enter through your team instead",
+    "alreadyTeamTitle": "Entered with your team",
+    "alreadyTeamBody": "You're on this night's list as a member of {team}. Your confirmation and ticket come through the team, so there is nothing to register here.",
+    "alreadyTeamCta": "Open your team",
     "profileBody": "Add your details before registering for events.",
     "profileCta": "Complete profile",
     "ageTitle": "Minimum age",

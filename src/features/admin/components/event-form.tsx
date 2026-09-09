@@ -190,13 +190,17 @@ export function EventForm({
               >
                 <option value="individual">individual</option>
                 <option value="team">team</option>
+                <option value="mixed">mixed</option>
               </select>
             </AdminField>
             <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[78ch]")}>
               Pick <strong className="font-semibold text-admin-ink-2">individual</strong> unless you
               know otherwise: that is the mile series — per-person entry, bibs, heats, check-in.{" "}
               <strong className="font-semibold text-admin-ink-2">team</strong> nights are entered by
-              team managers, not by individual runners. This cannot be changed after creation.
+              team managers, not by individual runners.{" "}
+              <strong className="font-semibold text-admin-ink-2">mixed</strong> nights take both: a
+              runner registers alone or is entered by their team, never both. This cannot be changed
+              after creation.
             </p>
           </div>
         )}

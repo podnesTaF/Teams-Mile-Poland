@@ -46,7 +46,7 @@ export {
   getFeaturedEvent,
   getFirstHeatTime,
   getHeatIntervalMinutes,
-  getIndividualEvents,
+  getStackEvents,
   getOpenEvents,
   getPastEvents,
   getResultsEvents,

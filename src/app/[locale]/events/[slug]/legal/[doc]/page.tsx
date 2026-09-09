@@ -20,7 +20,7 @@ import { loadLegalDoc } from "@/lib/legal/content";
 import { fillLegalTokens } from "@/lib/legal/fill";
 import {
   type DocLocale,
-  docSetForEventType,
+  docSetsForEventType,
   getLegalDoc,
   getSignableDocs,
   type LegalDoc,
@@ -67,10 +67,12 @@ export const revalidate = 300;
 export async function generateStaticParams() {
   const events = (await getAllEvents()).filter(isPubliclyVisible);
   return events.flatMap((event) =>
-    getSignableDocs(docSetForEventType(event.eventType)).map((doc) => ({
-      slug: event.slug,
-      doc: doc.slug,
-    })),
+    docSetsForEventType(event.eventType).flatMap((set) =>
+      getSignableDocs(set).map((doc) => ({
+        slug: event.slug,
+        doc: doc.slug,
+      })),
+    ),
   );
 }
 
@@ -87,8 +89,9 @@ async function resolve(
   if (!doc) return null;
   // An individual event serves the individual corpus and nothing else. Without
   // this an individual night would happily render the TEAM MILE Statement at its
-  // own URL, which reads as though those terms applied to it.
-  if (doc.set !== docSetForEventType(event.eventType)) return null;
+  // own URL, which reads as though those terms applied to it. A mixed night
+  // serves both corpora — each of its two entry paths signs one of them.
+  if (!docSetsForEventType(event.eventType).includes(doc.set)) return null;
   return { event, doc };
 }
 

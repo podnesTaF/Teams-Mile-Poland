@@ -90,7 +90,10 @@ export type TeamActionReason =
   | "not_reserve"
   | "remind_limit"
   | "already_confirmed"
-  | "cancelled";
+  | "cancelled"
+  // Mixed nights (ADR 0009): a member already holds an individual registration
+  // for that event, and one person has one entry path per night.
+  | "registered_individually";
 
 /** The frozen failure half of every team action's return value. */
 export type TeamActionFailure = {

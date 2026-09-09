@@ -28,6 +28,7 @@ import { WhatIs } from "@/components/landing/what-is";
 import { getArchiveEvents, getPublishedMedia } from "@/lib/events/media-config";
 import { getFeaturedEvent, isRegistrationOpen } from "@/lib/events/registry";
 import { getResultsEventsWithDb } from "@/lib/events/results-data";
+import { isLegacyEvent } from "@/lib/events/types";
 
 /**
  * The full landing section tree. Rendered both by the locale page
@@ -45,16 +46,16 @@ export async function LandingView() {
   const archiveEvents = await getArchiveEvents();
   const archiveMedia = await getPublishedMedia(archiveEvents.map((e) => e.slug));
   const registrationOpen = isRegistrationOpen(featuredEvent);
-  // Individual events register on their own detail page; the legacy team event
-  // keeps the /register modal flow. Drives the hero + mid-page CTAs.
-  const featuredIsIndividual = featuredEvent?.eventType === "individual";
+  // Every event on the current stack — individual, team or mixed — is entered
+  // from its own detail page; only the frozen legacy team event keeps the
+  // /register modal flow. Drives the hero + mid-page CTAs.
+  const featuredIsLegacy = isLegacyEvent(featuredEvent);
   // Main-page "Register" leads to the events list so the visitor picks a race
-  // night first, then registers from its detail page. (The legacy team event
-  // keeps its own /register modal flow.)
-  const registerHref = featuredIsIndividual ? "/#events" : "/register";
+  // night first, then registers (or enters a team) from its detail page.
+  const registerHref = featuredIsLegacy ? "/register" : "/#events";
   // The "start a team / join a team" cards belong to the legacy team flow only.
-  // For an individual featured event the EventSeries cards are the entry point.
-  const showTeamFormats = registrationOpen && !featuredIsIndividual;
+  // For a current-stack featured event the EventSeries cards are the entry point.
+  const showTeamFormats = registrationOpen && featuredIsLegacy;
 
   return (
     <div className="ace-landing reveal-ready">

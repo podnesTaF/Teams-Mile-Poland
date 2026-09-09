@@ -380,6 +380,11 @@ export async function heatBelongsToEvent(eventSlug: string, heatId: string): Pro
  * The heat a walk-up should join: the earliest published, unfinished heat with a
  * free lane. Earliest rather than emptiest, because someone who has just arrived
  * and been chipped should run at the next opportunity.
+ *
+ * Individual heats only — `capacity_teams` is null. On a mixed night (ADR 0009)
+ * a heat with a teams figure is a team heat, raced with the mace and seated by
+ * the team desk, and a solo runner must not be dropped into it. Harmless on an
+ * individual night, where no heat carries the column.
  */
 export async function findHeatWithRoom(
   eventSlug: string,
@@ -392,6 +397,7 @@ export async function findHeatWithRoom(
     .where(
       and(
         eq(eventHeats.eventSlug, eventSlug),
+        isNull(eventHeats.capacityTeams),
         isNotNull(eventHeats.publishedAt),
         isNull(eventHeats.finishedAt),
       ),

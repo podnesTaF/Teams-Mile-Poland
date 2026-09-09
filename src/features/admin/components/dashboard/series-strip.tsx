@@ -10,7 +10,7 @@ import { Link } from "@/i18n/navigation";
  * completed nights included, dimmed — with its lifecycle state and how many have
  * entered, each row opening that event's roster.
  *
- * The frozen team event is never here: `getIndividualEvents` excludes it and it
+ * The frozen team event is never here: `getStackEvents` excludes it and it
  * has no per-event admin pages. `counts` is `null` when there is no database
  * configured, in which case the rows render from the registry alone.
  */

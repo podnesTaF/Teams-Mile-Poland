@@ -19,7 +19,7 @@ import {
   termsAcceptedFrom,
   validateConsentItems,
 } from "@/lib/legal/consent";
-import { docSetForEventType } from "@/lib/legal/manifest";
+import type { DocSet } from "@/lib/legal/manifest";
 
 import { createRegistrationWithConsent, hasRegistration } from "./data";
 import {
@@ -36,6 +36,7 @@ import {
   parseDateOnly,
   formatDateOnly,
 } from "@/lib/age";
+import { acceptsIndividuals } from "@/lib/events/types";
 
 /**
  * Locale-aware return path baked into the verification link. On click, Better
@@ -131,7 +132,7 @@ export async function registerForEvent(
   }
 
   const event = await getEventBySlug(eventSlug);
-  if (!event || event.eventType !== "individual") {
+  if (!acceptsIndividuals(event)) {
     return { ok: false, reason: "notfound", message: "Event not found." };
   }
 
@@ -171,9 +172,12 @@ export async function registerForEvent(
   }
   const submission = parsed.data;
 
-  // The set is the event's, not the client's. A submission naming the other
-  // corpus would otherwise be validated against items this event never showed.
-  const docSet = docSetForEventType(event.eventType);
+  // The set is the flow's, not the client's: this is the individual register
+  // flow, so the individual corpus applies — on a `mixed` night too, where the
+  // team corpus belongs to the team confirmation screen (ADR 0009). A submission
+  // naming the other corpus would otherwise be validated against items this
+  // flow never showed.
+  const docSet: DocSet = "individual";
   if (submission.docSet !== docSet) {
     return { ok: false, reason: "consent", message: "Check the consent section and try again." };
   }
@@ -273,7 +277,7 @@ export async function registerAsGuest(
   }
 
   const event = await getEventBySlug(eventSlug);
-  if (!event || event.eventType !== "individual") {
+  if (!acceptsIndividuals(event)) {
     return { ok: false, reason: "notfound", message: "Event not found." };
   }
   if (event.status !== "registration_open") {

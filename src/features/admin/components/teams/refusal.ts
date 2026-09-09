@@ -45,6 +45,8 @@ const REFUSALS: Record<TeamActionReason, string> = {
   remind_limit: "A reminder already went out to that member in the last 24 hours.",
   already_confirmed: "That member has already confirmed.",
   cancelled: "That event is cancelled.",
+  registered_individually:
+    "A member of that team is already registered individually for this event — one entry per runner per night.",
 };
 
 /** The panel's sentence for a refused team action. */

@@ -3,12 +3,10 @@ import { getTranslations } from "next-intl/server";
 
 import { GuestRegisterForm } from "@/features/event-registration/components/guest-register-form";
 import { RegisterConfirm } from "@/features/event-registration/components/register-confirm";
-import {
-  getLatestConsentSnapshot,
-  getRegistration,
-} from "@/features/event-registration/data";
+import { getLatestConsentSnapshot, getRegistration } from "@/features/event-registration/data";
 import { makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { ProfileForm } from "@/features/profile/components/profile-form";
+import { getEntryWithTeam } from "@/features/teams/entries";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { Link } from "@/i18n/navigation";
 import { getEventBySlug } from "@/lib/events/registry";
@@ -20,7 +18,8 @@ import { getUser, canRegister } from "@/lib/auth/user-session";
 import { coerceToDate, meetsMinParticipantAge, parseDateOnly } from "@/lib/age";
 import { defaultLocale } from "@/lib/i18n/config";
 import { isTwoAnswerItem } from "@/lib/legal/consent";
-import { docSetForEventType, getConsentItems } from "@/lib/legal/manifest";
+import { getConsentItems, type DocSet } from "@/lib/legal/manifest";
+import { acceptsIndividuals, acceptsTeams } from "@/lib/events/types";
 
 /** Serialize a stored DOB (Date via mode:"date", or string) to YYYY-MM-DD. */
 function toDateInput(value: unknown): string {
@@ -37,7 +36,7 @@ function toDateInput(value: unknown): string {
  */
 export async function EventRegisterContent({ slug, locale }: { slug: string; locale: string }) {
   const event = await getEventBySlug(slug);
-  if (!event || event.eventType !== "individual") {
+  if (!acceptsIndividuals(event)) {
     redirect(locale === defaultLocale ? "/" : `/${locale}`);
   }
   // A draft 404s rather than bouncing home, because the lifecycle notice below
@@ -51,6 +50,17 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
   }
 
   const t = await getTranslations("register");
+  // On a mixed night this card is the individual door; the other door — being
+  // entered by a team manager — stays one link away so a runner who deep-linked
+  // here still gets the choice the event page offers (ADR 0009).
+  const teamAlternative = acceptsTeams(event) ? (
+    <p className="slots-note register-team-alt" data-team-alternative="1">
+      {t("teamAlternative")}{" "}
+      <Link href="/teams" className="link">
+        {t("teamAlternativeCta")}
+      </Link>
+    </p>
+  ) : null;
 
   const user = await getUser();
   if (!user) {
@@ -61,19 +71,41 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
       return <LifecycleNotice event={event} />;
     }
     return (
-      <GuestRegisterForm
-        eventSlug={slug}
-        eventName={event.name}
-        eventDate={event.shortDate}
-        eventDateIso={event.date}
-        eventTime={event.timeRange ? `${event.timeRange.start}–${event.timeRange.end}` : null}
-        venue={`${event.venue}, ${event.city}`}
-        locale={locale}
-      />
+      <>
+        {teamAlternative}
+        <GuestRegisterForm
+          eventSlug={slug}
+          eventName={event.name}
+          eventDate={event.shortDate}
+          eventDateIso={event.date}
+          eventTime={event.timeRange ? `${event.timeRange.start}–${event.timeRange.end}` : null}
+          venue={`${event.venue}, ${event.city}`}
+          locale={locale}
+        />
+      </>
     );
   }
 
   const existing = await getRegistration(slug, user.id);
+  if (existing?.teamEntryId) {
+    // Entered by a team manager: the row exists, but it is not theirs to manage
+    // here — the ticket, consent and any change go through the team (PRD #64).
+    // One person, one entry path per night (ADR 0009), so no second register.
+    const found = await getEntryWithTeam(existing.teamEntryId);
+    return (
+      <section className="iv-card center-narrow" data-registered-via-team="1">
+        <span className="iv-eyebrow">{t("alreadyTeamTitle")}</span>
+        <p className="iv-sub">{t("alreadyTeamBody", { team: found?.team.name ?? "—" })}</p>
+        {found ? (
+          <div className="iv-actions">
+            <Link href={`/teams/${found.team.slug}`} className="btn btn-red">
+              {t("alreadyTeamCta")}
+            </Link>
+          </div>
+        ) : null}
+      </section>
+    );
+  }
   if (existing) {
     return (
       <section className="iv-card center-narrow">
@@ -156,9 +188,11 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
   const runnerName =
     [u.firstName, u.lastName].filter(Boolean).join(" ").trim() || user.name || user.email;
 
-  // The event's own corpus, and the items it asks for — resolved server-side so
-  // the client never chooses which documents apply to it (ADR 0006).
-  const docSet = docSetForEventType(event.eventType);
+  // The individual corpus, and the items it asks for — resolved server-side so
+  // the client never chooses which documents apply to it (ADR 0006). The set
+  // follows the entry path, not the event: a `mixed` night's team members sign
+  // the team set on their confirmation screen instead (ADR 0009).
+  const docSet: DocSet = "individual";
   const consentItems = getConsentItems(docSet).map((item) => ({
     id: item.id,
     docSlug: item.docSlug,
@@ -170,20 +204,23 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
   const snapshot = await getLatestConsentSnapshot(user.id);
 
   return (
-    <RegisterConfirm
-      eventSlug={slug}
-      eventName={event.name}
-      eventDate={event.shortDate}
-      eventTime={event.timeRange ? `${event.timeRange.start}–${event.timeRange.end}` : null}
-      venue={`${event.venue}, ${event.city}`}
-      runnerName={runnerName}
-      runnerEmail={user.email}
-      docSet={docSet}
-      docLocale={locale as "pl" | "en" | "ua"}
-      consentItems={consentItems}
-      prefillEmergencyContact={snapshot?.emergencyContact ?? ""}
-      prefillAddress={snapshot?.address ?? ""}
-    />
+    <>
+      {teamAlternative}
+      <RegisterConfirm
+        eventSlug={slug}
+        eventName={event.name}
+        eventDate={event.shortDate}
+        eventTime={event.timeRange ? `${event.timeRange.start}–${event.timeRange.end}` : null}
+        venue={`${event.venue}, ${event.city}`}
+        runnerName={runnerName}
+        runnerEmail={user.email}
+        docSet={docSet}
+        docLocale={locale as "pl" | "en" | "ua"}
+        consentItems={consentItems}
+        prefillEmergencyContact={snapshot?.emergencyContact ?? ""}
+        prefillAddress={snapshot?.address ?? ""}
+      />
+    </>
   );
 }
 

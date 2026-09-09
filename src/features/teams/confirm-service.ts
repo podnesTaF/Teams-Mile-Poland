@@ -16,7 +16,7 @@ import {
 import { getDb } from "@/lib/db";
 import { getEventBySlug } from "@/lib/events/registry";
 import { isPubliclyVisible } from "@/lib/events/store";
-import { isSeriesEvent, type EventSummary } from "@/lib/events/types";
+import { acceptsTeams, type EventSummary } from "@/lib/events/types";
 import type { ConsentRowInput } from "@/lib/legal/consent";
 import type { DocSlug } from "@/lib/legal/manifest";
 
@@ -98,7 +98,7 @@ export async function loadConfirmScreen(
   if (!found) return null;
 
   const event = await getEventBySlug(loaded.registration.eventSlug);
-  if (!event || event.eventType !== "team" || !isSeriesEvent(event) || !isPubliclyVisible(event)) {
+  if (!acceptsTeams(event) || !isPubliclyVisible(event)) {
     return null;
   }
 

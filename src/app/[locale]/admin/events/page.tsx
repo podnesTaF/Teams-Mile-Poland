@@ -10,7 +10,7 @@ import { AdminStat } from "@/features/admin/components/shell/admin-stat";
 import { EventStatusBadge } from "@/features/admin/components/shell/event-status-badge";
 import { getRosterStats, type ParticipationStatus } from "@/features/admin/events-data";
 import { userCan } from "@/lib/auth/user-session";
-import { getIndividualEvents } from "@/lib/events/registry";
+import { getStackEvents } from "@/lib/events/registry";
 import { formatEventLongDate } from "@/lib/events/time";
 import type { EventSummary } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ type RosterStats = Record<ParticipationStatus, number>;
  * `edit` surfaces, so they are gated here as well as by the actions behind them:
  * a viewer or a check-in volunteer is never handed a control that 404s.
  *
- * The frozen team event never appears: `getIndividualEvents` excludes it, and it
+ * The frozen team event never appears: `getStackEvents` excludes it, and it
  * has no roster / heats / check-in pages to link to in the first place.
  */
 export default async function AdminEventsIndexPage({
@@ -49,7 +49,7 @@ export default async function AdminEventsIndexPage({
 
   // Completed nights included, as in the sidebar: a race that has run keeps its
   // roster, heats and check-in pages, and its final counts are the record of it.
-  const events = await getIndividualEvents();
+  const events = await getStackEvents();
   const hasDatabase = Boolean(process.env.DATABASE_URL);
   // One grouped count query per event, in parallel — the same read the roster
   // header uses, so the index adds no new data path.

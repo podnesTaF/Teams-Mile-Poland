@@ -11,7 +11,7 @@ import {
 import { getStatementRoster } from "@/features/admin/statements";
 import { getEventBySlug } from "@/lib/events/registry";
 import { isSeriesEvent } from "@/lib/events/types";
-import { docSetForEventType, getDocsForSet } from "@/lib/legal/manifest";
+import { docSetsForEventType, getDocsForSet } from "@/lib/legal/manifest";
 import { cn } from "@/lib/utils";
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
@@ -56,9 +56,11 @@ export default async function AdminEventStatementsPage({ params }: PageProps) {
   // The Statement's own English title, for the panel's heading: admin chrome is
   // English whatever locale the URL carries.
   const t = await getTranslations({ locale: "en", namespace: "legal" });
-  const statementDoc = getDocsForSet(docSetForEventType(event.eventType)).find(
-    (doc) => doc.personalised,
-  );
+  // A mixed night publishes two personalised Statements; the panel heading
+  // then keeps the generic title and each printed statement names its own.
+  const sets = docSetsForEventType(event.eventType);
+  const statementDoc =
+    sets.length === 1 ? getDocsForSet(sets[0]).find((doc) => doc.personalised) : undefined;
   const docTitle = statementDoc ? t(`docs.${statementDoc.slug}`) : "Participant Statement";
 
   if (rows.length === 0) {

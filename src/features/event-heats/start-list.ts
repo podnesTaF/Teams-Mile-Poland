@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { eventHeats, eventRegistrations, teamEntries, teamEntryMembers, users } from "@/db/schema";
@@ -108,14 +108,17 @@ export async function getEventStartList(
   /**
    * Which projection to build. `"individual"` — the default, and byte-for-byte
    * what every existing caller has always received. `"team"` groups the same
-   * published heats by team entry instead (PRD #64 user story 37).
+   * published heats by team entry instead (PRD #64 user story 37). `"mixed"`
+   * (ADR 0009) carries both on one list: every heat lists the teams seated in
+   * it and the solo runners seeded into it — a team member's registration is
+   * left out of the solo list, since their team block already names them.
    *
    * A parameter rather than a second function so there stays exactly one public
-   * start-list read: the two projections must agree about which heats are
-   * published and about the ISR contract, and two entry points would be two
-   * places for that to drift.
+   * start-list read: the projections must agree about which heats are published
+   * and about the ISR contract, and two entry points would be two places for
+   * that to drift.
    */
-  kind: "individual" | "team" = "individual",
+  kind: "individual" | "team" | "mixed" = "individual",
 ): Promise<StartList> {
   const db = getDb();
 
@@ -135,18 +138,22 @@ export async function getEventStartList(
     return { totalHeats: heats.length, heats: [] };
   }
 
+  const teamsInHeat =
+    kind === "team" || kind === "mixed"
+      ? await teamsByHeat(
+          eventSlug,
+          published.map((h) => h.id),
+        )
+      : new Map<string, StartListTeam[]>();
+
   if (kind === "team") {
-    const byHeat = await teamsByHeat(
-      eventSlug,
-      published.map((h) => h.id),
-    );
     return {
       totalHeats: heats.length,
       heats: published.map((h) => ({
         number: h.number,
         scheduledAt: h.scheduledAt,
         entries: [],
-        teams: byHeat.get(h.id) ?? [],
+        teams: teamsInHeat.get(h.id) ?? [],
       })),
     };
   }
@@ -170,6 +177,9 @@ export async function getEventStartList(
           eventRegistrations.heatId,
           published.map((h) => h.id),
         ),
+        // On a mixed list a team member is named inside their team block, not
+        // again as a solo runner.
+        ...(kind === "mixed" ? [isNull(eventRegistrations.teamEntryId)] : []),
       ),
     )
     .orderBy(asc(users.lastName), asc(users.firstName));
@@ -193,7 +203,7 @@ export async function getEventStartList(
       number: h.number,
       scheduledAt: h.scheduledAt,
       entries: byHeat.get(h.id) ?? [],
-      teams: [],
+      teams: teamsInHeat.get(h.id) ?? [],
     })),
   };
 }

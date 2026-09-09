@@ -23,6 +23,7 @@ import { formatEventLongDate } from "@/lib/events/time";
 import type { EventMediaItem } from "@/lib/events/types";
 
 import { GalleryLightbox } from "./gallery-lightbox";
+import { acceptsIndividuals } from "@/lib/events/types";
 
 export async function generateStaticParams() {
   // Deliberately empty, not omitted (the start-list pattern, issue #31): which
@@ -57,7 +58,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale, slug } = await params;
   const event = await getEventBySlug(slug);
   // Same gate as the page — an unannounced night gets no title and no OG image.
-  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
+  if (!acceptsIndividuals(event) || !isPubliclyVisible(event)) {
     notFound();
   }
   if (event.status !== "completed") {
@@ -91,7 +92,7 @@ export default async function GalleryPage({ params }: PageProps) {
   // and slice 02 refuses `completed → cancelled` — but the visibility gate is
   // stated anyway, so this page keeps 404ing drafts if the gallery ever opens up
   // to a non-completed state.
-  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
+  if (!acceptsIndividuals(event) || !isPubliclyVisible(event)) {
     notFound();
   }
   if (event.status !== "completed") {

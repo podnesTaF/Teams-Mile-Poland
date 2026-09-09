@@ -15,6 +15,7 @@ import {
   type ResolvedRow,
 } from "./results-import/data";
 import { parseResultsFile, type RowError } from "./results-import/parse";
+import { acceptsIndividuals } from "@/lib/events/types";
 
 /**
  * The results-import actions (timing integration slice). Unlike the panel's
@@ -89,7 +90,7 @@ export async function previewResultsImport(
   const locale = safeLocale(formData.get("locale"));
   await requireAdmin(locale, "edit");
   const event = await getEventBySlug(eventSlug);
-  if (!event || event.eventType !== "individual") {
+  if (!acceptsIndividuals(event)) {
     return { ok: false, errors: [{ sourceRow: 0, message: "Unknown event." }] };
   }
 
@@ -132,7 +133,7 @@ export async function commitResultsImport(eventSlug: string, formData: FormData)
   await requireAdmin(locale, "edit");
   const event = await getEventBySlug(eventSlug);
   const resultsPage = adminPath(locale, `/events/${eventSlug}/results`);
-  if (!event || event.eventType !== "individual") {
+  if (!acceptsIndividuals(event)) {
     redirect(`${resultsPage}?error=input`);
   }
 

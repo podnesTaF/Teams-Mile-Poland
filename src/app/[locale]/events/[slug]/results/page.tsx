@@ -15,7 +15,7 @@ import { getPublicResults } from "@/lib/events/results-data";
 // is new API, and the shim exists only so the pre-DB call sites kept compiling.
 import { isPubliclyVisible } from "@/lib/events/store";
 import { formatEventLongDate } from "@/lib/events/time";
-import { RACE_RESULT_GROUP_URL } from "@/lib/events/types";
+import { RACE_RESULT_GROUP_URL, acceptsIndividuals } from "@/lib/events/types";
 
 /**
  * Fresh on every request — deliberately NOT the start list's
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const event = await getEventBySlug(slug);
   // Same gate as the page: an unannounced night gets no title, in a tab or a
   // share card, because metadata renders before the body that 404s.
-  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
+  if (!acceptsIndividuals(event) || !isPubliclyVisible(event)) {
     notFound();
   }
   const t = await getTranslations({ locale, namespace: "events" });
@@ -61,7 +61,7 @@ export default async function EventResultsPage({ params }: PageProps) {
   // A draft never has a public page (`isPubliclyVisible`). A cancelled night
   // does: if it was called off mid-series after heats had already run, the
   // results that exist stay readable — this page is a record, not a promotion.
-  if (!event || event.eventType !== "individual" || !isPubliclyVisible(event)) {
+  if (!acceptsIndividuals(event) || !isPubliclyVisible(event)) {
     notFound();
   }
 

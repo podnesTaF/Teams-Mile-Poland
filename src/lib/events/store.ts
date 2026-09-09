@@ -10,6 +10,9 @@ import { buildMileTimetable, firstHeatTime } from "./timetables";
 import {
   DEFAULT_BIB_POOL,
   DEFAULT_HEAT_INTERVAL_MINUTES,
+  acceptsIndividuals,
+  isSeriesEvent,
+  typeAcceptsIndividuals,
   type EventSummary,
   type TimeRange,
 } from "./types";
@@ -78,7 +81,9 @@ function toSummary(row: EventRow): EventSummary {
     venue: row.venue,
     city: row.city,
     ...(timeRange ? { timeRange } : {}),
-    ...(timeRange && row.eventType === "individual"
+    // Any night with an individual path runs the standard mile flow; a pure
+    // team night has no per-person timetable to derive.
+    ...(timeRange && typeAcceptsIndividuals(row.eventType)
       ? { timetable: buildMileTimetable(timeRange.start) }
       : {}),
     bibPool: row.bibPool,
@@ -238,9 +243,9 @@ export async function getUpcomingEvents(): Promise<EventSummary[]> {
 }
 
 /**
- * The individual mile series as the public site sees it, soonest first — every
- * individual night someone can still come to, regardless of open/upcoming state.
- * Drives the landing cards section.
+ * The mile series as the public site sees it, soonest first — every night with
+ * an individual path (`individual` or `mixed`) someone can still come to,
+ * regardless of open/upcoming state. Drives the landing cards section.
  *
  * Excludes `draft` and `cancelled` (see {@link isForthcoming}), and that
  * exclusion is load-bearing well beyond the landing: this is also the event list
@@ -252,19 +257,20 @@ export async function getUpcomingEvents(): Promise<EventSummary[]> {
 export async function getSeriesEvents(): Promise<EventSummary[]> {
   const all = await loadEvents();
   return all
-    .filter((e) => e.eventType === "individual" && isForthcoming(e))
+    .filter((e) => acceptsIndividuals(e) && isForthcoming(e))
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 /**
- * Every individual mile event regardless of lifecycle status. Two consumers: the
- * "Aug events" universe the broadcast segments (`registered_any_aug`,
+ * Every event on the current stack — `individual`, `team` and `mixed` nights,
+ * every lifecycle status — soonest first; only the frozen legacy TEAMS MILE
+ * night is excluded (ADR 0008). Consumers: the admin events index, sidebar and
+ * dashboard (a `team` night has roster, heats and desk pages like any other),
+ * and the universe the broadcast segments (`registered_any_aug`,
  * `not_registered_aug`, `registered:<slug>`, `awaiting_confirmation:<slug>`,
- * `confirmed:<slug>`) are computed against, and the event detail page's static
- * params (a completed race night must keep its page — the gallery teaser/back-
- * link and media-live mailing CTA point at it). Unlike {@link getSeriesEvents}
- * this includes completed individual events, so a past event stays reachable.
- * Soonest first.
+ * `confirmed:<slug>`) are computed against — team-entered members hold
+ * `event_registrations` rows too. Unlike {@link getSeriesEvents} this includes
+ * completed events, so a past event stays reachable.
  *
  * **Unfiltered on purpose, including drafts.** The admin nav and the segment
  * universe have to see a night that has not been announced yet. The one public
@@ -272,11 +278,9 @@ export async function getSeriesEvents(): Promise<EventSummary[]> {
  * {@link isPubliclyVisible} itself, so no draft path is prerendered; adding the
  * filter here instead would blind the admin.
  */
-export async function getIndividualEvents(): Promise<EventSummary[]> {
+export async function getStackEvents(): Promise<EventSummary[]> {
   const all = await loadEvents();
-  return all
-    .filter((e) => e.eventType === "individual")
-    .sort((a, b) => a.date.localeCompare(b.date));
+  return all.filter(isSeriesEvent).sort((a, b) => a.date.localeCompare(b.date));
 }
 
 /**
@@ -288,7 +292,7 @@ export async function getIndividualEvents(): Promise<EventSummary[]> {
  * so both types have documents and both need pages — unlike every other public
  * surface, which is the individual series' and says so with an `individual`
  * filter. The caller applies {@link isPubliclyVisible} itself, exactly as
- * {@link getIndividualEvents}' callers do, so a draft is never prerendered while
+ * {@link getStackEvents}' callers do, so a draft is never prerendered while
  * the admin surfaces can still see one.
  */
 export async function getAllEvents(): Promise<EventSummary[]> {

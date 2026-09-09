@@ -7,7 +7,7 @@ import {
   type ParticipationStatus,
 } from "@/db/schema";
 import { getDb } from "@/lib/db";
-import { getIndividualEvents } from "@/lib/events/registry";
+import { getStackEvents } from "@/lib/events/registry";
 
 import { asMailLocale, type MailLocale } from "./copy";
 
@@ -52,7 +52,7 @@ type PerEventPrefix = (typeof PER_EVENT_PREFIXES)[number];
 
 /** Slugs of every individual mile event — the "Aug events" universe. */
 async function augEventSlugs(): Promise<string[]> {
-  return (await getIndividualEvents()).map((e) => e.slug);
+  return (await getStackEvents()).map((e) => e.slug);
 }
 
 async function parsePerEventSegment(
@@ -234,7 +234,7 @@ export async function describeUserSegments(): Promise<SegmentOption[]> {
     { value: "first_event_no_show", label: "First event · no-show" },
     { value: "registered_any_aug", label: "Registered for any Aug event" },
     { value: "not_registered_aug", label: "Not registered for any Aug event" },
-    ...(await getIndividualEvents()).flatMap((e) => [
+    ...(await getStackEvents()).flatMap((e) => [
       {
         value: `registered:${e.slug}` as UserSegment,
         label: `${e.shortDate} · all registrations`,

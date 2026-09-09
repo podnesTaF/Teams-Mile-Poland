@@ -108,12 +108,18 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
   const stranded = heatsOutsideWindow(heats, event);
   // A team night's card is counted in teams (PRD #64 user story 34): the
   // capacity stat, the generate field and each card's editable capacity all
-  // switch unit, bounded by what the bib pool can chip.
+  // switch unit, bounded by what the bib pool can chip. A mixed night (ADR
+  // 0009) carries both kinds of heat — a heat with a teams figure is a team
+  // heat — so its stats count each kind in its own unit.
   const teamEvent = event.eventType === "team";
+  const mixedEvent = event.eventType === "mixed";
   const maxTeams = maxTeamsPerHeat(pool);
+  const teamHeats = heats.filter((h) => teamEvent || (mixedEvent && h.capacityTeams !== null));
+  const individualHeats = heats.filter((h) => !teamHeats.includes(h));
   const totalCapacity = teamEvent
     ? heats.reduce((sum, h) => sum + h.teamCapacity, 0)
-    : heats.reduce((sum, h) => sum + h.capacity, 0);
+    : individualHeats.reduce((sum, h) => sum + h.capacity, 0);
+  const totalTeamCapacity = teamHeats.reduce((sum, h) => sum + h.teamCapacity, 0);
   const seatedTeams = heats.reduce((sum, h) => sum + h.teams, 0);
 
   // Prefill the next generated heat one interval past the latest heat already on
@@ -159,9 +165,11 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
             not the same number as the roster's "Confirmed" stat. */}
         <AdminStat label="Seedable" value={seeds.length} />
         <AdminStat label={teamEvent ? "Teams seated" : "Seeded"} value={teamEvent ? seatedTeams : seeded} />
+        {mixedEvent ? <AdminStat label="Teams seated" value={seatedTeams} /> : null}
         <AdminStat label="Unassigned" value={seeds.length - seeded} />
         <AdminStat label="To notify" value={pendingNotify} />
         <AdminStat label={teamEvent ? "Team capacity" : "Capacity"} value={totalCapacity} />
+        {mixedEvent ? <AdminStat label="Team capacity" value={totalTeamCapacity} /> : null}
         <AdminStat label="Bib pool" value={pool} />
       </div>
 
@@ -174,7 +182,9 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
             ? `Start times are prefilled from the event's racing window at ${interval}-minute spacing. ` +
               (teamEvent
                 ? `A team heat holds whole teams — at most ${maxTeams} of them, which is what the ${pool}-bib pool can chip.`
-                : `Capacity is capped at the ${pool}-bib pool.`)
+                : mixedEvent
+                  ? `This night has both kinds of heat. Leave "Teams / heat" blank for individual heats (capacity in runners, capped at the ${pool}-bib pool); fill it in to generate team heats — at most ${maxTeams} teams each.`
+                  : `Capacity is capped at the ${pool}-bib pool.`)
             : `New heats are numbered on from heat ${heats[heats.length - 1].number} — existing heats and their times are left alone.`}
         </p>
         <form action={generateHeats} className="mt-4 flex flex-wrap items-end gap-2.5">
@@ -213,6 +223,19 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
               />
             </AdminField>
           )}
+          {mixedEvent ? (
+            <AdminField label="Teams / heat" className="w-[112px]">
+              <input
+                className={adminInput()}
+                type="number"
+                name="capacityTeams"
+                min={1}
+                max={maxTeams}
+                placeholder="blank = solo"
+                data-mixed-teams-field="1"
+              />
+            </AdminField>
+          ) : null}
           <AdminField label="First start" className="w-full sm:w-[210px]">
             <input
               className={adminInput()}
@@ -323,6 +346,7 @@ export default async function AdminEventHeatsPage({ params, searchParams }: Page
             bibMax={bibMax}
             canEdit={canEdit}
             teamEvent={teamEvent}
+            mixedEvent={mixedEvent}
             maxTeams={maxTeams}
           />
         </div>
