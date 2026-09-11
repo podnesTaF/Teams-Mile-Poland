@@ -895,6 +895,155 @@
   opacity: 1;
 }
 
+/* ---- video card ----
+ * The clip's own poster frame as a 16:9 tile, so the control reads as a
+ * video before it is clicked. The play circle sits centred over a shade
+ * that darkens the frame just enough for the white caption along the
+ * bottom edge; hover/focus lifts the frame and grows the circle. */
+.ace-landing .play--card {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--acl-ink-soft);
+  color: #fff;
+  text-align: left;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 24px 60px rgba(0, 0, 0, 0.45);
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.35s ease;
+}
+.ace-landing .play--card:hover,
+.ace-landing .play--card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.22),
+    0 32px 72px rgba(0, 0, 0, 0.55);
+}
+.ace-landing .play--card:focus-visible {
+  outline: 2px solid var(--acl-red);
+  outline-offset: 4px;
+}
+.ace-landing .play__poster {
+  object-fit: cover;
+  /* `--poster-zoom` crops letterbox bars baked into a clip's poster frame;
+   * see the prop's note in `components/landing/video-play.tsx`. */
+  transform: scale(var(--poster-zoom, 1));
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.ace-landing .play--card:hover .play__poster,
+.ace-landing .play--card:focus-visible .play__poster {
+  transform: scale(calc(var(--poster-zoom, 1) * 1.05));
+}
+.ace-landing .play__shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(25, 26, 24, 0.25) 0%, rgba(25, 26, 24, 0) 35%),
+    linear-gradient(
+      0deg,
+      rgba(25, 26, 24, 0.92) 0%,
+      rgba(25, 26, 24, 0.55) 28%,
+      rgba(25, 26, 24, 0) 60%
+    );
+  pointer-events: none;
+}
+.ace-landing .play--card .play__circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(56px, 9vw, 76px);
+  height: clamp(56px, 9vw, 76px);
+  transform: translate(-50%, -50%);
+  /* A thin white ring separates the red disc from a red or busy frame. */
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.92),
+    0 0 0 13px rgba(229, 31, 50, 0.16),
+    0 14px 34px rgba(0, 0, 0, 0.5);
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.35s ease;
+}
+/* Keeps the site's play mark — ink triangle on the red disc — just scaled
+ * up for the larger circle the poster frame can carry. */
+.ace-landing .play--card .play__circle svg {
+  width: 38%;
+  height: 38%;
+  margin-left: 6%;
+}
+.ace-landing .play--card:hover .play__circle,
+.ace-landing .play--card:focus-visible .play__circle {
+  transform: translate(-50%, -50%) scale(1.08);
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 20px rgba(229, 31, 50, 0.24),
+    0 18px 44px rgba(0, 0, 0, 0.6);
+}
+.ace-landing .play__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: clamp(14px, 2.4vw, 22px) clamp(16px, 2.8vw, 26px);
+}
+.ace-landing .play--card .play__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-cta), "Exo 2", system-ui, sans-serif;
+  font-weight: 600;
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 1;
+}
+.ace-landing .play--card .play__kicker::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--acl-red);
+  box-shadow: 0 0 0 3px rgba(229, 31, 50, 0.3);
+}
+.ace-landing .play--card .play__label {
+  font-size: var(--fs-caps-l);
+  line-height: 1.15;
+  text-transform: uppercase;
+  opacity: 1;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+/* The card is a sibling of the 640px manifesto column, not part of it, so it
+ * keeps the same 720px width as the invite card above. */
+.ace-landing .path .play--card {
+  margin-top: clamp(24px, 3vw, 36px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ace-landing .play--card,
+  .ace-landing .play__poster,
+  .ace-landing .play--card .play__circle {
+    transition: none;
+  }
+  .ace-landing .play--card:hover,
+  .ace-landing .play--card:hover .play__poster,
+  .ace-landing .play--card:hover .play__circle {
+    transform: none;
+  }
+  .ace-landing .play--card:hover .play__circle {
+    transform: translate(-50%, -50%);
+  }
+}
+
 /* Section-seam triangle — a downward notch the colour of the section it
  * hangs off, visually "attached" to its bottom edge and pointing into the
  * next section. Rendered between WhatIs (dark) and HowItGoes (white) in the
