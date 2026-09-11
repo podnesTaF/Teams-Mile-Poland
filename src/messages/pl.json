@@ -92,7 +92,7 @@
         "freeLabel": "Udział",
         "freeValue": "BEZPŁATNY",
         "prizeLabel": "💰 Pula nagród",
-        "prizeValue": "5 000 zł",
+        "prizeValue": "10 000 zł",
         "maxParticipantsLabel": "Dostępne miejsca",
         "maxParticipantsValue": "300",
         "timeLabel": "Godziny",
@@ -111,9 +111,9 @@
       }
     },
     "formatBand": {
-      "title": "NOWY FORMAT BIEGÓW!",
+      "title": "Przebiegnij milę —<br></br>poznaj swój poziom.",
       "subtitle": "DEBIUT ACE BATTLE RUN WARSZAWA",
-      "body": "Uczestnicy z najlepszymi wynikami otrzymają nagrody w klasyfikacji indywidualnej i drużynowej od sponsorów projektu.",
+      "body": "Regularne biegi na milę na stadionie, oficjalny czas chipowy i ranking krajowy. Prowadź drużynę do ligi i zarabiaj w systemie poleceń. Team building pod klucz — bezpiecznie, emocjonująco, bez zmartwień organizacyjnych.",
       "playLabel": "ZOBACZ ATMOSFERĘ"
     },
     "whatIs": {

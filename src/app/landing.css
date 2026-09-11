@@ -659,94 +659,191 @@
     var(--acl-ink) 100%
   );
 }
+/* The band is a 1:1 port of the "Hero Section" artboard: a 1280×548 stage
+   with the ACE BATTLE watermark behind a 925-wide photo group — a red pill
+   with the track photo showing through it, the runners cutout over the top —
+   and the copy column over the pill's lower half.
+
+   The artboard keeps its fixed stage on screen by scaling it uniformly, and
+   `cqw` reproduces that exactly: the stage is the query container, so 1cqw is
+   1% of its width and every artboard pixel is that pixel / 12.8. Geometry and
+   type therefore hold the artboard's proportions at every width, and the
+   composition is pixel-exact wherever the stage is 1280 wide. Below the
+   breakpoint a uniform scale would leave the type unreadable, so the copy
+   drops back to absolute sizes — see the 640px block. */
 .ace-landing .format-stage {
+  container-type: inline-size;
   position: relative;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1280px;
   margin: 0 auto;
-  height: clamp(440px, 46vw, 560px);
   z-index: 1;
 }
-.ace-landing .format-athlete {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  height: 100%;
-  width: auto;
-  z-index: 2;
+/* Artboard stage. Height comes from the ratio; the copy that follows is in
+   normal flow so a translation that wraps a line longer than the Ukrainian
+   original grows the band instead of overflowing it. */
+.ace-landing .format-art {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1280 / 548;
 }
-/* Gradient veil between the athlete (2) and the text (4): only covers the
-   lower portion of the stage so it fades the photo/card legs into the dark
-   without dimming the whole section. */
-.ace-landing .format-veil {
+/* ACE BATTLE watermark (artboard: 196px Fira Sans 800 italic at y=140).
+   Set as live text, as the artboard has it — the brand SVG is a drawn
+   lockup with different letterforms and would not land on the same pixels. */
+.ace-landing .format-mark {
+  position: absolute;
+  left: -0.038cqw;
+  top: 10.9375cqw;
+  width: 100.038cqw;
+  height: 11.0139cqw;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mark), "Fira Sans", system-ui, sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  font-size: 15.3125cqw;
+  line-height: 11.0139cqw;
+  letter-spacing: 0.46875cqw;
+  text-indent: 0.46875cqw;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: #fff;
+  opacity: 0.2;
+  /* `--py` is driven by <Parallax/> so the watermark drifts behind the
+     runners at a different speed on scroll; falls back to 0 with no JS. */
+  transform: translateY(var(--py, 0px));
+  will-change: transform;
+}
+/* Sinks the watermark's lower half into the ink (artboard y=171, h=141). */
+.ace-landing .format-mark-fade {
   position: absolute;
   left: 0;
-  right: 0;
-  bottom: 0;
-  height: 48%;
+  top: 13.3594cqw;
+  width: 100cqw;
+  height: 11.0156cqw;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(25, 26, 24, 0) 0%, var(--acl-ink) 100%);
+}
+/* Photo group — artboard 925×449 at x=192, y=0. */
+.ace-landing .format-photo {
+  position: absolute;
+  left: 15cqw;
+  top: 0;
+  width: 72.2656cqw;
+  height: 35.0781cqw;
+  z-index: 2;
+}
+/* The 925×440 crop the pill and the runners share. */
+.ace-landing .format-photo__inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 72.2656cqw;
+  height: 34.375cqw;
+  overflow: hidden;
+}
+/* Red pill with the track photo showing through it (artboard 630×275 at
+   x=146, y=165 within the crop). */
+.ace-landing .format-pill {
+  position: absolute;
+  left: 11.4063cqw;
+  top: 12.8906cqw;
+  width: 49.2188cqw;
+  height: 21.4844cqw;
+  border-radius: 78.125cqw;
+  overflow: hidden;
+  background-color: var(--acl-red);
+}
+.ace-landing .format-pill__track {
+  position: absolute;
+  left: -11.4063cqw;
+  top: 0;
+  width: 72.2656cqw;
+  height: 37.1094cqw;
+  background: url("/landing/hero-track.png") -4.46% 100% / 100.064% 160.386% no-repeat;
+}
+.ace-landing .format-runners {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 72.2656cqw;
+  height: 34.375cqw;
+  background: url("/landing/hero-runners.png") -88.025% 38.208% / 100.045% 173.345% no-repeat;
+}
+/* Gradient veil over the pill's lower half (artboard 630×208 at x=146,
+   y=241): fades the photo into the ink so the copy over it stays legible. */
+.ace-landing .format-veil {
+  position: absolute;
+  left: 11.4063cqw;
+  top: 18.8281cqw;
+  width: 49.2188cqw;
+  height: 16.25cqw;
   z-index: 3;
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    transparent 0%,
-    rgba(25, 26, 24, 0.72) 62%,
+    rgba(25, 26, 24, 0) 0%,
+    rgba(25, 26, 24, 0.91) 50.99%,
     var(--acl-ink) 100%
   );
 }
-/* ACE BATTLE logo as the backdrop wordmark behind the athlete. */
-.ace-landing .format-stage .logo-wm--mark {
-  position: absolute;
-  left: 50%;
-  top: 6%;
-  /* `--py` is driven by <Parallax/> so the watermark drifts behind the
-     athlete at a different speed on scroll; falls back to 0 with no JS. */
-  transform: translateX(-50%) translateY(var(--py, 0px));
-  z-index: 0;
-  width: min(110%, 1180px);
-  max-width: none;
-  opacity: 0.45;
-  will-change: transform;
-}
-.ace-landing .format-stage .logo-wm--mark img {
-  width: 100%;
-  height: auto;
-}
-/* Red panel. Intentionally has NO z-index and NO transform so it does not
-   create a stacking context — its child .format-card__text can then sit
-   above the athlete (z2) and veil (z3). Centered with auto margins instead
-   of translateX to avoid the transform-induced stacking context. */
-.ace-landing .format-card {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 4%;
-  margin-inline: auto;
-  width: min(820px, 90%);
-  text-align: center;
-  background: radial-gradient(130% 130% at 50% 22%, #e8233a 0%, #bf1326 100%);
-  border-radius: 1000px;
-  padding: clamp(56px, 7.5vw, 100px) clamp(36px, 5.5vw, 84px);
-  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.4);
-}
-.ace-landing .format-card__text {
+/* Copy column — artboard 622 wide at x=342, y=241. Pulled back up over the
+   artwork by the 307px between the copy's top and the stage bottom. */
+.ace-landing .format-copy {
   position: relative;
   z-index: 4;
-  max-width: 460px;
-  margin-inline: auto;
+  width: 48.5938cqw;
+  margin: -23.9844cqw auto 0;
+  text-align: center;
 }
-.ace-landing .format-card__text .t-32 {
-  margin-bottom: 10px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+.ace-landing .format-copy__title {
+  /* Artboard 40/48/1.2 with a 4px gap to the subtitle. */
+  font-size: 3.125cqw;
+  line-height: 1.2;
+  text-transform: uppercase;
+  margin-bottom: 0.3125cqw;
+  text-shadow: 0 0.3125cqw 0.3125cqw rgba(0, 0, 0, 0.25);
 }
-.ace-landing .format-card__text .t-24 {
-  margin-bottom: 14px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+.ace-landing .format-copy .t-24 {
+  font-size: 1.875cqw;
+  line-height: 1.2;
+  margin-bottom: 0.3125cqw;
+  text-shadow: 0 0.3125cqw 0.3125cqw rgba(0, 0, 0, 0.25);
 }
-.ace-landing .format-card__text .body {
-  opacity: 0.96;
-  font-weight: 500;
+.ace-landing .format-copy__body {
+  /* Artboard 18/1.45 regular on the muted grey. */
+  padding-top: 0.46875cqw;
+  font-size: 1.40625cqw;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #d7d7d5;
 }
+/* Play control — artboard 48px disc, 12px gap, 16px label, 48px above. */
+.ace-landing .format-copy .play {
+  margin: 3.75cqw auto 0;
+  gap: 0.9375cqw;
+}
+.ace-landing .format-copy .play__circle {
+  width: 3.75cqw;
+  height: 3.75cqw;
+  box-shadow: none;
+}
+/* The artboard's glyph is a 10×16 triangle. PlayIcon draws an 11×12 triangle
+   in a 16×16 box, so the box is scaled up until the triangle itself measures
+   10×16 and nudged to land on the artboard's centre. */
+.ace-landing .format-copy .play__circle svg {
+  width: 1.1364cqw;
+  height: 1.6667cqw;
+  margin-left: 0.082cqw;
+}
+.ace-landing .format-copy .play span:last-child {
+  font-size: 1.25cqw;
+  line-height: 1.4;
+}
+
 .ace-landing .play {
   display: flex;
   flex-direction: column;
@@ -2184,8 +2281,7 @@
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background:
-    linear-gradient(135deg, rgba(229, 31, 50, 0.08) 0%, transparent 42%),
-    rgba(25, 26, 24, 0.72);
+    linear-gradient(135deg, rgba(229, 31, 50, 0.08) 0%, transparent 42%), rgba(25, 26, 24, 0.72);
   backdrop-filter: blur(10px);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
 }
@@ -2248,6 +2344,44 @@
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 980px) {
+  /* Below this width the artboard's uniform scale drops the 18px body under
+     14px, so the copy column falls back to absolute sizes. The artwork keeps
+     the artboard's proportions and the copy clears it rather than sitting
+     over the pill. */
+  .ace-landing .format-copy {
+    width: min(622px, 88%);
+    margin-top: -9cqw;
+  }
+  .ace-landing .format-copy__title {
+    font-size: clamp(22px, 2px + 3.2vw, 34px);
+    margin-bottom: 4px;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  }
+  .ace-landing .format-copy .t-24 {
+    font-size: clamp(15px, 7px + 1.2vw, 20px);
+    margin-bottom: 4px;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  }
+  .ace-landing .format-copy__body {
+    font-size: clamp(14px, 10px + 0.6vw, 16px);
+    padding-top: 6px;
+  }
+  .ace-landing .format-copy .play {
+    margin-top: clamp(20px, 3vw, 32px);
+    gap: 12px;
+  }
+  .ace-landing .format-copy .play__circle {
+    width: 44px;
+    height: 44px;
+  }
+  .ace-landing .format-copy .play__circle svg {
+    width: 13px;
+    height: 19px;
+    margin-left: 1px;
+  }
+  .ace-landing .format-copy .play span:last-child {
+    font-size: 14px;
+  }
   .ace-landing .site-header__nav {
     display: none;
   }
@@ -2349,11 +2483,44 @@
   .ace-landing .path-grid {
     grid-template-columns: 1fr;
   }
-  .ace-landing .format-card {
-    border-radius: 14px;
-    padding: 28px 22px;
-    width: 94%;
-    bottom: 2%;
+  /* The artboard gives the photo group 925 of its 1280 columns; on a phone
+     that leaves the runners too small to read, so the group takes the full
+     width in a taller frame — the same composition, re-proportioned. */
+  .ace-landing .format-art {
+    aspect-ratio: 1280 / 700;
+  }
+  .ace-landing .format-photo {
+    left: 0;
+    width: 100cqw;
+    height: 48.5405cqw;
+  }
+  .ace-landing .format-photo__inner {
+    width: 100cqw;
+    height: 47.5676cqw;
+  }
+  .ace-landing .format-pill {
+    left: 15.7838cqw;
+    top: 17.8378cqw;
+    width: 68.1081cqw;
+    height: 29.7297cqw;
+  }
+  .ace-landing .format-pill__track {
+    left: -15.7838cqw;
+    width: 100cqw;
+    height: 51.3514cqw;
+  }
+  .ace-landing .format-runners {
+    width: 100cqw;
+    height: 47.5676cqw;
+  }
+  .ace-landing .format-veil {
+    left: 15.7838cqw;
+    top: 26.054cqw;
+    width: 68.1081cqw;
+    height: 22.4865cqw;
+  }
+  .ace-landing .format-copy {
+    margin-top: -6cqw;
   }
   .ace-landing .loc-btn {
     justify-content: center;
@@ -4204,8 +4371,7 @@
 .ace-landing .results__podium-card.is-p1 {
   order: 2;
   border-color: rgba(227, 6, 19, 0.55);
-  background:
-    linear-gradient(180deg, rgba(227, 6, 19, 0.12), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(180deg, rgba(227, 6, 19, 0.12), rgba(255, 255, 255, 0.02));
   padding-top: clamp(26px, 3.4vw, 40px);
   padding-bottom: clamp(26px, 3.4vw, 40px);
 }
@@ -4621,7 +4787,10 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   text-decoration: none;
   color: var(--acl-white);
-  transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    background 0.2s ease;
 }
 .ace-landing .ev-card:hover {
   background: rgba(255, 255, 255, 0.06);

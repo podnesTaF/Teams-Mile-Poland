@@ -6,7 +6,6 @@ import { formatEventDayMonth } from "@/lib/events/time";
 
 import { PinIcon, ScrollArrowIcon } from "./icons";
 import { VideoPlay } from "./video-play";
-import { Wordmark } from "./wordmark";
 
 const HOW_IT_WAS_VIDEO_ID = "CxTwKZNy5lE";
 
@@ -24,8 +23,9 @@ const QUICK_NAV = [
  * Hero + format-band combined (the design's `<header class="hero">` element).
  *
  * The atmosphere background sits behind a black-→ink vertical gradient,
- * then the page transitions into the "Format Poland has never seen" red-blob
- * band with the athlete cutout.
+ * then the page transitions into the format band: the ACE BATTLE watermark
+ * behind a red pill with the track photo showing through it and the runners
+ * cutout over the top, with the copy over the pill's lower half.
  *
  * `registrationOpen` drives the primary CTA: when a featured event is taking
  * registrations it links to `/register`; otherwise the primary action points
@@ -109,30 +109,33 @@ export function Hero({
         <div className="formatband">
           <div className="format-grad" aria-hidden />
           <div className="format-stage">
-            <Wordmark variant="mark" />
-            {/* Stacking, back → front: card (1) · athlete (2) · veil (3) · text (4).
-                The card carries no z-index / transform so it isn't a stacking
-                context — that lets its own text rise above the athlete + veil
-                via .format-card__text { z-index: 4 } while the athlete still
-                overlays the card panel itself. */}
-            <div className="format-card">
-              <div className="format-card__text">
-                <h2 className="head t-32">{fb("title")}</h2>
-                <h3 className="head t-24">{fb("subtitle")}</h3>
-                <p className="body">{fb("body")}</p>
+            {/* Artwork layer — ratio-locked to the artboard's 1280×548 stage so
+                every pinned child below can use artboard percentages directly.
+                Stacking, back → front: wordmark (0) · mark fade (1) · photo
+                group (2) · veil (3); the copy that follows sits at 4. */}
+            <div className="format-art" aria-hidden>
+              <div className="format-mark">ACE BATTLE</div>
+              <div className="format-mark-fade" />
+              <div className="format-photo">
+                {/* Clipped 925×440 crop: red pill with the track photo showing
+                    through it, then the runners cutout over the whole group. */}
+                <div className="format-photo__inner">
+                  <div className="format-pill">
+                    <div className="format-pill__track" />
+                  </div>
+                  <div className="format-runners" />
+                </div>
+                {/* Sinks the pill's lower half into the ink so the copy reads. */}
+                <div className="format-veil" />
               </div>
             </div>
-            <Image
-              className="format-athlete"
-              src="/landing/athlete.png"
-              alt=""
-              width={500}
-              height={750}
-              priority={false}
-            />
-            <div className="format-veil" aria-hidden />
+            <div className="format-copy">
+              <h2 className="head format-copy__title">{fb.rich("title", { br: () => <br /> })}</h2>
+              <h3 className="head t-24">{fb("subtitle")}</h3>
+              <p className="body format-copy__body">{fb("body")}</p>
+              <VideoPlay label={fb("playLabel")} videoId={HOW_IT_WAS_VIDEO_ID} variant="row" />
+            </div>
           </div>
-          <VideoPlay label={fb("playLabel")} videoId={HOW_IT_WAS_VIDEO_ID} />
         </div>
       </div>
     </header>

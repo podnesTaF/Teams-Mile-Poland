@@ -92,7 +92,7 @@
         "freeLabel": "Entry",
         "freeValue": "FREE",
         "prizeLabel": "💰 Prize pool",
-        "prizeValue": "5,000 zł",
+        "prizeValue": "10,000 zł",
         "maxParticipantsLabel": "Available slots",
         "maxParticipantsValue": "300",
         "timeLabel": "Time",
@@ -111,9 +111,9 @@
       }
     },
     "formatBand": {
-      "title": "A NEW FORMAT OF RUNNING COMPETITIONS!",
+      "title": "Run the mile —<br></br>find your level.",
       "subtitle": "ACE BATTLE RUN WARSAW DEBUT",
-      "body": "Participants with the best results will receive prizes and awards in the individual-team standings from the project sponsors.",
+      "body": "Regular one-mile races at the stadium, official chip-time and national ranking. Lead your team into the league and earn through the referral system. Turnkey team building — safe, emotional, zero organizational hassle.",
       "playLabel": "WATCH THE ATMOSPHERE"
     },
     "whatIs": {

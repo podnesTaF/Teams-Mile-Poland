@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import {
   Alumni_Sans,
   Exo_2,
+  Fira_Sans,
   Fira_Sans_Condensed,
   Inter,
   JetBrains_Mono,
@@ -15,10 +16,7 @@ import {
 import { routing } from "@/i18n/routing";
 import { getFeaturedEvent } from "@/lib/events/registry";
 import { formatEventLongDate } from "@/lib/events/time";
-import {
-  GoogleTagManager,
-  GoogleTagManagerNoScript,
-} from "@/components/analytics/gtm";
+import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/analytics/gtm";
 import { GoogleConsentInit } from "@/components/analytics/consent-init";
 
 const display = Alumni_Sans({
@@ -59,6 +57,18 @@ const headDisplay = Fira_Sans_Condensed({
   weight: ["500", "700"],
   style: ["italic"],
   variable: "--font-head",
+  display: "swap",
+});
+
+// Fira Sans (not the condensed cut) extra-bold italic, for the ACE BATTLE
+// watermark behind the format band — the one place the landing sets the
+// wordmark as live text rather than the drawn brand SVG. Latin only: the
+// watermark never renders anything but "ACE BATTLE".
+const mark = Fira_Sans({
+  subsets: ["latin"],
+  weight: ["800"],
+  style: ["italic"],
+  variable: "--font-mark",
   display: "swap",
 });
 
@@ -116,6 +126,7 @@ export default async function LocaleLayout({
     body.variable,
     mono.variable,
     headDisplay.variable,
+    mark.variable,
     cta.variable,
   ].join(" ");
 
