@@ -1,6 +1,11 @@
 import { and, eq, ilike, inArray, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 
-import { eventRegistrations, legacyParticipations, users } from "@/db/schema";
+import {
+  eventRegistrations,
+  legacyParticipations,
+  users,
+  walletTransactions,
+} from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { isRaceRun, racesRunPerUser } from "@/lib/events/participation";
 import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
@@ -73,6 +78,13 @@ export type UserListRow = {
    * definition the profile stat and the referral funnels report.
    */
   raceCount: number;
+  /**
+   * ACER balance in minor units — `SUM(amount_minor)` over `completed` rows,
+   * the same arithmetic `getAcerBalance` does, so the column and the wallet
+   * cannot disagree. Shown because choosing whom to credit needs to see who
+   * already has it; 0 for an account with no ledger rows at all.
+   */
+  acerBalanceMinor: number;
   /** Account registration date. */
   createdAt: Date;
 };
@@ -140,7 +152,24 @@ async function userAggregates(db: ReturnType<typeof getDb>) {
   // attended/no-show flag.
   const { seriesAgg, legacyAgg, racesRun } = racesRunPerUser(db);
 
-  return { augAgg, seriesAgg, legacyAgg, racesRun };
+  // Per-user ACER balance. Grouped in the database rather than read per row:
+  // the list shows 50 accounts at a time and a balance is a `SUM` over a
+  // growing ledger, so one aggregate join is the difference between one query
+  // and fifty. Only `completed` rows count — the same rule the wallet applies,
+  // because a pending purchase is not money yet.
+  const acerAgg = db
+    .select({
+      userId: walletTransactions.userId,
+      balanceMinor: sql<number>`sum(${walletTransactions.amountMinor})`.as("acer_balance_minor"),
+    })
+    .from(walletTransactions)
+    .where(
+      and(eq(walletTransactions.asset, "ACER"), eq(walletTransactions.status, "completed")),
+    )
+    .groupBy(walletTransactions.userId)
+    .as("acer_agg");
+
+  return { augAgg, seriesAgg, legacyAgg, racesRun, acerAgg };
 }
 
 /** The `WHERE` a filter set means — shared by the page read and its count. */
@@ -207,7 +236,7 @@ export async function listUsers(
   window: UserWindow = {},
 ): Promise<UserListRow[]> {
   const db = getDb();
-  const { augAgg, seriesAgg, legacyAgg, racesRun } = await userAggregates(db);
+  const { augAgg, seriesAgg, legacyAgg, racesRun, acerAgg } = await userAggregates(db);
   const clauses = userFilters(filters, augAgg);
 
   const query = db
@@ -223,6 +252,9 @@ export async function listUsers(
       firstEventAttended: legacyParticipations.attended,
       augRegistrationCount: sql<number>`coalesce(${augAgg.count}, 0)`,
       raceCount: racesRun,
+      // `sum()` over a bigint column comes back as numeric, i.e. a string on
+      // the wire; the mapping is what keeps `acerBalanceMinor` a number.
+      acerBalanceMinor: sql<number>`coalesce(${acerAgg.balanceMinor}, 0)`.mapWith(Number),
       createdAt: users.createdAt,
     })
     .from(users)
@@ -236,6 +268,7 @@ export async function listUsers(
     .leftJoin(augAgg, eq(augAgg.userId, users.id))
     .leftJoin(seriesAgg, eq(seriesAgg.userId, users.id))
     .leftJoin(legacyAgg, eq(legacyAgg.userId, users.id))
+    .leftJoin(acerAgg, eq(acerAgg.userId, users.id))
     .where(clauses.length ? and(...clauses) : undefined)
     .orderBy(...userOrder(window.sort ?? DEFAULT_USER_SORT));
 

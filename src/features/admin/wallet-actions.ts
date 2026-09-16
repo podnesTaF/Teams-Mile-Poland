@@ -17,10 +17,12 @@ import {
   MAX_ADJUSTMENT_ACER,
   MAX_REASON_LENGTH,
 } from "./wallet-data";
+import { creditAcerBulk } from "./wallet-grant";
 
 /**
- * The admin write path into the wallet ledger: a manual credit or debit, and
- * the reversal that corrects a wrong row.
+ * The admin write path into the wallet ledger: a manual credit or debit, the
+ * reversal that corrects a wrong row, and the bulk grant that credits many
+ * accounts at once from the users list.
  *
  * Both go through `recordWalletTransaction` — the ledger's single writer — so
  * nothing here issues `UPDATE` or `DELETE`. **A correction is a new row**, an
@@ -222,5 +224,98 @@ export async function reverseWalletTransaction(formData: FormData) {
     formData,
     original.userId,
     "Transaction reversed — both rows stay in the history and net to zero.",
+  );
+}
+
+/* ── bulk grant ─────────────────────────────────────────────────────── */
+
+/**
+ * The users list's own view state, as the bulk bar carries it back.
+ *
+ * Only the params that list page actually reads survive the round trip: the
+ * value is re-serialised from an allow-list rather than pasted into the
+ * redirect, so a hand-edited `listQuery` cannot smuggle anything into the URL
+ * the admin lands on — and `msg` is always ours, never the form's.
+ */
+const LIST_PARAMS = ["q", "verified", "participation", "registered", "complete", "sort", "page"];
+
+/**
+ * Back to the users list with a sentence, on the filters, sort and page the
+ * admin was looking at.
+ *
+ * A bulk grant is chosen by eye from a filtered, sorted, paged list; landing on
+ * the unfiltered first page afterwards would lose exactly the view that made
+ * the selection possible, in the flow where the next thing to do is usually
+ * select the next batch.
+ */
+function backToList(locale: string, formData: FormData, msg: string): never {
+  const carried = new URLSearchParams(String(formData.get("listQuery") ?? ""));
+  const query = new URLSearchParams();
+  for (const key of LIST_PARAMS) {
+    const value = carried.get(key);
+    if (value) query.set(key, value);
+  }
+  query.set("msg", msg);
+  revalidatePath(adminPath(locale, "/users"));
+  redirect(adminPath(locale, `/users?${query}`));
+}
+
+/**
+ * Credit whole ACER to every ticked account in one act, with one mandatory
+ * reason recorded against every row.
+ *
+ * The gate, the redirect and the copy live here; the validation and the
+ * transaction live in `wallet-grant.ts`, which holds no session and can
+ * therefore be driven by a verification script. `requireAdmin(locale, "edit")`
+ * is re-checked even though the bar only renders for `edit` — the form is HTML
+ * the browser can be made to post by hand, and a view-only or check-in admin
+ * must be refused by the server, not by the absence of a button.
+ *
+ * Amounts, reasons and the id list all come back as sentences on the list's
+ * `?msg=` channel rather than as thrown errors: a mistyped amount is a thing to
+ * correct, not a crash. Nothing partial is ever written — see `creditAcerBulk`.
+ */
+export async function creditWalletBulk(formData: FormData) {
+  const locale = safeLocale(formData.get("locale"));
+  const admin = await requireAdmin(locale, "edit");
+
+  const raw = String(formData.get("amount") ?? "").trim();
+  const outcome = await creditAcerBulk({
+    userIds: formData.getAll("userIds").map((id) => String(id)),
+    // `Number("")` is 0 and `Number("x")` is NaN; both are refused downstream,
+    // so an empty or nonsense field reports the same sentence as a bad number.
+    amountAcer: raw === "" ? Number.NaN : Number(raw),
+    reason: String(formData.get("reason") ?? ""),
+    batchId: String(formData.get("batchId") ?? ""),
+    adminId: admin.id,
+  });
+
+  if (!outcome.ok) backToList(locale, formData, outcome.error);
+
+  const { credited, recipients } = outcome;
+  const amount = Number(raw);
+
+  if (credited === 0) {
+    backToList(
+      locale,
+      formData,
+      "That grant is already recorded — nothing was credited a second time.",
+    );
+  }
+  // A partial count cannot happen through the UI: one batch id is minted per
+  // render and every row of it is written in one transaction. Reported honestly
+  // anyway rather than rounded up to "credited", because the alternative is a
+  // sentence that claims more than the ledger holds.
+  if (credited < recipients) {
+    backToList(
+      locale,
+      formData,
+      `Credited ${amount} ACER to ${credited} of ${recipients} people — the rest were already credited under this grant.`,
+    );
+  }
+  backToList(
+    locale,
+    formData,
+    `Credited ${amount} ACER to ${credited} ${credited === 1 ? "person" : "people"} — recorded against your account.`,
   );
 }
