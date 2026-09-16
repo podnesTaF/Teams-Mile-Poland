@@ -21,6 +21,14 @@ export const PARTICIPATION_REWARD_ACER = 1;
 /** Credited to the referrer the first time a person they referred checks in — once per person. */
 export const REFERRAL_REWARD_ACER = 1;
 
+/**
+ * What founding a team costs, in whole ACER, debited from the creator's wallet
+ * in the same transaction that creates the team (`createTeam`). Entering an
+ * event as a team stays free. Changing this is a deploy, not a migration; a
+ * value of 0 skips the debit entirely rather than writing zero-amount rows.
+ */
+export const TEAM_CREATION_PRICE_ACER = 100;
+
 /** Preset top-up amounts, in whole ACER (= whole USD). */
 export const ACER_PACKS: readonly number[] = [10, 25, 50, 100];
 

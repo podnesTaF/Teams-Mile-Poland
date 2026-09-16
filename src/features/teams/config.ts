@@ -93,7 +93,10 @@ export type TeamActionReason =
   | "cancelled"
   // Mixed nights (ADR 0009): a member already holds an individual registration
   // for that event, and one person has one entry path per night.
-  | "registered_individually";
+  | "registered_individually"
+  // Team creation is paid in ACER (planning/team-creation-payment): the
+  // creator's wallet holds less than `TEAM_CREATION_PRICE_ACER`.
+  | "insufficient_balance";
 
 /** The frozen failure half of every team action's return value. */
 export type TeamActionFailure = {

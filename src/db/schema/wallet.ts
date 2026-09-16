@@ -35,6 +35,7 @@ export type WalletTxKind =
   | "referral_ticket" // 2.6.3.1 ticket-sales income (0 while entry is free)
   | "referral_sponsor" // 2.6.3.1 sponsor attraction (admin-entered)
   | "purchase" // 2.6.2.1 card top-up. Never withdrawable
+  | "team_creation" // spend: founding a team (planning/team-creation-payment). Always negative
   | "admin_credit"
   | "admin_debit"
   | "reversal"; // the correction of an earlier row

@@ -47,6 +47,7 @@ const REFUSALS: Record<TeamActionReason, string> = {
   cancelled: "That event is cancelled.",
   registered_individually:
     "A member of that team is already registered individually for this event — one entry per runner per night.",
+  insufficient_balance: "The creator's wallet holds less ACER than a team costs.",
 };
 
 /** The panel's sentence for a refused team action. */

@@ -1536,6 +1536,7 @@
       "not_reserve": "That runner is not a reserve on this entry.",
       "remind_limit": "A reminder was already sent in the last 24 hours.",
       "already_confirmed": "This participation is already confirmed.",
+      "insufficient_balance": "You do not have enough ACER to create a team.",
       "cancelled": "This event has been cancelled."
     },
     "roster": {
@@ -2001,6 +2002,7 @@
       "purchase": "Credit purchase",
       "admin_credit": "Manual credit",
       "admin_debit": "Manual debit",
+      "team_creation": "Team creation",
       "reversal": "Correction"
     },
     "statuses": {

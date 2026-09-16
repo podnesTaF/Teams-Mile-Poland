@@ -23,6 +23,7 @@ export const WALLET_KIND_LABEL: Record<WalletTxKind, string> = {
   referral_ticket: "Invitation entry income",
   referral_sponsor: "Sponsor introduction reward",
   purchase: "Credit purchase",
+  team_creation: "Team creation",
   admin_credit: "Manual credit",
   admin_debit: "Manual debit",
   reversal: "Correction",

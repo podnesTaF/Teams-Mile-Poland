@@ -1536,6 +1536,7 @@
       "not_reserve": "Ten biegacz nie jest rezerwowym w tym zgłoszeniu.",
       "remind_limit": "Przypomnienie wysłano już w ciągu ostatnich 24 godzin.",
       "already_confirmed": "Ten udział został już potwierdzony.",
+      "insufficient_balance": "Nie masz wystarczająco ACER, aby założyć drużynę.",
       "cancelled": "To wydarzenie zostało odwołane."
     },
     "roster": {
@@ -2001,6 +2002,7 @@
       "purchase": "Zakup środków",
       "admin_credit": "Ręczne uznanie",
       "admin_debit": "Ręczne obciążenie",
+      "team_creation": "Założenie drużyny",
       "reversal": "Korekta"
     },
     "statuses": {

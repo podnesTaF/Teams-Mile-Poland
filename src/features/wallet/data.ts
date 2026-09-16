@@ -8,7 +8,7 @@ import {
   type WalletTxKind,
   type WalletTxStatus,
 } from "@/db/schema";
-import { getDb } from "@/lib/db";
+import { executor, getDb, type DbExecutor } from "@/lib/db";
 
 /**
  * The wallet ledger's only writer, and its read path.
@@ -18,6 +18,11 @@ import { getDb } from "@/lib/db";
  * (see the table's doc comment — append-only is a code invariant). Corrections
  * are `reversal` rows. Balances are derived here by `SUM`, so there is no total
  * to keep in sync and no writer that can race another one into a wrong number.
+ *
+ * A caller that must move money **together with** another write — a team
+ * created and paid for in one transaction — passes its `tx` as the optional
+ * last parameter of the writer and of {@link getAcerBalance}. That is how the
+ * ledger composes into a caller's transaction; a second insert site is not.
  */
 
 /** How many history rows one page shows. Small enough to stay fast on a phone. */
@@ -56,8 +61,9 @@ export type NewWalletTransaction = {
  */
 export async function recordWalletTransaction(
   input: NewWalletTransaction,
+  tx?: DbExecutor,
 ): Promise<WalletTransactionRow | null> {
-  const rows = await getDb()
+  const rows = await executor(tx)
     .insert(walletTransactions)
     .values({
       userId: input.userId,
@@ -138,6 +144,32 @@ export async function getWalletBalances(userId: string): Promise<WalletBalances>
     if (WALLET_ASSETS.includes(row.asset)) balances[row.asset] = row.total;
   }
   return balances;
+}
+
+/**
+ * The user's ACER balance alone, in minor units — `SUM(amount_minor)` over
+ * `completed` rows, the same arithmetic as {@link getWalletBalances}.
+ *
+ * Exists for the spend path: a debit that must not overdraw reads one number
+ * **inside the caller's transaction** (pass `tx`), after the caller has taken a
+ * per-user lock, so two concurrent spends cannot both see the same balance.
+ * The three-asset record is the wrong shape there, and reading it on the pool
+ * would look past the lock.
+ */
+export async function getAcerBalance(userId: string, tx?: DbExecutor): Promise<number> {
+  const [row] = await executor(tx)
+    .select({
+      total: sql<number>`coalesce(sum(${walletTransactions.amountMinor}), 0)`.mapWith(Number),
+    })
+    .from(walletTransactions)
+    .where(
+      and(
+        eq(walletTransactions.userId, userId),
+        eq(walletTransactions.asset, "ACER"),
+        eq(walletTransactions.status, "completed"),
+      ),
+    );
+  return row?.total ?? 0;
 }
 
 /**
