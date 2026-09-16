@@ -3,6 +3,9 @@ import type { ReactNode } from "react";
 
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import type { ProfileInput } from "@/features/profile/schemas";
+import { TEAM_CREATION_PRICE_ACER } from "@/features/wallet/config";
+import { getAcerBalance } from "@/features/wallet/data";
+import { isAcerPurchaseEnabled } from "@/features/wallet/purchase";
 import { Link } from "@/i18n/navigation";
 import type { SessionUser } from "@/lib/auth/user-session";
 import { localePath } from "@/lib/i18n/config";
@@ -29,6 +32,11 @@ function toDateInput(value: unknown): string {
  * `redirectTo` back here, the same round-trip the event register flow uses —
  * bouncing a would-be manager to `/profile` and hoping they come back loses
  * them. Age is checked against **today** (`teamGateState`), not an event date.
+ *
+ * The form's last gate is money: founding a team costs
+ * `TEAM_CREATION_PRICE_ACER`, so the balance is read here and handed down. It is
+ * shown rather than enforced — the refusal that counts is the one `createTeam`
+ * makes inside its transaction.
  */
 export async function TeamNewContent({ user, locale }: { user: SessionUser; locale: string }) {
   const t = await getTranslations("teams.form");
@@ -87,6 +95,12 @@ export async function TeamNewContent({ user, locale }: { user: SessionUser; loca
     );
   }
 
+  // Only past the gates: a runner who cannot create a team yet is owed the step
+  // they are missing, not a price. The balance is a plain read of the ledger —
+  // what the form shows is display only, and the action reads it again under a
+  // lock before it charges anything.
+  const balanceMinor = await getAcerBalance(user.id);
+
   return (
     <div className="center-narrow" style={{ maxWidth: 620 }} data-team-gate="ok">
       <div className="page-head" style={{ marginBottom: 16 }}>
@@ -94,7 +108,16 @@ export async function TeamNewContent({ user, locale }: { user: SessionUser; loca
         <h1 className="iv-title">{t("createTitle")}</h1>
         <p className="iv-sub">{t("createSubtitle")}</p>
       </div>
-      <TeamForm mode="create" rulesHref={localePath(locale, "/legal/team-rules")} />
+      <TeamForm
+        mode="create"
+        rulesHref={localePath(locale, "/legal/team-rules")}
+        priceAcer={TEAM_CREATION_PRICE_ACER}
+        balanceMinor={balanceMinor}
+        // Resolved on the server because the flag is deliberately not
+        // `NEXT_PUBLIC_` (see `purchase.ts`): the wallet link may only offer a
+        // top-up when there is something to buy with.
+        purchaseEnabled={isAcerPurchaseEnabled()}
+      />
     </div>
   );
 }

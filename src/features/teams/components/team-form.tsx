@@ -3,8 +3,9 @@
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { slugify } from "@/features/admin/news-slug";
+import { minorToAcer } from "@/features/wallet/config";
 import { cn } from "@/lib/utils";
 
 import { createTeam, updateTeam } from "../actions/team";
@@ -25,6 +26,16 @@ type Props = {
   initial?: Partial<FormState>;
   /** Locale-aware `/legal/team-rules`, resolved on the server. */
   rulesHref: string;
+  /**
+   * What creating a team costs, in whole ACER, and what the creator holds, in
+   * minor units. `create` mode only — an edit is free, and the edit call site
+   * passes neither. A price of 0 turns the whole money block off, which is the
+   * same switch `createTeam` reads.
+   */
+  priceAcer?: number;
+  balanceMinor?: number;
+  /** Whether the wallet link may offer a top-up. Resolved on the server. */
+  purchaseEnabled?: boolean;
 };
 
 const EMPTY: FormState = {
@@ -54,8 +65,22 @@ type TextField = "name" | "region";
  * question. `recruiting` is a two-card choice — "roster complete, private" vs
  * "looking for runners, listed publicly" — so both answers are spelled out
  * instead of a single checkbox whose unchecked state means nothing obvious.
+ *
+ * Creating costs ACER, so the create form states the price and the balance
+ * above the submit and disables the button when the wallet is short. That is a
+ * courtesy, not the rule: the money is judged by `createTeam` inside its
+ * transaction, and a form that has been open across a debit elsewhere still
+ * comes back with `insufficient_balance` in the error banner.
  */
-export function TeamForm({ mode, slug, initial, rulesHref }: Props) {
+export function TeamForm({
+  mode,
+  slug,
+  initial,
+  rulesHref,
+  priceAcer = 0,
+  balanceMinor = 0,
+  purchaseEnabled = false,
+}: Props) {
   const t = useTranslations("teams.form");
   const tReasons = useTranslations("teams.reasons");
   const router = useRouter();
@@ -97,7 +122,7 @@ export function TeamForm({ mode, slug, initial, rulesHref }: Props) {
 
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (pending) return;
+    if (pending || short) return;
     if (!valid) {
       setTouched({ name: true, region: true });
       return;
@@ -132,6 +157,15 @@ export function TeamForm({ mode, slug, initial, rulesHref }: Props) {
   const showNameError = touched.name && nameError;
   const showRegionError = touched.region && regionError;
   const descriptionLeft = 280 - data.description.length;
+
+  // Money, in whole ACER for the copy — the props carry the price in ACER and
+  // the balance in minor units, because that is the honest shape of each on the
+  // server. Rounded up on the shortfall so "you need 0.5 more" never reads as
+  // "you need 0".
+  const paid = mode === "create" && priceAcer > 0;
+  const balanceAcer = minorToAcer(balanceMinor);
+  const short = paid && balanceAcer < priceAcer;
+  const missingAcer = Math.ceil(priceAcer - balanceAcer);
 
   return (
     <form className="profile-form team-form" onSubmit={onSubmit} data-team-form={mode} noValidate>
@@ -256,6 +290,26 @@ export function TeamForm({ mode, slug, initial, rulesHref }: Props) {
         </label>
       </div>
 
+      {paid ? (
+        <div className="form-section" data-team-price={priceAcer}>
+          <p className="fhint">
+            {t("priceLine", { price: priceAcer })} {t("balanceLine", { balance: balanceAcer })}
+          </p>
+          {short ? (
+            <div className="banner banner--warn" role="status" data-team-short="true">
+              <div className="banner__body">
+                <div className="banner__txt">
+                  {t("shortBy", { missing: missingAcer })}{" "}
+                  <Link href="/wallet">
+                    {purchaseEnabled ? t("walletLinkTopUp") : t("walletLink")}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="form-actions">
         <a
           className="form-actions__note team-form__rules"
@@ -265,8 +319,14 @@ export function TeamForm({ mode, slug, initial, rulesHref }: Props) {
         >
           {t("rulesLink")} ↗
         </a>
-        <button type="submit" className="btn btn-red" disabled={pending}>
-          {pending ? t("submitting") : mode === "create" ? t("submitCreate") : t("submitSave")}
+        <button type="submit" className="btn btn-red" disabled={pending || short}>
+          {pending
+            ? t("submitting")
+            : mode !== "create"
+              ? t("submitSave")
+              : paid
+                ? t("submitCreatePaid", { price: priceAcer })
+                : t("submitCreate")}
         </button>
       </div>
     </form>

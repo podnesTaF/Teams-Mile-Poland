@@ -1,18 +1,19 @@
 "use server";
 
-import { customAlphabet } from "nanoid";
 import { eq } from "drizzle-orm";
 
-import { userTeamMembers, userTeams } from "@/db/schema/user-teams";
-import { slugify } from "@/features/admin/news-slug";
+import { userTeams } from "@/db/schema/user-teams";
+import { TEAM_CREATION_PRICE_ACER, acerToMinor } from "@/features/wallet/config";
+import { getAcerBalance } from "@/features/wallet/data";
 import { getDb } from "@/lib/db";
 
+import { teamFailure, type TeamActionResult } from "../config";
 import {
-  TEAM_CODE_ALPHABET,
-  TEAM_CODE_LENGTH,
-  teamFailure,
-  type TeamActionResult,
-} from "../config";
+  createTeamRows,
+  isInsufficientAcer,
+  isUniqueViolation,
+  uniqueCode,
+} from "../creation";
 import { findTeamByName, getUserTeamCategories } from "../data";
 import { checkEligibility } from "../eligibility";
 import { requireTeamActor, requireTeamManagerOrAdmin } from "../guards";
@@ -27,66 +28,18 @@ import { teamFormSchema, teamUpdateSchema, type TeamFormInput, type TeamUpdateIn
  * message }` and never redirects or throws for an expected refusal.
  */
 
-const newCode = customAlphabet(TEAM_CODE_ALPHABET, TEAM_CODE_LENGTH);
-
-/** Postgres unique-violation. Drizzle surfaces the driver error unchanged. */
-function isUniqueViolation(error: unknown, constraint?: string): boolean {
-  const code = (error as { code?: string })?.code;
-  if (code !== "23505") return false;
-  if (!constraint) return true;
-  const detail = `${(error as { constraint_name?: string }).constraint_name ?? ""} ${
-    (error as { constraint?: string }).constraint ?? ""
-  } ${(error as { message?: string }).message ?? ""}`;
-  return detail.includes(constraint);
-}
-
-/**
- * A slug is generated once from the name and never rewritten, so collisions are
- * resolved here rather than by re-slugging later: `warsaw-aces`, then
- * `warsaw-aces-2`, `warsaw-aces-3`. Names are unique case-insensitively, so a
- * collision only happens when two different names slugify the same way
- * ("Warsaw Aces" vs "Warsaw  Aces!").
- */
-async function uniqueSlug(name: string): Promise<string> {
-  const db = getDb();
-  const base = slugify(name) || "team";
-  for (let attempt = 0; attempt < 50; attempt++) {
-    const candidate = attempt === 0 ? base : `${base}-${attempt + 1}`;
-    const [taken] = await db
-      .select({ slug: userTeams.slug })
-      .from(userTeams)
-      .where(eq(userTeams.slug, candidate))
-      .limit(1);
-    if (!taken) return candidate;
-  }
-  // 50 teams sharing one slug base is not a real situation; fall back to a
-  // code-shaped suffix rather than looping forever.
-  return `${base}-${newCode().toLowerCase()}`;
-}
-
-/** A code nobody holds. The alphabet gives 32^6 ≈ 1.07e9 — collisions are rare. */
-async function uniqueCode(): Promise<string> {
-  const db = getDb();
-  for (let attempt = 0; attempt < 10; attempt++) {
-    const candidate = newCode();
-    const [taken] = await db
-      .select({ code: userTeams.code })
-      .from(userTeams)
-      .where(eq(userTeams.code, candidate))
-      .limit(1);
-    if (!taken) return candidate;
-  }
-  throw new Error("Could not allocate a free team code");
-}
-
 /**
  * Create a team. The creator becomes its manager and its first member — which
  * is why the create path runs `checkEligibility` against an empty roster: a man
  * may not create a women's team, and nobody may create a second team in a
  * category they already hold.
  *
- * Team row and manager membership are written in **one transaction**: a team
- * with no manager on its roster would be unreachable and uncountable.
+ * Founding a team **costs `TEAM_CREATION_PRICE_ACER`**, debited from the
+ * creator's wallet in the same transaction that writes the team and the manager
+ * membership (`createTeamRows`). The balance is checked here as well, before the
+ * transaction opens, so the everyday case is a message rather than a rollback;
+ * the in-transaction re-read under the per-user lock is what actually makes the
+ * check true when two creates race, and it comes back as the same refusal.
  */
 export async function createTeam(input: TeamFormInput): Promise<TeamActionResult<{ slug: string }>> {
   const actor = await requireTeamActor();
@@ -111,34 +64,26 @@ export async function createTeam(input: TeamFormInput): Promise<TeamActionResult
   // 23505; the unique index below is what actually makes it true under a race.
   if (await findTeamByName(name)) return teamFailure("name_taken");
 
-  const slug = await uniqueSlug(name);
-  const code = await uniqueCode();
-  const db = getDb();
+  // Read once and handed down, so the price the balance was judged against and
+  // the price that is charged cannot differ — even across a deploy mid-request.
+  const priceMinor = acerToMinor(TEAM_CREATION_PRICE_ACER);
+  if (priceMinor > 0 && (await getAcerBalance(actor.userId)) < priceMinor) {
+    return teamFailure("insufficient_balance");
+  }
 
+  let created;
   try {
-    await db.transaction(async (tx) => {
-      const [team] = await tx
-        .insert(userTeams)
-        .values({
-          slug,
-          code,
-          name,
-          region,
-          category,
-          recruiting,
-          description: description ? description : null,
-          managerUserId: actor.userId,
-        })
-        .returning({ id: userTeams.id });
-
-      await tx.insert(userTeamMembers).values({
-        teamId: team.id,
-        userId: actor.userId,
-        role: "manager",
-        category,
-      });
+    created = await createTeamRows({
+      userId: actor.userId,
+      name,
+      region,
+      category,
+      recruiting,
+      description,
+      priceMinor,
     });
   } catch (error) {
+    if (isInsufficientAcer(error)) return teamFailure("insufficient_balance");
     if (isUniqueViolation(error, "user_teams_name_lower_uq")) return teamFailure("name_taken");
     if (isUniqueViolation(error, "user_team_members_user_category_uq")) {
       return teamFailure("already_in_category");
@@ -146,7 +91,7 @@ export async function createTeam(input: TeamFormInput): Promise<TeamActionResult
     throw error;
   }
 
-  return { ok: true, slug };
+  return { ok: true, slug: created.slug };
 }
 
 /**

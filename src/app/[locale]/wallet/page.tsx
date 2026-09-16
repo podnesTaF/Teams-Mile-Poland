@@ -9,6 +9,7 @@ import "./wallet.css";
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { WALLET_ASSETS } from "@/db/schema";
 import { AcerPurchaseForm } from "@/features/wallet/components/purchase-form";
+import { WalletReference } from "@/features/wallet/components/team-reference";
 import { getWalletBalances, listWalletTransactions, parseWalletPage } from "@/features/wallet/data";
 import {
   formatWalletAmount,
@@ -175,6 +176,10 @@ export default async function WalletPage({ params, searchParams }: PageProps) {
                           <span className="wl-tx__id">
                             {t("history.txid")} {tx.id}
                           </span>
+                          {/* The one reference a runner can act on: the team
+                              this row paid for. Every other kind's reference is
+                              an internal handle and stays out of their way. */}
+                          <WalletReference reference={tx.reference} teamOnly className="wl-tx__id" />
                         </span>
                       </div>
                       <div className="wl-tx__side">

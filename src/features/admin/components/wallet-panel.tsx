@@ -1,4 +1,5 @@
 import { WALLET_ASSETS } from "@/db/schema";
+import { WalletReference } from "@/features/wallet/components/team-reference";
 import type { WalletBalances } from "@/features/wallet/data";
 import { formatWalletAmount, formatWalletBalance } from "@/features/wallet/format";
 import { Link } from "@/i18n/navigation";
@@ -207,7 +208,7 @@ function LedgerRow({
         {WALLET_KIND_LABEL[tx.kind]}
         {tx.reference ? (
           <span className="mt-0.5 block break-all font-mono text-[10px] leading-tight text-admin-muted">
-            {tx.reference}
+            <WalletReference reference={tx.reference} className="underline underline-offset-2" />
           </span>
         ) : null}
       </td>
