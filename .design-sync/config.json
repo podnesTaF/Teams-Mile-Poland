@@ -1,5 +1,5 @@
 {
-  "projectId": "ab35baf5-04e9-4fc1-b0e9-eded3555685b",
+  "projectId": "871a6906-3091-4703-b1b1-5c2c36c197e4",
   "shape": "package",
   "pkg": "teams-mile-warshaw",
   "globalName": "AceBattleRun",
@@ -9,8 +9,14 @@
   "cssEntry": "ds-compiled.css",
   "docsDir": "../docs",
   "readmeHeader": ".design-sync/conventions.md",
+  "extraEntries": ["./preview-context.tsx"],
+  "provider": {
+    "component": "NextIntlClientProvider",
+    "props": { "locale": "en", "messages": { "$ref": "previewMessages" } }
+  },
   "componentSrcMap": {
     "LanguageSwitcher": null,
+    "HashLink": null,
     "Button": "../../src/components/ui/button.tsx",
     "LinkButton": "../../src/components/ui/button.tsx",
     "Cbx": "../../src/components/ui/cbx.tsx",

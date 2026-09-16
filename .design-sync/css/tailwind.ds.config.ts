@@ -39,13 +39,47 @@ if (existsSync(previewDir)) {
   }
 }
 
+/* The admin panel's token set is dropped from the DS theme (ADR 0004: the
+ * `admin-*` colors are declared on `.admin-root` in src/app/admin.css and are
+ * only in scope under /admin). Two reasons it cannot ship here:
+ *
+ *   - admin.css is not part of the bundle, so every `text-admin-ink` /
+ *     `border-admin-line` utility Tailwind emits from the app's own /admin
+ *     pages carries a var() that resolves to nothing in a design. Those were
+ *     the [TOKENS_MISSING] warns.
+ *   - `rounded-admin` (6px) and `rounded-admin-lg` (10px) contradict the
+ *     design language this system documents, where every radius is 2px.
+ *
+ * Trimming the theme rather than the `content` globs is deliberate: it makes
+ * the utilities unemittable whatever gets scanned. (Excluding the paths does
+ * not work anyway — the same classes come from src/app/[locale]/admin/**.)
+ */
+const baseExtend = (base.theme?.extend ?? {}) as Record<string, any>;
+const { admin: _adminColors, ...colors } = (baseExtend.colors ?? {}) as Record<string, unknown>;
+const {
+  admin: _adminRadius,
+  "admin-lg": _adminRadiusLg,
+  ...borderRadius
+} = (baseExtend.borderRadius ?? {}) as Record<string, unknown>;
+
 const config: Config = {
   ...base,
+  theme: {
+    ...base.theme,
+    extend: { ...baseExtend, colors, borderRadius },
+  },
   content: {
     files: [
       "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
       "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
       "./src/features/**/*.{js,ts,jsx,tsx,mdx}",
+      /* The theme trim above cannot stop *arbitrary* values, and the admin
+         shell writes several — `top-[var(--admin-topbar-h)]`,
+         `shadow-[inset_3px_0_0_var(--admin-accent)]`. admin.css is not
+         shipped, so those resolve to nothing in a design. Every such usage in
+         the repo is under src/features/admin (checked), so excluding it here
+         clears the rest of [TOKENS_MISSING]. */
+      "!./src/features/admin/**",
       "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
       ...raw,
     ],

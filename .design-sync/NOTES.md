@@ -1,6 +1,14 @@
 # design-sync notes — Ace Battle Run Design System
 
-Project: https://claude.ai/design/p/ab35baf5-04e9-4fc1-b0e9-eded3555685b
+Project: https://claude.ai/design/p/871a6906-3091-4703-b1b1-5c2c36c197e4
+
+> The original project (`ab35baf5-…`) was **deleted upstream** and returned 404 on
+> the 2026-09-10 re-sync. It was recreated from scratch as "Ace Battle Poland
+> Design System" and `cfg.projectId` repointed. Nothing was lost: everything the
+> sync needs is committed under `.design-sync/` (previews, docs, css pipeline,
+> conventions), so the rebuild was deterministic. What *was* lost is the uploaded
+> `_ds_sync.json` anchor, which is why that run re-verified and re-graded all 24
+> components instead of carrying them forward.
 
 ## What is being synced, and why it looks like this
 
@@ -63,6 +71,41 @@ node .ds-sync/package-validate.mjs ./ds-bundle
   `.design-sync/css/`. `tsconfig`, `docsDir` and `readmeHeader` are bounded to
   the git repo instead, hence the `../..` style paths in config.
 
+## The next-intl provider (cfg.provider) — do not remove
+
+`PhoneField` calls `useTranslations("common.phone")`. In the app that context
+comes from `NextIntlClientProvider` in `src/app/[locale]/layout.tsx`, which no
+design ever renders — so outside it the hook **throws** and the card renders as
+an empty root (`[RENDER] root empty`, 4 pageerrors, all cells blank). This is
+what broke the 2026-09-10 re-sync: the component gained i18n after the previous
+sync, and nothing about it fails at build time.
+
+The fix is `cfg.provider` pointing at the real provider, wired through
+`.design-sync/pkg/preview-context.tsx` (merged in via `cfg.extraEntries`):
+
+```jsonc
+"extraEntries": ["./preview-context.tsx"],
+"provider": {
+  "component": "NextIntlClientProvider",
+  "props": { "locale": "en", "messages": { "$ref": "previewMessages" } }
+}
+```
+
+Two deliberate choices in that module:
+
+- **`common` is imported as a *named* export** of `src/messages/en.json`, not
+  copied. The strings stay sourced from the real file (a copy would rot), and
+  the named form lets esbuild drop the other ~20 namespaces — 414 bytes instead
+  of 97 KB.
+- **Only `common` is exported**, because that is the only namespace the
+  `src/components/ui` primitives read today. **A component that starts reading a
+  new namespace needs it added there**, or its card renders empty with the same
+  signature as above.
+
+`extraEntries` exports do NOT become components (discovery reads the `.d.ts`
+tree under `pkg/types`), so this adds bundle exports — 28 now, vs 24
+components — without adding a card. That gap is expected, not a miscount.
+
 ## Fonts
 
 `src/app/[locale]/layout.tsx` loads six Google families via `next/font` and it
@@ -92,10 +135,44 @@ design system: the design agent writes new markup, and any utility the repo
 happens not to use today would be missing from the shipped CSS. Every value in
 the list comes from the app's own theme — it adds no new design decisions.
 
+## The admin token set is trimmed out of the DS theme
+
+`tailwind.config.ts` carries an `admin-*` colour set (ADR 0004) whose values are
+`var(--admin-*)`, declared on `.ace-landing.admin-root` in `src/app/admin.css`
+— a stylesheet this bundle does **not** ship. Left alone, Tailwind emits
+`text-admin-ink`, `border-admin-line`, `bg-admin-surface` and friends from the
+app's own `/admin` code into the DS stylesheet, where every one of those
+`var()`s resolves to nothing. That was `[TOKENS_MISSING] 16 CSS custom
+properties` on the 2026-09-10 run.
+
+Clearing it took **two** mechanisms in `css/tailwind.ds.config.ts`, and both are
+needed:
+
+1. **Theme trim** — `admin` is destructured out of `theme.extend.colors`, and
+   `admin`/`admin-lg` out of `theme.extend.borderRadius`. This makes the *named*
+   utilities unemittable no matter what gets scanned. It also makes
+   `conventions.md`'s "never round more than 2px" literally true: `rounded-admin`
+   (6px) and `rounded-admin-lg` (10px) no longer ship.
+2. **Path exclusion** — `"!./src/features/admin/**"` in `content.files`. The
+   theme trim cannot stop *arbitrary* values, and the admin shell writes several
+   (`top-[var(--admin-topbar-h)]`, `shadow-[inset_3px_0_0_var(--admin-accent)]`).
+   Every such usage in the repo is under `src/features/admin` — checked — so
+   excluding that one directory clears the remainder.
+
+Do not "simplify" this to one mechanism: dropping either brings admin tokens
+back. Result: 0 admin references, and the stylesheet got *smaller*
+(791,337 → 781,583 bytes).
+
+**A units trap when checking that number:** the converter logs the stylesheet as
+`763 KB` meaning KiB. 791,337 bytes *is* the "773 KB" an earlier log showed —
+comparing a byte count from `stat` against the log's KB reads as 18 KB of
+phantom growth. Compare like with like.
+
 ## Known render warns (checked against this list on re-sync)
 
 - `[FONT_REMOTE]` for the six Google families — expected, see Fonts above.
-- `tokens: 2 missing` — below the converter's threshold, non-blocking.
+- `tokens: 2 missing` — below the converter's threshold, non-blocking. If this
+  number jumps back to ~16 and names `--admin-*`, the theme trim above was lost.
 
 ## Preview-authoring gotchas
 
@@ -181,12 +258,32 @@ Surfaced while building previews; both are real component behaviour:
 
 ## Re-sync risks — what can silently go stale
 
+- **A `src/components/ui` primitive adopting a next-intl namespace other than
+  `common`** renders as an empty card, because `preview-context.tsx` exports only
+  `common`. Same silent-failure shape as the `PhoneField` break above, and the
+  same fix. Watch for it whenever a primitive gains `useTranslations`.
+- **`PhoneField`'s `variant="light" | "dark"` is in the shipped `.d.ts` but has
+  no styling in the bundle.** Those rules live in `src/app/series-flows.css`
+  under `.ace-landing .phone-field--*`, and that stylesheet is not shipped (it is
+  per-flow page CSS, the category `conventions.md` tells the design agent not to
+  imitate). So the prop is a **silent no-op** for the design agent — it sets a
+  class nothing styles. Left as-is deliberately on 2026-09-10, consistent with
+  the scope decision to exclude page-bespoke CSS; the alternatives are to ship
+  `series-flows.css` (+58 KB of one flow's CSS) or to drop `variant` from the
+  contract via `cfg.dtsPropsFor.PhoneField`. **Unresolved — the user's call.**
 - **`fonts.css` vs `layout.tsx`** — the highest-value drift to watch. A font
   change in the app does not propagate here, and the failure is silent (fallback
   faces, no error).
 - **`.design-sync/pkg/index.ts` is a hand-maintained barrel.** A new component
   added to `src/components/ui/` will NOT appear in the design system until it is
   added there. Nothing fails loudly; the component is simply absent.
+  **This has already happened once:** `hash-link.tsx` landed in commit `31df0dc`
+  between syncs and was invisible to the 2026-09-10 run until the barrel was
+  diffed against `ls src/components/ui/`. **Do that diff every re-sync** — it is
+  the only thing that catches it. `HashLink` was then *deliberately* excluded
+  (`componentSrcMap.HashLink = null`): it imports `Link`/`usePathname` from
+  `@/i18n/navigation`, so like `LanguageSwitcher` it cannot render in a design.
+  A future primitive that reads next-intl navigation belongs in the same bucket.
   `.design-sync/pkg/tsconfig.dts.json` pins `rootDir: "../.."`, and
   `build.mjs` hard-fails if tsc stops emitting the barrel declaration where it
   expects it — so a layout change there is caught, unlike a missing export.
@@ -209,7 +306,19 @@ Surfaced while building previews; both are real component behaviour:
 ## Environment
 
 - Playwright + chromium for the render check are installed inside `.ds-sync/`
-  (`npm i playwright && npx playwright install chromium`), not in the app's
-  dependencies. A fresh clone needs that again — `.ds-sync/` is gitignored.
+  (not in the app's dependencies). A fresh clone needs that again — `.ds-sync/`
+  is gitignored.
+  **Match the playwright version to the chromium build already cached** rather
+  than installing the latest and downloading ~200 MB: `ls ~/.cache/ms-playwright/`
+  gives `chromium_headless_shell-<build>`, and the release pinning that build is
+  the one to install. On 2026-09-10 the cache held builds 1148 and 1223, and
+  `playwright@1.60.0` pins 1223 — so `npm i playwright@1.60.0` needed no browser
+  download at all. A mismatch fails with
+  `browserType.launch: Executable doesn't exist`. Verify a candidate by reading
+  `node_modules/playwright-core/browsers.json` as a *file* (its exports map
+  blocks `require()`), or
+  `raw.githubusercontent.com/microsoft/playwright/v<X.Y.Z>/packages/playwright-core/browsers.json`
+  for versions not yet installed. Rough calibration: 1.54→1181, 1.55→1187,
+  1.56→1194, 1.59→1217, 1.60→1223, 1.61→1228, 1.62→1234.
 - Windows: this checkout is shared by several concurrent sessions. Check file
   mtimes before committing and never `git add -A`.

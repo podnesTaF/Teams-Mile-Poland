@@ -4,10 +4,10 @@
  * and to emit type declarations from. It re-exports the app's own
  * src/components/ui primitives unchanged — no wrappers, no copies.
  *
- * language-switcher is deliberately absent: it reads next-intl's locale
- * context and the Next router, neither of which exists outside the app,
- * so it cannot render in a design. It is excluded in config.json too
- * (componentSrcMap.LanguageSwitcher = null).
+ * language-switcher and hash-link are deliberately absent: both read
+ * next-intl's navigation (locale context, the Next router), neither of
+ * which exists outside the app, so they cannot render in a design. Both
+ * are excluded in config.json too (componentSrcMap.<Name> = null).
  */
 export * from "../../src/components/ui/button";
 export * from "../../src/components/ui/cbx";

@@ -11,7 +11,7 @@ import { useEffect } from "react";
  * Disabled under reduced-motion; CSS fallbacks to 0 when this never runs.
  */
 const TARGETS = [
-  { selector: ".format-stage .logo-wm--mark", prop: "--py", range: 80, sign: -1 },
+  { selector: ".format-stage .format-mark", prop: "--py", range: 80, sign: -1 },
   { selector: ".tri-up", prop: "--py", range: 64, sign: -1 },
   { selector: ".roles__chev", prop: "--px", range: 140, sign: 1 },
   { selector: ".acl-footer__chev--left", prop: "--px", range: 80, sign: -1 },

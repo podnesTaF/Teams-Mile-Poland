@@ -5,6 +5,14 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   /**
+   * The landing's video cards show the YouTube poster frame of the clip they
+   * open (`components/landing/video-play.tsx`), served straight from
+   * YouTube's thumbnail CDN and resized through the image optimizer.
+   */
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" }],
+  },
+  /**
    * The legal document routes read their HTML off disk with `node:fs`
    * (`src/lib/legal/content.ts`), so file tracing cannot see the dependency and
    * would ship a lambda with no corpus in it. The pages are prerendered at build
