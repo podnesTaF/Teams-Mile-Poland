@@ -112,7 +112,7 @@
     },
     "formatBand": {
       "title": "NOWY FORMAT BIEGÓW!",
-      "subtitle": "DEBIUT ACE BATTLE RUN WARSZAWA",
+      "subtitle": "ACE BATTLE RUN WARSZAWA",
       "body": "Uczestnicy z najlepszymi wynikami otrzymają nagrody w klasyfikacji indywidualnej i drużynowej od sponsorów projektu.",
       "playLabel": "ZOBACZ ATMOSFERĘ"
     },
@@ -410,7 +410,7 @@
     "internationalAssociation": {
       "eyebrow": "Organ władający",
       "title": "Międzynarodowe Stowarzyszenie",
-      "body": "ABA ustala standardy zawodów, rozwija globalny system rankingowy i łączy wydarzenia krajowe w jedną międzynarodową ligę.",
+      "body": "ABA to organ zarządzający międzynarodowym ruchem biegów drużynowych Ace Battle Run. Stowarzyszenie ustala standardy zawodów, reguluje przebieg drużynowych gier biegowych Ace Battle, inicjuje wydarzenia sportowe, rozwija globalny system rankingowy i łączy wydarzenia krajowe w jedną międzynarodową ligę.",
       "cta": "Odwiedź aba.run →",
       "logoAlt": "Ace Battle Association",
       "logoAriaLabel": "Ace Battle Association — odwiedź aba.run"
@@ -921,8 +921,8 @@
   },
   "events": {
     "series": {
-      "kicker": "Warszawa · sierpień 2026",
-      "title": "Cykl biegów na milę indywidualnie",
+      "kicker": "Warszawa · jesień 2026",
+      "title": "Cykl biegów na milę — drużynowo i indywidualnie",
       "sub": "Cztery wieczory biegowe na Stadionie Podskarbińska. Jedna mila, pomiar czasu, Twój poziom."
     },
     "status": {

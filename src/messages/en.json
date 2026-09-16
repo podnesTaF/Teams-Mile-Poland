@@ -112,7 +112,7 @@
     },
     "formatBand": {
       "title": "A NEW FORMAT OF RUNNING COMPETITIONS!",
-      "subtitle": "ACE BATTLE RUN WARSAW DEBUT",
+      "subtitle": "ACE BATTLE RUN WARSAW",
       "body": "Participants with the best results will receive prizes and awards in the individual-team standings from the project sponsors.",
       "playLabel": "WATCH THE ATMOSPHERE"
     },
@@ -410,7 +410,7 @@
     "internationalAssociation": {
       "eyebrow": "Governing body",
       "title": "International Association",
-      "body": "ABA sets competition standards, develops the global rating system, and connects national events into a single international league.",
+      "body": "ABA is the governing body of the international team-running movement Ace Battle Run. The Association sets competition standards, regulates how Ace Battle team races are run, initiates sporting events, develops the global rating system, and connects national events into a single international league.",
       "cta": "Visit aba.run →",
       "logoAlt": "Ace Battle Association",
       "logoAriaLabel": "Ace Battle Association — visit aba.run"
@@ -921,8 +921,8 @@
   },
   "events": {
     "series": {
-      "kicker": "Warsaw · August 2026",
-      "title": "The Individual Mile series",
+      "kicker": "Warsaw · Autumn 2026",
+      "title": "The Team & Individual Mile series",
       "sub": "Four race nights at Stadion Podskarbińska. One mile, chip-timed, your level."
     },
     "status": {
