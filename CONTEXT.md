@@ -359,6 +359,30 @@ from the public recruiting list. Pending until the manager accepts or declines, 
 runner withdraws. The mirror image of an **Invitation**: the runner initiates.
 _Avoid_: application, request (bare), candidacy
 
+**ACER**:
+Prepaid platform credit held in a runner's wallet, pegged 1 ACER = 1 USD. The wallet
+is an append-only ledger, so a balance is a sum over completed rows and never a stored
+column. Earned by checking in and by referrals, bought when purchases are switched on,
+**granted** by an admin, and spent on paid features — today the **Team creation fee**.
+Colloquially "aces"; code, copy and UI never use that word, because **ACE** is a race role.
+_Avoid_: aces, coins, tokens, points, credits (bare)
+
+**Team creation fee**:
+The 100 ACER a runner pays to found a team, debited from their wallet in the same
+transaction that writes the team, so the team and the payment stand or fall together
+(ADR 0010). Charged at formation only — a **Team entry** is free — and never refunded
+when a team is dissolved; an admin reversal is the correction if a case ever warrants
+one.
+_Avoid_: team fee (ambiguous with an entry fee), subscription, deposit
+
+**Grant**:
+ACER credited to one or more accounts by an admin, with a mandatory reason recorded on
+every row and the acting admin on it. A bulk grant credits everyone ticked on the users
+list in one act, keyed by a batch so a second press of the button credits nobody twice.
+Grants only ever credit — a hand-made debit stays on the per-user panel.
+_Avoid_: bonus, top-up (that is a purchase), gift, adjustment (that is the per-user
+credit or debit)
+
 ### Legacy (frozen — warsaw-2026 team format)
 
 **Legacy participation**:

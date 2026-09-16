@@ -18,6 +18,8 @@ The owner's word for the currency is "aces". In this codebase that is **ACER**, 
 
 ## Decisions
 
+Written down as [ADR 0010 — team creation is paid in ACER](../../docs/adr/0010-team-creation-paid-in-acer.md).
+
 | Question | Decision |
 |---|---|
 | Which moment is paid? | **`createTeam` only** (PRD #57 formation). `enterTeam` (PRD #64) and everything roster-side stay free. *(carried over)* |
