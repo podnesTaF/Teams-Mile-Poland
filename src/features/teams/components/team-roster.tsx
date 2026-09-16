@@ -1,9 +1,9 @@
 import { getTranslations } from "next-intl/server";
 
 import type { RosterMember } from "../data";
-import type { TeamCompleteness } from "../eligibility";
+import type { RosterSummary } from "../eligibility";
 import { RosterControls } from "./roster-controls";
-import { TeamCompletenessTile } from "./team-completeness";
+import { RosterCountTile } from "./roster-count-tile";
 
 /**
  * The roster with names and roles — **members and admin only**. The page decides
@@ -17,14 +17,15 @@ import { TeamCompletenessTile } from "./team-completeness";
 export async function TeamRoster({
   slug,
   roster,
-  completeness,
+  summary,
   viewerUserId,
   isManager,
 }: {
   /** The team's slug — every roster-change action is addressed by it. */
   slug: string;
   roster: RosterMember[];
-  completeness: TeamCompleteness;
+  /** The roster in numbers, for the count tile. */
+  summary: RosterSummary;
   viewerUserId: string | null;
   /** The captain (`manager` role), or an admin holding `edit`. Decides which controls render. */
   isManager: boolean;
@@ -39,7 +40,7 @@ export async function TeamRoster({
       <h2 className="iv-title pf-h2">{t("rosterHeading")}</h2>
 
       <div className="pf-ref-stats">
-        <TeamCompletenessTile completeness={completeness} />
+        <RosterCountTile roster={summary} />
       </div>
 
       <div className="reg-list" data-team-roster="1">

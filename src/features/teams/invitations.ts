@@ -14,7 +14,7 @@ import {
 import { getDb } from "@/lib/db";
 
 import { INVITATION_TTL_DAYS, teamFailure, type TeamActionResult, type TeamSex } from "./config";
-import { checkEligibility, computeCompleteness, type RosterSeat } from "./eligibility";
+import { checkEligibility, type RosterSeat } from "./eligibility";
 import { asTeamMailLocale, sendInvitationAcceptedEmail } from "./mail-invitations";
 
 /**
@@ -199,9 +199,9 @@ export type AcceptedInvitation = { teamSlug: string; teamName: string };
  * `select … for update` on the invitation row *and* the team row, in that
  * order (the invitation is the narrower lock, and a team is never locked
  * first anywhere else, so no cycle exists). Under the lock it re-reads the
- * roster and re-runs `checkEligibility`, which is what makes two simultaneous
- * accepts at the last seat resolve to one membership and one `roster_full`.
- * The `(user_id, category)` unique index is the backstop underneath.
+ * roster and re-runs `checkEligibility`, so a runner who joined another team in
+ * this category between opening the link and pressing Accept is refused. The
+ * `(user_id, category)` unique index is the backstop underneath.
  *
  * The manager's "someone joined" mail is sent **after** the commit and its
  * failure is logged, never thrown: a roster change that already happened must
@@ -226,8 +226,6 @@ export async function acceptInvitationForUser(
       team: UserTeamRow;
       memberName: string;
       count: number;
-      min: number;
-      complete: boolean;
     } | null;
   } = { outcome: teamFailure("notfound"), mail: null };
 
@@ -324,19 +322,13 @@ export async function acceptInvitationForUser(
         .set({ status: "accepted", acceptedByUserId: userId, decidedAt: new Date() })
         .where(eq(userTeamInvitations.id, invitation.id));
 
-      const after = computeCompleteness(team.category, [
-        ...roster,
-        { userId, sex: (candidate.sex ?? null) as TeamSex | null, role: "member" },
-      ]);
       state.mail = {
         team,
         memberName:
           [candidate.firstName, candidate.lastName].filter(Boolean).join(" ").trim() ||
           candidate.name ||
           candidate.email,
-        count: after.count,
-        min: after.min,
-        complete: after.complete,
+        count: roster.length + 1,
       };
       state.outcome = { ok: true, teamSlug: team.slug, teamName: team.name };
     });
@@ -367,8 +359,6 @@ export async function acceptInvitationForUser(
         team: mail.team,
         memberName: mail.memberName,
         count: mail.count,
-        min: mail.min,
-        complete: mail.complete,
       });
     }
   }

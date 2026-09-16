@@ -19,9 +19,8 @@ import {
   ADMIN_TEAM_DATETIME,
   adminTeamSexLabel,
 } from "@/features/admin/components/teams/labels";
-import { TEAM_LIMITS } from "@/features/teams/config";
 import { getTeamBySlug, getTeamRoster } from "@/features/teams/data";
-import { computeCompleteness } from "@/features/teams/eligibility";
+import { summarizeRoster } from "@/features/teams/eligibility";
 import { listOpenInvitations } from "@/features/teams/invitations";
 import { listPendingJoinRequests } from "@/features/teams/join-requests";
 import { Link } from "@/i18n/navigation";
@@ -68,10 +67,7 @@ export default async function AdminTeamDetailPage({ params }: PageProps) {
     listOpenInvitations(team.id),
     listPendingJoinRequests(team.id),
   ]);
-  const completeness = computeCompleteness(team.category, roster);
-  // The same arithmetic `inviteByEmail` refuses on: open invitations may never
-  // outnumber the empty seats, so the cap doubles as the invitation limit.
-  const seatsLeft = Math.max(0, TEAM_LIMITS[team.category].max - roster.length - invitations.length);
+  const rosterSummary = summarizeRoster(team.category, roster);
 
   return (
     <AdminPage
@@ -87,30 +83,19 @@ export default async function AdminTeamDetailPage({ params }: PageProps) {
         <section className={adminCard("p-4 sm:p-5")}>
           <div className="flex flex-wrap items-center gap-2">
             <AdminPill tone="ink">{ADMIN_TEAM_CATEGORY_LABEL[team.category]}</AdminPill>
-            <AdminPill tone={completeness.complete ? "ok" : "warn"} dot>
-              {completeness.complete ? "Complete" : `${completeness.missing} short`}
-            </AdminPill>
             {team.recruiting ? <AdminPill tone="accent">Recruiting</AdminPill> : null}
           </div>
 
           <div className="mt-4 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
-            <AdminStat
-              label={`Members (target ${completeness.min}, cap ${completeness.max})`}
-              value={completeness.count}
-            />
+            <AdminStat label="Members" value={rosterSummary.count} />
             <AdminStat label="Pending invitations" value={invitations.length} />
             <AdminStat label="Pending requests" value={requests.length} />
             <AdminStat label="Region" value={team.region} />
           </div>
 
-          {completeness.minPerSex !== null ? (
+          {team.category === "mixed" ? (
             <p className={cn(ADMIN_NOTE, "mt-3")} data-admin-team-balance="">
-              Mixed balance: {completeness.men} men, {completeness.women} women — at least{" "}
-              {completeness.minPerSex} of each is required
-              {completeness.menMissing + completeness.womenMissing > 0
-                ? ` (${completeness.menMissing} men and ${completeness.womenMissing} women short)`
-                : ""}
-              .
+              Mixed roster: {rosterSummary.men} men, {rosterSummary.women} women.
             </p>
           ) : null}
 
@@ -211,11 +196,11 @@ export default async function AdminTeamDetailPage({ params }: PageProps) {
         >
           <h2 className={ADMIN_TITLE}>Pending invitations ({invitations.length})</h2>
           <p className={cn(ADMIN_NOTE, "mt-1 max-w-[78ch]")}>
-            Open invitations claim a seat, so they count against the cap. Resending reissues the
-            token — the previous link stops working at once and the 30-day clock restarts.
+            A roster has no cap, so invitations are never refused for space. Resending reissues
+            the token — the previous link stops working at once and the 30-day clock restarts.
           </p>
 
-          {canEdit ? <AdminInviteOnBehalf slug={team.slug} seatsLeft={seatsLeft} /> : null}
+          {canEdit ? <AdminInviteOnBehalf slug={team.slug} /> : null}
 
           {invitations.length === 0 ? (
             <p className={cn(ADMIN_NOTE, "mt-3")} data-admin-invitations-empty="">

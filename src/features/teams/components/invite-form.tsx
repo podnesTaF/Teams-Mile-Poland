@@ -14,13 +14,13 @@ import { inviteByEmail } from "../actions/invitations";
  *
  * Plain `useState` + the house dark form vocabulary, the same skin as
  * `TeamForm`. Refusals arrive as `TeamActionReason` keys and are rendered from
- * `teams.reasons`, so `already_member` and `roster_full` read as sentences the
+ * `teams.reasons`, so `already_member` and `already_in_category` read as sentences the
  * captain can act on rather than as a generic error.
  *
  * The address is validated only once the field has been left or submit was
  * pressed — an empty form must not open red.
  */
-export function InviteForm({ slug, disabled }: { slug: string; disabled?: boolean }) {
+export function InviteForm({ slug }: { slug: string }) {
   const t = useTranslations("teams.invitations");
   const tReasons = useTranslations("teams.reasons");
   const router = useRouter();
@@ -35,7 +35,7 @@ export function InviteForm({ slug, disabled }: { slug: string; disabled?: boolea
 
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (pending || disabled) return;
+    if (pending) return;
     if (!ready) {
       setTouched(true);
       return;
@@ -89,7 +89,6 @@ export function InviteForm({ slug, disabled }: { slug: string; disabled?: boolea
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             onBlur={() => setTouched(true)}
-            disabled={disabled}
             aria-invalid={showInvalid ? true : undefined}
           />
           {showInvalid ? (
@@ -98,7 +97,7 @@ export function InviteForm({ slug, disabled }: { slug: string; disabled?: boolea
             <span className="fhint">{t("emailHint")}</span>
           )}
         </label>
-        <button type="submit" className="btn btn-red invite-form__submit" disabled={pending || disabled}>
+        <button type="submit" className="btn btn-red invite-form__submit" disabled={pending}>
           {pending ? t("sending") : t("send")}
         </button>
       </div>

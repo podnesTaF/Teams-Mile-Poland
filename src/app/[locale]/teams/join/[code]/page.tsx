@@ -17,7 +17,7 @@ import {
   getTeamByCode,
   getTeamMembership,
 } from "@/features/teams/data";
-import { checkEligibility, computeCompleteness } from "@/features/teams/eligibility";
+import { checkEligibility, summarizeRoster } from "@/features/teams/eligibility";
 import { teamGateState } from "@/features/teams/guards";
 import { getPendingInvitationForEmail, isInvitationExpired } from "@/features/teams/invitations";
 import { getPendingJoinRequest } from "@/features/teams/join-requests";
@@ -64,12 +64,12 @@ export default async function TeamJoinPage({ params }: PageProps) {
   const tForm = await getTranslations("teams.form");
 
   const seats = (await getRosterSeats([team.id])).get(team.id) ?? [];
-  const completeness = computeCompleteness(team.category, seats);
+  const rosterSummary = summarizeRoster(team.category, seats);
   const managerFirstName =
     (await getManagerFirstNames([team.managerUserId])).get(team.managerUserId) ?? null;
 
   const card = (
-    <TeamCard team={team} completeness={completeness} managerFirstName={managerFirstName} />
+    <TeamCard team={team} roster={rosterSummary} managerFirstName={managerFirstName} />
   );
   const back = joinPath(code);
   const user = await getUser();

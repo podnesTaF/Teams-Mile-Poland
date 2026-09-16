@@ -41,17 +41,14 @@ export async function sendJoinRequestReceivedEmail({
   team,
   runnerName,
   count,
-  min,
-  complete,
 }: {
   to: string;
   locale: TeamMailLocale;
   team: UserTeamRow;
   /** The requester's display name — a manager decides about a person. */
   runnerName: string;
+  /** The roster size as it stands — a plain count, never "x of N". */
   count: number;
-  min: number;
-  complete: boolean;
 }): Promise<boolean> {
   const t = (await getTranslations({
     locale,
@@ -72,7 +69,7 @@ export async function sendJoinRequestReceivedEmail({
         eyebrow: t("eyebrow"),
         title: t("title", { name: runnerName }),
         body: t("body", { name: runnerName, team: team.name }),
-        roster: complete ? t("rosterComplete", { count, min }) : t("roster", { count, min }),
+        roster: t("roster", { count }),
         intro: t("intro"),
         cta: t("cta"),
         labels,
@@ -87,7 +84,7 @@ export async function sendJoinRequestReceivedEmail({
  * are on it, the public recruiting list when they are not, because a runner who
  * has just been turned down needs somewhere to go next.
  *
- * `count` / `min` / `complete` are only read by the accepted variant.
+ * `count` is only read by the accepted variant.
  */
 export async function sendJoinRequestDecidedEmail({
   to,
@@ -96,8 +93,6 @@ export async function sendJoinRequestDecidedEmail({
   firstName,
   accepted,
   count,
-  min,
-  complete,
 }: {
   to: string;
   locale: TeamMailLocale;
@@ -105,9 +100,8 @@ export async function sendJoinRequestDecidedEmail({
   /** The runner's first name, for the greeting. */
   firstName: string;
   accepted: boolean;
+  /** The roster size after the accept — a plain count, never "x of N". */
   count: number;
-  min: number;
-  complete: boolean;
 }): Promise<boolean> {
   const t = (await getTranslations({
     locale,
@@ -136,11 +130,7 @@ export async function sendJoinRequestDecidedEmail({
         body: accepted
           ? t("bodyAccepted", { team: team.name })
           : t("bodyDeclined", { team: team.name }),
-        roster: accepted
-          ? complete
-            ? t("rosterComplete", { count, min })
-            : t("roster", { count, min })
-          : undefined,
+        roster: accepted ? t("roster", { count }) : undefined,
         outro: accepted ? t("outroAccepted") : t("outroDeclined"),
         cta: accepted ? t("ctaAccepted") : t("ctaDeclined"),
         labels,

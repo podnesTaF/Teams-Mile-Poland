@@ -10,7 +10,7 @@ import { isPubliclyVisible } from "@/lib/events/store";
 import { acceptsTeams, type EventSummary } from "@/lib/events/types";
 
 import { teamFailure, type TeamActionFailure } from "../config";
-import { computeCompleteness } from "../eligibility";
+import { entryShortfall } from "../eligibility";
 import {
   addMemberRows,
   createEntryRows,
@@ -63,7 +63,7 @@ import {
  * added: the reason set is frozen in `config.ts` for all three slices.
  */
 export type EntryFailure = TeamActionFailure & {
-  /** `incomplete_team`: members still needed to reach the category's minimum. */
+  /** `incomplete_team`: members still needed before the team could field a race composition. */
   missing?: number;
   /** `member_underage`: the member who will not be 18 on the event date;
    * `registered_individually`: the member already registered alone (ADR 0009). */
@@ -145,12 +145,18 @@ async function loadTeamEvent(eventSlug: string): Promise<EventSummary | null> {
 }
 
 /**
- * Enter a complete team into an open team event.
+ * Enter a team into an open team event.
  *
  * The guard order is the issue's, and it is the order a human would explain a
  * refusal in: you are not the manager → that night does not exist → it is
- * cancelled → it is not taking entries → you are already in it → your team is
- * not complete yet → this member will not be 18 on the night.
+ * cancelled → it is not taking entries → you are already in it → your team
+ * could not field a race composition yet → this member will not be 18 on the
+ * night.
+ *
+ * The size check is the *only* one the platform makes on a roster (ADR 0011):
+ * `entryShortfall` reads the composition (`COMPOSITION` in `rating-rules.ts`),
+ * because a team that cannot name its RACERS and pairs cannot start, and
+ * entering it would mint registrations nobody can check in.
  *
  * Age is checked against **the event date**, not today (PRD #64, Cross-Cutting
  * Decision; brief Decision 7). Formation's stricter "18 today" lives in
@@ -174,9 +180,9 @@ export async function enterTeam(
   if (await getEntryByTeamAndEvent(team.id, eventSlug)) return teamFailure("already_entered");
 
   const roster = await getTeamEntryCandidates(team.id);
-  const completeness = computeCompleteness(team.category, roster);
-  if (!completeness.complete) {
-    return { ...teamFailure("incomplete_team"), missing: completeness.missing };
+  const shortfall = entryShortfall(team.category, roster);
+  if (shortfall > 0) {
+    return { ...teamFailure("incomplete_team"), missing: shortfall };
   }
 
   const eventDate = parseDateOnly(event.date);

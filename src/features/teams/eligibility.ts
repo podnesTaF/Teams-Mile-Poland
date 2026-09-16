@@ -1,4 +1,5 @@
-import { TEAM_LIMITS, categoryAdmits, type TeamCategory, type TeamRole, type TeamSex } from "./config";
+import { categoryAdmits, type TeamCategory, type TeamRole, type TeamSex } from "./config";
+import { COMPOSITION, composedSeatCount } from "./rating-rules";
 
 /**
  * The one implementation of "may this runner join this team" (PRD #57,
@@ -8,6 +9,11 @@ import { TEAM_LIMITS, categoryAdmits, type TeamCategory, type TeamRole, type Tea
  * the create path (a manager must be eligible for their own team), the
  * invitation accept, the join-request accept, and the pre-check when a request
  * is filed — calls this function, so the two doors cannot drift.
+ *
+ * A roster has **no size limit** (ADR 0011): a team may carry as many reserves
+ * as it likes, so nothing here counts seats. The only size the platform knows
+ * is the race composition on the night, which {@link entryShortfall} reads at
+ * event entry.
  *
  * What is deliberately *not* here: the user gate chain (session, verified
  * email, complete profile, age 18). That is `guards.ts`, because it is about
@@ -35,22 +41,15 @@ export type EligibilityCandidate = {
   categories: readonly TeamCategory[];
 };
 
-/** The five ways a roster can refuse a runner. A subset of `TeamActionReason`. */
-export type EligibilityReason =
-  | "wrong_category"
-  | "roster_full"
-  | "sex_balance"
-  | "already_member"
-  | "already_in_category";
+/** The three ways a roster can refuse a runner. A subset of `TeamActionReason`. */
+export type EligibilityReason = "wrong_category" | "already_member" | "already_in_category";
 
 export type EligibilityResult = { ok: true } | { ok: false; reason: EligibilityReason };
 
 /**
  * Order matters, and it is the order a human would explain the refusal in:
  * you are already on this roster → your sex is wrong for this category → you
- * already hold a team in this category → the roster is full → the mixed balance
- * has no room for your sex. Checking `already_member` first keeps a re-accept
- * from being reported as "roster full".
+ * already hold a team in this category.
  */
 export function checkEligibility(
   team: EligibilityTeam,
@@ -71,76 +70,55 @@ export function checkEligibility(
     return { ok: false, reason: "already_in_category" };
   }
 
-  const limits = TEAM_LIMITS[team.category];
-  if (roster.length >= limits.max) {
-    return { ok: false, reason: "roster_full" };
-  }
-
-  if (limits.minPerSex !== undefined) {
-    // Room must remain for `minPerSex` of the *other* sex, so either sex is
-    // capped at `max - minPerSex` (8 of 12 with a floor of 4).
-    const perSexCap = limits.max - limits.minPerSex;
-    const sameSex = roster.filter((seat) => seat.sex === candidate.sex).length;
-    if (sameSex >= perSexCap) {
-      return { ok: false, reason: "sex_balance" };
-    }
-  }
-
   return { ok: true };
 }
 
 /**
- * How far a roster is from **Complete**. Read from {@link TEAM_LIMITS} at
- * render time and never stored — a team drops back to incomplete the moment
- * someone leaves.
+ * The roster in numbers — how many, and the men/women split. Computed at render
+ * time and never stored. There is no target and no cap to measure it against:
+ * the count is shown as a plain count, never as "x of N".
  */
-export type TeamCompleteness = {
+export type RosterSummary = {
   category: TeamCategory;
   count: number;
-  min: number;
-  max: number;
-  /** Members still needed to reach `min`; 0 once complete. */
-  missing: number;
-  complete: boolean;
-  /** At the cap — no invitation or accept can add anyone. */
-  full: boolean;
   men: number;
   women: number;
-  /** `null` for men's and women's teams. */
-  minPerSex: number | null;
-  /** Men still needed to satisfy `minPerSex`; 0 when not mixed or already met. */
-  menMissing: number;
-  womenMissing: number;
 };
 
-export function computeCompleteness(
+export function summarizeRoster(
   category: TeamCategory,
   roster: readonly RosterSeat[],
-): TeamCompleteness {
-  const limits = TEAM_LIMITS[category];
-  const count = roster.length;
-  const men = roster.filter((seat) => seat.sex === "M").length;
-  const women = roster.filter((seat) => seat.sex === "F").length;
-  const minPerSex = limits.minPerSex ?? null;
-  const menMissing = minPerSex === null ? 0 : Math.max(0, minPerSex - men);
-  const womenMissing = minPerSex === null ? 0 : Math.max(0, minPerSex - women);
-
-  // Complete is the lower bound *and*, on a mixed team, the four-of-each floor:
-  // 8 members who are all men is not a complete mixed team.
-  const missing = Math.max(limits.min - count, menMissing + womenMissing, 0);
-
+): RosterSummary {
   return {
     category,
-    count,
-    min: limits.min,
-    max: limits.max,
-    missing,
-    complete: missing === 0,
-    full: count >= limits.max,
-    men,
-    women,
-    minPerSex,
-    menMissing,
-    womenMissing,
+    count: roster.length,
+    men: roster.filter((seat) => seat.sex === "M").length,
+    women: roster.filter((seat) => seat.sex === "F").length,
   };
+}
+
+/**
+ * How many more members a roster needs before it could field a race
+ * composition — the one place a team's size is judged, and it is judged at
+ * **event entry**, not at formation.
+ *
+ * Read from `COMPOSITION` (`rating-rules.ts`): the composed seat count, and on a
+ * mixed team the 4+4 rule (four male RACERS, two female pairs), because eight
+ * men is not a mixed team that can start. `0` means the team may enter.
+ */
+export function entryShortfall(category: TeamCategory, roster: readonly RosterSeat[]): number {
+  const rules = COMPOSITION[category];
+  const bySeats = composedSeatCount(category) - roster.length;
+
+  let bySex = 0;
+  if (rules.racerSex) {
+    const racers = roster.filter((seat) => seat.sex === rules.racerSex).length;
+    bySex += Math.max(0, rules.racers - racers);
+  }
+  if (rules.pairSex) {
+    const pairRunners = roster.filter((seat) => seat.sex === rules.pairSex).length;
+    bySex += Math.max(0, rules.pairs * 2 - pairRunners);
+  }
+
+  return Math.max(bySeats, bySex, 0);
 }

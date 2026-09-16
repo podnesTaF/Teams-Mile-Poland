@@ -13,8 +13,8 @@ import { useRouter } from "@/i18n/navigation";
  * `decideJoinRequest` resolves the team from the request row itself and runs
  * `requireTeamManagerOrAdmin` on it, so the organiser needs to pass nothing but
  * the request id — and an accept re-runs eligibility inside the locking
- * transaction, which is why a refusal here can be `roster_full` or
- * `sex_balance` even though the queue rendered a moment ago.
+ * transaction, which is why a refusal here can be `already_in_category` even
+ * though the queue rendered a moment ago.
  */
 export function AdminJoinRequestActions({ requestId }: { requestId: string }) {
   const router = useRouter();

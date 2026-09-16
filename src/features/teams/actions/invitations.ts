@@ -7,7 +7,7 @@ import { users } from "@/db/schema/auth";
 import { userTeamInvitations } from "@/db/schema/user-teams";
 import { getDb } from "@/lib/db";
 
-import { TEAM_LIMITS, teamFailure, type TeamActionResult } from "../config";
+import { teamFailure, type TeamActionResult } from "../config";
 import { getTeamRoster } from "../data";
 import { requireTeamActor, requireTeamManagerOrAdmin } from "../guards";
 import {
@@ -62,9 +62,8 @@ function displayName(user: {
  * Invite one address to the team.
  *
  * Refuses before writing anything when the address already sits on the roster
- * (`already_member`) or when the open invitations already claim every empty
- * seat (`roster_full`) — the cap doubles as the invitation limit, so a full
- * roster cannot accumulate a waiting list (PRD #57, user stories 21–22).
+ * (`already_member`). There is no seat count to refuse on: a roster has no cap
+ * (ADR 0011), so a team may hold as many open invitations as it likes.
  *
  * Inviting an address that already holds a pending invitation **reissues the
  * token and the expiry on that same row** and mails it again: one pending
@@ -93,10 +92,6 @@ export async function inviteByEmail(
 
   const open = await listOpenInvitations(team.id);
   const existing = open.find((row) => row.email.toLowerCase() === email);
-  const emptySeats = TEAM_LIMITS[team.category].max - roster.length;
-  // A reissue does not claim a new seat, so it is excluded from the count.
-  const claimed = open.filter((row) => row.email.toLowerCase() !== email).length;
-  if (emptySeats <= 0 || claimed >= emptySeats) return teamFailure("roster_full");
 
   const token = newInvitationToken();
   const expiresAt = invitationExpiry();

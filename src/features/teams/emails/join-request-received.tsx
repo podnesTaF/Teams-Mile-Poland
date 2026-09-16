@@ -7,8 +7,8 @@ import { TeamMailShell, TeamMailText, type TeamMailFacts, type TeamMailLabels } 
  * The mirror of `invitation-accepted.tsx`: that one reports a roster that has
  * already grown, this one reports a decision waiting to be made, so the button
  * goes to the team's manage view rather than to the card. It carries the roster
- * count against the minimum for the same reason — the manager should be able to
- * judge "do we still need runners?" without opening the page.
+ * count for the same reason — the manager should be able to judge "do we still
+ * need runners?" without opening the page.
  *
  * Copy arrives resolved from `mail-requests.ts` in the *manager's* locale; a
  * template that called `getTranslations` itself would mail the requester's
@@ -21,7 +21,7 @@ export type TeamJoinRequestReceivedCopy = {
   title: string;
   /** "{name} would like to run for {team}." */
   body: string;
-  /** "The roster has {count} of {min} runners." / the complete variant. */
+  /** "The roster has {count} runners." */
   roster: string;
   /** "Accept or decline it on the team page." */
   intro: string;

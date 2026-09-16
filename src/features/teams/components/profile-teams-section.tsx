@@ -35,7 +35,7 @@ export async function ProfileTeamsSection({ userId }: { userId: string }) {
         </div>
       ) : (
         <div className="reg-list" data-my-teams={teams.length}>
-          {teams.map(({ team, role, completeness }) => (
+          {teams.map(({ team, role, roster }) => (
             <div key={team.id} className="reg-card reg-card--plain">
               <div className="reg-card__body">
                 <span className="reg-card__title">{team.name}</span>
@@ -43,18 +43,7 @@ export async function ProfileTeamsSection({ userId }: { userId: string }) {
                   <span>{tForm(`categoryOption.${team.category}`)}</span>
                   <span>{team.region}</span>
                   <span>{tPage(`role.${role}`)}</span>
-                  <span>
-                    {completeness.complete
-                      ? tPage("completenessComplete", {
-                          count: completeness.count,
-                          min: completeness.min,
-                        })
-                      : tPage("completenessNeeded", {
-                          count: completeness.count,
-                          min: completeness.min,
-                          missing: completeness.missing,
-                        })}
-                  </span>
+                  <span>{tPage("rosterCount", { count: roster.count })}</span>
                 </div>
               </div>
               <div className="reg-card__actions">

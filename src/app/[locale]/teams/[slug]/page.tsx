@@ -15,7 +15,7 @@ import { TeamManagerPanel } from "@/features/teams/components/team-manager-panel
 import { TeamRoster } from "@/features/teams/components/team-roster";
 import { TeamShare } from "@/features/teams/components/team-share";
 import { getManagerFirstName, getTeamBySlug, getTeamRoster } from "@/features/teams/data";
-import { computeCompleteness } from "@/features/teams/eligibility";
+import { summarizeRoster } from "@/features/teams/eligibility";
 import { getOpenTeamEvents, listEntriesForTeam } from "@/features/teams/entries";
 import { Link } from "@/i18n/navigation";
 import { getAppUrl } from "@/lib/app-url";
@@ -30,10 +30,10 @@ type PageProps = {
 /**
  * One team, in three views layered on top of each other:
  *
- *  - **public** — the card: name, region, category, count against target,
+ *  - **public** — the card: name, region, category, the runner count,
  *    description, the manager's first name. No roster names, ever.
- *  - **member** — plus the roster with names and roles, the completeness line
- *    (with the men/women split on mixed teams), the code and the share link.
+ *  - **member** — plus the roster with names and roles, the runner count (with
+ *    the men/women split on mixed teams), the code and the share link.
  *  - **manager** — plus the edit form, the code rotation and the recruiting
  *    toggle. An admin holding `edit` sees the manager view of any team.
  *
@@ -50,7 +50,7 @@ export default async function TeamPage({ params }: PageProps) {
   const t = await getTranslations("teams.page");
   const user = await getUser();
   const roster = await getTeamRoster(team.id);
-  const completeness = computeCompleteness(team.category, roster);
+  const rosterSummary = summarizeRoster(team.category, roster);
   const managerFirstName = await getManagerFirstName(team.managerUserId);
 
   const isOnRoster = user ? roster.some((member) => member.userId === user.id) : false;
@@ -95,7 +95,7 @@ export default async function TeamPage({ params }: PageProps) {
 
           <TeamCard
             team={team}
-            completeness={completeness}
+            roster={rosterSummary}
             managerFirstName={managerFirstName}
           />
 
@@ -104,7 +104,7 @@ export default async function TeamPage({ params }: PageProps) {
               <TeamRoster
                 slug={team.slug}
                 roster={roster}
-                completeness={completeness}
+                summary={rosterSummary}
                 viewerUserId={user?.id ?? null}
                 isManager={isManager}
               />

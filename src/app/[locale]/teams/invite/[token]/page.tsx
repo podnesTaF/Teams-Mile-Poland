@@ -15,7 +15,7 @@ import {
   getManagerFirstName,
   getRosterSeats,
 } from "@/features/teams/data";
-import { checkEligibility, computeCompleteness } from "@/features/teams/eligibility";
+import { checkEligibility, summarizeRoster } from "@/features/teams/eligibility";
 import { teamGateState } from "@/features/teams/guards";
 import {
   getInvitationByToken,
@@ -167,7 +167,7 @@ export default async function TeamInvitePage({ params }: PageProps) {
 
   // ── the offer ───────────────────────────────────────────────────────────
   const seats = (await getRosterSeats([team.id])).get(team.id) ?? [];
-  const completeness = computeCompleteness(team.category, seats);
+  const rosterSummary = summarizeRoster(team.category, seats);
   const managerFirstName = await getManagerFirstName(team.managerUserId);
   const candidate = await getEligibilityCandidate(user.id);
   const eligibility = candidate
@@ -179,7 +179,7 @@ export default async function TeamInvitePage({ params }: PageProps) {
       <div className="center-narrow" style={{ maxWidth: 720 }} data-invite-state="offer">
         <TeamCard
           team={team}
-          completeness={completeness}
+          roster={rosterSummary}
           managerFirstName={managerFirstName}
         />
 

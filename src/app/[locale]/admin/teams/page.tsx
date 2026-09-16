@@ -38,7 +38,6 @@ export default async function AdminTeamsPage({
   await requireAdmin(locale, "view");
 
   const teams = await listAllTeamsForAdmin();
-  const complete = teams.filter((row) => row.completeness.complete).length;
   const recruiting = teams.filter((row) => row.team.recruiting).length;
 
   return (
@@ -48,7 +47,7 @@ export default async function AdminTeamsPage({
       actions={
         teams.length > 0 ? (
           <span className={ADMIN_NOTE} data-admin-teams-summary="">
-            {complete} of {teams.length} complete · {recruiting} recruiting
+            {teams.length} teams · {recruiting} recruiting
           </span>
         ) : null
       }
@@ -91,7 +90,7 @@ export default async function AdminTeamsPage({
                 </tr>
               </thead>
               <tbody>
-                {teams.map(({ team, completeness, managerName }) => (
+                {teams.map(({ team, roster, managerName }) => (
                   <tr
                     key={team.id}
                     className="border-b border-admin-line last:border-0"
@@ -108,16 +107,7 @@ export default async function AdminTeamsPage({
                     <td className={CELL}>{team.region}</td>
                     <td className={CELL}>{ADMIN_TEAM_CATEGORY_LABEL[team.category]}</td>
                     <td className={CELL}>
-                      <span className="font-mono text-admin-ink">
-                        {completeness.count} / {completeness.min}
-                      </span>{" "}
-                      <AdminPill
-                        tone={completeness.complete ? "ok" : "warn"}
-                        dot
-                        title={`Cap ${completeness.max}`}
-                      >
-                        {completeness.complete ? "Complete" : `${completeness.missing} short`}
-                      </AdminPill>
+                      <span className="font-mono text-admin-ink">{roster.count}</span>
                     </td>
                     <td className={CELL}>
                       {team.recruiting ? (

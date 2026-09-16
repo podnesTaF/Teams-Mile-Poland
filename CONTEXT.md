@@ -220,17 +220,18 @@ _Avoid_: squad, crew, group, club (that is the free-text profile field)
 
 **Team category**:
 Men, women, or mixed — fixed when the team is created. Decides who may join (men's
-teams take `M`, women's take `F`, mixed take both) and the team's numbers — see
-**Roster limits**. A runner holds at most one membership per category, so at most two
-teams: their own sex category and one mixed.
+teams take `M`, women's take `F`, mixed take both) and the team's **Race composition**.
+A runner holds at most one membership per category, so at most two teams: their own
+sex category and one mixed.
 _Avoid_: division, gender (of a team), type (that is the event type)
 
-**Roster limits**:
-Men's and women's teams hold 7 to 11 members; mixed teams 8 to 12 with at least 4 of
-each sex. The lower bound is **Complete**; the upper bound is the **Roster cap**, at
-which invitations and accepts are refused. On a mixed team a member is refused when
-their sex could no longer leave room for four of the other (so at most 8 of one sex).
-_Avoid_: team size (the legacy captain-declared number), capacity (that is a heat)
+**Roster**:
+Everyone on a team, with no size limit (ADR 0011). A roster may carry as many reserves
+as the manager wants; invitations and accepts are never refused for space, and no
+surface shows the count as "x of N" — only the plain number. The only size the
+platform judges is the **Race composition**, at **Team entry** and at **Team check-in**.
+_Avoid_: roster limit, roster cap, complete/incomplete roster, team size (the legacy
+captain-declared number), capacity (that is a heat)
 
 **Member**:
 A runner on a team's roster — a `users` account, never a separate per-person row.
@@ -240,7 +241,7 @@ _Avoid_: player, participant, runner row
 
 **Team entry**:
 A team's registration into one team-type event, made by the **Manager** once the team
-is **Complete**. Creates one **Registration** per entered member in the same
+**Can enter**. Creates one **Registration** per entered member in the same
 transaction, so tickets, consent, check-in, bibs, heats and results work unchanged.
 One team, one event, at most once. Members confirm their own consent from one link;
 the manager does everything else.
@@ -258,13 +259,13 @@ is not checked in, but can be swapped in for an absent composed member until the
 starts.
 _Avoid_: bench, substitute (the act is a swap; the person is a reserve)
 
-**Complete (team)**:
-A roster property: the team has reached the lower **Roster limit** — 7 members, or 8
-with at least 4 of each sex for mixed — all with complete profiles. Read at admission
-into an event, never a stored flag; a team drops back to incomplete when someone
-leaves. The regulation text (`team-rules` §2.3.1) currently states 11/12 and is to be
-corrected to match.
-_Avoid_: full (a full team can still take members; complete is a threshold), ready
+**Can enter (team)**:
+A roster property read at **Team entry**, never stored: the roster has enough members
+to field a **Race composition** — 7 for men's and women's teams, 8 with at least 4 men
+and 4 women for mixed — all with complete profiles. The shortfall is reported as "N
+more runners needed", never as "x of N". A roster larger than the composition is the
+normal case: the extra members are **Reserves** on the night.
+_Avoid_: complete (there is no roster target), full (a roster has no cap), ready
 
 **Race composition**:
 The 7 members (8 for mixed) of a team entry who actually run, each holding a **Race

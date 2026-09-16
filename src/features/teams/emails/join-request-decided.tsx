@@ -23,7 +23,7 @@ export type TeamJoinRequestDecidedCopy = {
   greeting: string;
   /** "You are on the roster of {team}." / "{team} could not take you." */
   body: string;
-  /** Accepted only: "The roster now has {count} of {min} runners." */
+  /** Accepted only: "The roster now has {count} runners." */
   roster?: string;
   outro: string;
   cta: string;

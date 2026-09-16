@@ -179,16 +179,13 @@ export async function sendInvitationAcceptedEmail({
   team,
   memberName,
   count,
-  min,
-  complete,
 }: {
   to: string;
   locale: TeamMailLocale;
   team: UserTeamRow;
   memberName: string;
+  /** The roster size after the accept — shown as a plain count, never "x of N". */
   count: number;
-  min: number;
-  complete: boolean;
 }): Promise<boolean> {
   const t = (await getTranslations({
     locale,
@@ -209,9 +206,7 @@ export async function sendInvitationAcceptedEmail({
         eyebrow: t("eyebrow"),
         title: t("title", { name: memberName }),
         body: t("body", { name: memberName, team: team.name }),
-        roster: complete
-          ? t("rosterComplete", { count, min })
-          : t("roster", { count, min }),
+        roster: t("roster", { count }),
         cta: t("cta"),
         labels,
       },

@@ -2294,9 +2294,8 @@
   border-color: rgba(255, 255, 255, 0.16);
 }
 
-/* Seats filled against the category target: the label and the count line, then
- * the bar — the seats, not a sentence about them. Green once the roster is
- * complete, brand red while it is not. */
+/* The roster count: a label and a plain number. No bar and no target — a roster
+ * has no cap to fill (ADR 0011). */
 .ace-landing .team-tile__meter-head {
   display: flex;
   flex-wrap: wrap;
@@ -2318,22 +2317,6 @@
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
   color: #fff;
-}
-.ace-landing .team-meter {
-  margin-top: 8px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-}
-.ace-landing .team-meter__fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--acl-red);
-}
-.ace-landing .team-tile__meter[data-team-completeness="complete"] .team-meter__fill {
-  background: var(--ok);
 }
 
 .ace-landing .team-tile__desc {

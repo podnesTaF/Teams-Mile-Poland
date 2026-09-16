@@ -11,10 +11,10 @@ import { getDb } from "@/lib/db";
 
 import type { TeamCategory, TeamRole, TeamSex } from "./config";
 import {
-  computeCompleteness,
+  summarizeRoster,
   type EligibilityCandidate,
   type RosterSeat,
-  type TeamCompleteness,
+  type RosterSummary,
 } from "./eligibility";
 
 /**
@@ -42,7 +42,7 @@ export type RosterMember = RosterSeat & {
 export type MyTeamSummary = {
   team: UserTeamRow;
   role: TeamRole;
-  completeness: TeamCompleteness;
+  roster: RosterSummary;
 };
 
 export async function getTeamBySlug(slug: string): Promise<UserTeamRow | null> {
@@ -161,7 +161,7 @@ export async function getEligibilityCandidate(
 }
 
 /**
- * Every team the runner is on, newest first, with the completeness the profile
+ * Every team the runner is on, newest first, with the roster count the profile
  * card shows. Two queries regardless of how many teams: the memberships (with
  * the team rows), then every seat of those teams for the counts.
  */
@@ -181,7 +181,7 @@ export async function getMyTeams(userId: string): Promise<MyTeamSummary[]> {
   return mine.map((row) => ({
     team: row.team,
     role: row.role,
-    completeness: computeCompleteness(row.team.category, seatsByTeam.get(row.team.id) ?? []),
+    roster: summarizeRoster(row.team.category, seatsByTeam.get(row.team.id) ?? []),
   }));
 }
 
@@ -191,8 +191,8 @@ export async function getMyTeams(userId: string): Promise<MyTeamSummary[]> {
  *
  * Recruiting is the only flag there is — there is no team status — so this is
  * the whole of "which teams are looking for runners". Ordered by `created_at`
- * rather than by how close a roster is to Complete: a team that has just been
- * founded is the one that most needs to be seen.
+ * rather than by roster size: a team that has just been founded is the one that
+ * most needs to be seen.
  */
 export async function listRecruitingTeams(category?: TeamCategory): Promise<UserTeamRow[]> {
   const db = getDb();
@@ -205,13 +205,13 @@ export async function listRecruitingTeams(category?: TeamCategory): Promise<User
 /** One line of the organiser's teams index (#63). */
 export type AdminTeamListRow = {
   team: UserTeamRow;
-  completeness: TeamCompleteness;
+  roster: RosterSummary;
   /** The manager's full name, falling back to the account name then the email. */
   managerName: string;
 };
 
 /**
- * Every team, newest first, with its completeness and its manager — the read
+ * Every team, newest first, with its roster count and its manager — the read
  * behind `/admin/teams` (#63).
  *
  * Admin-only by call site, not by anything in here: it is the *only* read that
@@ -240,7 +240,7 @@ export async function listAllTeamsForAdmin(): Promise<AdminTeamListRow[]> {
 
   return rows.map((row) => ({
     team: row.team,
-    completeness: computeCompleteness(row.team.category, seatsByTeam.get(row.team.id) ?? []),
+    roster: summarizeRoster(row.team.category, seatsByTeam.get(row.team.id) ?? []),
     managerName:
       [row.firstName, row.lastName].filter(Boolean).join(" ").trim() || row.name || row.email,
   }));
@@ -270,8 +270,8 @@ export async function getManagerFirstNames(
 }
 
 /**
- * Seats (id + sex only, no names) for several teams at once — what completeness
- * needs on list surfaces where roster names must not be read.
+ * Seats (id + sex only, no names) for several teams at once — what the roster
+ * count needs on list surfaces where roster names must not be read.
  */
 export async function getRosterSeats(teamIds: string[]): Promise<Map<string, RosterSeat[]>> {
   const byTeam = new Map<string, RosterSeat[]>();

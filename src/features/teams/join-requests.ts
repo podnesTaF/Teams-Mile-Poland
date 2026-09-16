@@ -11,7 +11,7 @@ import {
 import { getDb } from "@/lib/db";
 
 import { teamFailure, type TeamActionResult, type TeamSex } from "./config";
-import { checkEligibility, computeCompleteness, type RosterSeat } from "./eligibility";
+import { checkEligibility, type RosterSeat } from "./eligibility";
 import { asTeamMailLocale } from "./mail-invitations";
 import { sendJoinRequestDecidedEmail } from "./mail-requests";
 
@@ -192,11 +192,9 @@ export type DecidedJoinRequest = {
  * request row and then on the team row, in that order — the same order
  * `acceptInvitationForUser` uses, so the two doors can never deadlock against
  * each other. Under the lock it re-reads the roster and re-runs
- * `checkEligibility`, which is what makes two managers accepting at the last
- * seat resolve to one membership and one `roster_full`; the `(user_id,
- * category)` unique index is the backstop underneath. The runner may have joined
- * another team in this category, or turned 8 seats into 12, between knocking and
- * being let in, and that is exactly what the re-check is for.
+ * `checkEligibility`; the `(user_id, category)` unique index is the backstop
+ * underneath. The runner may have joined another team in this category between
+ * knocking and being let in, and that is exactly what the re-check is for.
  *
  * Decline is a single update. Either way the row records
  * `decided_by_user_id` + `decided_at`, and the runner is mailed **after** the
@@ -218,8 +216,6 @@ export async function decideJoinRequestForManager(
       team: UserTeamRow;
       runnerUserId: string;
       count: number;
-      min: number;
-      complete: boolean;
     } | null;
   } = { outcome: teamFailure("notfound"), mail: null };
 
@@ -255,7 +251,7 @@ export async function decideJoinRequestForManager(
           .update(userTeamJoinRequests)
           .set({ status: "declined", decidedByUserId: deciderUserId, decidedAt: new Date() })
           .where(eq(userTeamJoinRequests.id, request.id));
-        state.mail = { team, runnerUserId: request.userId, count: 0, min: 0, complete: false };
+        state.mail = { team, runnerUserId: request.userId, count: 0 };
         state.outcome = { ok: true, teamSlug: team.slug, teamName: team.name, decision };
         return;
       }
@@ -308,16 +304,10 @@ export async function decideJoinRequestForManager(
         .set({ status: "accepted", decidedByUserId: deciderUserId, decidedAt: new Date() })
         .where(eq(userTeamJoinRequests.id, request.id));
 
-      const after = computeCompleteness(team.category, [
-        ...roster,
-        { userId: request.userId, sex: candidateSex, role: "member" },
-      ]);
       state.mail = {
         team,
         runnerUserId: request.userId,
-        count: after.count,
-        min: after.min,
-        complete: after.complete,
+        count: roster.length + 1,
       };
       state.outcome = { ok: true, teamSlug: team.slug, teamName: team.name, decision };
     });
@@ -353,8 +343,6 @@ export async function decideJoinRequestForManager(
         firstName: runner.firstName?.trim() || runner.name.split(" ")[0] || runner.email,
         accepted: decision === "accept",
         count: mail.count,
-        min: mail.min,
-        complete: mail.complete,
       });
     }
   }

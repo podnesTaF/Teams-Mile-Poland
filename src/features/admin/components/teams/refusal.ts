@@ -22,8 +22,6 @@ const REFUSALS: Record<TeamActionReason, string> = {
   notfound: "The team, invitation or request no longer exists.",
   forbidden: "Refused: team changes need full admin access.",
   name_taken: "Another team already has that name.",
-  roster_full: "The roster and its open invitations already claim every seat.",
-  sex_balance: "A mixed team needs at least four of each sex, and this would break that.",
   wrong_category: "This runner's sex does not fit the team's category.",
   already_member: "That runner is already on this roster.",
   already_in_category: "That runner already holds a team in this category.",
@@ -32,7 +30,7 @@ const REFUSALS: Record<TeamActionReason, string> = {
   manager_must_hand_over: "Hand management over before removing the manager.",
   invalid: "That value was rejected — check the field and try again.",
   // Team entry and race day (PRD #64).
-  incomplete_team: "The team is not complete — it has not reached its roster minimum.",
+  incomplete_team: "The team does not yet have enough runners to field a race composition.",
   not_open: "That event is not open for registration.",
   already_entered: "That team is already entered in this event.",
   member_underage: "A member of that team will be under 18 on the event date.",

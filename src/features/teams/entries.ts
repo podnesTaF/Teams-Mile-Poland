@@ -301,14 +301,14 @@ function coerceDob(value: unknown): Date | null {
 
 /**
  * A roster member as the *entry* gate judges them: the eligibility fields
- * (`userId`, `sex`, `role`) that `computeCompleteness` reads, plus the two the
+ * (`userId`, `sex`, `role`) that `entryShortfall` reads, plus the two the
  * roster reads never carried — the **date of birth**, because entry checks 18
  * on the event date rather than today, and the **locale**, which is copied onto
  * the registration so the ticket and every later mailing speak the member's
  * language.
  *
  * Structurally a `RosterSeat` (`eligibility.ts`), so it can be handed straight
- * to `computeCompleteness` without a mapping step.
+ * to `entryShortfall` without a mapping step.
  */
 export type EntryCandidate = {
   userId: string;

@@ -23,23 +23,22 @@ import { cn } from "@/lib/utils";
  * confused by a mail from a team they never contacted, and the manager is never
  * surprised by an invitation they did not send.
  *
- * Caps and eligibility are the manager's, unchanged: the roster cap doubles as
- * the invitation limit (`roster_full`), an address already on the roster is
+ * Eligibility is the manager's, unchanged: an address already on the roster is
  * `already_member`, and inviting an address that already holds a pending
- * invitation reissues that row rather than duplicating it.
+ * invitation reissues that row rather than duplicating it. There is no seat
+ * count — a roster has no cap (ADR 0011).
  *
  * No datalist of existing accounts: the users table is the whole site's, and
  * shipping every address into the page to autocomplete one field is not worth
  * it. The organiser types the address they were given.
  */
-export function AdminInviteOnBehalf({ slug, seatsLeft }: { slug: string; seatsLeft: number }) {
+export function AdminInviteOnBehalf({ slug }: { slug: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [refused, setRefused] = useState<{ reason: string; text: string } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const full = seatsLeft <= 0;
   const ready = /.+@.+\..+/.test(email.trim());
 
   function submit(event: React.FormEvent) {
@@ -79,16 +78,14 @@ export function AdminInviteOnBehalf({ slug, seatsLeft }: { slug: string; seatsLe
       <button
         type="submit"
         className={adminButton("primary")}
-        disabled={!ready || pending || full}
+        disabled={!ready || pending}
         data-admin-invite-submit=""
       >
         {pending ? "Inviting…" : "Invite on behalf"}
       </button>
 
       <p className={cn(ADMIN_NOTE, "w-full")}>
-        {full
-          ? "The roster and its open invitations already claim every seat, so a new invitation would be refused."
-          : `${seatsLeft} ${seatsLeft === 1 ? "seat is" : "seats are"} free after the open invitations. The invitee is mailed the organiser variant of the invitation in their own language.`}
+        The invitee is mailed the organiser variant of the invitation in their own language.
       </p>
 
       {refused ? (

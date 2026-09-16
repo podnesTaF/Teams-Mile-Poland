@@ -8,7 +8,7 @@ import { getDb } from "@/lib/db";
 
 import { teamFailure, type TeamActionResult } from "../config";
 import { getEligibilityCandidate, getRosterSeats, getTeamByCode } from "../data";
-import { checkEligibility, computeCompleteness, type RosterSeat } from "../eligibility";
+import { checkEligibility, type RosterSeat } from "../eligibility";
 import { requireTeamActor, requireTeamManagerOrAdmin } from "../guards";
 import {
   acceptInvitationForUser,
@@ -174,7 +174,6 @@ async function mailManager(
 
   // The roster as it stands — the request has not changed it, and will not
   // unless the manager accepts.
-  const completeness = computeCompleteness(team.category, seats);
 
   await sendJoinRequestReceivedEmail({
     to: manager.email,
@@ -184,8 +183,6 @@ async function mailManager(
       [requester.firstName, requester.lastName].filter(Boolean).join(" ").trim() ||
       requester.name ||
       requester.email,
-    count: completeness.count,
-    min: completeness.min,
-    complete: completeness.complete,
+    count: seats.length,
   });
 }

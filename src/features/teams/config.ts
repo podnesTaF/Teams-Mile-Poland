@@ -1,6 +1,11 @@
 /**
- * Team formation config — the one place the category set, the roster limits and
- * the code alphabet are declared (PRD #57, Contracts → Registry / config).
+ * Team formation config — the one place the category set and the code alphabet
+ * are declared (PRD #57, Contracts → Registry / config).
+ *
+ * There is deliberately **no roster limit** here: a roster is unbounded (ADR
+ * 0011). The only team size the platform knows is the race composition on the
+ * night — `COMPOSITION` in `rating-rules.ts` — and it is read at event entry
+ * and at check-in, never at formation.
  *
  * Pure data and types only. This module is imported by the Drizzle schema
  * (`src/db/schema/user-teams.ts`, type-only so drizzle-kit never loads it), by
@@ -27,25 +32,6 @@ export type TeamInvitationStatus = "pending" | "accepted" | "declined" | "revoke
 
 export type TeamJoinRequestStatus = "pending" | "accepted" | "declined" | "withdrawn";
 
-/**
- * Roster limits per category. **Total over {@link TeamCategory} on purpose**:
- * adding a category is a compile error here and at every `Record<TeamCategory,…>`
- * until its limits are declared.
- *
- * `min` is **Complete** (the lower bound, read at admission, never stored);
- * `max` is the roster cap at which invitations and accepts are refused.
- * `minPerSex` applies to mixed only — at least four of each sex, which in
- * practice caps either sex at `max - minPerSex` = 8.
- */
-export const TEAM_LIMITS: Record<
-  TeamCategory,
-  { min: number; max: number; minPerSex?: number }
-> = {
-  men: { min: 7, max: 11 },
-  women: { min: 7, max: 11 },
-  mixed: { min: 8, max: 12, minPerSex: 4 },
-};
-
 /** How long an invitation link stays openable. Resend resets the clock. */
 export const INVITATION_TTL_DAYS = 30;
 
@@ -67,8 +53,6 @@ export type TeamActionReason =
   | "notfound"
   | "forbidden"
   | "name_taken"
-  | "roster_full"
-  | "sex_balance"
   | "wrong_category"
   | "already_member"
   | "already_in_category"

@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 
 import { TEAM_CATEGORIES, type TeamCategory } from "../config";
 import { getManagerFirstNames, getRosterSeats, listRecruitingTeams } from "../data";
-import { computeCompleteness } from "../eligibility";
+import { summarizeRoster } from "../eligibility";
 import { TeamTile } from "./team-card";
 
 /**
@@ -60,7 +60,7 @@ export async function RecruitingList({ category }: { category?: TeamCategory }) 
             <TeamTile
               key={team.id}
               team={team}
-              completeness={computeCompleteness(team.category, seatsByTeam.get(team.id) ?? [])}
+              roster={summarizeRoster(team.category, seatsByTeam.get(team.id) ?? [])}
               managerFirstName={managerNames.get(team.managerUserId) ?? null}
               action={
                 <Link className="btn btn-red btn-sm" href={`/teams/join/${team.code}`}>

@@ -4,12 +4,12 @@ import { getTranslations } from "next-intl/server";
 import type { UserTeamRow } from "@/db/schema/user-teams";
 import { Link } from "@/i18n/navigation";
 
-import type { TeamCompleteness } from "../eligibility";
-import { TeamCompletenessTile } from "./team-completeness";
+import type { RosterSummary } from "../eligibility";
+import { RosterCountTile } from "./roster-count-tile";
 
 /**
- * The team card every visitor sees: name, region, category, count against
- * target, description and the **captain's first name**.
+ * The team card every visitor sees: name, region, category, the runner count,
+ * description and the **captain's first name**.
  *
  * Deliberately carries no roster names — members never consented to being
  * listed publicly and no start list exists yet (PRD #57, "Public surfaces show
@@ -18,11 +18,11 @@ import { TeamCompletenessTile } from "./team-completeness";
  */
 export async function TeamCard({
   team,
-  completeness,
+  roster,
   managerFirstName,
 }: {
   team: UserTeamRow;
-  completeness: TeamCompleteness;
+  roster: RosterSummary;
   managerFirstName: string | null;
 }) {
   const t = await getTranslations("teams.page");
@@ -42,7 +42,7 @@ export async function TeamCard({
           <div className="iv-info__label">{t("region")}</div>
           <div className="iv-info__value">{team.region}</div>
         </div>
-        <TeamCompletenessTile completeness={completeness} showSplit={false} />
+        <RosterCountTile roster={roster} showSplit={false} />
       </div>
 
       {team.description ? <p className="iv-sub">{team.description}</p> : null}
@@ -67,9 +67,9 @@ export async function TeamCard({
  * A second layout rather than a prop on {@link TeamCard} because the two are
  * different shapes: the card is a page hero (its own `<h1>`, full description,
  * info tiles) and the tile is one of many (an `<h2>` that links to the team,
- * a clamped description, a progress meter instead of a stat tile). What they
- * share is the part that matters — the *fields*: name, region, category, count
- * against target, description, captain's first name, and **no roster names**.
+ * a clamped description, a count line instead of a stat tile). What they
+ * share is the part that matters — the *fields*: name, region, category, the
+ * runner count, description, captain's first name, and **no roster names**.
  * Keep them in this one file so that guarantee stays reviewable in one place.
  *
  * `action` is a slot, not a hard-coded button: the list owns the call to action
@@ -78,23 +78,20 @@ export async function TeamCard({
  */
 export async function TeamTile({
   team,
-  completeness,
+  roster,
   managerFirstName,
   action,
 }: {
   team: UserTeamRow;
-  completeness: TeamCompleteness;
+  roster: RosterSummary;
   managerFirstName: string | null;
   action?: ReactNode;
 }) {
   const t = await getTranslations("teams.page");
   const tForm = await getTranslations("teams.form");
-  const { count, min, complete } = completeness;
-
-  // The meter is the tile's one number: seats filled against the category
-  // target. Clamped at 100% because an over-target roster is still "full", and
-  // `min` is guarded so a category with no target can never divide by zero.
-  const filled = Math.min(100, Math.round((count / Math.max(min, 1)) * 100));
+  // The tile's one number is the roster count, shown plain: there is no target
+  // and no cap to draw a meter against (ADR 0011).
+  const { count } = roster;
 
   return (
     <article className="team-tile" data-team-card={team.slug}>
@@ -113,18 +110,10 @@ export async function TeamTile({
         </div>
       </div>
 
-      <div
-        className="team-tile__meter"
-        data-team-completeness={complete ? "complete" : "incomplete"}
-      >
+      <div className="team-tile__meter" data-team-roster-count={count}>
         <div className="team-tile__meter-head">
-          <span className="team-tile__meter-label">{t("completenessLabel")}</span>
-          <span className="team-tile__meter-value">
-            {count}/{min}
-          </span>
-        </div>
-        <div className="team-meter">
-          <span className="team-meter__fill" style={{ width: `${filled}%` }} />
+          <span className="team-tile__meter-label">{t("rosterCountLabel")}</span>
+          <span className="team-tile__meter-value">{count}</span>
         </div>
       </div>
 

@@ -22,7 +22,8 @@ import type { EntryFailure } from "../actions/entries";
  * absence of a button is not an answer.
  *
  * The refusals this surfaces are the interesting part: `incomplete_team` says
- * *how many* more are needed and `member_underage` *names* the member, which is
+ * *how many* more runners the race composition still needs and `member_underage`
+ * *names* the member, which is
  * why {@link entryRefusalText} exists rather than a bare
  * `t(\`reasons.\${reason}\`)`.
  */

@@ -24,7 +24,8 @@ import type {
  * Category, roles and every status are `text` + `$type<>`, never pgEnum:
  * `ALTER TYPE … ADD VALUE` cannot run inside a transaction and is the shape
  * that stranded migration 0012 on the live database. The exhaustiveness that
- * matters is the compiler's — `TEAM_LIMITS` is a total `Record<TeamCategory,…>`.
+ * matters is the compiler's — `COMPOSITION` (`rating-rules.ts`) is a total
+ * `Record<TeamCategory,…>`.
  */
 
 /** One team. Created once, dissolved by a hard delete; nothing references it yet. */
