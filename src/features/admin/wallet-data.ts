@@ -1,9 +1,9 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { users, walletTransactions, type WalletTransactionRow } from "@/db/schema";
 import { walletPageWindow, type WalletHistoryPage } from "@/features/wallet/data";
-import { getDb } from "@/lib/db";
+import { executor, getDb, type DbExecutor } from "@/lib/db";
 
 /**
  * The admin panel's read path into the wallet ledger.
@@ -35,6 +35,15 @@ export const MAX_ADJUSTMENT_ACER = 100_000;
 /** Long enough for a real explanation, short enough to read in a table cell. */
 export const MAX_REASON_LENGTH = 500;
 
+/**
+ * The largest number of people one bulk credit may name — the same kind of typo
+ * guard as {@link MAX_ADJUSTMENT_ACER}, sized at two pages of the users list
+ * plus room to spare. A grant is written in a single transaction, so an
+ * unbounded list is also an unbounded lock: 200 rows is a blink, 20 000 is an
+ * admin watching a spinner while the ledger is held open.
+ */
+export const MAX_BULK_RECIPIENTS = 200;
+
 export type AdminWalletEntry = WalletTransactionRow & {
   /** The admin who entered the row; null for system accruals. */
   authorName: string | null;
@@ -55,8 +64,31 @@ export type AdminWalletLedgerPage = Omit<WalletHistoryPage, "rows"> & {
 /** A uuid the ledger could actually hold — Postgres errors on anything else. */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export function isWalletTxId(value: string): boolean {
+export function isUuid(value: string): boolean {
   return UUID.test(value);
+}
+
+export function isWalletTxId(value: string): boolean {
+  return isUuid(value);
+}
+
+/**
+ * How many of `ids` name an account that still exists.
+ *
+ * The bulk grant's all-or-nothing check, and it lives here rather than in
+ * `users-data.ts` because it is asked **inside the grant's transaction** (pass
+ * `tx`): a list assembled from a page that has since gone stale must be refused
+ * before a single row is written, not discovered halfway through as a foreign
+ * key violation. Duplicates in `ids` count once, so callers de-duplicate first
+ * and compare against their own length.
+ */
+export async function countUsersByIds(ids: string[], tx?: DbExecutor): Promise<number> {
+  if (ids.length === 0) return 0;
+  const [row] = await executor(tx)
+    .select({ count: sql<number>`count(*)::int` })
+    .from(users)
+    .where(inArray(users.id, ids));
+  return row?.count ?? 0;
 }
 
 /**

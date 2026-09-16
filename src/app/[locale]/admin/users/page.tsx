@@ -5,9 +5,12 @@ import "@/app/landing.css";
 import { requireAdmin } from "@/features/admin/action-helpers";
 import { AdminPage } from "@/features/admin/components/shell/admin-page";
 import { NoDatabaseNotice } from "@/features/admin/components/no-database-notice";
+import {
+  UsersBulkCredit,
+  type UserRowView,
+} from "@/features/admin/components/users-bulk-credit";
 import { countDuplicateGroups } from "@/features/admin/duplicates-data";
 import { formatAdminDate } from "@/features/admin/format";
-import { resendUserVerification } from "@/features/admin/users-actions";
 import {
   countUsers,
   DEFAULT_USER_SORT,
@@ -22,6 +25,12 @@ import {
   type UserSortKey,
   type VerifiedFilter,
 } from "@/features/admin/users-data";
+import {
+  MAX_ADJUSTMENT_ACER,
+  MAX_BULK_RECIPIENTS,
+  MAX_REASON_LENGTH,
+} from "@/features/admin/wallet-data";
+import { formatWalletBalance } from "@/features/wallet/format";
 import { userCan } from "@/lib/auth/user-session";
 import { Link } from "@/i18n/navigation";
 
@@ -300,35 +309,31 @@ async function UsersBody({
         </div>
       </form>
 
-      <section className="iv-card" style={{ marginTop: 18 }}>
-        {rows.length === 0 ? (
+      {rows.length === 0 ? (
+        <section className="iv-card" style={{ marginTop: 18 }}>
           <p className="iv-note">{filtered ? "No users match these filters." : "No users yet."}</p>
-        ) : (
-          <div className="iv-tablewrap">
-            <table className="iv-table">
-              <thead>
-                <tr>
-                  <SortHeader state={list} sortKey="name" label="Name" />
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <SortHeader state={list} sortKey="signed-up" label="Signed up" />
-                  <th>Verified</th>
-                  <th>Profile</th>
-                  <th>First event</th>
-                  <th>Aug regs</th>
-                  <th>Races run</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((u) => (
-                  <UserRowView key={u.id} user={u} locale={locale} canEdit={canEdit} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+        </section>
+      ) : (
+        <UsersBulkCredit
+          rows={rows.map(toRowView)}
+          locale={locale}
+          sort={list.sort}
+          sortHrefs={{
+            name: usersHref(list, { sort: toggleSort(list.sort, "name") }),
+            "signed-up": usersHref(list, { sort: toggleSort(list.sort, "signed-up") }),
+          }}
+          canEdit={canEdit}
+          // One batch id per render, so a double submit of the same form credits
+          // once (the ids are keyed by it) while reloading the list gives a
+          // fresh grant. Minted here rather than in the browser because it is
+          // the server's idempotency key, not a UI detail.
+          batchId={crypto.randomUUID()}
+          listQuery={listQueryOf(list)}
+          maxAmount={MAX_ADJUSTMENT_ACER}
+          maxReason={MAX_REASON_LENGTH}
+          maxRecipients={MAX_BULK_RECIPIENTS}
+        />
+      )}
 
       {rows.length > 0 ? (
         <UsersPager
@@ -344,35 +349,40 @@ async function UsersBody({
 }
 
 /**
- * A column header that is also the control for ordering by it: click to sort
- * ascending, click the sorted column again to flip. The direction is stated
- * twice — as an arrow for the eye and as `aria-sort` for a screen reader — and
- * the link is just a URL, so sorting survives a reload like every other bit of
- * this page's state.
+ * One row as the table island renders it: every cell already a string, so no
+ * `Date`, no formatter and no admin data module has to cross into the browser
+ * bundle. The same handover the roster makes through `RosterRowView`.
+ *
+ * The balance is formatted `en` rather than in the page's locale because the
+ * admin panel is English-only by repo convention — a Polish admin reading a
+ * Polish-grouped number in an otherwise English table is the inconsistency, not
+ * the fix.
  */
-function SortHeader({
-  state,
-  sortKey,
-  label,
-}: {
-  state: UserListState;
-  sortKey: UserSortKey;
-  label: string;
-}) {
-  const active = state.sort.key === sortKey;
-  return (
-    <th aria-sort={active ? (state.sort.dir === "asc" ? "ascending" : "descending") : "none"}>
-      <Link
-        href={usersHref(state, { sort: toggleSort(state.sort, sortKey) })}
-        className="iv-linkbtn"
-        data-users-sort={sortKey}
-        data-active={active ? "true" : "false"}
-      >
-        {label}
-        {active ? <span aria-hidden> {state.sort.dir === "asc" ? "↑" : "↓"}</span> : null}
-      </Link>
-    </th>
-  );
+function toRowView(user: UserListRow): UserRowView {
+  return {
+    id: user.id,
+    name: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name,
+    email: user.email,
+    phone: user.phone ?? "",
+    signedUp: formatAdminDate(user.createdAt),
+    emailVerified: user.emailVerified,
+    profileComplete: user.profileComplete,
+    firstEventAttended: user.firstEventAttended,
+    augRegistrationCount: user.augRegistrationCount,
+    raceCount: user.raceCount,
+    acerBalance: formatWalletBalance(user.acerBalanceMinor, "en"),
+    acerBalanceMinor: user.acerBalanceMinor,
+  };
+}
+
+/**
+ * The current view as a bare query string, which the bulk grant carries in a
+ * hidden field so its redirect lands back on the filters, sort and page the
+ * selection was made from. Built from {@link usersHref} rather than assembled a
+ * second time, so the two cannot drift apart.
+ */
+function listQueryOf(state: UserListState): string {
+  return usersHref(state, { page: state.page }).split("?")[1] ?? "";
 }
 
 function UsersPager({
@@ -449,72 +459,5 @@ function PagerLink({
     <Link href={href} rel={rel} data-users-nav={rel} className="btn btn-stroke btn-sm">
       {children}
     </Link>
-  );
-}
-
-function FirstEventBadge({ attended }: { attended: boolean | null }) {
-  if (attended === null) return <span className="iv-cellsub">—</span>;
-  return (
-    <span className={`iv-pill ${attended ? "iv-pill--ok" : "iv-pill--red"}`}>
-      {attended ? "attended" : "no-show"}
-    </span>
-  );
-}
-
-function UserRowView({
-  user,
-  locale,
-  canEdit,
-}: {
-  user: UserListRow;
-  locale: string;
-  canEdit: boolean;
-}) {
-  const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name;
-  return (
-    <tr>
-      <td>
-        <Link href={`/admin/users/${user.id}`} className="iv-linkbtn">
-          {name}
-        </Link>
-      </td>
-      <td>{user.email}</td>
-      <td>{user.phone || <span className="iv-cellsub">—</span>}</td>
-      <td>{formatAdminDate(user.createdAt)}</td>
-      <td>
-        <span className={`iv-pill ${user.emailVerified ? "iv-pill--ok" : "iv-pill--due"}`}>
-          {user.emailVerified ? "verified" : "unverified"}
-        </span>
-      </td>
-      <td>
-        {/* The same gate the runner meets at registration: without these five
-            fields they cannot enter an event, whatever their email says. */}
-        <span className={`iv-pill ${user.profileComplete ? "iv-pill--ok" : "iv-pill--due"}`}>
-          {user.profileComplete ? "complete" : "incomplete"}
-        </span>
-      </td>
-      <td>
-        <FirstEventBadge attended={user.firstEventAttended} />
-      </td>
-      <td>{user.augRegistrationCount}</td>
-      <td>{user.raceCount}</td>
-      <td>
-        <div className="iv-inline">
-          <Link href={`/admin/users/${user.id}`} className="iv-linkbtn">
-            View
-          </Link>
-          {canEdit && !user.emailVerified ? (
-            <form action={resendUserVerification}>
-              <input type="hidden" name="locale" value={locale} />
-              <input type="hidden" name="id" value={user.id} />
-              <input type="hidden" name="redirectTo" value="" />
-              <button type="submit" className="iv-linkbtn">
-                Resend verification
-              </button>
-            </form>
-          ) : null}
-        </div>
-      </td>
-    </tr>
   );
 }
