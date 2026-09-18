@@ -1021,6 +1021,13 @@
           "bannerTxt": "This race night has been cancelled. Pick another night in the series.",
           "note": "Already registered? Your entry for this night is void.",
           "cta": "Pick another night"
+        },
+        "openPaid": {
+          "kicker": "Now open · paid entry",
+          "bannerTitle": "Registration open",
+          "bannerTxt": "Registration is open. Entry is paid in ACER — the price is below. Terms of entry apply.",
+          "note": "You'll confirm date, time, venue and terms before anything is final.",
+          "cta": "Register →"
         }
       },
       "feeIndividual": "Individual entry: {amount} ACER",
@@ -1128,7 +1135,9 @@
       "or": "or",
       "teamTitle": "With a team",
       "teamSub": "Your team manager enters the whole team; every member then confirms their own place. One runner, one entry per night.",
-      "teamCta": "Find or create a team"
+      "teamCta": "Find or create a team",
+      "individualSubPaid": "Run the mile on your own — registration takes a minute and costs {amount} ACER from your wallet.",
+      "teamSubPaid": "Your team manager enters the whole team for {amount} ACER from the team treasury; every member then confirms their own place. One runner, one entry per night."
     },
     "teamEvent": {
       "enteredLabel": "Teams entered",

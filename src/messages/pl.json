@@ -1021,6 +1021,13 @@
           "bannerTxt": "Ten wieczór biegowy został odwołany. Wybierz inny wieczór serii.",
           "note": "Już zapisany? Zapis na ten wieczór jest nieważny.",
           "cta": "Wybierz inny wieczór"
+        },
+        "openPaid": {
+          "kicker": "Otwarte · wstęp płatny",
+          "bannerTitle": "Zapisy otwarte",
+          "bannerTxt": "Zapisy są otwarte. Wstęp opłacasz w ACER — cena jest poniżej. Obowiązuje regulamin.",
+          "note": "Przed finalizacją potwierdzisz datę, godzinę, miejsce i regulamin.",
+          "cta": "Zapisz się →"
         }
       },
       "feeIndividual": "Zapis indywidualny: {amount} ACER",
@@ -1128,7 +1135,9 @@
       "or": "albo",
       "teamTitle": "Z drużyną",
       "teamSub": "Menedżer drużyny zgłasza całą drużynę; każdy członek potem potwierdza swoje miejsce. Jeden biegacz, jedno zgłoszenie na wieczór.",
-      "teamCta": "Znajdź lub załóż drużynę"
+      "teamCta": "Znajdź lub załóż drużynę",
+      "individualSubPaid": "Przebiegnij milę samodzielnie — zapis zajmuje chwilę i kosztuje {amount} ACER z portfela.",
+      "teamSubPaid": "Menedżer zgłasza całą drużynę za {amount} ACER z kasy drużyny; potem każdy zawodnik potwierdza swoje miejsce. Jeden zawodnik, jedno zgłoszenie na wieczór."
     },
     "teamEvent": {
       "enteredLabel": "Zgłoszone drużyny",

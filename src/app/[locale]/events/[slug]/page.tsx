@@ -162,6 +162,23 @@ export default async function EventDetailPage({ params }: PageProps) {
   const individualFeeAcer = individualPath ? minorToAcer(individualEntryFeeMinor(event)) : 0;
   const teamFeeAcer = teamPath ? minorToAcer(teamEntryFeeMinor(event)) : 0;
   const paidEntry = individualFeeAcer > 0 || teamFeeAcer > 0;
+  /**
+   * Which of the state copy blocks the hero, the banner and the note read from.
+   *
+   * The `open` block says "free" three times — a kicker reading "free tier", a
+   * banner reading "Registration is free and open", and a "Register free" CTA —
+   * because until October 2026 that was simply true. On a priced night it is a
+   * lie printed three times in whichever of three languages the visitor reads,
+   * directly above a price. `openPaid` is the same block with those three
+   * sentences told straight, so the whole hero switches on one name rather than
+   * on three conditionals scattered down the page.
+   *
+   * Only the `open` state has a paid twin: every other state (`closed`, `full`,
+   * `completed`, `cancelled`, `soon`) is about a door nobody can walk through
+   * right now, and what it used to cost is not what a visitor standing in front
+   * of it needs to know.
+   */
+  const copyState = state === "open" && paidEntry ? "openPaid" : state;
   // The event's results — imported rows or a legacy config sheet. Read at
   // build/revalidate time: this page is SSG, and the import commit revalidates
   // it, so results appear with the first mid-event import rather than waiting
@@ -202,7 +219,7 @@ export default async function EventDetailPage({ params }: PageProps) {
                     {t(`status.${STATUS_KEY[state]}`)}
                   </span>
                 </div>
-                <span className="ev-eyebrow">{t(`detail.states.${state}.kicker`)}</span>
+                <span className="ev-eyebrow">{t(`detail.states.${copyState}.kicker`)}</span>
                 <h2 className="detail-title">{event.name}</h2>
                 <p className="detail-sub">
                   {longDate} · {event.venue}, {event.city}
@@ -230,8 +247,8 @@ export default async function EventDetailPage({ params }: PageProps) {
                     </svg>
                   </span>
                   <div className="banner__body">
-                    <div className="banner__title">{t(`detail.states.${state}.bannerTitle`)}</div>
-                    <div className="banner__txt">{t(`detail.states.${state}.bannerTxt`)}</div>
+                    <div className="banner__title">{t(`detail.states.${copyState}.bannerTitle`)}</div>
+                    <div className="banner__txt">{t(`detail.states.${copyState}.bannerTxt`)}</div>
                   </div>
                 </div>
               </div>
@@ -355,12 +372,14 @@ export default async function EventDetailPage({ params }: PageProps) {
                     <div className="mixed-choice__option" data-mixed-option="individual">
                       <b>{t("mixedEvent.individualTitle")}</b>
                       {/* `individualSub` ends "and is free", which a priced
-                          night is not — so a priced night says the price
-                          instead. Two doors that cost different amounts is the
-                          whole reason a visitor is being asked to choose. */}
+                          night is not. The paid twin says the price *in the same
+                          sentence* rather than replacing the explanation with a
+                          number: on a mixed night this line is what a visitor
+                          chooses a door by, and "5 ACER" alone does not say what
+                          they would be signing up for. */}
                       <small>
                         {individualFeeAcer > 0
-                          ? t("detail.feeIndividual", { amount: individualFeeAcer })
+                          ? t("mixedEvent.individualSubPaid", { amount: individualFeeAcer })
                           : t("mixedEvent.individualSub")}
                       </small>
                       <EventRegisterCta
@@ -376,11 +395,13 @@ export default async function EventDetailPage({ params }: PageProps) {
                     </div>
                     <div className="mixed-choice__option" data-mixed-option="team">
                       <b>{t("mixedEvent.teamTitle")}</b>
-                      {/* `teamSub` claims nothing about money, so the price is
-                          added to it rather than replacing it. */}
+                      {/* Same shape as the individual option, and the paid twin
+                          also names *whose* money it is — the treasury, not the
+                          manager's own wallet (ADR 0012), which is the single
+                          most surprising thing about the team door. */}
                       <small>
                         {teamFeeAcer > 0
-                          ? `${t("detail.feeTeam", { amount: teamFeeAcer })} — ${t("mixedEvent.teamSub")}`
+                          ? t("mixedEvent.teamSubPaid", { amount: teamFeeAcer })
                           : t("mixedEvent.teamSub")}
                       </small>
                       <Link href="/teams" className="btn btn-stroke-dark btn-block">
@@ -396,15 +417,12 @@ export default async function EventDetailPage({ params }: PageProps) {
                     </Link>
                   </div>
                 ) : state === "open" ? (
-                  // "Register free →" is the open state's own label and it is a
-                  // lie on a priced night, so a priced night gets the plain
-                  // "Register" the catalogs already carry. The amount is one row
-                  // above; the button does not repeat it.
+                  // The label comes from whichever state block the rest of the
+                  // hero is reading, so the button cannot say "Register free"
+                  // under a banner that just quoted a price.
                   <EventRegisterCta
                     slug={slug}
-                    registerLabel={
-                      individualFeeAcer > 0 ? t("detail.register") : t("detail.states.open.cta")
-                    }
+                    registerLabel={t(`detail.states.${copyState}.cta`)}
                     createLabel={t("detail.cta.create")}
                     signInPrompt={t("detail.cta.signInPrompt")}
                     signInLabel={t("detail.cta.signIn")}
@@ -435,7 +453,7 @@ export default async function EventDetailPage({ params }: PageProps) {
                   </button>
                 )}
 
-                <p className="slots-note">{t(`detail.states.${state}.note`)}</p>
+                <p className="slots-note">{t(`detail.states.${copyState}.note`)}</p>
 
                 {/* The start list, once entries have closed and the card is
                     being built. Config-derived so this page stays static: the
