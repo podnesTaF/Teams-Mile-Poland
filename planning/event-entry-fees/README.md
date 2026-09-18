@@ -58,7 +58,8 @@ shown. See *Release conditions*.
 | Team entry write | `src/features/teams/entries.ts` (`createEntryRows`, `withdrawEntryRows`) |
 | Team entry gate | `src/features/teams/actions/entries.ts` (`enterTeam`, `withdrawEntry`) |
 | Account creation hook | `src/lib/auth/better-auth.ts` → `databaseHooks.user.create.after` (referral attribution already rides it) |
-| "Participated" — the one definition | `src/lib/events/participation.ts` (`RAN_SERIES_RACE`, `RAN_LEGACY_RACE`) — the backfill restates neither |
+| "Participated" — the canonical definition | `src/lib/events/participation.ts` (`RAN_SERIES_RACE`, `RAN_LEGACY_RACE`). **The backfill deliberately uses a wider one** — see "check-in was never used" below — and does not edit this module |
+| Results → registration link | `event_results.registration_id`, resolved from the (heat, bib) lease at import time. This is the backfill's primary evidence that somebody ran |
 | Event row + admin form | `src/db/schema/events.ts`, `features/admin/event-schemas.ts`, `event-actions.ts`, `components/event-form.tsx`, `lib/events/store.ts` (`EventSummary`) |
 | Existing refusal key for an empty treasury | `teams.reasons.treasury_insufficient` ×3 (`config.ts:88`) — reused, not re-invented |
 
@@ -71,23 +72,70 @@ shown. See *Release conditions*.
 | 3 | **Individual fee** | `createRegistrationWithConsent` takes `feeMinor` (positive; `0` skips): lock the runner's `users` row `FOR NO KEY UPDATE`, re-read `getAcerBalance(userId, tx)`, throw `InsufficientAcerError` if short, then registration → consent rows → debit, key `entry_fee:<registrationId>`. `registerForEvent` gains a pre-check and a new `insufficient_acer` refusal carrying the shortfall. Price + balance + a top-up link on the register CTA and the confirm screen; copy ×3. |
 | 4 | **Team fee** | `createEntryRows` takes `feeMinor`: lock the `user_teams` row `FOR NO KEY UPDATE`, re-read `getTeamAcerBalance(teamId, tx)`, refuse, then entry → registrations → seats → debit, key `team_entry_fee:<entryId>`. `enterTeam` returns `treasury_insufficient` with the shortfall (new `shortfallMinor` on `EntryFailure`, beside `missing` / `memberName`). Fee + treasury balance + a contribute link on the entry surface; copy ×3. |
 | 5 | **Refunds** | `withdrawEntryRows` credits the treasury back inside its own transaction when the event is `registration_open`: find the fee row by key, write `entry_fee_refund` keyed `entry_fee_refund:<entryId>` with `reversesId` set. `refundEventFees(eventSlug)` on the admin transition to `cancelled` — every team entry and every individual registration for that night, each idempotent by its own key. |
-| 6 | **Backfill + pricing** | `scripts/backfill-participation-rewards.ts`: **dry-run by default, `--apply` writes.** Series rows via `RAN_SERIES_RACE`, legacy via `RAN_LEGACY_RACE`. Existing `participation:<id>` row → top up the difference under `participation_topup:<id>`; no row → the full 5 under the canonical `participation:<id>`; legacy → 5 under `participation_legacy:<userId>:<eventSlug>`. Prints users / events / rows / total ACER and the series-vs-legacy split before writing. Then `scripts/price-autumn-nights.ts` — idempotent, sets 100/5 on the two October rows only. |
+| 6 | **Backfill + pricing** | `scripts/backfill-participation-rewards.ts`: **dry-run by default, `--apply` writes.** A participation is a result row linked to a user, **or** a `checked_in` registration, **or** a legacy `attended` row (see below — the canonical `checked_in` definition alone would credit one person). Existing `participation:<registrationId>` row → top up the difference under `participation_topup:<registrationId>`; no row → the full 5 under the canonical `participation:<registrationId>`; legacy → 5 under `participation_legacy:<userId>:<eventSlug>`. Prints the per-event split, the total, and every result row it could **not** resolve to an account. Then `scripts/price-autumn-nights.ts` — idempotent, sets 100/5 on the two October rows only. |
 | 7 | **Docs** | ADR 0013 (entry is paid, priced on the event row, refunded while open). Amend ADR 0001 — its "no payment reference on the registration" is now answered by a ledger row keyed by registration id; `pending_registrations` is still untouched and still the Stripe seam. Update the `accruals.ts` header (the 2026-08-20 "no backfill" decision is reversed) and the `event_registrations` / `createFreeRegistration` "all registrations are free" comments. CONTEXT.md terms. |
 
 Slices 3 and 4 are independent of each other and both depend on 1. Slice 6 depends on
 everything, because pricing the rows is what actually switches charging on.
 
+## What the live database actually says (probed 2026-09-18, before slice 1 shipped)
+
+Two of these numbers change the work; all of them were unknown when the plan was written.
+
+| Fact | Number |
+|---|---|
+| Registrations already held on `mile-2026-10-01` | **1** (individual) — not charged retroactively |
+| Registrations on `mile-2026-10-10` | **0** |
+| Registrations on `mile-2026-09-22` (stays free) | 7 |
+| Team entries, any night, ever | **0** |
+| Accounts | 257 |
+| `event_registrations` with `status = 'checked_in'`, all time | **1** |
+| `legacy_participations` with `attended = true` | 13 |
+| `event_results` rows across the four completed mile nights | 148, of which **135 carry a `registration_id`** → **131 distinct (user, event) pairs** |
+| Existing `participation_reward` ledger rows | 2 |
+
+### The one that matters: check-in was never used
+
+`src/lib/events/participation.ts` defines "participated" as `checked_in` (plus legacy
+attended), and that definition is correct for what it was written for. But the desk
+never worked that way: across four completed nights the registrations sit at
+`registered` and `confirmed`, with **one** `checked_in` row in the entire series.
+Attendance was recorded by **importing the timing system's results** instead —
+`event_results`, linked back to a registration by its (heat, bib) lease at import time.
+
+So a backfill keyed on `RAN_SERIES_RACE` would credit **one person**. The evidence that
+somebody ran is their **result row**.
+
+**Decision (2026-09-18).** The backfill's definition of a participation is the union of:
+
+1. a `event_results` row whose `registration_id` resolves to a user — 131 pairs;
+2. `event_registrations.status = 'checked_in'` — 1, and the ongoing accrual's own rule;
+3. `legacy_participations.attended = true` — 13, the `warsaw-2026` import.
+
+`≈ 144 participations × 5 ACER ≈ 720 ACER` across roughly that many (user, event) pairs.
+
+Two consequences to keep straight:
+
+- This definition lives **in the script**, loudly commented, and does **not** edit
+  `lib/events/participation.ts`. The profile's "races run" counter and the admin users
+  list read that module, and quietly widening it would restate three surfaces' numbers
+  as a side effect of a one-off grant. If the owner wants the canonical definition
+  widened, that is its own change with its own review.
+- **13 result rows carry no registration link** (the walk-ups and the spelling
+  mismatches already known from the 08-22 and 08-29 imports). The script reports them
+  by name and event rather than guessing, because a name match that is wrong pays a
+  stranger. Resolving them is a data decision for the owner, not the script's.
+
 ## Pre-flight, before slice 6 prices anything
 
-1. **Count what is already entered.** Any team entry or individual registration already
-   held for `mile-2026-10-01` / `mile-2026-10-10` is **not** charged retroactively — the
-   fee is taken at entry and those entries already happened. Get the number first so
-   nobody is surprised by a half-paid start list.
-2. **The treasuries are empty.** Treasury shipped 2026-09-17; the first paid night is
-   2026-10-01. A manager cannot enter until 100 ACER is in the team account, and the
-   only ways in are a member contribution (from personal ACER — purchases, rewards) or
-   an admin grant. Decide the operational answer before pricing, not after a manager
-   hits the refusal.
+1. **Count what is already entered.** Done, above: one individual registration on
+   01.10, nothing on 10.10, no team entries anywhere. One runner will hold a free place
+   on a paid night. The owner has seen this and said ship anyway.
+2. **The treasuries are empty, and no team has ever entered a night.** Treasury shipped
+   2026-09-17; the first paid night is 2026-10-01. A manager cannot enter until 100 ACER
+   is in the team account, and the only ways in are a member contribution (from personal
+   ACER — purchases, rewards, and now the backfill) or an admin grant. The owner has
+   accepted this: ship it, and the first entry attempt is what will surface it.
 3. **Terms of Use.** ACER spent on team creation is covered (ADR 0010). Entry fees and
    the withdrawal refund are new spend terms; payouts are still behind
    `TREASURY_PAYOUTS_ENABLED` pending counsel, and this belongs in the same review.
