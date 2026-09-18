@@ -125,7 +125,7 @@ export default async function AdminUserDetailPage({
       <ResultsCard results={results} />
       <HistoryCard history={history} />
       <WalletPanel
-        userId={user.id}
+        subject={{ userId: user.id }}
         locale={locale}
         balances={walletBalances}
         ledger={walletLedger}

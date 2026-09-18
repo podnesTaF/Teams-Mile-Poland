@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import "@/app/landing.css";
 import "@/app/series-flows.css";
+import "@/app/[locale]/wallet/wallet.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
 import {
@@ -14,9 +15,17 @@ import { TeamCard } from "@/features/teams/components/team-card";
 import { TeamManagerPanel } from "@/features/teams/components/team-manager-panel";
 import { TeamRoster } from "@/features/teams/components/team-roster";
 import { TeamShare } from "@/features/teams/components/team-share";
-import { getManagerFirstName, getTeamBySlug, getTeamRoster } from "@/features/teams/data";
+import { TeamTreasury, userIdFromReference } from "@/features/teams/components/team-treasury";
+import {
+  getManagerFirstName,
+  getManagerFirstNames,
+  getTeamBySlug,
+  getTeamRoster,
+} from "@/features/teams/data";
 import { summarizeRoster } from "@/features/teams/eligibility";
 import { getOpenTeamEvents, listEntriesForTeam } from "@/features/teams/entries";
+import { getAcerBalance, getTeamAcerBalance, listWalletTransactions } from "@/features/wallet/data";
+import { isTreasuryPayoutEnabled } from "@/features/wallet/transfers";
 import { Link } from "@/i18n/navigation";
 import { getAppUrl } from "@/lib/app-url";
 import { getUser, userCan } from "@/lib/auth/user-session";
@@ -84,6 +93,29 @@ export default async function TeamPage({ params }: PageProps) {
       ? Object.fromEntries((await getAllEvents()).map((event) => [event.slug, event.name]))
       : {};
 
+  // Team treasury (ADR 0012), members only. The balance and the last few
+  // movements are read here so the section stays dumb; the viewer's own wallet
+  // is read only for a person on the roster, because only they may pay in.
+  // Payouts are a manager affordance and stay off until the Terms are revised
+  // (`isTreasuryPayoutEnabled`); the action refuses either way.
+  const treasuryMinor = isMember ? await getTeamAcerBalance(team.id) : 0;
+  const viewerBalanceMinor = isOnRoster && user ? await getAcerBalance(user.id) : 0;
+  const recent = isMember
+    ? (await listWalletTransactions({ teamId: team.id }, { pageSize: 5 })).rows
+    : [];
+  const counterpartyNames = await getManagerFirstNames(
+    recent.map((row) => userIdFromReference(row.reference)).filter((id): id is string => !!id),
+  );
+  const payout =
+    isManager && isTreasuryPayoutEnabled()
+      ? {
+          candidates: roster.map((member) => ({
+            userId: member.userId,
+            displayName: member.displayName,
+          })),
+        }
+      : null;
+
   return (
     <div className="ace-landing iv">
       <InteriorHeader />
@@ -93,11 +125,7 @@ export default async function TeamPage({ params }: PageProps) {
             ← {t("back")}
           </Link>
 
-          <TeamCard
-            team={team}
-            roster={rosterSummary}
-            managerFirstName={managerFirstName}
-          />
+          <TeamCard team={team} roster={rosterSummary} managerFirstName={managerFirstName} />
 
           {isMember ? (
             <>
@@ -107,8 +135,19 @@ export default async function TeamPage({ params }: PageProps) {
                 summary={rosterSummary}
                 viewerUserId={user?.id ?? null}
                 isManager={isManager}
+                treasuryMinor={treasuryMinor}
               />
               <TeamShare code={team.code} joinUrl={joinUrl} />
+              <TeamTreasury
+                slug={team.slug}
+                locale={locale}
+                treasuryMinor={treasuryMinor}
+                viewerBalanceMinor={viewerBalanceMinor}
+                canContribute={isOnRoster}
+                payout={payout}
+                recent={recent}
+                names={counterpartyNames}
+              />
             </>
           ) : (
             <p className="iv-share__hint" data-team-view="public">

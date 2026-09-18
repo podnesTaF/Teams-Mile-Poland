@@ -1,14 +1,9 @@
-import type { UserTeamRow } from "@/db/schema/user-teams";
+import type { UserTeamMemberRow, UserTeamRow } from "@/db/schema/user-teams";
 import { coerceToDate, meetsMinParticipantAge } from "@/lib/age";
-import {
-  getUser,
-  isProfileComplete,
-  userCan,
-  type SessionUser,
-} from "@/lib/auth/user-session";
+import { getUser, isProfileComplete, userCan, type SessionUser } from "@/lib/auth/user-session";
 
 import { teamFailure, type TeamActionFailure, type TeamSex } from "./config";
-import { getTeamBySlug } from "./data";
+import { getTeamBySlug, getTeamMembership } from "./data";
 
 /**
  * The gate chain every team action runs before it does anything (PRD #57,
@@ -93,6 +88,38 @@ export async function requireTeamManagerOrAdmin(slug: string): Promise<TeamManag
   if (team.managerUserId !== actor.userId) return teamFailure("forbidden");
 
   return { ok: true, user: actor.user, userId: actor.userId, team, actingAsAdmin: false };
+}
+
+export type TeamMemberContext = {
+  user: SessionUser;
+  userId: string;
+  team: UserTeamRow;
+  membership: UserTeamMemberRow;
+};
+
+export type TeamMemberResult = ({ ok: true } & TeamMemberContext) | TeamActionFailure;
+
+/**
+ * The gate for something any roster member may do — today, paying into the
+ * team's treasury (ADR 0012).
+ *
+ * Unlike {@link requireTeamManagerOrAdmin}, an admin does **not** short-circuit
+ * here: a contribution moves the actor's *own* money into the team, so the actor
+ * has to be a person on that roster — an admin who is not a member has the grant
+ * form on the admin team page instead. The manager passes, because the manager
+ * holds a seat like everyone else.
+ */
+export async function requireTeamMember(slug: string): Promise<TeamMemberResult> {
+  const actor = await requireTeamActor();
+  if (!actor.ok) return actor;
+
+  const team = await getTeamBySlug(slug);
+  if (!team) return teamFailure("notfound");
+
+  const membership = await getTeamMembership(team.id, actor.userId);
+  if (!membership) return teamFailure("forbidden");
+
+  return { ok: true, user: actor.user, userId: actor.userId, team, membership };
 }
 
 /**

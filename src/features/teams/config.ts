@@ -80,7 +80,16 @@ export type TeamActionReason =
   | "registered_individually"
   // Team creation is paid in ACER (planning/team-creation-payment): the
   // creator's wallet holds less than `TEAM_CREATION_PRICE_ACER`.
-  | "insufficient_balance";
+  | "insufficient_balance"
+  // Team treasury (ADR 0012): the treasury holds less than the payout; the
+  // payee is no longer on the roster; the amount is not whole ACER within
+  // bounds; the form was re-submitted after its fields changed; payouts are
+  // switched off until the Terms are revised.
+  | "treasury_insufficient"
+  | "not_a_member"
+  | "invalid_amount"
+  | "stale_form"
+  | "payouts_disabled";
 
 /** The frozen failure half of every team action's return value. */
 export type TeamActionFailure = {

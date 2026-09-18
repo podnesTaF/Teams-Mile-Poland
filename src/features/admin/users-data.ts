@@ -1,4 +1,4 @@
-import { and, eq, ilike, inArray, isNull, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, eq, ilike, inArray, isNotNull, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 
 import {
   eventRegistrations,
@@ -164,7 +164,13 @@ async function userAggregates(db: ReturnType<typeof getDb>) {
     })
     .from(walletTransactions)
     .where(
-      and(eq(walletTransactions.asset, "ACER"), eq(walletTransactions.status, "completed")),
+      and(
+        // Treasury rows carry `team_id` and no `user_id` (ADR 0012); they would
+        // only form a NULL group nothing joins, but the intent is written down.
+        isNotNull(walletTransactions.userId),
+        eq(walletTransactions.asset, "ACER"),
+        eq(walletTransactions.status, "completed"),
+      ),
     )
     .groupBy(walletTransactions.userId)
     .as("acer_agg");

@@ -1,9 +1,10 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql, type SQL } from "drizzle-orm";
 
 import {
   WALLET_ASSETS,
   walletTransactions,
   type WalletAsset,
+  type WalletOwner,
   type WalletTransactionRow,
   type WalletTxKind,
   type WalletTxStatus,
@@ -23,13 +24,43 @@ import { executor, getDb, type DbExecutor } from "@/lib/db";
  * created and paid for in one transaction — passes its `tx` as the optional
  * last parameter of the writer and of {@link getAcerBalance}. That is how the
  * ledger composes into a caller's transaction; a second insert site is not.
+ *
+ * Every read takes a {@link WalletOwner} — a runner's wallet or a team's
+ * treasury (ADR 0012) — or, for the callers that predate treasuries, a bare
+ * user id. One `WHERE` builder ({@link ownerWhere}) serves them all, so the two
+ * kinds of account can never drift into summing their rows differently.
  */
 
 /** How many history rows one page shows. Small enough to stay fast on a phone. */
 export const WALLET_HISTORY_PAGE_SIZE = 20;
 
-export type NewWalletTransaction = {
-  userId: string;
+/** A bare user id is the pre-treasury spelling of `{ userId }`. */
+export type WalletOwnerRef = WalletOwner | string;
+
+export function toOwner(ref: WalletOwnerRef): WalletOwner {
+  return typeof ref === "string" ? { userId: ref } : ref;
+}
+
+/**
+ * Whose row this is, read back off the ledger. Throws on a row with no owner
+ * or two — the check constraint makes that unreachable, and a copy site (a
+ * reversal, a transfer leg) must never quietly manufacture an owner.
+ */
+export function ownerOf(row: Pick<WalletTransactionRow, "userId" | "teamId">): WalletOwner {
+  if (row.userId && !row.teamId) return { userId: row.userId };
+  if (row.teamId && !row.userId) return { teamId: row.teamId };
+  throw new Error("wallet_transactions row without exactly one owner");
+}
+
+/** The `WHERE` that scopes a query to one owner's rows. */
+export function ownerWhere(ref: WalletOwnerRef): SQL {
+  const owner = toOwner(ref);
+  return owner.userId
+    ? eq(walletTransactions.userId, owner.userId)
+    : eq(walletTransactions.teamId, owner.teamId as string);
+}
+
+export type NewWalletTransaction = WalletOwner & {
   asset: WalletAsset;
   /** Signed integer minor units (+ in / − out). Use `acerToMinor` from `config.ts`. */
   amountMinor: number;
@@ -66,7 +97,8 @@ export async function recordWalletTransaction(
   const rows = await executor(tx)
     .insert(walletTransactions)
     .values({
-      userId: input.userId,
+      userId: input.userId ?? null,
+      teamId: input.teamId ?? null,
       asset: input.asset,
       amountMinor: input.amountMinor,
       kind: input.kind,
@@ -90,28 +122,36 @@ export async function recordWalletTransaction(
 }
 
 /**
- * Whether the fact behind `idempotencyKey` is already in **this user's** ledger.
+ * Whether the fact behind `idempotencyKey` is already in **this owner's** ledger.
  *
- * Scoped to the user rather than keyed globally on purpose: the wallet page asks
+ * Scoped to the owner rather than keyed globally on purpose: the wallet page asks
  * this about a Stripe session id it read out of its own query string, so an
  * unscoped lookup would answer "did that session credit?" for any session id
  * anyone cared to paste.
  */
 export async function hasWalletTransaction(
-  userId: string,
+  owner: WalletOwnerRef,
   idempotencyKey: string,
 ): Promise<boolean> {
-  const [row] = await getDb()
-    .select({ id: walletTransactions.id })
+  return (await getWalletTransactionByKey(owner, idempotencyKey)) !== null;
+}
+
+/**
+ * The row an owner's ledger holds under `idempotencyKey`, or null. The
+ * transfer primitive reads this under the payer's lock to tell a replayed form
+ * from a new one before it looks at any balance.
+ */
+export async function getWalletTransactionByKey(
+  owner: WalletOwnerRef,
+  idempotencyKey: string,
+  tx?: DbExecutor,
+): Promise<WalletTransactionRow | null> {
+  const [row] = await executor(tx)
+    .select()
     .from(walletTransactions)
-    .where(
-      and(
-        eq(walletTransactions.userId, userId),
-        eq(walletTransactions.idempotencyKey, idempotencyKey),
-      ),
-    )
+    .where(and(ownerWhere(owner), eq(walletTransactions.idempotencyKey, idempotencyKey)))
     .limit(1);
-  return Boolean(row);
+  return row ?? null;
 }
 
 /** Balance per asset in minor units. Every asset is present, zero when unissued. */
@@ -120,21 +160,21 @@ export type WalletBalances = Record<WalletAsset, number>;
 const ZERO_BALANCES: WalletBalances = { ACER: 0, ACE_PL: 0, ACEG: 0 };
 
 /**
- * The user's balances, `SUM(amount_minor)` over `completed` rows per asset.
+ * The owner's balances, `SUM(amount_minor)` over `completed` rows per asset.
  *
  * Pending and failed rows are excluded on purpose: a purchase that Stripe has
  * not settled is visible in the history with its status but is not money yet.
  * Assets with no rows come back as 0 rather than missing, so the page renders
  * the ecosystem's full asset set without special-casing an empty wallet.
  */
-export async function getWalletBalances(userId: string): Promise<WalletBalances> {
+export async function getWalletBalances(owner: WalletOwnerRef): Promise<WalletBalances> {
   const rows = await getDb()
     .select({
       asset: walletTransactions.asset,
       total: sql<number>`coalesce(sum(${walletTransactions.amountMinor}), 0)`.mapWith(Number),
     })
     .from(walletTransactions)
-    .where(and(eq(walletTransactions.userId, userId), eq(walletTransactions.status, "completed")))
+    .where(and(ownerWhere(owner), eq(walletTransactions.status, "completed")))
     .groupBy(walletTransactions.asset);
 
   const balances: WalletBalances = { ...ZERO_BALANCES };
@@ -147,16 +187,16 @@ export async function getWalletBalances(userId: string): Promise<WalletBalances>
 }
 
 /**
- * The user's ACER balance alone, in minor units — `SUM(amount_minor)` over
+ * The owner's ACER balance alone, in minor units — `SUM(amount_minor)` over
  * `completed` rows, the same arithmetic as {@link getWalletBalances}.
  *
  * Exists for the spend path: a debit that must not overdraw reads one number
- * **inside the caller's transaction** (pass `tx`), after the caller has taken a
- * per-user lock, so two concurrent spends cannot both see the same balance.
+ * **inside the caller's transaction** (pass `tx`), after the caller has taken
+ * the payer's lock, so two concurrent spends cannot both see the same balance.
  * The three-asset record is the wrong shape there, and reading it on the pool
  * would look past the lock.
  */
-export async function getAcerBalance(userId: string, tx?: DbExecutor): Promise<number> {
+export async function getAcerBalance(owner: WalletOwnerRef, tx?: DbExecutor): Promise<number> {
   const [row] = await executor(tx)
     .select({
       total: sql<number>`coalesce(sum(${walletTransactions.amountMinor}), 0)`.mapWith(Number),
@@ -164,12 +204,17 @@ export async function getAcerBalance(userId: string, tx?: DbExecutor): Promise<n
     .from(walletTransactions)
     .where(
       and(
-        eq(walletTransactions.userId, userId),
+        ownerWhere(owner),
         eq(walletTransactions.asset, "ACER"),
         eq(walletTransactions.status, "completed"),
       ),
     );
   return row?.total ?? 0;
+}
+
+/** {@link getAcerBalance} for a team's treasury — the spelling the team pages read. */
+export function getTeamAcerBalance(teamId: string, tx?: DbExecutor): Promise<number> {
+  return getAcerBalance({ teamId }, tx);
 }
 
 /**
@@ -200,7 +245,7 @@ export type WalletHistoryPage = {
 };
 
 /**
- * A page of the user's transaction history, newest first — every row, whatever
+ * A page of the owner's transaction history, newest first — every row, whatever
  * its status, because "where is my ACER" is only answerable if a pending or
  * failed row is visible.
  *
@@ -208,14 +253,15 @@ export type WalletHistoryPage = {
  * history shows the last page instead of an empty one.
  */
 export async function listWalletTransactions(
-  userId: string,
+  owner: WalletOwnerRef,
   { page = 1, pageSize = WALLET_HISTORY_PAGE_SIZE }: { page?: number; pageSize?: number } = {},
 ): Promise<WalletHistoryPage> {
   const db = getDb();
+  const where = ownerWhere(owner);
   const [countRow] = await db
     .select({ total: sql<number>`count(*)`.mapWith(Number) })
     .from(walletTransactions)
-    .where(eq(walletTransactions.userId, userId));
+    .where(where);
 
   const total = countRow?.total ?? 0;
   const { page: current, pageCount, offset } = walletPageWindow(total, page, pageSize);
@@ -226,7 +272,7 @@ export async function listWalletTransactions(
       : await db
           .select()
           .from(walletTransactions)
-          .where(eq(walletTransactions.userId, userId))
+          .where(where)
           .orderBy(desc(walletTransactions.createdAt), desc(walletTransactions.id))
           .limit(pageSize)
           .offset(offset);

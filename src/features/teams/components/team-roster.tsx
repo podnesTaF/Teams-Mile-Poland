@@ -20,6 +20,7 @@ export async function TeamRoster({
   summary,
   viewerUserId,
   isManager,
+  treasuryMinor = 0,
 }: {
   /** The team's slug — every roster-change action is addressed by it. */
   slug: string;
@@ -29,6 +30,8 @@ export async function TeamRoster({
   viewerUserId: string | null;
   /** The captain (`manager` role), or an admin holding `edit`. Decides which controls render. */
   isManager: boolean;
+  /** The team treasury in minor units — named in the dissolve warning when it is not empty (ADR 0012). */
+  treasuryMinor?: number;
 }) {
   const t = await getTranslations("teams.page");
 
@@ -45,11 +48,7 @@ export async function TeamRoster({
 
       <div className="reg-list" data-team-roster="1">
         {roster.map((member) => (
-          <div
-            key={member.userId}
-            className="reg-card reg-card--plain"
-            data-role={member.role}
-          >
+          <div key={member.userId} className="reg-card reg-card--plain" data-role={member.role}>
             <div className="reg-card__body">
               <span className="reg-card__title">
                 {member.displayName}
@@ -84,6 +83,7 @@ export async function TeamRoster({
         }))}
         viewerUserId={viewerUserId}
         isManager={isManager}
+        treasuryMinor={treasuryMinor}
       />
     </section>
   );

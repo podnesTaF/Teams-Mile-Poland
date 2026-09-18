@@ -13,6 +13,8 @@ import { AdminInviteOnBehalf } from "@/features/admin/components/teams/admin-inv
 import { AdminJoinRequestActions } from "@/features/admin/components/teams/admin-join-request-actions";
 import { AdminTeamMemberActions } from "@/features/admin/components/teams/admin-team-member-actions";
 import { AdminTeamSettings } from "@/features/admin/components/teams/admin-team-settings";
+import { WalletPanel } from "@/features/admin/components/wallet-panel";
+import { listWalletLedger } from "@/features/admin/wallet-data";
 import {
   ADMIN_TEAM_CATEGORY_LABEL,
   ADMIN_TEAM_DATE,
@@ -23,11 +25,16 @@ import { getTeamBySlug, getTeamRoster } from "@/features/teams/data";
 import { summarizeRoster } from "@/features/teams/eligibility";
 import { listOpenInvitations } from "@/features/teams/invitations";
 import { listPendingJoinRequests } from "@/features/teams/join-requests";
+import { getWalletBalances, parseWalletPage } from "@/features/wallet/data";
+import { formatWalletBalance } from "@/features/wallet/format";
 import { Link } from "@/i18n/navigation";
 import { userCan } from "@/lib/auth/user-session";
 import { cn } from "@/lib/utils";
 
-type PageProps = { params: Promise<{ locale: string; slug: string }> };
+type PageProps = {
+  params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<{ msg?: string; wpage?: string | string[] }>;
+};
 
 const HEAD_CELL =
   "px-3 py-2 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-admin-muted";
@@ -53,8 +60,9 @@ const CELL = "px-3 py-2.5 align-middle text-[13px] text-admin-ink-2";
  * Dynamic, like the runner-facing team page: what it shows depends on who asks
  * and on rows that change by the minute.
  */
-export default async function AdminTeamDetailPage({ params }: PageProps) {
+export default async function AdminTeamDetailPage({ params, searchParams }: PageProps) {
   const { locale, slug } = await params;
+  const { msg, wpage } = await searchParams;
   setRequestLocale(locale);
   const actor = await requireAdmin(locale, "view");
   const canEdit = userCan(actor, "edit");
@@ -62,10 +70,14 @@ export default async function AdminTeamDetailPage({ params }: PageProps) {
   const team = await getTeamBySlug(slug);
   if (!team) notFound();
 
-  const [roster, invitations, requests] = await Promise.all([
+  // Money is read straight from the ledger on every request: a treasury is a
+  // `SUM` over completed rows, never a stored total (ADR 0012).
+  const [roster, invitations, requests, treasuryBalances, treasuryLedger] = await Promise.all([
     getTeamRoster(team.id),
     listOpenInvitations(team.id),
     listPendingJoinRequests(team.id),
+    getWalletBalances({ teamId: team.id }),
+    listWalletLedger({ teamId: team.id }, { page: parseWalletPage(wpage) }),
   ]);
   const rosterSummary = summarizeRoster(team.category, roster);
 
@@ -80,16 +92,27 @@ export default async function AdminTeamDetailPage({ params }: PageProps) {
       }
     >
       <div data-admin-team={team.slug} data-admin-team-controls={canEdit ? "edit" : "readonly"}>
+        {msg ? (
+          <div data-admin-team-msg="">
+            <AdminNotice tone="info" className="mb-4">
+              {msg}
+            </AdminNotice>
+          </div>
+        ) : null}
         <section className={adminCard("p-4 sm:p-5")}>
           <div className="flex flex-wrap items-center gap-2">
             <AdminPill tone="ink">{ADMIN_TEAM_CATEGORY_LABEL[team.category]}</AdminPill>
             {team.recruiting ? <AdminPill tone="accent">Recruiting</AdminPill> : null}
           </div>
 
-          <div className="mt-4 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-4 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-5">
             <AdminStat label="Members" value={rosterSummary.count} />
             <AdminStat label="Pending invitations" value={invitations.length} />
             <AdminStat label="Pending requests" value={requests.length} />
+            <AdminStat
+              label="Treasury (ACER)"
+              value={formatWalletBalance(treasuryBalances.ACER, "en")}
+            />
             <AdminStat label="Region" value={team.region} />
           </div>
 
@@ -118,8 +141,20 @@ export default async function AdminTeamDetailPage({ params }: PageProps) {
           </AdminNotice>
         )}
 
+        {/* ── Treasury (ADR 0012) — the grant form, the ledger, reversals ── */}
+        <WalletPanel
+          subject={{ teamId: team.id, teamSlug: team.slug }}
+          locale={locale}
+          balances={treasuryBalances}
+          ledger={treasuryLedger}
+          canEdit={canEdit}
+        />
+
         {/* ── Roster ─────────────────────────────────────────────────────── */}
-        <section className={adminCard("mt-4 overflow-hidden")} data-admin-team-roster={roster.length}>
+        <section
+          className={adminCard("mt-4 overflow-hidden")}
+          data-admin-team-roster={roster.length}
+        >
           <header className="border-b border-admin-line px-4 py-3.5 sm:px-5">
             <h2 className={ADMIN_TITLE}>Roster ({roster.length})</h2>
             <p className={cn(ADMIN_NOTE, "mt-1 max-w-[78ch]")}>
@@ -196,8 +231,8 @@ export default async function AdminTeamDetailPage({ params }: PageProps) {
         >
           <h2 className={ADMIN_TITLE}>Pending invitations ({invitations.length})</h2>
           <p className={cn(ADMIN_NOTE, "mt-1 max-w-[78ch]")}>
-            A roster has no cap, so invitations are never refused for space. Resending reissues
-            the token — the previous link stops working at once and the 30-day clock restarts.
+            A roster has no cap, so invitations are never refused for space. Resending reissues the
+            token — the previous link stops working at once and the 30-day clock restarts.
           </p>
 
           {canEdit ? <AdminInviteOnBehalf slug={team.slug} /> : null}

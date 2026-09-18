@@ -1,9 +1,11 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { useRouter } from "@/i18n/navigation";
+
+import { formatWalletBalance } from "@/features/wallet/format";
 
 import { dissolveTeam, handOverManagement, leaveTeam, removeMember } from "../actions/roster";
 import type { TeamActionResult, TeamRole } from "../config";
@@ -43,15 +45,19 @@ export function RosterControls({
   roster,
   viewerUserId,
   isManager,
+  treasuryMinor = 0,
 }: {
   slug: string;
   roster: RosterControlsMember[];
   viewerUserId: string | null;
   /** The team's manager, or an admin with `edit` acting for them. */
   isManager: boolean;
+  /** The treasury in minor units; when it holds anything, dissolving says it is forfeited. */
+  treasuryMinor?: number;
 }) {
   const t = useTranslations("teams.roster");
   const tReasons = useTranslations("teams.reasons");
+  const locale = useLocale();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -79,7 +85,11 @@ export function RosterControls({
   if (!isOnRoster && !isManager) return null;
 
   return (
-    <div className="roster-controls" data-roster-controls="1" data-roster-manager={isManager ? "1" : "0"}>
+    <div
+      className="roster-controls"
+      data-roster-controls="1"
+      data-roster-manager={isManager ? "1" : "0"}
+    >
       {isManager && others.length > 0 ? (
         <div className="reg-list" data-roster-manager-rows="1">
           {others.map((member) => (
@@ -139,7 +149,13 @@ export function RosterControls({
             variant="button"
             label={t("dissolve")}
             title={t("dissolveTitle")}
-            message={t("dissolveMessage")}
+            message={
+              treasuryMinor > 0
+                ? t("dissolveMessageTreasury", {
+                    amount: formatWalletBalance(treasuryMinor, locale),
+                  })
+                : t("dissolveMessage")
+            }
             confirmLabel={t("dissolveConfirm")}
             cancelLabel={t("cancel")}
             disabled={pending}

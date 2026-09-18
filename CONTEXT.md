@@ -377,12 +377,38 @@ one.
 _Avoid_: team fee (ambiguous with an entry fee), subscription, deposit
 
 **Grant**:
-ACER credited to one or more accounts by an admin, with a mandatory reason recorded on
-every row and the acting admin on it. A bulk grant credits everyone ticked on the users
-list in one act, keyed by a batch so a second press of the button credits nobody twice.
-Grants only ever credit — a hand-made debit stays on the per-user panel.
+ACER credited to one or more accounts — a runner's wallet or a team's **Treasury** — by
+an admin, with a mandatory reason recorded on every row and the acting admin on it. A
+bulk grant credits everyone ticked on the users list in one act, keyed by a batch so a
+second press of the button credits nobody twice. Grants only ever credit — a hand-made
+debit stays on the per-user or per-team panel.
 _Avoid_: bonus, top-up (that is a purchase), gift, adjustment (that is the per-user
 credit or debit)
+
+**Treasury**:
+A team's own ACER account, held on the same ledger as every wallet: a row belongs to
+exactly one owner, a runner or a team (ADR 0012). Members pay in by **Contribution**,
+the manager pays out by **Payout**, admins **Grant** to it, and future paid features
+debit it. Belongs to the team, not the manager — hand-over moves nothing — and is
+forfeited when the team is dissolved: the rows stay, summable and reversible, the
+money is gone. The manager decides how it is spent, and the team page says so.
+_Avoid_: team wallet (a wallet is a runner's), team balance (that is the number, not
+the account), fund, kitty, pool
+
+**Contribution**:
+A member paying whole ACER from their own wallet into their team's **Treasury** — two
+ledger legs of one fact, keyed by an id the form mints per attempt so a double press
+moves nothing twice. Any roster member may, the manager included; an admin who is not
+on the roster grants instead. Never refunded when the member leaves.
+_Avoid_: top-up (that is a purchase), deposit, transfer (bare), donation
+
+**Payout**:
+The manager paying whole ACER out of the **Treasury** to one current roster member,
+checked on the roster at the moment the money moves. Switched off
+(`TREASURY_PAYOUTS_ENABLED`) until the Terms of Use stop saying ACER cannot be moved to
+another user. Reversing one leg of a contribution or a payout reverses the other.
+_Avoid_: withdrawal (that is cashing out, which does not exist), distribution,
+dividend, salary
 
 ### Legacy (frozen — warsaw-2026 team format)
 

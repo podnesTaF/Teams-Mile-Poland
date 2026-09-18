@@ -2,7 +2,12 @@ import { desc, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { users, walletTransactions, type WalletTransactionRow } from "@/db/schema";
-import { walletPageWindow, type WalletHistoryPage } from "@/features/wallet/data";
+import {
+  ownerWhere,
+  walletPageWindow,
+  type WalletHistoryPage,
+  type WalletOwnerRef,
+} from "@/features/wallet/data";
 import { executor, getDb, type DbExecutor } from "@/lib/db";
 
 /**
@@ -45,7 +50,7 @@ export const MAX_REASON_LENGTH = 500;
 export const MAX_BULK_RECIPIENTS = 200;
 
 export type AdminWalletEntry = WalletTransactionRow & {
-  /** The admin who entered the row; null for system accruals. */
+  /** Who caused a manual row — an admin, or a runner moving treasury money; null for system accruals. */
   authorName: string | null;
   authorEmail: string | null;
   /**
@@ -92,22 +97,23 @@ export async function countUsersByIds(ids: string[], tx?: DbExecutor): Promise<n
 }
 
 /**
- * One page of a user's ledger, newest first, with the two things the panel adds
- * to the runner's own view: the author of each manual row and the correction
- * that already offsets it.
+ * One page of an owner's ledger — a runner's wallet or a team's treasury —
+ * newest first, with the two things the panel adds to the runner's own view:
+ * the author of each manual row and the correction that already offsets it.
  *
  * Every row is returned whatever its status — a pending or failed purchase is
  * precisely what a "where is my ACER" ticket is about.
  */
 export async function listWalletLedger(
-  userId: string,
+  owner: WalletOwnerRef,
   { page = 1, pageSize = ADMIN_WALLET_PAGE_SIZE }: { page?: number; pageSize?: number } = {},
 ): Promise<AdminWalletLedgerPage> {
   const db = getDb();
+  const where = ownerWhere(owner);
   const [countRow] = await db
     .select({ total: sql<number>`count(*)`.mapWith(Number) })
     .from(walletTransactions)
-    .where(eq(walletTransactions.userId, userId));
+    .where(where);
 
   const total = countRow?.total ?? 0;
   const { page: current, pageCount, offset } = walletPageWindow(total, page, pageSize);
@@ -127,7 +133,7 @@ export async function listWalletLedger(
     .from(walletTransactions)
     .leftJoin(users, eq(users.id, walletTransactions.createdBy))
     .leftJoin(correction, eq(correction.reversesId, walletTransactions.id))
-    .where(eq(walletTransactions.userId, userId))
+    .where(where)
     .orderBy(desc(walletTransactions.createdAt), desc(walletTransactions.id))
     .limit(pageSize)
     .offset(offset);

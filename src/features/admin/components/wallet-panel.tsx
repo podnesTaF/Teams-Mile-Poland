@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 import { formatAdminDateTime as fmt } from "../format";
 import { ConfirmSubmit } from "./confirm-submit";
+import { adjustTreasuryBalance, reverseTreasuryTransaction } from "../treasury-actions";
 import { adjustWalletBalance, reverseWalletTransaction } from "../wallet-actions";
 import { WALLET_ASSET_LABEL, WALLET_KIND_LABEL, WALLET_STATUS_LABEL } from "../wallet-copy";
 import {
@@ -29,14 +30,59 @@ const CELL = "px-3 py-2 align-top text-[13px] text-admin-ink-2";
 const STATUS_TONE = { completed: "ok", pending: "warn", failed: "warn" } as const;
 
 /**
- * The wallet panel on a user's detail page: their three balances, their full
- * ledger, and the two write actions — a manual credit/debit and the reversal
- * that corrects a wrong row.
+ * Whose ledger the panel shows: a runner's wallet or a team's treasury (ADR
+ * 0012). The subject decides the page the forms land back on, the hidden
+ * fields they post, the actions they post to and the word the copy uses.
+ */
+export type WalletPanelSubject = { userId: string } | { teamId: string; teamSlug: string };
+
+type Panel = {
+  /** `#wallet` on a user page, `#treasury` on a team page. */
+  anchor: string;
+  title: string;
+  /** "the runner's" / "the team's" — for the sentences that name the other party. */
+  whose: string;
+  basePath: string;
+  hidden: { name: string; value: string }[];
+  adjust: (formData: FormData) => Promise<void>;
+  reverse: (formData: FormData) => Promise<void>;
+};
+
+function panelOf(subject: WalletPanelSubject): Panel {
+  if ("userId" in subject) {
+    return {
+      anchor: "wallet",
+      title: "Wallet",
+      whose: "the runner's",
+      basePath: `/admin/users/${subject.userId}`,
+      hidden: [{ name: "id", value: subject.userId }],
+      adjust: adjustWalletBalance,
+      reverse: reverseWalletTransaction,
+    };
+  }
+  return {
+    anchor: "treasury",
+    title: "Treasury",
+    whose: "the team's",
+    basePath: `/admin/teams/${subject.teamSlug}`,
+    hidden: [
+      { name: "teamId", value: subject.teamId },
+      { name: "teamSlug", value: subject.teamSlug },
+    ],
+    adjust: adjustTreasuryBalance,
+    reverse: reverseTreasuryTransaction,
+  };
+}
+
+/**
+ * The ledger panel on a user's or a team's detail page: the three balances, the
+ * full ledger, and the two write actions — a manual credit/debit and the
+ * reversal that corrects a wrong row.
  *
  * Built in the Tailwind admin layer (ADR 0004) rather than the `.iv-*` classes
- * its sibling cards on this not-yet-redesigned page still use: the ADR freezes
- * `.iv-*` for admin, and new admin UI goes in the new layer even when it lands
- * beside the old one.
+ * its sibling cards on the not-yet-redesigned user page still use: the ADR
+ * freezes `.iv-*` for admin, and new admin UI goes in the new layer even when it
+ * lands beside the old one.
  *
  * English-only, like the rest of the panel. Amounts are formatted by the wallet
  * feature's own formatters (pinned to `en`) so an admin and the runner they are
@@ -47,25 +93,29 @@ const STATUS_TONE = { completed: "ok", pending: "warn", failed: "warn" } as cons
  * it themselves — the hidden forms are a courtesy, not the gate.
  */
 export function WalletPanel({
-  userId,
+  subject,
   locale,
   balances,
   ledger,
   canEdit,
 }: {
-  userId: string;
+  subject: WalletPanelSubject;
   locale: string;
   balances: WalletBalances;
   ledger: AdminWalletLedgerPage;
   canEdit: boolean;
 }) {
+  const panel = panelOf(subject);
   return (
-    <section className={adminCard("mt-4 p-4 sm:p-5")} id="wallet" data-admin-wallet>
-      <h2 className={ADMIN_TITLE}>Wallet</h2>
+    <section className={adminCard("mt-4 p-4 sm:p-5")} id={panel.anchor} data-admin-wallet>
+      <h2 className={ADMIN_TITLE}>{panel.title}</h2>
       <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[78ch]")}>
         Balances are the sum of the completed rows below — there is no stored total. Pending and
         failed rows are listed but count toward nothing. Corrections are new rows, never edits: a
-        reversal leaves both rows visible and nets them to zero.
+        reversal leaves both rows visible and nets them to zero
+        {panel.anchor === "treasury"
+          ? "; reversing one leg of a member's contribution or a payout reverses the other leg too."
+          : "."}
       </p>
 
       <div className="mt-3 grid gap-2.5 sm:grid-cols-3">
@@ -78,11 +128,11 @@ export function WalletPanel({
         ))}
       </div>
 
-      {canEdit ? <AdjustForm userId={userId} locale={locale} page={ledger.page} /> : null}
+      {canEdit ? <AdjustForm panel={panel} locale={locale} page={ledger.page} /> : null}
 
       <h3 className={cn(ADMIN_TITLE, "mt-6")}>Transactions</h3>
       {ledger.total === 0 ? (
-        <p className={cn(ADMIN_NOTE, "mt-2")}>No wallet transactions yet.</p>
+        <p className={cn(ADMIN_NOTE, "mt-2")}>No transactions yet.</p>
       ) : (
         <>
           <div className="admin-scroll mt-3 overflow-x-auto rounded-admin-lg border border-admin-line">
@@ -109,7 +159,7 @@ export function WalletPanel({
                   <LedgerRow
                     key={tx.id}
                     tx={tx}
-                    userId={userId}
+                    panel={panel}
                     locale={locale}
                     page={ledger.page}
                     canEdit={canEdit}
@@ -118,10 +168,22 @@ export function WalletPanel({
               </tbody>
             </table>
           </div>
-          <LedgerPager userId={userId} ledger={ledger} />
+          <LedgerPager panel={panel} ledger={ledger} />
         </>
       )}
     </section>
+  );
+}
+
+function HiddenFields({ panel, locale, page }: { panel: Panel; locale: string; page: number }) {
+  return (
+    <>
+      <input type="hidden" name="locale" value={locale} />
+      {panel.hidden.map((field) => (
+        <input key={field.name} type="hidden" name={field.name} value={field.value} />
+      ))}
+      <input type="hidden" name="wpage" value={page} />
+    </>
   );
 }
 
@@ -130,12 +192,10 @@ export function WalletPanel({
  * credit/debit switch plus a magnitude: the ledger row is a signed amount, and a
  * form that mirrors the row is a form whose effect an admin can read off it.
  */
-function AdjustForm({ userId, locale, page }: { userId: string; locale: string; page: number }) {
+function AdjustForm({ panel, locale, page }: { panel: Panel; locale: string; page: number }) {
   return (
-    <form action={adjustWalletBalance} className="mt-4 flex flex-wrap items-end gap-2.5">
-      <input type="hidden" name="locale" value={locale} />
-      <input type="hidden" name="id" value={userId} />
-      <input type="hidden" name="wpage" value={page} />
+    <form action={panel.adjust} className="mt-4 flex flex-wrap items-end gap-2.5">
+      <HiddenFields panel={panel} locale={locale} page={page} />
       {/* ACER only. The action validates every asset the ledger knows — the
           Contracts signature is asset-generic — but nothing may *issue*
           Ace(PL) or ACEG yet (PRD #44, Out of Scope), and the runner's wallet
@@ -171,7 +231,7 @@ function AdjustForm({ userId, locale, page }: { userId: string; locale: string; 
       <ConfirmSubmit
         label="Apply adjustment"
         title="Apply this adjustment?"
-        message="The amount is credited (or debited) immediately and appears in the runner's own wallet history. Correcting it later means a reversal row, which stays visible forever."
+        message={`The amount is credited (or debited) immediately and appears in ${panel.whose} own history. Correcting it later means a reversal row, which stays visible forever.`}
         confirmLabel="Apply adjustment"
         danger={false}
         triggerClassName={adminButton("primary")}
@@ -182,20 +242,20 @@ function AdjustForm({ userId, locale, page }: { userId: string; locale: string; 
 
 function LedgerRow({
   tx,
-  userId,
+  panel,
   locale,
   page,
   canEdit,
 }: {
   tx: AdminWalletEntry;
-  userId: string;
+  panel: Panel;
   locale: string;
   page: number;
   canEdit: boolean;
 }) {
   // A manual row whose author's account is gone keeps its `memo`, so it stays
   // explainable — say that rather than rendering an anonymous entry.
-  const author = tx.authorName ?? (tx.createdBy ? "deleted admin" : null);
+  const author = tx.authorName ?? (tx.createdBy ? "deleted account" : null);
   return (
     <tr className="border-admin-line/60 border-b last:border-b-0">
       <td className={CELL}>
@@ -235,7 +295,7 @@ function LedgerRow({
         ) : null}
       </td>
       <td className={CELL}>
-        <ReverseCell tx={tx} userId={userId} locale={locale} page={page} canEdit={canEdit} />
+        <ReverseCell tx={tx} panel={panel} locale={locale} page={page} canEdit={canEdit} />
       </td>
     </tr>
   );
@@ -250,13 +310,13 @@ function LedgerRow({
  */
 function ReverseCell({
   tx,
-  userId,
+  panel,
   locale,
   page,
   canEdit,
 }: {
   tx: AdminWalletEntry;
-  userId: string;
+  panel: Panel;
   locale: string;
   page: number;
   canEdit: boolean;
@@ -278,11 +338,11 @@ function ReverseCell({
 
   if (!canEdit) return <span className="text-admin-muted">—</span>;
 
+  const isTransferLeg = tx.kind === "treasury_contribution" || tx.kind === "treasury_payout";
+
   return (
-    <form action={reverseWalletTransaction} className="flex items-center gap-1.5">
-      <input type="hidden" name="locale" value={locale} />
-      <input type="hidden" name="id" value={userId} />
-      <input type="hidden" name="wpage" value={page} />
+    <form action={panel.reverse} className="flex items-center gap-1.5">
+      <HiddenFields panel={panel} locale={locale} page={page} />
       <input type="hidden" name="txId" value={tx.id} />
       <input
         className={adminInput("w-[150px]")}
@@ -294,8 +354,12 @@ function ReverseCell({
       />
       <ConfirmSubmit
         label="Reverse"
-        title="Reverse this transaction?"
-        message="An offsetting row is appended. Nothing is edited or deleted — both rows stay in the runner's history and net to zero. A row can only be reversed once."
+        title={isTransferLeg ? "Reverse this transfer?" : "Reverse this transaction?"}
+        message={
+          isTransferLeg
+            ? "This row is one leg of a transfer between a member and the team treasury. Both legs are offset together — the money goes back where it came from — and every row stays in both histories. A transfer can only be reversed once."
+            : `An offsetting row is appended. Nothing is edited or deleted — both rows stay in ${panel.whose} history and net to zero. A row can only be reversed once.`
+        }
         confirmLabel="Reverse"
         triggerClassName={adminButton("stroke")}
       />
@@ -306,10 +370,10 @@ function ReverseCell({
 /**
  * The panel's own pager. `?wpage=` is the only param it carries — the page's
  * `?msg=` belongs to the action that just ran, and re-attaching it to a page
- * link would re-show a stale sentence. `#wallet` lands back on the panel rather
- * than at the top of a long detail page.
+ * link would re-show a stale sentence. The anchor lands back on the panel
+ * rather than at the top of a long detail page.
  */
-function LedgerPager({ userId, ledger }: { userId: string; ledger: AdminWalletLedgerPage }) {
+function LedgerPager({ panel, ledger }: { panel: Panel; ledger: AdminWalletLedgerPage }) {
   const offset = (ledger.page - 1) * ledger.pageSize;
   return (
     <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -317,9 +381,9 @@ function LedgerPager({ userId, ledger }: { userId: string; ledger: AdminWalletLe
         Showing {offset + 1}–{offset + ledger.rows.length} of {ledger.total}
       </p>
       {ledger.pageCount > 1 ? (
-        <nav aria-label="Wallet transaction pages" className="flex items-center gap-2">
+        <nav aria-label="Transaction pages" className="flex items-center gap-2">
           <PagerLink
-            href={`/admin/users/${userId}?wpage=${ledger.page - 1}#wallet`}
+            href={`${panel.basePath}?wpage=${ledger.page - 1}#${panel.anchor}`}
             disabled={ledger.page <= 1}
             rel="prev"
           >
@@ -329,7 +393,7 @@ function LedgerPager({ userId, ledger }: { userId: string; ledger: AdminWalletLe
             Page {ledger.page} of {ledger.pageCount}
           </span>
           <PagerLink
-            href={`/admin/users/${userId}?wpage=${ledger.page + 1}#wallet`}
+            href={`${panel.basePath}?wpage=${ledger.page + 1}#${panel.anchor}`}
             disabled={ledger.page >= ledger.pageCount}
             rel="next"
           >

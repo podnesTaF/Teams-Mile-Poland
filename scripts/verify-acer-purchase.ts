@@ -302,7 +302,7 @@ async function run() {
     .from(walletTransactions);
   eq_(
     "every ledger row belongs to a fixture user",
-    strays.filter((r) => !r.userId.startsWith(PREFIX)).length,
+    strays.filter((r) => !(r.userId ?? "").startsWith(PREFIX)).length,
     0,
   );
 

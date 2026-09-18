@@ -712,7 +712,9 @@
         "sections": [
           {
             "h": "Administrator danych osobowych (ADO)",
-            "p": ["Administratorem danych osobowych w rozumieniu RODO jest:"],
+            "p": [
+              "Administratorem danych osobowych w rozumieniu RODO jest:"
+            ],
             "list": [
               "Nazwa: ACE BATTLE POLAND Sp. z o.o.",
               "Adres: ul. Pańska 96/80, 00-837 Warszawa",
@@ -1539,6 +1541,11 @@
       "remind_limit": "Przypomnienie wysłano już w ciągu ostatnich 24 godzin.",
       "already_confirmed": "Ten udział został już potwierdzony.",
       "insufficient_balance": "Nie masz wystarczająco ACER, aby założyć drużynę.",
+      "treasury_insufficient": "W kasie drużyny nie ma wystarczająco ACER na tę wypłatę.",
+      "not_a_member": "Ta osoba nie jest już w składzie drużyny.",
+      "invalid_amount": "Podaj kwotę w pełnych ACER w dozwolonym zakresie.",
+      "stale_form": "Ten formularz był już wysłany z innymi danymi. Odśwież stronę i spróbuj ponownie.",
+      "payouts_disabled": "Wypłaty z kasy drużyny nie są jeszcze dostępne.",
       "cancelled": "To wydarzenie zostało odwołane."
     },
     "roster": {
@@ -1560,7 +1567,35 @@
       "dissolve": "Rozwiąż zespół",
       "dissolveTitle": "Rozwiązać ten zespół?",
       "dissolveMessage": "Zespół, jego skład, zaproszenia i prośby o dołączenie zostaną trwale usunięte, a wszyscy pozostali zawodnicy dostaną wiadomość e-mail. Tej operacji nie można cofnąć.",
-      "dissolveConfirm": "Rozwiąż"
+      "dissolveConfirm": "Rozwiąż",
+      "dissolveMessageTreasury": "Drużyna, jej skład, zaproszenia i prośby o dołączenie zostaną trwale usunięte, a każdy pozostały członek otrzyma e-mail. {amount} ACER w kasie przepada — najpierw je wypłać, jeśli chcesz je zachować. Tego nie da się cofnąć."
+    },
+    "treasury": {
+      "title": "Kasa drużyny",
+      "heading": "Kasa drużyny",
+      "balanceLabel": "Saldo",
+      "governance": "Każdy członek może wpłacić ACER. Kapitan decyduje, na co je wydać, w tym o wypłacie dowolnemu członkowi. Po rozwiązaniu drużyny to, co zostało, przepada.",
+      "contributeHeading": "Wpłać",
+      "yourBalance": "Twoje saldo: {balance} ACER",
+      "amountLabel": "Kwota w ACER",
+      "amountHint": "Pełne ACER, od {min} do {max}.",
+      "contribute": "Wpłać",
+      "contributing": "Wpłacanie…",
+      "contributed": "Wpłacono. W kasie jest teraz {balance} ACER.",
+      "alreadyRecorded": "To już zostało zapisane — nic nie przeszło dwa razy.",
+      "payoutHeading": "Wypłać członkowi",
+      "payoutHint": "Przenosi ACER z kasy drużyny do portfela członka.",
+      "memberLabel": "Członek",
+      "payout": "Wypłać",
+      "payingOut": "Wypłacanie…",
+      "paidOut": "Wypłacono. W kasie jest teraz {balance} ACER.",
+      "recentHeading": "Ostatnie ruchy",
+      "empty": "Nic się jeszcze nie wydarzyło.",
+      "history": "Pełna historia",
+      "from": "od {name}",
+      "to": "dla {name}",
+      "historyHeading": "{team} — kasa drużyny",
+      "backToTeam": "Wróć do drużyny"
     },
     "emails": {
       "invitation": {
@@ -1964,7 +1999,7 @@
       "submit": "Przejdź do płatności",
       "submitting": "Otwieramy płatność…",
       "terms": "Płatność obsługuje Stripe, który przed jej dokonaniem poprosi o akceptację <link>warunków</link>.",
-      "note": "ACER to kredyt na koncie Ace Battle. Jest używany wyłącznie w ramach platformy i nie podlega przeniesieniu.",
+      "note": "ACER to środki na koncie Ace Battle. Służą wyłącznie w ramach platformy — w Twoim portfelu lub w kasie Twojej drużyny — i nie można ich wypłacić w pieniądzu.",
       "redeem": "Jest przeznaczony na płatne starty, licencje sezonowe i podobne płatne funkcje oraz jako nagroda w cyklu. Udział w obecnych biegach jest darmowy, więc na razie może nie być na co go wydać.",
       "refund": "Niewykorzystany zakupiony ACER może zostać zwrócony na wniosek złożony w ciągu 14 dni od zakupu. ACER otrzymany jako nagroda nie ma wartości pieniężnej.",
       "errors": {
@@ -1977,7 +2012,7 @@
         "cancelled": "Płatność anulowana. Nic nie zostało obciążone ani naliczone."
       },
       "stripe": {
-        "description": "{amount} ACER kredytu na koncie Ace Battle. 1 ACER = 1 USD. Do wykorzystania wyłącznie na platformie — bez możliwości przeniesienia i bez możliwości wypłaty.",
+        "description": "{amount} ACER środków na koncie Ace Battle. 1 ACER = 1 USD. Do użytku wyłącznie w ramach platformy, w tym w kasie drużyny — bez możliwości wypłaty.",
         "consent": "Akceptuję Warunki korzystania oraz warunki Portfela. Żądam natychmiastowego udostępnienia kredytu i przyjmuję do wiadomości, że po jego dostarczeniu tracę 14-dniowe prawo odstąpienia od umowy."
       }
     },
@@ -2002,6 +2037,9 @@
       "admin_credit": "Ręczne uznanie",
       "admin_debit": "Ręczne obciążenie",
       "team_creation": "Założenie drużyny",
+      "treasury_contribution": "Wpłata do kasy drużyny",
+      "treasury_payout": "Wypłata z kasy drużyny",
+      "team_entry_fee": "Opłata za zgłoszenie drużyny",
       "reversal": "Korekta"
     },
     "statuses": {

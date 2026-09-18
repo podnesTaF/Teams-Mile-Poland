@@ -10,6 +10,7 @@ import {
   ADMIN_TEAM_DATE,
 } from "@/features/admin/components/teams/labels";
 import { listAllTeamsForAdmin } from "@/features/teams/data";
+import { formatWalletBalance } from "@/features/wallet/format";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -28,11 +29,7 @@ import { cn } from "@/lib/utils";
  * most, and an organiser reads this list down looking for the ones that are
  * short of Complete rather than searching it.
  */
-export default async function AdminTeamsPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default async function AdminTeamsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
   await requireAdmin(locale, "view");
@@ -79,6 +76,9 @@ export default async function AdminTeamsPage({
                     Members
                   </th>
                   <th scope="col" className={HEAD_CELL}>
+                    Treasury
+                  </th>
+                  <th scope="col" className={HEAD_CELL}>
                     Recruiting
                   </th>
                   <th scope="col" className={HEAD_CELL}>
@@ -90,7 +90,7 @@ export default async function AdminTeamsPage({
                 </tr>
               </thead>
               <tbody>
-                {teams.map(({ team, roster, managerName }) => (
+                {teams.map(({ team, roster, managerName, treasuryMinor }) => (
                   <tr
                     key={team.id}
                     className="border-b border-admin-line last:border-0"
@@ -108,6 +108,12 @@ export default async function AdminTeamsPage({
                     <td className={CELL}>{ADMIN_TEAM_CATEGORY_LABEL[team.category]}</td>
                     <td className={CELL}>
                       <span className="font-mono text-admin-ink">{roster.count}</span>
+                    </td>
+                    <td
+                      className={cn(CELL, "whitespace-nowrap font-mono")}
+                      data-admin-team-treasury={treasuryMinor}
+                    >
+                      {formatWalletBalance(treasuryMinor, "en")} ACER
                     </td>
                     <td className={CELL}>
                       {team.recruiting ? (

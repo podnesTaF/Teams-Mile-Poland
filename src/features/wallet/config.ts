@@ -62,3 +62,22 @@ export function acerToMinor(acer: number): number {
 export function minorToAcer(amountMinor: number): number {
   return amountMinor / ACER_MINOR_UNITS;
 }
+
+/**
+ * Bounds on one treasury movement — a member's contribution or the manager's
+ * payout — in whole ACER (ADR 0012). The floor keeps the ledger free of
+ * zero-amount rows; the ceiling is a typo guard, not a policy, sized well above
+ * anything a team has a reason to move in one press. Enforced by the action;
+ * the forms carry it as `min`/`max` so the field refuses what the server would.
+ */
+export const TREASURY_TRANSFER_MIN_ACER = 1;
+export const TREASURY_TRANSFER_MAX_ACER = 10_000;
+
+/** Whole ACER within the treasury bounds. Fractions are refused, not rounded, like {@link isValidAcerAmount}. */
+export function isValidTreasuryAmount(amount: number): boolean {
+  return (
+    Number.isInteger(amount) &&
+    amount >= TREASURY_TRANSFER_MIN_ACER &&
+    amount <= TREASURY_TRANSFER_MAX_ACER
+  );
+}

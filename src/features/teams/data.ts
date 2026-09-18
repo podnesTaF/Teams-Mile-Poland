@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 
 import { users } from "@/db/schema/auth";
 import {
@@ -7,6 +7,7 @@ import {
   type UserTeamMemberRow,
   type UserTeamRow,
 } from "@/db/schema/user-teams";
+import { walletTransactions } from "@/db/schema/wallet";
 import { getDb } from "@/lib/db";
 
 import type { TeamCategory, TeamRole, TeamSex } from "./config";
@@ -208,6 +209,8 @@ export type AdminTeamListRow = {
   roster: RosterSummary;
   /** The manager's full name, falling back to the account name then the email. */
   managerName: string;
+  /** The team treasury's ACER, in minor units (ADR 0012). */
+  treasuryMinor: number;
 };
 
 /**
@@ -222,6 +225,24 @@ export type AdminTeamListRow = {
  */
 export async function listAllTeamsForAdmin(): Promise<AdminTeamListRow[]> {
   const db = getDb();
+  // Per-team treasury, grouped in the database: the same `SUM` over completed
+  // ACER rows the wallet applies, joined once rather than read per row.
+  const treasuryAgg = db
+    .select({
+      teamId: walletTransactions.teamId,
+      balanceMinor: sql<number>`sum(${walletTransactions.amountMinor})`.as("treasury_minor"),
+    })
+    .from(walletTransactions)
+    .where(
+      and(
+        isNotNull(walletTransactions.teamId),
+        eq(walletTransactions.asset, "ACER"),
+        eq(walletTransactions.status, "completed"),
+      ),
+    )
+    .groupBy(walletTransactions.teamId)
+    .as("treasury_agg");
+
   const rows = await db
     .select({
       team: userTeams,
@@ -229,9 +250,11 @@ export async function listAllTeamsForAdmin(): Promise<AdminTeamListRow[]> {
       lastName: users.lastName,
       name: users.name,
       email: users.email,
+      treasuryMinor: sql<number>`coalesce(${treasuryAgg.balanceMinor}, 0)`.mapWith(Number),
     })
     .from(userTeams)
     .innerJoin(users, eq(users.id, userTeams.managerUserId))
+    .leftJoin(treasuryAgg, eq(treasuryAgg.teamId, userTeams.id))
     .orderBy(desc(userTeams.createdAt));
 
   if (rows.length === 0) return [];
@@ -243,6 +266,7 @@ export async function listAllTeamsForAdmin(): Promise<AdminTeamListRow[]> {
     roster: summarizeRoster(row.team.category, seatsByTeam.get(row.team.id) ?? []),
     managerName:
       [row.firstName, row.lastName].filter(Boolean).join(" ").trim() || row.name || row.email,
+    treasuryMinor: row.treasuryMinor,
   }));
 }
 

@@ -5,6 +5,7 @@ import { users } from "@/db/schema/auth";
 import { userTeamMembers, userTeams } from "@/db/schema/user-teams";
 import { slugify } from "@/features/admin/news-slug";
 import { getAcerBalance, recordWalletTransaction } from "@/features/wallet/data";
+import { InsufficientAcerError } from "@/features/wallet/errors";
 import { getDb } from "@/lib/db";
 
 import { TEAM_CODE_ALPHABET, TEAM_CODE_LENGTH, type TeamCategory } from "./config";
@@ -95,38 +96,12 @@ export async function uniqueCode(): Promise<string> {
 }
 
 /**
- * The creator's wallet was short **inside** the transaction, after the lock.
- *
- * Thrown rather than returned because the refusal has to abort a transaction
- * that has already inserted the team row; the action catches it beside the
- * 23505 mappings and turns it back into `teamFailure("insufficient_balance")`,
- * so the caller still sees a plain refusal and never an exception.
+ * The shortfall sentinel and its predicate now live with the wallet
+ * (`src/features/wallet/errors.ts`, ADR 0012) because the treasury transfers
+ * throw the same thing; re-exported here so `actions/team.ts` and the
+ * verification script keep their import.
  */
-export class InsufficientAcerError extends Error {
-  constructor(
-    readonly requiredMinor: number,
-    readonly balanceMinor: number,
-  ) {
-    super(`Team creation needs ${requiredMinor} minor ACER; balance is ${balanceMinor}.`);
-    this.name = "InsufficientAcerError";
-  }
-}
-
-/**
- * Whether this is the shortfall sentinel.
- *
- * The `cause` walk is not defensive padding: Drizzle re-throws what the
- * transaction callback threw, but a future wrapper (it already wraps *query*
- * errors in `DrizzleQueryError`) would hide an `instanceof` check behind one
- * level, and the failure mode of missing it is a 500 in place of a refusal.
- */
-export function isInsufficientAcer(error: unknown): boolean {
-  for (let e: unknown = error; e; e = (e as { cause?: unknown }).cause) {
-    if (e instanceof InsufficientAcerError) return true;
-    if (typeof e !== "object") return false;
-  }
-  return false;
-}
+export { InsufficientAcerError, isInsufficientAcer } from "@/features/wallet/errors";
 
 export type CreateTeamRowsInput = {
   /** The creator. Becomes the manager, the first member, and pays the fee. */

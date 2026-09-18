@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   bigint,
+  check,
   index,
   pgTable,
   text,
@@ -36,6 +37,9 @@ export type WalletTxKind =
   | "referral_sponsor" // 2.6.3.1 sponsor attraction (admin-entered)
   | "purchase" // 2.6.2.1 card top-up. Never withdrawable
   | "team_creation" // spend: founding a team (planning/team-creation-payment). Always negative
+  | "treasury_contribution" // a member pays into their team's treasury: user leg −, team leg + (ADR 0012)
+  | "treasury_payout" // the manager pays a member out of the treasury: team leg −, user leg +
+  | "team_entry_fee" // spend from the treasury: entering an event (reserved; nothing writes it yet)
   | "admin_credit"
   | "admin_debit"
   | "reversal"; // the correction of an earlier row
@@ -44,7 +48,30 @@ export type WalletTxKind =
 export type WalletTxStatus = "completed" | "pending" | "failed";
 
 /**
- * The wallet ledger: one signed row per movement of one asset for one user.
+ * Who a ledger row belongs to: a runner's wallet or a team's treasury (ADR
+ * 0012). Exactly one of the two — the `wallet_tx_one_owner` check below is the
+ * database's word for it, and this type is the compiler's. Every existing
+ * `{ userId }` caller still fits; a treasury caller passes `{ teamId }`.
+ */
+export type WalletOwner =
+  | { userId: string; teamId?: null | undefined }
+  | { teamId: string; userId?: null | undefined };
+
+/**
+ * The wallet ledger: one signed row per movement of one asset for one owner —
+ * a runner's wallet (`user_id`) or a team's treasury (`team_id`, ADR 0012).
+ *
+ * **Exactly one owner per row**, enforced by `wallet_tx_one_owner`. `team_id`
+ * carries **no foreign key** on purpose: dissolving a team is a hard delete of
+ * `user_teams`, and a cascade would delete money, `set null` would strip the
+ * row of both owners and so make the delete itself fail the check, and
+ * `restrict` would contradict the decision that a treasury is forfeited on
+ * dissolve. Rows of a dissolved team stay, summable and reversible, under an
+ * id no team holds any more — the same "reference outlives the referent" shape
+ * as `team_entries.event_slug`. That a team exists when money moves into it is
+ * asserted at write time under a `for key share` lock in
+ * `src/features/wallet/transfers.ts`, which also holds off a concurrent dissolve
+ * until the movement commits.
  *
  * **Append-only, and that is a code invariant, not a database one.** Every
  * insert goes through `recordWalletTransaction` in
@@ -55,10 +82,10 @@ export type WalletTxStatus = "completed" | "pending" | "failed";
  * the audit trail that makes a balance reproducible from its causes.
  *
  * **There is no balance column.** A balance is
- * `SUM(amount_minor) WHERE status = 'completed'` per `(user, asset)` — two
+ * `SUM(amount_minor) WHERE status = 'completed'` per `(owner, asset)` — two
  * writers racing on `balance = balance + x` (a desk check-in accrual and a
  * Stripe webhook retry) lose money silently, and a stored total tells you
- * nothing about how it got there. `(user_id, asset)` is indexed for it; if the
+ * nothing about how it got there. `(user_id, asset)` and `(team_id, asset)` are indexed for it; if the
  * read ever stops being trivial the fix is a cached projection behind the same
  * read function, not a schema change.
  *
@@ -83,9 +110,13 @@ export const walletTransactions = pgTable(
   {
     /** The TxID shown to the user in their history (ТЗ 2.6.4.2). */
     id: uuid("id").defaultRandom().primaryKey(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+    /** The runner whose wallet this row moves; null when the owner is a team. */
+    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+    /**
+     * The team whose treasury this row moves; null when the owner is a runner.
+     * Deliberately not a foreign key — see the table comment.
+     */
+    teamId: uuid("team_id"),
     asset: text("asset").$type<WalletAsset>().notNull(),
     /** Signed integer minor units (+ in / − out). 1 ACER = 100 minor = 1 USD. */
     amountMinor: bigint("amount_minor", { mode: "number" }).notNull(),
@@ -100,9 +131,11 @@ export const walletTransactions = pgTable(
     /** Free-text purpose (ТЗ 2.6.4.2 «Назначение платежа») and the mandatory admin reason. */
     memo: text("memo"),
     /**
-     * The admin who entered the row; null for system accruals. Audit trail.
+     * The person who caused a manual movement — the admin who entered an
+     * adjustment, or the runner who contributed to or paid out of a treasury;
+     * null for system accruals. Audit trail.
      *
-     * `set null` rather than `cascade`: deleting an admin account must never
+     * `set null` rather than `cascade`: deleting that account must never
      * delete ledger rows, and it must not be blocked by them either. The
      * mandatory `memo` survives, so a manual entry stays explainable even
      * after its author's account is gone.
@@ -120,6 +153,13 @@ export const walletTransactions = pgTable(
       .where(sql`${table.idempotencyKey} is not null`),
     index("wallet_tx_user_asset_idx").on(table.userId, table.asset),
     index("wallet_tx_user_created_idx").on(table.userId, table.createdAt),
+    index("wallet_tx_team_asset_idx")
+      .on(table.teamId, table.asset)
+      .where(sql`${table.teamId} is not null`),
+    index("wallet_tx_team_created_idx")
+      .on(table.teamId, table.createdAt)
+      .where(sql`${table.teamId} is not null`),
+    check("wallet_tx_one_owner", sql`(${table.userId} is null) <> (${table.teamId} is null)`),
   ],
 );
 

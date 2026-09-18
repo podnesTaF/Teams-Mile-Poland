@@ -34,3 +34,21 @@ export type TeamFormInput = z.infer<typeof teamFormSchema>;
 export const teamUpdateSchema = teamFormSchema.omit({ category: true });
 
 export type TeamUpdateInput = z.infer<typeof teamUpdateSchema>;
+
+/**
+ * A treasury movement (ADR 0012): whole ACER within the treasury bounds and the
+ * client-minted transfer id. Bounds are re-checked by name in the action with
+ * `isValidTreasuryAmount`, so the two never drift; this schema is the shape.
+ */
+export const treasuryContributionSchema = z.object({
+  amountAcer: z.number(),
+  transferId: z.string().uuid(),
+});
+
+export type TreasuryContributionInput = z.infer<typeof treasuryContributionSchema>;
+
+export const treasuryPayoutSchema = treasuryContributionSchema.extend({
+  memberUserId: z.string().min(1),
+});
+
+export type TreasuryPayoutInput = z.infer<typeof treasuryPayoutSchema>;

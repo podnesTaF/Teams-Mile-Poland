@@ -46,6 +46,12 @@ const REFUSALS: Record<TeamActionReason, string> = {
   registered_individually:
     "A member of that team is already registered individually for this event — one entry per runner per night.",
   insufficient_balance: "The creator's wallet holds less ACER than a team costs.",
+  // Team treasury (ADR 0012).
+  treasury_insufficient: "The team's treasury holds less ACER than that payout.",
+  not_a_member: "The payee is no longer on that team's roster.",
+  invalid_amount: "Enter a whole number of ACER within the treasury bounds.",
+  stale_form: "That form was already submitted with different values. Reload and retry.",
+  payouts_disabled: "Treasury payouts are switched off (TREASURY_PAYOUTS_ENABLED is not set).",
 };
 
 /** The panel's sentence for a refused team action. */
