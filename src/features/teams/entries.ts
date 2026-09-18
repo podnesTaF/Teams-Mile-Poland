@@ -11,6 +11,7 @@ import {
 import { userTeamMembers, userTeams, type UserTeamRow } from "@/db/schema/user-teams";
 import { getTeamAcerBalance, recordWalletTransaction } from "@/features/wallet/data";
 import { InsufficientAcerError } from "@/features/wallet/errors";
+import { entryFeeRefundKey, refundEntryFee } from "@/features/wallet/refunds";
 import { getDb } from "@/lib/db";
 import { getAllEvents } from "@/lib/events/store";
 import { acceptsTeams, type EventSummary } from "@/lib/events/types";
@@ -690,7 +691,32 @@ export async function removeMemberRows(
 }
 
 /**
- * Withdraw: delete the entry and every member registration, in one transaction.
+ * Whether withdrawing from this night gives the entry fee back (ADR 0013
+ * decision 6).
+ *
+ * `registration_open` and nothing else. The rule is about what the organiser
+ * can still sell: the place a withdrawal releases can be taken by somebody else
+ * while entries are open, and cannot once they are closed, so after that the fee
+ * is forfeited. Cancellation is not this question — a cancelled night refunds
+ * everything it took, and `refundEventFees` answers for it.
+ *
+ * A function rather than a comparison at the two call sites, because the action
+ * that takes the money back and the page that tells the manager it will must
+ * never disagree: a Withdraw button promising a refund that the action then
+ * declines to pay is the one bug this note exists to prevent. An event that
+ * cannot be resolved at all is not open, and so is not refundable — the money is
+ * gone either way, and inventing a credit for a night nobody can name is worse
+ * than forfeiting one.
+ */
+export function refundsOnWithdrawal(
+  event: Pick<EventSummary, "status"> | null | undefined,
+): boolean {
+  return event?.status === "registration_open";
+}
+
+/**
+ * Withdraw: delete the entry and every member registration, **and give the fee
+ * back when the caller says the night still allows it** — in one transaction.
  *
  * A hard delete, like dissolve (PRD #64 Implementation Decisions, "hard
  * operations, no soft state"): there is no `withdrawn` status to filter out of
@@ -701,17 +727,70 @@ export async function removeMemberRows(
  * The registration ids must therefore be **collected and mailed before** this
  * runs; the action does that (see `withdrawEntry`). Takes them as an argument
  * rather than re-reading, so the rows deleted are exactly the rows mailed.
+ *
+ * **The refund joins this transaction**, so the entry ceasing to exist and the
+ * treasury getting its ACER back are one fact. The alternative — credit after
+ * the delete — has a window in which the place is released and the money is
+ * still spent, and a crash inside it leaves a manager with neither, which is the
+ * shape of complaint nobody can answer from the ledger afterwards.
+ *
+ * **`refundFee` is required and is decided by the caller**, which has the event;
+ * this layer deliberately grows no event lookup (see `refundsOnWithdrawal`,
+ * which is the predicate the action applies). The team, though, is read here
+ * from the entry being deleted rather than taken as an argument: the treasury
+ * that gets the money back must be the one that paid, and that is a property of
+ * this row, not something a caller should be trusted to pair correctly.
+ *
+ * Withdrawing an entry that is already gone stays a success that writes
+ * nothing — the same contract as before fees existed — so a double-clicked
+ * Withdraw is a no-op rather than a `notfound` the manager has to read. The
+ * refund is keyed as well, so neither half can happen twice.
  */
 export async function withdrawEntryRows(
   entryId: string,
   registrationIds: string[],
-): Promise<TeamActionResult<{ deletedRegistrations: number }>> {
+  {
+    refundFee,
+    actorUserId,
+  }: {
+    /** `refundsOnWithdrawal(event)` — whether the night still gives the fee back. */
+    refundFee: boolean;
+    /** Whoever pressed Withdraw; recorded on the refund row as its cause. */
+    actorUserId?: string | null;
+  },
+): Promise<TeamActionResult<{ deletedRegistrations: number; refundedMinor: number }>> {
   const db = getDb();
+  let refundedMinor = 0;
+
   await db.transaction(async (tx) => {
+    if (refundFee) {
+      const [entry] = await tx
+        .select({ teamId: teamEntries.teamId, eventSlug: teamEntries.eventSlug })
+        .from(teamEntries)
+        .where(eq(teamEntries.id, entryId))
+        .limit(1);
+      if (entry) {
+        // Before the delete, while the row is still there to be read. A free
+        // night and an entry made before fees existed have no fee row, and
+        // `refundEntryFee` reports that as a success — withdrawing from a free
+        // night must not fail because there is nothing to give back.
+        const refund = await refundEntryFee({
+          owner: { teamId: entry.teamId },
+          feeKey: teamEntryFeeKey(entryId),
+          refundKey: entryFeeRefundKey(entryId),
+          reference: `event:${entry.eventSlug}`,
+          createdBy: actorUserId ?? null,
+          tx,
+        });
+        refundedMinor = refund.amountMinor;
+      }
+    }
+
     await tx.delete(teamEntries).where(eq(teamEntries.id, entryId));
     if (registrationIds.length > 0) {
       await tx.delete(eventRegistrations).where(inArray(eventRegistrations.id, registrationIds));
     }
   });
-  return { ok: true, deletedRegistrations: registrationIds.length };
+
+  return { ok: true, deletedRegistrations: registrationIds.length, refundedMinor };
 }

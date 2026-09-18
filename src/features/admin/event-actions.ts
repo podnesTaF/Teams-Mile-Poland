@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
 import { events } from "@/db/schema";
+import { refundEventFees } from "@/features/wallet/refunds";
 import { getDb } from "@/lib/db";
 import { formatBibSlots, parseBibSlots } from "@/lib/events/bib-slots";
 import { getEventBySlug } from "@/lib/events/registry";
@@ -243,10 +244,20 @@ async function stillToArrive(slug: string): Promise<number> {
  * is *not* a delete: the roster, heats and results stay on the record and the
  * public page keeps rendering, with the cancelled notice instead of a register
  * CTA. That is the state the 2026-08-08 night needed and did not have.
+ *
+ * **Cancelling also gives every entry fee back** (ADR 0013 decision 6): nobody
+ * bought anything, so every team entry and every individual registration the
+ * night charged for is refunded. The sweep runs *after* the status is committed
+ * and cannot fail the transition — the night is off whether or not the ledger
+ * cooperated, and an organiser who cannot cancel because a refund threw is worse
+ * off than one whose refunds need a second press. It is safely re-runnable for
+ * exactly that reason (`cancelled → upcoming → … → cancelled` is a legal round
+ * trip, and every refund is keyed on its cause), so pressing Cancel again is the
+ * fix, and `refundEventFees`' own log line says what each run moved.
  */
 export async function setEventStatus(formData: FormData): Promise<void> {
   const locale = safeLocale(formData.get("locale"));
-  await requireAdmin(locale, "edit");
+  const admin = await requireAdmin(locale, "edit");
 
   const slug = field(formData, "slug");
   if (!slug) backToIndex(locale, "error=input");
@@ -270,6 +281,16 @@ export async function setEventStatus(formData: FormData): Promise<void> {
     .update(events)
     .set({ status: to, updatedAt: new Date() })
     .where(eq(events.slug, slug));
+
+  if (to === "cancelled") {
+    // Never throws — see the docblock. The counts are logged the way
+    // `withdrawEntry` logs its own: the money moved, and who moved it, have to
+    // be findable afterwards from something other than the ledger itself.
+    const sweep = await refundEventFees(slug, { createdBy: admin.id });
+    console.info(
+      `[admin] cancelled ${slug}: ${sweep.found} fee row(s), ${sweep.refunded} refunded (${sweep.refundedMinor} minor), ${sweep.alreadyRefunded} already refunded, ${sweep.skipped} skipped, ${sweep.failed} failed`,
+    );
+  }
 
   revalidateEventSurfaces(locale, slug);
   backToSettings(

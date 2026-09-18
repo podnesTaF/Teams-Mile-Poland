@@ -57,6 +57,7 @@ export function EntryManagerControls({
   candidates,
   locked,
   teamSlug,
+  feeRefund,
 }: {
   entryId: string;
   members: ControlsMember[];
@@ -65,6 +66,16 @@ export function EntryManagerControls({
   locked: boolean;
   /** Where to go after a withdraw — the entry page stops existing. */
   teamSlug: string;
+  /**
+   * What Withdraw does to the entry fee, decided by the page from the event and
+   * the price through `refundsOnWithdrawal` — the same predicate `withdrawEntry`
+   * applies, so the note and the money cannot disagree.
+   *
+   * `undefined` on a free night: there is no fee, so there is nothing to say
+   * about it, and a note about a refund on a race that cost nothing would only
+   * raise the question.
+   */
+  feeRefund?: "open" | "closed";
 }) {
   const t = useTranslations("teams.entryPage");
   const tEntry = useTranslations("teams.entry");
@@ -193,6 +204,15 @@ export function EntryManagerControls({
       ) : null}
 
       <div className="iv-actions">
+        {feeRefund ? (
+          // Before the press, not after it: withdrawing is irreversible and 100
+          // ACER is a real amount to a treasury that had to be filled by hand.
+          // A manager deciding whether to pull out has to know which of the two
+          // it is while they can still change their mind.
+          <p className="iv-share__hint" data-entry-refund={feeRefund}>
+            {feeRefund === "open" ? tEntry("refundNote") : tEntry("withdrawNoRefundNote")}
+          </p>
+        ) : null}
         <ConfirmButton
           action="entry-withdraw"
           variant="button"
