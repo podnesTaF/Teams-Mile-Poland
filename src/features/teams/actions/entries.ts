@@ -22,6 +22,7 @@ import {
   getEntryMembers,
   getEntryWithTeam,
   getTeamEntryCandidates,
+  refundsOnWithdrawal,
   removeMemberRows,
   withdrawEntryRows,
 } from "../entries";
@@ -387,6 +388,14 @@ export async function removeEntryMember(
  *
  * The `team_entry_withdrawn` log rows are deleted moments later with the
  * registrations they reference — see the note on `sendEntryWithdrawnEmail`.
+ *
+ * **Whether the fee comes back is decided here**, because this is where the
+ * event is known: `refundsOnWithdrawal` is the predicate (ADR 0013 decision 6 —
+ * `registration_open` gives it back, anything later forfeits it), the row layer
+ * is handed the answer, and the entry page shows the manager the same answer
+ * before they press. A night this action could not resolve at all is not
+ * refundable: the withdrawal still goes through, but the platform will not
+ * invent a credit for a race it cannot name.
  */
 export async function withdrawEntry(entryId: string): Promise<EntryActionResult> {
   const gate = await gateEntry(entryId);
@@ -416,11 +425,12 @@ export async function withdrawEntry(entryId: string): Promise<EntryActionResult>
   const withdrawn = await withdrawEntryRows(
     entryId,
     members.map((member) => member.registrationId),
+    { refundFee: refundsOnWithdrawal(event), actorUserId: gate.userId },
   );
   if (!withdrawn.ok) return withdrawn;
 
   console.info(
-    `[teams] entry ${entryId} withdrawn from ${gate.entry.eventSlug}: ${members.length} registration(s) deleted`,
+    `[teams] entry ${entryId} withdrawn from ${gate.entry.eventSlug}: ${members.length} registration(s) deleted, ${withdrawn.refundedMinor} minor refunded`,
   );
 
   revalidateEntrySurfaces();

@@ -8,7 +8,13 @@ import { InteriorHeader } from "@/components/landing/interior-header";
 import { EntryChecklist } from "@/features/teams/components/entry-checklist";
 import { EntryManagerControls } from "@/features/teams/components/entry-manager-controls";
 import { getTeamBySlug, getTeamMembership } from "@/features/teams/data";
-import { getEntryByTeamAndEvent, getEntryMembers, getTeamEntryCandidates } from "@/features/teams/entries";
+import {
+  getEntryByTeamAndEvent,
+  getEntryMembers,
+  getTeamEntryCandidates,
+  refundsOnWithdrawal,
+} from "@/features/teams/entries";
+import { teamEntryFeeMinor } from "@/features/wallet/entry-fees";
 import { Link } from "@/i18n/navigation";
 import { getUser, userCan } from "@/lib/auth/user-session";
 import { getEventBySlug } from "@/lib/events/registry";
@@ -124,6 +130,17 @@ export default async function TeamEntryPage({ params }: PageProps) {
                 confirmed: member.confirmed,
               }))}
               candidates={candidates}
+              // What Withdraw will do to the fee (ADR 0013 decision 6), decided
+              // by the same predicate the action applies and priced off the
+              // event through the same helper the debit used — a free night
+              // says nothing at all.
+              feeRefund={
+                teamEntryFeeMinor(event) > 0
+                  ? refundsOnWithdrawal(event)
+                    ? "open"
+                    : "closed"
+                  : undefined
+              }
             />
           ) : (
             <p className="iv-share__hint" data-entry-readonly="1">
