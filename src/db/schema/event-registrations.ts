@@ -38,7 +38,14 @@ export type ParticipationStatus = Exclude<
  * now, but the slug remains the stable join key for six tables, and an event
  * with registrations is never hard-deleted: the admin guard refuses and offers
  * `cancelled` instead, which is a better failure than a cascade. See ADR 0005).
- * All registrations are free.
+ * A registration is free unless the night is priced: from ADR 0013 an event row
+ * may carry `individual_entry_fee_acer`, and on such a night the registration is
+ * written in the same transaction as the ACER debit that paid for it
+ * (`createRegistrationWithConsent`). There is deliberately **no payment column
+ * here** — the payment is a ledger row keyed `entry_fee:<registrationId>`, which
+ * is what ADR 0001 left open and what keeps money in one place rather than
+ * half-here and half-there. The admin comp path (`createFreeRegistration`) is
+ * free on a priced night too.
  *
  * A bib is a **lease**, not an identity (ADR 0003): it is issued at check-in and
  * returned when the runner's heat is marked finished, which stamps

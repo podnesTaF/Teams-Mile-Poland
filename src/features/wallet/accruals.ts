@@ -49,7 +49,18 @@ import { recordWalletTransaction } from "./data";
  *   ledger is append-only: a reward that should not have been paid is corrected
  *   by an admin `reversal` row, not by deleting the accrual.
  * - **Backfill.** Earning starts here; check-ins and referrals from before this
- *   shipped earn nothing (client decision, 2026-08-20).
+ *   shipped earn nothing (client decision, 2026-08-20) — **reversed once, for
+ *   participation only** (2026-09-18, ADR 0013). Raising the reward from 1 to 5
+ *   while leaving everyone who had already raced on the old number would have
+ *   made the series' own runners the worst-off people on the platform, so
+ *   `scripts/backfill-participation-rewards.ts` topped every past participation
+ *   **up to** the current constant. Referral rewards were not backfilled and
+ *   this function still backfills nothing: the script is a one-off that ran
+ *   against history, not a behaviour of the accrual. The consequence to know
+ *   before touching {@link PARTICIPATION_REWARD_ACER} again is that everyone who
+ *   has run a race holds exactly that much for it, whenever they ran — so
+ *   raising it is a decision about whether to top up again, not an edit to a
+ *   constant.
  *
  * The third accrual — {@link creditSignupGrant} (ADR 0013) — is automatic in the
  * same sense but rides a different fact: an account coming into existence,
@@ -89,7 +100,7 @@ function eventReference(eventSlug: string): string {
   return `event:${eventSlug}`;
 }
 
-/** 1 ACER to the runner for this check-in. Keyed by the registration. */
+/** {@link PARTICIPATION_REWARD_ACER} to the runner for this check-in. Keyed by the registration. */
 async function creditParticipation({
   registrationId,
   userId,
@@ -106,7 +117,7 @@ async function creditParticipation({
 }
 
 /**
- * 1 ACER to whoever referred this runner, keyed by the **referred person** and
+ * {@link REFERRAL_REWARD_ACER} to whoever referred this runner, keyed by the **referred person** and
  * not by the registration — that key is the whole per-person-once rule: their
  * second event finds the row already there and writes nothing.
  *

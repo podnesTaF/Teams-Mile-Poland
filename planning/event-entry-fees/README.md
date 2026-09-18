@@ -91,7 +91,8 @@ Two of these numbers change the work; all of them were unknown when the plan was
 | Accounts | 257 |
 | `event_registrations` with `status = 'checked_in'`, all time | **1** |
 | `legacy_participations` with `attended = true` | 13 |
-| `event_results` rows across the four completed mile nights | 148, of which **135 carry a `registration_id`** → **131 distinct (user, event) pairs** |
+| `event_results` rows, all events | **171** (148 across the four mile nights + 23 legacy `warsaw-2026`), of which **135 carry a `registration_id`** → **131 distinct (user, event) pairs** |
+| Of those 131 pairs, by result status | **finished 119, dnf 7, dns 45** — 44 pairs are `dns` only |
 | Existing `participation_reward` ledger rows | 2 |
 
 ### The one that matters: check-in was never used
@@ -121,10 +122,28 @@ Two consequences to keep straight:
   list read that module, and quietly widening it would restate three surfaces' numbers
   as a side effect of a one-off grant. If the owner wants the canonical definition
   widened, that is its own change with its own review.
-- **13 result rows carry no registration link** (the walk-ups and the spelling
+- **The timing export lists non-starters.** `event_results` holds a row for
+  everyone on the heat sheet, so 45 of the result rows are `dns` — for those the
+  row is evidence of **absence**, not of running, and 44 (user, event) pairs are
+  `dns` and nothing else. Crediting them would pay 5 ACER for not turning up and
+  contradict this plan's own release condition, which says 5 ACER *per race run*.
+  The backfill therefore refuses to write until the operator picks
+  `--skip-non-starters` (500 ACER, 100 rows) or `--pay-non-starters` (720 ACER,
+  144 rows). `dnf` counts as run — they started.
+- **The two pre-existing `participation_reward` rows are stranded**: both are
+  keyed on registrations that have since been deleted, so no pair claims them and
+  nothing tops them up. The live run is therefore 100% full credits and the
+  top-up path is exercised only by fixture. Those two accounts hold 1 ACER for a
+  race whose registration is gone — reported by the script, touched by nobody,
+  and a data decision for the owner.
+- **13 series result rows carry no registration link** (the walk-ups and the spelling
   mismatches already known from the 08-22 and 08-29 imports). The script reports them
-  by name and event rather than guessing, because a name match that is wrong pays a
-  stranger. Resolving them is a data decision for the owner, not the script's.
+  by name, event, heat and bib rather than guessing, because a name match that is
+  wrong pays a stranger. Resolving them is a data decision for the owner, not the
+  script's. Nesteriuk appears under three spellings across three nights and
+  Hildebrand twice on 08-22 — the two cases already on file. (`warsaw-2026`'s 23
+  unlinked rows are listed separately and are **expected**: they predate the
+  `users` table, and attendance there is carried by `legacy_participations`.)
 
 ## Pre-flight, before slice 6 prices anything
 
