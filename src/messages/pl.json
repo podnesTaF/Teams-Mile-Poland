@@ -1022,7 +1022,10 @@
           "note": "Już zapisany? Zapis na ten wieczór jest nieważny.",
           "cta": "Wybierz inny wieczór"
         }
-      }
+      },
+      "feeIndividual": "Zapis indywidualny: {amount} ACER",
+      "feeTeam": "Zgłoszenie drużyny: {amount} ACER",
+      "feeFree": "Wstęp bezpłatny"
     },
     "docs": {
       "heading": "Dokumenty",
@@ -1751,7 +1754,15 @@
         "dsq": "Dyskwalifikacja"
       },
       "incompleteDetail": "Aby się zgłosić, zespół potrzebuje jeszcze {count, plural, one {# zawodnika} few {# zawodników} many {# zawodników} other {# zawodnika}}.",
-      "underageDetail": "{name} nie będzie mieć 18 lat w dniu biegu."
+      "underageDetail": "{name} nie będzie mieć 18 lat w dniu biegu.",
+      "feeLabel": "Opłata za zgłoszenie",
+      "fee": "{amount} ACER z kasy drużyny",
+      "feeFree": "Bezpłatnie",
+      "treasury": "Kasa drużyny: {balance} ACER",
+      "insufficientDetail": "Zgłoszenie kosztuje {needed} ACER, a w kasie drużyny jest {balance}.",
+      "topUp": "Wpłać do kasy drużyny",
+      "refundNote": "Wycofanie zgłoszenia przed zamknięciem zapisów zwraca opłatę do kasy drużyny.",
+      "withdrawNoRefundNote": "Zapisy są już zamknięte, więc opłata za zgłoszenie nie wraca."
     },
     "entryPage": {
       "back": "Wróć do {team}",
@@ -1937,6 +1948,14 @@
         "body": "Link do potwierdzenia jest nieprawidłowy lub wygasł. Zaloguj się na adres e-mail, którego użył kapitan drużyny, i potwierdź z poziomu swojego profilu.",
         "cta": "Zaloguj się"
       }
+    },
+    "fee": {
+      "amount": "{amount} ACER",
+      "wallet": "W portfelu masz {balance} ACER",
+      "note": "Pobierane z portfela przy potwierdzeniu. Zwracane tylko wtedy, gdy bieg zostanie odwołany.",
+      "insufficientTitle": "Za mało ACER",
+      "insufficientBody": "Zapis na ten bieg kosztuje {needed} ACER, a w portfelu masz {balance}. Doładuj portfel i wróć — miejsce nie jest w tym czasie rezerwowane.",
+      "topUp": "Doładuj portfel"
     }
   },
   "unsubscribe": {

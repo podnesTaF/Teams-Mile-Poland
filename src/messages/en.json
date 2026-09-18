@@ -1022,7 +1022,10 @@
           "note": "Already registered? Your entry for this night is void.",
           "cta": "Pick another night"
         }
-      }
+      },
+      "feeIndividual": "Individual entry: {amount} ACER",
+      "feeTeam": "Team entry: {amount} ACER",
+      "feeFree": "Free entry"
     },
     "docs": {
       "heading": "Documents",
@@ -1751,7 +1754,15 @@
         "dsq": "Disqualified"
       },
       "incompleteDetail": "Your team needs {count, plural, one {# more runner} other {# more runners}} before it can enter.",
-      "underageDetail": "{name} will be under 18 on the event date."
+      "underageDetail": "{name} will be under 18 on the event date.",
+      "feeLabel": "Entry fee",
+      "fee": "{amount} ACER from the team treasury",
+      "feeFree": "Free",
+      "treasury": "Treasury: {balance} ACER",
+      "insufficientDetail": "Entering costs {needed} ACER and the treasury holds {balance}.",
+      "topUp": "Contribute to the treasury",
+      "refundNote": "Withdraw while registration is open and the fee goes back to the treasury.",
+      "withdrawNoRefundNote": "Registration has closed, so the entry fee stays spent."
     },
     "entryPage": {
       "back": "Back to {team}",
@@ -1937,6 +1948,14 @@
         "body": "The confirmation link is invalid or has expired. Sign in with the email address your team captain used, and confirm from your profile instead.",
         "cta": "Sign in"
       }
+    },
+    "fee": {
+      "amount": "{amount} ACER",
+      "wallet": "Your wallet holds {balance} ACER",
+      "note": "Taken from your wallet when you confirm. Returned only if the night is cancelled.",
+      "insufficientTitle": "Not enough ACER",
+      "insufficientBody": "Entry for this night costs {needed} ACER and your wallet holds {balance}. Top up and come back — no place is held for you in the meantime.",
+      "topUp": "Top up your wallet"
     }
   },
   "unsubscribe": {
