@@ -1,11 +1,18 @@
 import { getReferrerId } from "@/features/referral/data";
 
-import { PARTICIPATION_REWARD_ACER, REFERRAL_REWARD_ACER, acerToMinor } from "./config";
+import {
+  PARTICIPATION_REWARD_ACER,
+  REFERRAL_REWARD_ACER,
+  SIGNUP_GRANT_ACER,
+  acerToMinor,
+} from "./config";
 import { recordWalletTransaction } from "./data";
 
 /**
- * The automatic ACER accruals, both of which ride the same fact: a registration
- * transitioning to `checked_in` (ТЗ 2.6.3.2 and 2.6.3.1).
+ * The automatic ACER accruals — every credit nobody presses a button for.
+ *
+ * Two of them ride the same fact: a registration transitioning to `checked_in`
+ * (ТЗ 2.6.3.2 and 2.6.3.1).
  *
  * 1. The **runner** earns {@link PARTICIPATION_REWARD_ACER} for turning up —
  *    every event, every time.
@@ -43,6 +50,17 @@ import { recordWalletTransaction } from "./data";
  *   by an admin `reversal` row, not by deleting the accrual.
  * - **Backfill.** Earning starts here; check-ins and referrals from before this
  *   shipped earn nothing (client decision, 2026-08-20).
+ *
+ * The third accrual — {@link creditSignupGrant} (ADR 0013) — is automatic in the
+ * same sense but rides a different fact: an account coming into existence,
+ * credited from `databaseHooks.user.create.after` in `lib/auth/better-auth.ts`.
+ * It lives here because everything above applies to it unchanged — one write
+ * site rather than one per caller, the ledger index rather than a guard, no
+ * reversal and no backfill — and because "what mints ACER without an admin" is a
+ * question worth having a single file to answer. Existing accounts were
+ * deliberately **not** granted (2026-09-18): the owner asked for it on
+ * registration, and paying out every account already on the books is a separate
+ * decision with a separate bill.
  */
 
 export type CheckInAccrualInput = {
@@ -131,10 +149,72 @@ export async function awardCheckInRewards(input: CheckInAccrualInput): Promise<v
   ]);
 }
 
-async function attempt(what: string, run: () => Promise<void>): Promise<void> {
+/**
+ * {@link SIGNUP_GRANT_ACER} to a brand-new account, once per account, forever.
+ * **Never throws, and never rejects** — see below.
+ *
+ * The key `signup:<userId>` *is* the rule. There is no "have they been granted
+ * already?" read anywhere, because a read cannot be told apart from a race: two
+ * concurrent creations of the same id (a retried OAuth callback, a
+ * double-submitted guest form) would both see nothing and both credit. The
+ * ledger's partial unique index decides instead, and the second attempt comes
+ * back `null`, which is a success (see `recordWalletTransaction`). The same key
+ * is what makes the grant survive a later re-run of anything: an account is
+ * created once, so it is granted once, whatever else calls this.
+ *
+ * `reference` is left null, which is a choice and not an omission. The
+ * `eventReference` note above takes a reference to be the row's *cause* named in
+ * a form the wallet screen and a query can both read — `event:<slug>` earns its
+ * place because the check-in happened somewhere the owner's id does not say. A
+ * grant has no such somewhere: its cause is this account existing, and that is
+ * already the row's own `user_id` and its own timestamp. `signup:<userId>` in
+ * the reference column would only restate the `idempotency_key` beside it, and a
+ * reference that restates another column is one more thing to keep true.
+ *
+ * `memo` is null for the reason `eventReference` gives: a memo is stored once and
+ * read in whatever language its owner reads the site in, so any sentence here
+ * would be an untranslatable line on the money screen. The `signup_grant` kind is
+ * labelled in all three catalogs, which is what the person actually reads.
+ *
+ * A zero (or negative) {@link SIGNUP_GRANT_ACER} writes **no row at all** rather
+ * than a zero-amount one — the rule `createTeamRows` applies to `priceMinor`. A
+ * ledger of 0.00 credits is history nobody can act on, and it would also burn the
+ * one-shot key, so turning the grant back on later would credit nobody.
+ */
+export async function creditSignupGrant(userId: string): Promise<void> {
+  const amountMinor = acerToMinor(SIGNUP_GRANT_ACER);
+  if (amountMinor <= 0) return;
+
+  // Guarded by the same wrapper as the check-in rewards, for the same reason one
+  // altitude up: the fact that matters is the account, and a ledger write that
+  // fails must not fail the sign-up. A person who cannot create an account
+  // because the wallet hiccuped is a far worse outcome than a missing grant,
+  // which an admin grants by hand from the wallet panel in ten seconds.
+  await attempt(`signup grant for user ${userId}`, () =>
+    recordWalletTransaction({
+      userId,
+      asset: "ACER",
+      amountMinor,
+      kind: "signup_grant",
+      idempotencyKey: `signup:${userId}`,
+    }),
+  );
+}
+
+/**
+ * Run one accrual and swallow whatever it throws, loudly.
+ *
+ * Every caller here credits *alongside* a write that matters more than the
+ * money — a check-in at the desk, an account being created — so the tagged
+ * `console.error` is the whole error handling: the miss is repairable from the
+ * admin wallet panel, and the fact it rides is not repairable by asking the
+ * person to come back and try their life again. `what` carries the identifiers
+ * an admin needs to make the repair by hand.
+ */
+async function attempt(what: string, run: () => Promise<unknown>): Promise<void> {
   try {
     await run();
   } catch (error) {
-    console.error(`[wallet] ${what} failed; check-in stands uncredited:`, error);
+    console.error(`[wallet] ${what} failed; the fact that earned it stands uncredited:`, error);
   }
 }
