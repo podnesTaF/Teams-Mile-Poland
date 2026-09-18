@@ -30,6 +30,7 @@ export const WALLET_ASSETS: readonly WalletAsset[] = ["ACER", "ACE_PL", "ACEG"];
  * also what keeps earned ACER distinguishable from purchased ACER for free.
  */
 export type WalletTxKind =
+  | "signup_grant" // the welcome credit, once per account, on account creation (ADR 0013)
   | "participation_reward" // 2.6.3.2 — the runner's own check-in
   | "prize_reward" // 2.6.3.2 podium prizes (reserved; nothing writes it in v1)
   | "referral_signup" // 2.6.3.1 — referred person's first-ever check-in
@@ -39,7 +40,9 @@ export type WalletTxKind =
   | "team_creation" // spend: founding a team (planning/team-creation-payment). Always negative
   | "treasury_contribution" // a member pays into their team's treasury: user leg −, team leg + (ADR 0012)
   | "treasury_payout" // the manager pays a member out of the treasury: team leg −, user leg +
-  | "team_entry_fee" // spend from the treasury: entering an event (reserved; nothing writes it yet)
+  | "team_entry_fee" // spend from the treasury: entering an event (ADR 0013). Always negative
+  | "individual_entry_fee" // spend from a wallet: registering for a priced night (ADR 0013). Always negative
+  | "entry_fee_refund" // either fee given back — withdrawal while open, or a cancelled event
   | "admin_credit"
   | "admin_debit"
   | "reversal"; // the correction of an earlier row
@@ -141,7 +144,14 @@ export const walletTransactions = pgTable(
      * after its author's account is gone.
      */
     createdBy: text("created_by").references(() => users.id, { onDelete: "set null" }),
-    /** The row this one reverses. Set only on `kind = "reversal"`. */
+    /**
+     * The row this one undoes: an admin `reversal`, or the `entry_fee_refund`
+     * that gives an entry fee back (ADR 0013). A refund is not a correction —
+     * the debit was right when it was made — which is why it carries its own
+     * kind and not `reversal`: the history line is read by the person whose
+     * money moved, and "reversal" reads to them as "an admin fixed a mistake".
+     * The chain from the credit back to its cause is the same either way.
+     */
     reversesId: uuid("reverses_id").references((): AnyPgColumn => walletTransactions.id),
     /** Natural key of the causing fact; null for repeatable manual entries. */
     idempotencyKey: text("idempotency_key"),

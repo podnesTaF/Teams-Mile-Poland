@@ -68,6 +68,27 @@ export const events = pgTable("events", {
   heatIntervalMinutes: integer("heat_interval_minutes")
     .default(DEFAULT_HEAT_INTERVAL_MINUTES)
     .notNull(),
+  /**
+   * What entering this night costs, in **whole ACER**, per team entry (ADR
+   * 0013). `0` — the default, and every row until an admin prices one — means
+   * free, and skips the debit entirely rather than writing a zero-amount
+   * ledger row.
+   *
+   * A price lives on the event rather than in `features/wallet/config.ts`
+   * because events are data, not config (ADR 0005): pricing the two October
+   * nights is an admin edit, not a deploy, and every other night stays free
+   * without anyone naming it. Whole ACER, not minor units, because that is the
+   * unit the admin types and the unit every other price constant is in;
+   * `acerToMinor` converts at the debit.
+   *
+   * The fee **charged** is the fee at the moment of entry, recorded in the
+   * ledger row. Re-pricing a night never retro-charges an entry already made
+   * and never retro-refunds one: the ledger is append-only, and a price change
+   * is a fact of its own.
+   */
+  teamEntryFeeAcer: integer("team_entry_fee_acer").default(0).notNull(),
+  /** Per-runner entry fee in whole ACER; see {@link events}.`teamEntryFeeAcer`. */
+  individualEntryFeeAcer: integer("individual_entry_fee_acer").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   /** The admin who created it; null for the rows seeded from the old registry. */

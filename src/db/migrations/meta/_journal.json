@@ -197,6 +197,13 @@
       "when": 1789636684704,
       "tag": "0027_blushing_orphan",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1789753744676,
+      "tag": "0028_elite_boomerang",
+      "breakpoints": true
     }
   ]
 }

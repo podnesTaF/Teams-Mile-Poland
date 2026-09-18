@@ -160,6 +160,8 @@ function toFormValues(event: EventSummary): EventFormValues {
     bibPool: event.bibPool ?? DEFAULT_BIB_POOL,
     bibSlots: event.bibSlots ? formatBibSlots(event.bibSlots) : "",
     heatIntervalMinutes: event.heatIntervalMinutes ?? DEFAULT_HEAT_INTERVAL_MINUTES,
+    teamEntryFeeAcer: event.teamEntryFeeAcer ?? 0,
+    individualEntryFeeAcer: event.individualEntryFeeAcer ?? 0,
   };
 }
 

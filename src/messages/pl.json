@@ -2028,6 +2028,7 @@
       "pagerLabel": "Strony historii transakcji"
     },
     "kinds": {
+      "signup_grant": "Kredyt powitalny",
       "participation_reward": "Nagroda za udział w biegu",
       "prize_reward": "Nagroda z puli nagród",
       "referral_signup": "Nagroda za zaproszenie",
@@ -2039,6 +2040,8 @@
       "team_creation": "Założenie drużyny",
       "treasury_contribution": "Wpłata do kasy drużyny",
       "treasury_payout": "Wypłata z kasy drużyny",
+      "individual_entry_fee": "Opłata za zapisy na bieg",
+      "entry_fee_refund": "Zwrot opłaty za zgłoszenie",
       "team_entry_fee": "Opłata za zgłoszenie drużyny",
       "reversal": "Korekta"
     },

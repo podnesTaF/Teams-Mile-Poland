@@ -89,6 +89,8 @@ function toSummary(row: EventRow): EventSummary {
     bibPool: row.bibPool,
     ...(bibSlots ? { bibSlots } : {}),
     heatIntervalMinutes: row.heatIntervalMinutes,
+    teamEntryFeeAcer: row.teamEntryFeeAcer,
+    individualEntryFeeAcer: row.individualEntryFeeAcer,
     ...(RESULTS_SHEETS[row.slug] ? { results: RESULTS_SHEETS[row.slug] } : {}),
   };
 }

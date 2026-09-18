@@ -112,6 +112,13 @@ const MAX_BIB_POOL = 5000;
 /** Upper bound on heat spacing: heats a day apart are not one race night. */
 const MAX_HEAT_INTERVAL_MINUTES = 24 * 60;
 
+/**
+ * The ceiling on either entry fee, in whole ACER (ADR 0013). A typo guard, not
+ * a policy — sized well above anything a night has a reason to cost, in the
+ * same spirit as `TREASURY_TRANSFER_MAX_ACER`. `0` is the floor and means free.
+ */
+const MAX_ENTRY_FEE_ACER = 10_000;
+
 /** `HH:MM` on a 24-hour clock — the shape both window fields are stored in. */
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -140,6 +147,11 @@ export const eventFieldsSchema = z.object({
   city: z.string().trim().min(1, "A city is required").max(120),
   bibPool: z.coerce.number().int().min(1).max(MAX_BIB_POOL),
   heatIntervalMinutes: z.coerce.number().int().min(1).max(MAX_HEAT_INTERVAL_MINUTES),
+  // Whole ACER, `0` = free. Integers only: a fee is money, and half an ACER is
+  // a typo far more often than an intention (the same rule `isValidAcerAmount`
+  // applies to a top-up).
+  teamEntryFeeAcer: z.coerce.number().int().min(0).max(MAX_ENTRY_FEE_ACER),
+  individualEntryFeeAcer: z.coerce.number().int().min(0).max(MAX_ENTRY_FEE_ACER),
 });
 
 export type EventFields = z.infer<typeof eventFieldsSchema>;

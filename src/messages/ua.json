@@ -2028,6 +2028,7 @@
       "pagerLabel": "Сторінки історії транзакцій"
     },
     "kinds": {
+      "signup_grant": "Вітальний кредит",
       "participation_reward": "Нагорода за участь у забігу",
       "prize_reward": "Призова нагорода",
       "referral_signup": "Нагорода за запрошення",
@@ -2039,6 +2040,8 @@
       "team_creation": "Створення команди",
       "treasury_contribution": "Внесок до скарбниці команди",
       "treasury_payout": "Виплата зі скарбниці команди",
+      "individual_entry_fee": "Внесок за реєстрацію на забіг",
+      "entry_fee_refund": "Повернення внеску за заявку",
       "team_entry_fee": "Внесок за заявку команди",
       "reversal": "Коригування"
     },

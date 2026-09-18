@@ -47,6 +47,10 @@ export type EventFormValues = {
   /** Slot spec ("101-115, 203"), or "" when the event issues 1..bibPool. */
   bibSlots: string;
   heatIntervalMinutes: number;
+  /** Whole ACER a team entry costs on this night; 0 = free. */
+  teamEntryFeeAcer: number;
+  /** Whole ACER one runner's registration costs on this night; 0 = free. */
+  individualEntryFeeAcer: number;
 };
 
 /**
@@ -73,6 +77,10 @@ export const NEW_EVENT_DEFAULTS: EventFormValues = {
   bibPool: DEFAULT_BIB_POOL,
   bibSlots: "",
   heatIntervalMinutes: DEFAULT_HEAT_INTERVAL_MINUTES,
+  // A new night is free until someone prices it, which is what keeps every
+  // event created from here unaffected by ADR 0013.
+  teamEntryFeeAcer: 0,
+  individualEntryFeeAcer: 0,
 };
 
 /** The two patterns the series alternates between — one press each. */
@@ -270,6 +278,46 @@ export function EventForm({
           <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[52ch]")}>
             Spacing the heat builder prefills between generated heats. Changing it does not re-time
             heats that already exist.
+          </p>
+        </div>
+
+        <div>
+          <AdminField label="Team entry fee (ACER)" className="max-w-[130px]">
+            <input
+              className={adminInput()}
+              type="number"
+              name="teamEntryFeeAcer"
+              required
+              min={0}
+              step={1}
+              defaultValue={initial.teamEntryFeeAcer}
+              data-event-teamfee
+            />
+          </AdminField>
+          <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[52ch]")}>
+            Debited from the team&rsquo;s treasury when a manager enters this night. 0 means free.
+            Changing it never re-charges or refunds an entry already made — the fee charged is the
+            one recorded in that entry&rsquo;s ledger row.
+          </p>
+        </div>
+
+        <div>
+          <AdminField label="Individual entry fee (ACER)" className="max-w-[130px]">
+            <input
+              className={adminInput()}
+              type="number"
+              name="individualEntryFeeAcer"
+              required
+              min={0}
+              step={1}
+              defaultValue={initial.individualEntryFeeAcer}
+              data-event-indivfee
+            />
+          </AdminField>
+          <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[52ch]")}>
+            Debited from the runner&rsquo;s wallet when they register for this night. 0 means free.
+            Keep it at or below the welcome grant a new account gets, or a first-timer who signs up
+            for this night cannot finish registering.
           </p>
         </div>
       </div>

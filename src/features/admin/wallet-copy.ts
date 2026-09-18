@@ -17,6 +17,7 @@ export const WALLET_ASSET_LABEL: Record<WalletAsset, string> = {
 };
 
 export const WALLET_KIND_LABEL: Record<WalletTxKind, string> = {
+  signup_grant: "Welcome credit",
   participation_reward: "Race participation reward",
   prize_reward: "Prize reward",
   referral_signup: "Invitation reward",
@@ -27,6 +28,8 @@ export const WALLET_KIND_LABEL: Record<WalletTxKind, string> = {
   treasury_contribution: "Treasury contribution",
   treasury_payout: "Treasury payout",
   team_entry_fee: "Team entry fee",
+  individual_entry_fee: "Race entry fee",
+  entry_fee_refund: "Entry fee refunded",
   admin_credit: "Manual credit",
   admin_debit: "Manual debit",
   reversal: "Correction",

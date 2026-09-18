@@ -203,5 +203,18 @@ export type EventSummary = {
    * Defaults to {@link DEFAULT_HEAT_INTERVAL_MINUTES} when omitted.
    */
   heatIntervalMinutes?: number;
+  /**
+   * What one team entry costs on this night, in whole ACER, debited from the
+   * team's treasury when the manager enters (ADR 0013). `0` — the default for
+   * every row nobody has priced — means free.
+   *
+   * Present on the summary rather than read from the row at the debit, because
+   * every surface that offers the button has to *show* the price first: an
+   * entry that fails at submit for want of money is the failure this field
+   * exists to prevent.
+   */
+  teamEntryFeeAcer?: number;
+  /** What one individual registration costs, in whole ACER. See {@link EventSummary.teamEntryFeeAcer}. */
+  individualEntryFeeAcer?: number;
   results?: EventResults;
 };

@@ -15,8 +15,31 @@
 /** Minor units per whole ACER. Money is integer minor units everywhere. */
 export const ACER_MINOR_UNITS = 100;
 
-/** Credited to the runner on each on-site check-in (per event, every event). */
-export const PARTICIPATION_REWARD_ACER = 1;
+/**
+ * Credited to the runner on each on-site check-in (per event, every event).
+ *
+ * Raised from 1 on 2026-09-18 (ADR 0013) together with the entry fees it pays
+ * for. Past participations were topped **up to** this number by
+ * `scripts/backfill-participation-rewards.ts` — everyone who has run a race
+ * holds exactly this much for it, whenever they ran — so raising it again means
+ * deciding whether to top up again, not just editing the constant.
+ */
+export const PARTICIPATION_REWARD_ACER = 5;
+
+/**
+ * Credited once to every account when it is created (ADR 0013), from the
+ * `user.create.after` database hook — so email sign-up, Google OAuth and the
+ * guest registration flow are all covered by one write.
+ *
+ * It exists to make the guest funnel finishable: a first-timer who signs up
+ * through `registerAsGuest` must be able to pay the individual entry fee of the
+ * night they came for. **Keep this at or above the highest priced night's
+ * `individual_entry_fee_acer`** or that person reaches the consent screen and
+ * is refused for want of money they were never told they needed. It is not a
+ * compile-time assertion, because the fee is a column and this is a constant;
+ * `scripts/verify-entry-fees.ts` checks it against every priced row instead.
+ */
+export const SIGNUP_GRANT_ACER = 5;
 
 /** Credited to the referrer the first time a person they referred checks in — once per person. */
 export const REFERRAL_REWARD_ACER = 1;
@@ -24,7 +47,9 @@ export const REFERRAL_REWARD_ACER = 1;
 /**
  * What founding a team costs, in whole ACER, debited from the creator's wallet
  * in the same transaction that creates the team (`createTeam`). Entering an
- * event as a team stays free. Changing this is a deploy, not a migration; a
+ * event as a team is priced per night on the event row
+ * (`events.team_entry_fee_acer`, ADR 0013), not here. Changing this is a
+ * deploy, not a migration; a
  * value of 0 skips the debit entirely rather than writing zero-amount rows.
  */
 export const TEAM_CREATION_PRICE_ACER = 100;

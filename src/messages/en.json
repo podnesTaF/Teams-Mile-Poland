@@ -2028,6 +2028,7 @@
       "pagerLabel": "Transaction history pages"
     },
     "kinds": {
+      "signup_grant": "Welcome credit",
       "participation_reward": "Race participation reward",
       "prize_reward": "Prize reward",
       "referral_signup": "Invitation reward",
@@ -2039,6 +2040,8 @@
       "team_creation": "Team creation",
       "treasury_contribution": "Treasury contribution",
       "treasury_payout": "Treasury payout",
+      "individual_entry_fee": "Race entry fee",
+      "entry_fee_refund": "Entry fee refunded",
       "team_entry_fee": "Team entry fee",
       "reversal": "Correction"
     },

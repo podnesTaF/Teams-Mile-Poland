@@ -143,6 +143,8 @@ function readFields(formData: FormData): EventFields | null {
     city: field(formData, "city"),
     bibPool: field(formData, "bibPool"),
     heatIntervalMinutes: field(formData, "heatIntervalMinutes"),
+    teamEntryFeeAcer: field(formData, "teamEntryFeeAcer") || "0",
+    individualEntryFeeAcer: field(formData, "individualEntryFeeAcer") || "0",
   });
   return parsed.success ? parsed.data : null;
 }
@@ -328,6 +330,8 @@ export async function createEvent(formData: FormData): Promise<void> {
     bibPool: fields.bibPool,
     bibSlots: bibSlots?.spec ?? null,
     heatIntervalMinutes: fields.heatIntervalMinutes,
+    teamEntryFeeAcer: fields.teamEntryFeeAcer,
+    individualEntryFeeAcer: fields.individualEntryFeeAcer,
     createdBy: actor.id,
   };
 
@@ -432,6 +436,10 @@ export async function updateEvent(formData: FormData): Promise<void> {
       bibPool: fields.bibPool,
       bibSlots: bibSlots?.spec ?? null,
       heatIntervalMinutes: fields.heatIntervalMinutes,
+      // Re-pricing never touches an entry already made: the fee that was
+      // charged is the one in that entry's ledger row (ADR 0013).
+      teamEntryFeeAcer: fields.teamEntryFeeAcer,
+      individualEntryFeeAcer: fields.individualEntryFeeAcer,
       updatedAt: new Date(),
     })
     .where(eq(events.slug, slug));
