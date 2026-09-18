@@ -7,6 +7,7 @@ import { accounts, sessions, users, verifications } from "@/db/schema";
 import { ResetPasswordEmail } from "@/emails/reset-password";
 import { VerifyEmail } from "@/emails/verify-email";
 import { applyReferralAttribution, REF_COOKIE } from "@/features/referral/data";
+import { creditSignupGrant } from "@/features/wallet/accruals";
 import { getAppUrl, vercelDeploymentOrigins } from "@/lib/app-url";
 import { db } from "@/lib/db";
 import { FROM_EMAIL, getResend, resend } from "@/lib/email";
@@ -194,14 +195,31 @@ export const auth = betterAuth({
         // Derive the E.164 dedup key from whatever display phone is being
         // stored. See the note on `derivePhoneE164` above.
         before: async (user) => derivePhoneE164(user),
-        // Referral attribution: every account-creation path funnels through
-        // here (email sign-up, Google OAuth callback, and `registerAsGuest`,
-        // which forwards the browser headers for this reason). The `ref`
-        // cookie is set by `/r/[code]`; the helper ignores unknown codes and
-        // never throws.
+        // The two things that happen to an account because it now exists.
+        // Every account-creation path funnels through here — email sign-up, the
+        // Google OAuth callback, and `registerAsGuest` (which forwards the
+        // browser headers for this reason) — so this hook, and not three
+        // callers, is what makes each of them happen exactly once.
+        //
+        // 1. The signup grant (ADR 0013): SIGNUP_GRANT_ACER of ACER, keyed
+        //    `signup:<userId>`, so a retried OAuth callback credits once.
+        // 2. Referral attribution: the `ref` cookie set by `/r/[code]`; the
+        //    helper ignores a missing or unknown code and never throws.
+        //
+        // Deliberately two independent statements rather than one outcome.
+        // Neither is allowed to cost the other: a broken referral cookie must
+        // not leave a runner without their 5 ACER, and a ledger outage must not
+        // lose the attribution that decides who gets paid when they first race.
+        // The grant goes first because it is the one with a hard guarantee —
+        // `creditSignupGrant` cannot reject — so awaiting it first cannot
+        // strand the second line. They are sequential rather than a
+        // `Promise.all` on purpose: one rejection there would reject the hook
+        // (and with it the account creation) even though the other write had
+        // already landed, which is exactly the coupling this is avoiding, and
+        // two small writes on the sign-up path are not worth racing.
         after: async (user, ctx) => {
-          const code = ctx?.getCookie(REF_COOKIE);
-          if (code) await applyReferralAttribution(user.id, code);
+          await creditSignupGrant(user.id);
+          await applyReferralAttribution(user.id, ctx?.getCookie(REF_COOKIE));
         },
       },
       update: {
