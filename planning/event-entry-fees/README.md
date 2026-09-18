@@ -63,6 +63,38 @@ shown. See *Release conditions*.
 | Event row + admin form | `src/db/schema/events.ts`, `features/admin/event-schemas.ts`, `event-actions.ts`, `components/event-form.tsx`, `lib/events/store.ts` (`EventSummary`) |
 | Existing refusal key for an empty treasury | `teams.reasons.treasury_insufficient` ×3 (`config.ts:88`) — reused, not re-invented |
 
+## Status — SHIPPED on `main`, 2026-09-18
+
+All seven slices merged; ADR 0013 written. Verified by 182 checks across four
+scripts against the live database (`verify-signup-grant` 23,
+`verify-individual-entry-fee` 27, `verify-team-entry-fee` 55,
+`verify-entry-fee-refunds` 77), plus a real `next build` and a clean typecheck.
+
+**Live database state:** `mile-2026-10-01` and `mile-2026-10-10` read team 100 /
+individual 5; `mile-2026-09-22` and every completed night stay 0/0. 100
+participation rows / 500 ACER backfilled; 81 accounts now hold a positive
+balance totalling 652 ACER.
+
+**Deploy is pending** — the columns are priced and the code is on `main`, so
+charging starts with the next deploy, not before.
+
+**Left open, deliberately:**
+
+- The 44 `dns`-only pairs (220 ACER). Owner decided not to pay for absence;
+  one flag credits them if that changes.
+- The 13 series result rows that resolve to no account, and the 2 stranded
+  1-ACER credits on deleted registrations. Owner decided to leave both.
+- No treasury holds anything, so the first paid team entry needs a contribution
+  or an admin grant. Accepted knowingly.
+- Terms of Use: entry fees and the withdrawal refund are new spend terms and go
+  to the same counsel review that gates `TREASURY_PAYOUTS_ENABLED`.
+- `grantAdmin` writes the `users` row directly rather than through Better Auth,
+  so an invited admin never fires the signup grant hook.
+- No HTTP pass with a real session: both fee actions sit behind `next/headers`
+  sessions and the live Resend key, so every slice drove the row layer instead.
+  The `data-*` markers each slice added are there for that verifier when someone
+  writes it.
+
 ## Slices
 
 | # | Slice | Contents |
