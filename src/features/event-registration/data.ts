@@ -10,6 +10,8 @@ import {
   type RegistrationConsentRow,
   users,
 } from "@/db/schema";
+import { getAcerBalance, recordWalletTransaction } from "@/features/wallet/data";
+import { InsufficientAcerError } from "@/features/wallet/errors";
 import { getDb } from "@/lib/db";
 import type { ConsentRowInput } from "@/lib/legal/consent";
 import type { DocSet, DocSlug } from "@/lib/legal/manifest";
@@ -62,13 +64,15 @@ function freeRegistrationValues(input: FreeRegistrationInput) {
 }
 
 /**
- * Create a free registration for a user, with no consent record. Registration is
- * free and uncapped; the unique (event_slug, user_id) index is the only guard
- * against duplicates.
+ * Create a free registration for a user, with no consent record. Uncapped; the
+ * unique (event_slug, user_id) index is the only guard against duplicates.
  *
- * The runner-facing path is {@link createRegistrationWithConsent} — this one
- * remains for the admin "register this user" action, where nobody ticked
- * anything and there is consequently nothing to record.
+ * **Free even on a priced night, deliberately** (ADR 0013). This is the admin
+ * comp path — `features/admin/users-actions.ts` `createFreeRegistration` — where
+ * an admin puts a runner on the start list by hand. Nobody ticked anything here,
+ * so there is nothing to record, and nobody's wallet was asked, so there is
+ * nothing to charge. The runner-facing path is
+ * {@link createRegistrationWithConsent}, and it is the only one that takes money.
  */
 export async function createFreeRegistration(
   input: FreeRegistrationInput,
@@ -82,15 +86,47 @@ export async function createFreeRegistration(
 }
 
 /**
- * Write a registration **and its consent evidence in one transaction** (ADR
- * 0006): the registration row, one `consent_submissions` row for the form
- * submission, and one `registration_consents` row per box ticked. A failure
- * anywhere — a duplicate registration, an unregistered document slug, a lost
- * connection — writes nothing at all, which is the invariant this feature
- * exists to establish: no registration without a signed statement.
+ * The shortfall sentinel, re-exported so `actions.ts` and the verification
+ * script import the registration's refusal from the registration module rather
+ * than reaching into the wallet for it — the same courtesy `creation.ts` does
+ * for `actions/team.ts`. It is one class (`src/features/wallet/errors.ts`,
+ * ADR 0012): every money path throws the same thing.
+ */
+export { InsufficientAcerError, isInsufficientAcer } from "@/features/wallet/errors";
+
+/**
+ * Write a registration, **its consent evidence and its entry fee in one
+ * transaction** (ADR 0006, ADR 0013): the registration row, one
+ * `consent_submissions` row for the form submission, one `registration_consents`
+ * row per box ticked, and — on a priced night — the wallet debit that paid for
+ * the place. A failure anywhere — a duplicate registration, an unregistered
+ * document slug, an empty wallet, a lost connection — writes nothing at all,
+ * which is the invariant this feature exists to establish: no registration
+ * without a signed statement, and now no registration without its debit and no
+ * debit without its registration.
  *
  * Ordering inside the transaction is forced by the FKs: the registration's id is
  * the submission's parent, the submission's id is every consent row's parent.
+ *
+ * **The balance race.** There is no stored balance to `UPDATE … WHERE balance >=
+ * fee`, so two registrations by one runner — a double-click, two tabs, two
+ * nights at once — could each read the same `SUM` and both pass. The lock on the
+ * runner's `users` row is the per-user mutex, and the balance is re-read *under*
+ * it through {@link getAcerBalance}`(userId, tx)`; the second caller waits,
+ * re-reads a balance that now includes the first debit, and throws
+ * {@link InsufficientAcerError}. `registerForEvent`'s pre-check outside the
+ * transaction is a courtesy that makes the everyday case a message instead of a
+ * rollback; this is what makes it true. Same reasoning, same shape as
+ * `createTeamRows` — read its docblock, it is the original.
+ *
+ * **`FOR NO KEY UPDATE`, not `FOR UPDATE`.** Both exclude another spend by the
+ * same runner (they conflict with each other, and with `createTeamRows`' own
+ * `FOR UPDATE`), which is all the mutex has to do. `FOR UPDATE` additionally
+ * conflicts with the `KEY SHARE` that *any* insert referencing this user takes —
+ * including `event_registrations.user_id` itself, and including a credit landing
+ * on this wallet — so a Stripe top-up webhook or a desk accrual would queue
+ * behind a half-finished registration for no reason at all. The weaker mode is
+ * the deliberate one; `transfers.ts`' docblock is where this was settled.
  */
 export async function createRegistrationWithConsent(input: {
   registration: FreeRegistrationInput;
@@ -103,9 +139,32 @@ export async function createRegistrationWithConsent(input: {
     userAgent: string | null;
   };
   consents: ConsentRowInput[];
+  /**
+   * What this night costs the runner, in ACER minor units, as a **positive**
+   * number; the ledger row carries the minus. `0` skips the debit entirely
+   * rather than writing a zero-amount row, so a free night's ledger is exactly
+   * as empty as it was before fees existed. Passed in rather than read off the
+   * event here so the action prices the night once — the same number it
+   * pre-checked the balance against, through `individualEntryFeeMinor`.
+   */
+  feeMinor: number;
 }): Promise<EventRegistrationRow> {
   const db = getDb();
+  const { feeMinor } = input;
   return db.transaction(async (tx) => {
+    if (feeMinor > 0) {
+      // The lock, not the read, is what serialises two spends; the row is
+      // selected only to take it.
+      await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, input.registration.userId))
+        .for("no key update");
+
+      const balanceMinor = await getAcerBalance(input.registration.userId, tx);
+      if (balanceMinor < feeMinor) throw new InsufficientAcerError(feeMinor, balanceMinor);
+    }
+
     const [registration] = await tx
       .insert(eventRegistrations)
       .values(freeRegistrationValues(input.registration))
@@ -133,6 +192,28 @@ export async function createRegistrationWithConsent(input: {
         value: c.value,
       })),
     );
+
+    if (feeMinor > 0) {
+      // Keyed by the registration so a retry of this exact registration could
+      // never charge twice; the id is minted in this transaction, so the key is
+      // unique by construction and the write is a plain insert in practice. The
+      // real duplicate guard a double-submit hits is the unique
+      // (event_slug, user_id) index one insert above — it rolls this whole
+      // transaction back, debit included, before the key is ever tested.
+      await recordWalletTransaction(
+        {
+          userId: input.registration.userId,
+          asset: "ACER",
+          amountMinor: -feeMinor,
+          kind: "individual_entry_fee",
+          // `event:<slug>`, the stamp every wallet row about a race night
+          // carries (`accruals.ts`), so the runner's history reads as one story.
+          reference: `event:${input.registration.eventSlug}`,
+          idempotencyKey: `entry_fee:${registration.id}`,
+        },
+        tx,
+      );
+    }
 
     return registration;
   });

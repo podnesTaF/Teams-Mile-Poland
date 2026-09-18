@@ -16,6 +16,8 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { getEventDocuments, resolveDocumentFile } from "@/lib/events/documents";
 import { getEventMediaConfig } from "@/lib/events/media-config";
+import { individualEntryFeeMinor, teamEntryFeeMinor } from "@/features/wallet/entry-fees";
+import { minorToAcer } from "@/features/wallet/config";
 import { getEventBySlug, getFirstHeatTime } from "@/lib/events/registry";
 import { getPublicResults } from "@/lib/events/results-data";
 // Straight from the store, not the `registry` compat shim: `isPubliclyVisible`
@@ -146,6 +148,20 @@ export default async function EventDetailPage({ params }: PageProps) {
   const individualPath = acceptsIndividuals(event);
   const isTeamEvent = teamPath && !individualPath;
   const enteredTeams = teamPath ? await countEntriesForEvent(slug) : 0;
+  /**
+   * What each door costs, in whole ACER (ADR 0013) — read through the fee
+   * helpers, never off the column, so this page, the register flow and the
+   * transaction that takes the money agree by construction.
+   *
+   * Each price is gated on its own path, not merely on being non-zero: a
+   * team-only night carrying a stray individual fee must not advertise a door
+   * that does not exist here. `0` on a path means free, which is every night
+   * until an admin prices one, and the entry row keeps reading "Free" exactly
+   * as it did before fees existed.
+   */
+  const individualFeeAcer = individualPath ? minorToAcer(individualEntryFeeMinor(event)) : 0;
+  const teamFeeAcer = teamPath ? minorToAcer(teamEntryFeeMinor(event)) : 0;
+  const paidEntry = individualFeeAcer > 0 || teamFeeAcer > 0;
   // The event's results — imported rows or a legacy config sheet. Read at
   // build/revalidate time: this page is SSG, and the import commit revalidates
   // it, so results appear with the first mid-event import rather than waiting
@@ -256,12 +272,34 @@ export default async function EventDetailPage({ params }: PageProps) {
 
             <aside>
               <div className="slots-card">
-                <div className="slots-row">
+                {/* One entry row, carrying whichever prices this night has:
+                    both on a mixed night, because the two doors cost different
+                    amounts and a visitor choosing between them needs both
+                    numbers in front of them. A free night keeps the row it
+                    always had. The `data-*` numbers are the assertable ones —
+                    the label is translated and the price is not. */}
+                <div
+                  className="slots-row"
+                  data-event-fee-individual={individualFeeAcer}
+                  data-event-fee-team={teamFeeAcer}
+                >
                   <div className="slots-lbl">
                     <b>{t("detail.slots.entry")}</b>
                     <small>{t("detail.slots.entrySub")}</small>
                   </div>
-                  <div className="slots-val slots-val--free">{t("detail.slots.free")}</div>
+                  <div className={paidEntry ? "slots-val" : "slots-val slots-val--free"}>
+                    {individualFeeAcer > 0 ? (
+                      <div>{t("detail.feeIndividual", { amount: individualFeeAcer })}</div>
+                    ) : null}
+                    {teamFeeAcer > 0 ? (
+                      <div>{t("detail.feeTeam", { amount: teamFeeAcer })}</div>
+                    ) : null}
+                    {/* `detail.feeFree` is deliberately unused: this row has
+                        said "Free" through `detail.slots.free` since the page
+                        existed, and two sentences for one fact are two
+                        sentences to keep in step in three languages. */}
+                    {paidEntry ? null : t("detail.slots.free")}
+                  </div>
                 </div>
 
                 {/* How many teams have entered — the one number a guest needs
@@ -316,7 +354,15 @@ export default async function EventDetailPage({ params }: PageProps) {
                     <p className="mixed-choice__title">{t("mixedEvent.choiceTitle")}</p>
                     <div className="mixed-choice__option" data-mixed-option="individual">
                       <b>{t("mixedEvent.individualTitle")}</b>
-                      <small>{t("mixedEvent.individualSub")}</small>
+                      {/* `individualSub` ends "and is free", which a priced
+                          night is not — so a priced night says the price
+                          instead. Two doors that cost different amounts is the
+                          whole reason a visitor is being asked to choose. */}
+                      <small>
+                        {individualFeeAcer > 0
+                          ? t("detail.feeIndividual", { amount: individualFeeAcer })
+                          : t("mixedEvent.individualSub")}
+                      </small>
                       <EventRegisterCta
                         slug={slug}
                         registerLabel={t("mixedEvent.individualCta")}
@@ -330,7 +376,13 @@ export default async function EventDetailPage({ params }: PageProps) {
                     </div>
                     <div className="mixed-choice__option" data-mixed-option="team">
                       <b>{t("mixedEvent.teamTitle")}</b>
-                      <small>{t("mixedEvent.teamSub")}</small>
+                      {/* `teamSub` claims nothing about money, so the price is
+                          added to it rather than replacing it. */}
+                      <small>
+                        {teamFeeAcer > 0
+                          ? `${t("detail.feeTeam", { amount: teamFeeAcer })} — ${t("mixedEvent.teamSub")}`
+                          : t("mixedEvent.teamSub")}
+                      </small>
                       <Link href="/teams" className="btn btn-stroke-dark btn-block">
                         {t("mixedEvent.teamCta")}
                       </Link>
@@ -344,9 +396,15 @@ export default async function EventDetailPage({ params }: PageProps) {
                     </Link>
                   </div>
                 ) : state === "open" ? (
+                  // "Register free →" is the open state's own label and it is a
+                  // lie on a priced night, so a priced night gets the plain
+                  // "Register" the catalogs already carry. The amount is one row
+                  // above; the button does not repeat it.
                   <EventRegisterCta
                     slug={slug}
-                    registerLabel={t("detail.states.open.cta")}
+                    registerLabel={
+                      individualFeeAcer > 0 ? t("detail.register") : t("detail.states.open.cta")
+                    }
                     createLabel={t("detail.cta.create")}
                     signInPrompt={t("detail.cta.signInPrompt")}
                     signInLabel={t("detail.cta.signIn")}

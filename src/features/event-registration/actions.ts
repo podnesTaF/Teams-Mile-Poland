@@ -13,6 +13,9 @@ import { canRegister } from "@/lib/auth/user-session";
 import { defaultLocale } from "@/lib/i18n/config";
 import { toE164 } from "@/lib/phone";
 import { applyReferralAttribution, REF_COOKIE } from "@/features/referral/data";
+import { minorToAcer } from "@/features/wallet/config";
+import { getAcerBalance } from "@/features/wallet/data";
+import { individualEntryFeeMinor } from "@/features/wallet/entry-fees";
 
 import {
   buildConsentRows,
@@ -21,7 +24,7 @@ import {
 } from "@/lib/legal/consent";
 import type { DocSet } from "@/lib/legal/manifest";
 
-import { createRegistrationWithConsent, hasRegistration } from "./data";
+import { createRegistrationWithConsent, hasRegistration, isInsufficientAcer } from "./data";
 import {
   consentSubmissionSchema,
   type ConsentSubmissionInput,
@@ -66,6 +69,15 @@ export type ConsentRefusal = {
   fields: Record<string, string>;
 };
 
+/**
+ * How much ACER the runner is short, in **whole ACER** — the unit the copy
+ * prints (`register.fee.insufficientBody` says "{needed} ACER … holds
+ * {balance}") and the unit an admin prices a night in. Minor units are the
+ * ledger's business and never reach a sentence. Both numbers are carried
+ * because a runner who is short must never be left to work out by how much.
+ */
+export type AcerShortfall = { needed: number; balance: number };
+
 export type RegisterResult =
   | { ok: true; ticketUrl: string }
   | {
@@ -79,10 +91,13 @@ export type RegisterResult =
         | "closed"
         | "duplicate"
         | "consent"
+        | "insufficient_acer"
         | "error";
       message: string;
       /** Present only when `reason === "consent"`. */
       consent?: ConsentRefusal;
+      /** Present only when `reason === "insufficient_acer"`. */
+      shortfall?: AcerShortfall;
     };
 
 /** The `phoneEmail` line the Statement prints, from whatever the profile holds. */
@@ -102,19 +117,27 @@ function requestIp(h: Headers): string | null {
 }
 
 /**
- * Register the signed-in user for an individual event **and record what they
- * accepted**, in one transaction (ADR 0006). Registration is free and uncapped.
+ * Register the signed-in user for an individual event, **record what they
+ * accepted and take the entry fee**, in one transaction (ADR 0006, ADR 0013).
+ * Uncapped; free unless the night is priced.
  *
  * Guards, in order: session → email verified → profile complete → 18 on the
- * event date → event open → not already registered → the consent submission is
- * valid against the manifest. The last one is re-derived server-side from
- * `CONSENT_ITEMS`, so a client that omits a required box, ticks the image
- * question instead of answering it, or invents an item id is refused regardless
- * of what it rendered.
+ * event date → event open → not already registered → **enough ACER** → the
+ * consent submission is valid against the manifest. The consent check is
+ * re-derived server-side from `CONSENT_ITEMS`, so a client that omits a required
+ * box, ticks the image question instead of answering it, or invents an item id
+ * is refused regardless of what it rendered.
+ *
+ * The balance sits where it does on purpose: it is a fact about the runner and
+ * the night, like the duplicate check above it and unlike the submission below
+ * it, and this order means nobody is sent back to fix a checkbox on a
+ * registration their wallet cannot finish anyway. It is only a courtesy — the
+ * re-read under the per-user lock inside `createRegistrationWithConsent` is what
+ * is actually true, and it comes back here as the same refusal.
  *
  * On success a ticket email is sent. The email is deliberately *outside* the
- * transaction: a failed send must not roll back a valid registration and its
- * consent evidence, and the ticket can be re-sent.
+ * transaction: a failed send must not roll back a valid registration, its
+ * consent evidence or its debit, and the ticket can be re-sent.
  */
 export async function registerForEvent(
   eventSlug: string,
@@ -151,6 +174,16 @@ export async function registerForEvent(
 
   if (await hasRegistration(eventSlug, user.id)) {
     return { ok: false, reason: "duplicate", message: "You're already registered for this event." };
+  }
+
+  // Priced once, here, and handed down: the number the balance is judged against
+  // and the number that is charged cannot differ, even across a re-pricing
+  // mid-request. Never the column directly — `individualEntryFeeMinor` is the
+  // single answer to "what does this night cost a runner" (ADR 0013).
+  const feeMinor = individualEntryFeeMinor(event);
+  if (feeMinor > 0) {
+    const balanceMinor = await getAcerBalance(user.id);
+    if (balanceMinor < feeMinor) return insufficientAcer(feeMinor, balanceMinor);
   }
 
   const parsed = consentSubmissionSchema.safeParse(consent);
@@ -227,15 +260,39 @@ export async function registerForEvent(
         userAgent: requestHeaders.get("user-agent"),
       },
       consents: buildConsentRows(docSet, submission.items),
+      feeMinor,
     });
     await sendEventTicketEmail({ registration, user });
     return { ok: true, ticketUrl: makeEventTicketUrl(registration.id, { locale }) };
   } catch (error) {
+    // The transaction's own verdict, taken under the runner's lock — it beats
+    // the pre-check above, which a concurrent spend can have made stale between
+    // the two reads. Nothing was written: the throw rolled the registration and
+    // its consent rows back with the debit.
+    if (isInsufficientAcer(error)) {
+      return insufficientAcer(feeMinor, await getAcerBalance(user.id));
+    }
     if (error instanceof Error && /unique|duplicate/i.test(error.message)) {
       return { ok: false, reason: "duplicate", message: "You're already registered." };
     }
     return { ok: false, reason: "error", message: "Registration failed. Please try again." };
   }
+}
+
+/**
+ * The shortfall refusal, built from minor units in one place so the two sites
+ * that can raise it — the pre-check and the caught throw — can never report the
+ * amount in different units or round it differently. `message` is a log/fallback
+ * sentence; what the screen renders is `register.fee.insufficient*` filled from
+ * {@link AcerShortfall}, because a refusal is a key, not a sentence.
+ */
+function insufficientAcer(feeMinor: number, balanceMinor: number): RegisterResult {
+  return {
+    ok: false,
+    reason: "insufficient_acer",
+    message: "Not enough ACER in your wallet for this entry.",
+    shortfall: { needed: minorToAcer(feeMinor), balance: minorToAcer(Math.max(balanceMinor, 0)) },
+  };
 }
 
 export type GuestRegisterResult =

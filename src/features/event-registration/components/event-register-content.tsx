@@ -8,6 +8,9 @@ import { makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import { getEntryWithTeam } from "@/features/teams/entries";
 import type { ProfileInput } from "@/features/profile/schemas";
+import { minorToAcer } from "@/features/wallet/config";
+import { getAcerBalance } from "@/features/wallet/data";
+import { individualEntryFeeMinor } from "@/features/wallet/entry-fees";
 import { Link } from "@/i18n/navigation";
 import { getEventBySlug } from "@/lib/events/registry";
 // Straight from the store, not the `registry` compat shim: `isPubliclyVisible`
@@ -62,6 +65,25 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
     </p>
   ) : null;
 
+  // Priced once for this whole card, through the one helper (ADR 0013) — the
+  // guest notice below, the confirm screen's cost row and the action's debit all
+  // read the same number, so a night can never be advertised free and charged.
+  const feeAcer = minorToAcer(individualEntryFeeMinor(event));
+  /**
+   * The price, said before anything is asked for. A guest sees it above the
+   * sign-up form — creating an account to discover at the last screen that the
+   * night costs money is the failure this line exists to prevent — and it is a
+   * price only, with no balance: a visitor with no account has no wallet to
+   * report, and the signup grant that pays for their first night lands when the
+   * account is created (slice 2).
+   */
+  const feeNotice =
+    feeAcer > 0 ? (
+      <p className="slots-note register-fee-notice" data-entry-fee-notice={feeAcer}>
+        {t("fee.amount", { amount: feeAcer })} — {t("fee.note")}
+      </p>
+    ) : null;
+
   const user = await getUser();
   if (!user) {
     // Logged-out visitors register right here (passwordless, verification-gated):
@@ -73,6 +95,7 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
     return (
       <>
         {teamAlternative}
+        {feeNotice}
         <GuestRegisterForm
           eventSlug={slug}
           eventName={event.name}
@@ -202,6 +225,10 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
   // registration, so a second race night is not a retype (user story 10). Never
   // read from `users` — it is not a profile field, deliberately.
   const snapshot = await getLatestConsentSnapshot(user.id);
+  // Read only when there is something to spend it on: a free night asks nobody's
+  // wallet, and a `SUM` over the ledger is not worth issuing to render a number
+  // the screen will not show.
+  const balanceAcer = feeAcer > 0 ? minorToAcer(await getAcerBalance(user.id)) : 0;
 
   return (
     <>
@@ -219,6 +246,8 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
         consentItems={consentItems}
         prefillEmergencyContact={snapshot?.emergencyContact ?? ""}
         prefillAddress={snapshot?.address ?? ""}
+        feeAcer={feeAcer}
+        balanceAcer={balanceAcer}
       />
     </>
   );
