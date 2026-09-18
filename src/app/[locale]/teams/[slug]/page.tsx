@@ -25,6 +25,7 @@ import {
 import { summarizeRoster } from "@/features/teams/eligibility";
 import { getOpenTeamEvents, listEntriesForTeam } from "@/features/teams/entries";
 import { getAcerBalance, getTeamAcerBalance, listWalletTransactions } from "@/features/wallet/data";
+import { teamEntryFeeMinor } from "@/features/wallet/entry-fees";
 import { isTreasuryPayoutEnabled } from "@/features/wallet/transfers";
 import { Link } from "@/i18n/navigation";
 import { getAppUrl } from "@/lib/app-url";
@@ -84,6 +85,10 @@ export default async function TeamPage({ params }: PageProps) {
         name: event.name,
         shortDate: event.shortDate,
         entryId: entries.find((row) => row.entry.eventSlug === event.slug)?.entry.id ?? null,
+        // Priced through the helper, never off the column (ADR 0013), so the
+        // number beside the button is the number `enterTeam` pre-checks and
+        // the number `createEntryRows` debits.
+        feeMinor: teamEntryFeeMinor(event),
       }))
     : [];
   // Names for the Entries list, including events that have since closed — the
@@ -156,7 +161,12 @@ export default async function TeamPage({ params }: PageProps) {
           )}
 
           {isManager ? (
-            <EntryEnterButton teamSlug={team.slug} events={enterableEvents} locale={locale} />
+            <EntryEnterButton
+              teamSlug={team.slug}
+              events={enterableEvents}
+              locale={locale}
+              treasuryMinor={treasuryMinor}
+            />
           ) : null}
 
           {isMember ? (

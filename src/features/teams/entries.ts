@@ -9,6 +9,8 @@ import {
   type TeamEntryRow,
 } from "@/db/schema/team-entries";
 import { userTeamMembers, userTeams, type UserTeamRow } from "@/db/schema/user-teams";
+import { getTeamAcerBalance, recordWalletTransaction } from "@/features/wallet/data";
+import { InsufficientAcerError } from "@/features/wallet/errors";
 import { getDb } from "@/lib/db";
 import { getAllEvents } from "@/lib/events/store";
 import { acceptsTeams, type EventSummary } from "@/lib/events/types";
@@ -419,6 +421,19 @@ export async function findIndividuallyRegistered(
 
 /* ----------------------------------------------------------------- writers */
 
+/**
+ * The idempotency key of an entry's fee row — the natural key on the causing
+ * fact, which is the entry itself (ADR 0013).
+ *
+ * A function rather than a literal at the two call sites, because slice 5's
+ * refund finds the fee row *by this key* to know what to give back and to set
+ * `reverses_id` on: a fee written under one spelling and looked up under
+ * another would silently refund nothing. One definition, both directions.
+ */
+export function teamEntryFeeKey(entryId: string): string {
+  return `team_entry_fee:${entryId}`;
+}
+
 /** A roster member as the entry writer needs them: an account and a language. */
 export type EntrySeatInput = {
   userId: string;
@@ -445,24 +460,79 @@ export type EntrySeatInput = {
  * `consent_pending` alone*: a runner who already registered has already
  * consented, and flipping them back to pending would demand a second Statement
  * for the same race. New rows get `true`, adopted rows keep whatever they had.
+ *
+ * **The fee joins that transaction** (ADR 0013). A priced night is paid from
+ * the **team's treasury**, because the team is the ledger owner of a team fact
+ * (ADR 0012) — never from the manager's own wallet, which would make a refund
+ * ambiguous the moment the manager changes. Entry, registrations, seats and
+ * debit land together or not at all: an entry without its debit is a free
+ * place, and a debit without its entry is money taken for nothing.
+ *
+ * **The balance race**, exactly as `createTeamRows` describes it for a wallet:
+ * there is no stored balance to `UPDATE … WHERE balance >= fee`, so two Enters
+ * by one team (a double-click, two tabs, a manager and an admin) could each
+ * read the same `SUM` and both pass. The `user_teams` row lock is the
+ * per-treasury mutex and the balance is re-read *under* it.
+ *
+ * **Why `FOR NO KEY UPDATE` and not `FOR UPDATE`.** It is the payer mode
+ * `transfers.ts` sets out, and the reason applies verbatim here: it excludes
+ * another spend on the same treasury (a payout, a second entry) but not the
+ * `FOR KEY SHARE` a *credit* landing on the team takes, so a member
+ * contributing the money for this very entry never queues behind it. It also
+ * keeps this path off the `users` table entirely — the registration inserts
+ * take only the FK's `KEY SHARE` on `users`, which conflicts with nothing a
+ * contribution holds — so the "acquire `users` before `user_teams`" ordering
+ * rule never comes into play and there is no cycle to deadlock on.
+ *
+ * **The shortfall is thrown, not returned**, unlike every other refusal in this
+ * module. Drizzle commits whatever the callback *returns*, so a `teamFailure`
+ * is only an abort by luck of where it sits, and the guarantee this transaction
+ * exists to make is that a refusal writes nothing — including the seat loop's
+ * rows, if a concurrent spend empties the treasury between two entries. The
+ * sentinel is `InsufficientAcerError`, the same one `createTeamRows` throws for
+ * a wallet, and `enterTeam` maps it back to an ordinary `treasury_insufficient`
+ * refusal so no caller ever sees an exception.
  */
 export async function createEntryRows({
   team,
   eventSlug,
   actorUserId,
   seats,
+  feeMinor,
 }: {
   team: UserTeamRow;
   eventSlug: string;
   /** Whoever pressed Enter — the manager, or an admin acting for the team. */
   actorUserId: string;
   seats: EntrySeatInput[];
+  /**
+   * What this night costs, in ACER minor units, as a **positive** number; the
+   * ledger row carries the minus. `0` skips the debit entirely rather than
+   * writing a zero-amount row. Passed in rather than read off the event here,
+   * so the action prices the night once — the same number it pre-checked the
+   * treasury against — and a re-pricing mid-request cannot charge one figure
+   * against a balance judged by another.
+   */
+  feeMinor: number;
 }): Promise<TeamActionResult<{ entryId: string; registrationIds: Map<string, string> }>> {
   if (seats.length === 0) return teamFailure("incomplete_team");
 
   const db = getDb();
 
   return db.transaction(async (tx) => {
+    if (feeMinor > 0) {
+      // The lock, not the read, is what serialises two entries; the row is
+      // selected only to take it.
+      await tx
+        .select({ id: userTeams.id })
+        .from(userTeams)
+        .where(eq(userTeams.id, team.id))
+        .for("no key update");
+
+      const treasuryMinor = await getTeamAcerBalance(team.id, tx);
+      if (treasuryMinor < feeMinor) throw new InsufficientAcerError(feeMinor, treasuryMinor);
+    }
+
     const [entry] = await tx
       .insert(teamEntries)
       .values({
@@ -488,6 +558,26 @@ export async function createEntryRows({
         userId: seat.userId,
         registrationId,
       });
+    }
+
+    if (feeMinor > 0) {
+      // Keyed by the entry, which was minted in this transaction — so the key
+      // is unique by construction, a retry of this exact entry could never
+      // charge twice, and slice 5's refund has one handle to find the fee row
+      // by. `created_by` records the person who pressed Enter even though the
+      // money is the team's: the treasury history has to name who spent it.
+      await recordWalletTransaction(
+        {
+          teamId: team.id,
+          asset: "ACER",
+          amountMinor: -feeMinor,
+          kind: "team_entry_fee",
+          reference: `event:${eventSlug}`,
+          createdBy: actorUserId,
+          idempotencyKey: teamEntryFeeKey(entry.id),
+        },
+        tx,
+      );
     }
 
     return { ok: true, entryId: entry.id, registrationIds };
@@ -538,6 +628,12 @@ async function upsertMemberRegistration(
  * under 18 on the event date, entry already checked in — is decided by the
  * action, which has the roster and the event; by the time we are here the add
  * is legal.
+ *
+ * **No fee, on purpose** (ADR 0013, and the plan's decision table). The entry
+ * fee is per team per night, not per head: the team bought its place when it
+ * entered, and this only says who is standing in it. Charging here would also
+ * make the refund unanswerable — one entry would have paid N different fees at
+ * N different prices. Do not "fix" the missing debit; there is nothing to fix.
  */
 export async function addMemberRows({
   entryId,
