@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 
 import type { TeamEntryRow } from "@/db/schema/team-entries";
 import type { UserTeamRow } from "@/db/schema/user-teams";
+import { getTeamAcerBalance } from "@/features/wallet/data";
+import { teamEntryFeeMinor } from "@/features/wallet/entry-fees";
+import { isInsufficientAcer } from "@/features/wallet/errors";
 import { meetsMinParticipantAge, parseDateOnly } from "@/lib/age";
 import { getEventBySlug } from "@/lib/events/registry";
 import { isPubliclyVisible } from "@/lib/events/store";
@@ -68,6 +71,22 @@ export type EntryFailure = TeamActionFailure & {
   /** `member_underage`: the member who will not be 18 on the event date;
    * `registered_individually`: the member already registered alone (ADR 0009). */
   memberName?: string;
+  /**
+   * `treasury_insufficient`: what the night costs and what the treasury holds,
+   * both in ACER **minor units**, read together so they cannot disagree.
+   *
+   * Two numbers rather than one shortfall because that is what the copy asks
+   * for — `teams.entry.insufficientDetail` interpolates the price *and* the
+   * balance ("Entering costs 100 ACER and the treasury holds 40"), and a
+   * manager who is short needs to know how much is already there before
+   * deciding who chips in. The plan called this datum `shortfallMinor`; the
+   * difference is `feeMinor - treasuryMinor` and is deliberately not carried,
+   * because a derived third number is a third place for the arithmetic to
+   * drift. The refusal itself is still just the key `treasury_insufficient` —
+   * these travel beside it exactly as `missing` and `memberName` do.
+   */
+  feeMinor?: number;
+  treasuryMinor?: number;
 };
 
 export type EntryActionResult<T = object> = ({ ok: true } & T) | EntryFailure;
@@ -151,7 +170,10 @@ async function loadTeamEvent(eventSlug: string): Promise<EventSummary | null> {
  * refusal in: you are not the manager → that night does not exist → it is
  * cancelled → it is not taking entries → you are already in it → your team
  * could not field a race composition yet → this member will not be 18 on the
- * night.
+ * night → one of them is already registered alone → the treasury cannot pay
+ * for it. The fee is last because it is the only refusal the manager can fix
+ * with money rather than with the roster, and it is worth fixing only once
+ * everything else about the entry is legal.
  *
  * The size check is the *only* one the platform makes on a roster (ADR 0011):
  * `entryShortfall` reads the composition (`COMPOSITION` in `rating-rules.ts`),
@@ -205,12 +227,47 @@ export async function enterTeam(
     return { ...teamFailure("registered_individually"), memberName: soloMember.displayName };
   }
 
-  const created = await createEntryRows({
-    team,
-    eventSlug,
-    actorUserId: gate.userId,
-    seats: roster.map((member) => ({ userId: member.userId, locale: member.locale })),
-  });
+  // Money last, and deliberately so. Every refusal above is about whether this
+  // team may enter at all; this one is about whether it can afford to, and a
+  // manager sent to raise 100 ACER for an entry their roster could not make
+  // anyway has been sent on an errand. Priced off the event through
+  // `teamEntryFeeMinor` and never off the column, so the button, this check and
+  // the debit are the same number; read once here and handed down, so a
+  // re-pricing mid-request cannot charge a figure the balance was not judged
+  // against. The pre-check is a courtesy — it turns the everyday case into a
+  // message instead of a rollback — and `createEntryRows`' read under the
+  // treasury's lock is what actually makes it true.
+  const feeMinor = teamEntryFeeMinor(event);
+  if (feeMinor > 0) {
+    const treasuryMinor = await getTeamAcerBalance(team.id);
+    if (treasuryMinor < feeMinor) {
+      return { ...teamFailure("treasury_insufficient"), feeMinor, treasuryMinor };
+    }
+  }
+
+  let created;
+  try {
+    created = await createEntryRows({
+      team,
+      eventSlug,
+      actorUserId: gate.userId,
+      seats: roster.map((member) => ({ userId: member.userId, locale: member.locale })),
+      feeMinor,
+    });
+  } catch (error) {
+    // The race the pre-check cannot close: a payout or a second Enter emptied
+    // the treasury between the two reads. The transaction rolled back, so the
+    // manager gets the same refusal they would have got a moment earlier — with
+    // the balance re-read now rather than the stale one they were refused on.
+    if (isInsufficientAcer(error)) {
+      return {
+        ...teamFailure("treasury_insufficient"),
+        feeMinor,
+        treasuryMinor: await getTeamAcerBalance(team.id),
+      };
+    }
+    throw error;
+  }
   if (!created.ok) return created;
 
   // Read the seats back rather than reusing `roster`: `getEntryMembers` is the
@@ -230,6 +287,11 @@ export async function enterTeam(
  * They must be on the team's roster and not already on the entry, and they must
  * be 18 on the event date like everyone else. They receive the same
  * confirmation link as the original members, with the `added` opening line.
+ *
+ * **Free, even on a priced night** (ADR 0013). The fee is per team per night,
+ * not per head — the team bought its place at `enterTeam` and this only says
+ * who is standing in it. There is no balance check here and no debit, and
+ * `addMemberRows` is deliberately not given a `feeMinor`: see its docblock.
  *
  * Allowed while the event is `registration_closed`, and only refused once the
  * team is `checked_in`. Adding a runner is not "a new entry" in the sense

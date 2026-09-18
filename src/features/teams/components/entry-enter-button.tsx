@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
+import { minorToAcer } from "@/features/wallet/config";
 import { useRouter } from "@/i18n/navigation";
 import { localePath } from "@/lib/i18n/config";
 
@@ -22,10 +23,18 @@ import type { EntryFailure } from "../actions/entries";
  * absence of a button is not an answer.
  *
  * The refusals this surfaces are the interesting part: `incomplete_team` says
- * *how many* more runners the race composition still needs and `member_underage`
- * *names* the member, which is
- * why {@link entryRefusalText} exists rather than a bare
+ * *how many* more runners the race composition still needs, `member_underage`
+ * *names* the member, and `treasury_insufficient` gives the price and the
+ * balance, which is why {@link entryRefusalText} exists rather than a bare
  * `t(\`reasons.\${reason}\`)`.
+ *
+ * **A priced night shows its price and the treasury before the press** (ADR
+ * 0013). A manager must never learn that entering costs money by being refused
+ * for want of it: each row carries the fee, the section carries the treasury
+ * balance, and a treasury that is already short carries the contribute link —
+ * the same link the refusal offers — so the fix is one click away whether or
+ * not they tried first. The fee is computed on the server through
+ * `teamEntryFeeMinor` and arrives as minor units; this island only formats it.
  */
 
 /** One open team event, as this island needs it. */
@@ -36,6 +45,12 @@ export type EnterableEvent = {
   shortDate: string;
   /** The team's existing entry for this event, when there is one. */
   entryId: string | null;
+  /**
+   * What entering costs, in ACER minor units — `teamEntryFeeMinor(event)` on
+   * the server, never the raw column. `0` means free, and renders as such
+   * rather than as "0 ACER", which reads like a bug.
+   */
+  feeMinor: number;
 };
 
 /**
@@ -59,6 +74,20 @@ export function entryRefusalText(
   if (failure.reason === "member_underage" && failure.memberName) {
     return t("underageDetail", { name: failure.memberName });
   }
+  // `teams.reasons.treasury_insufficient` is worded for a payout ("…for this
+  // payout"), which is the wrong sentence for an entry — so a priced refusal
+  // that carries its two numbers gets the entry's own copy, and the shared key
+  // stays the fallback for a refusal that somehow arrived without them.
+  if (
+    failure.reason === "treasury_insufficient" &&
+    typeof failure.feeMinor === "number" &&
+    typeof failure.treasuryMinor === "number"
+  ) {
+    return t("insufficientDetail", {
+      needed: minorToAcer(failure.feeMinor),
+      balance: minorToAcer(failure.treasuryMinor),
+    });
+  }
   return tReasons(failure.reason);
 }
 
@@ -66,17 +95,27 @@ export function EntryEnterButton({
   teamSlug,
   events,
   locale,
+  treasuryMinor,
 }: {
   teamSlug: string;
   events: EnterableEvent[];
   /** Needed for the entry-page link, which is built by hand rather than via `Link`. */
   locale: string;
+  /**
+   * The team treasury in ACER minor units — the same number the treasury
+   * section above renders, read once on the page so the two cannot disagree.
+   * Shown only when something on the list is actually priced: "Treasury: 0
+   * ACER" beside a free night is noise.
+   */
+  treasuryMinor: number;
 }) {
   const t = useTranslations("teams.entry");
   const tReasons = useTranslations("teams.reasons");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [failedSlug, setFailedSlug] = useState<string | null>(null);
+  /** The refusal's key, kept beside its sentence: only one of them offers a fix. */
+  const [failedReason, setFailedReason] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   if (events.length === 0) {
@@ -94,11 +133,13 @@ export function EntryEnterButton({
     if (pending) return;
     setError(null);
     setFailedSlug(null);
+    setFailedReason(null);
     startTransition(async () => {
       const result = await enterTeam(teamSlug, eventSlug);
       if (!result.ok) {
         setError(entryRefusalText(result, t, tReasons));
         setFailedSlug(eventSlug);
+        setFailedReason(result.reason);
         return;
       }
       // Straight to the entry page: the next thing the captain wants is the
@@ -108,12 +149,35 @@ export function EntryEnterButton({
     });
   }
 
+  // Only a priced list gets the money furniture. `anyPriced` gates the section
+  // header's treasury line and the refund note; the per-row fee line is shown
+  // for every row, free included, because "Free" beside one night and nothing
+  // beside another would read as an omission rather than a price.
+  const anyPriced = events.some((event) => event.feeMinor > 0);
+  const shortFor = events.some((event) => event.entryId === null && event.feeMinor > treasuryMinor);
+
   return (
     <section className="regs-section pf-section" id="enter" data-entry-enter="1">
       <div className="section-label">
         <span className="iv-eyebrow">{t("heading")}</span>
       </div>
       <p className="pf-block__sub">{t("hint")}</p>
+
+      {anyPriced ? (
+        <p className="pf-block__sub" data-entry-treasury={treasuryMinor}>
+          {t("treasury", { balance: minorToAcer(treasuryMinor) })}
+          {shortFor ? (
+            <>
+              {" "}
+              <a className="iv-linkbtn" href="#treasury" data-entry-topup="1">
+                {t("topUp")}
+              </a>
+            </>
+          ) : null}
+          <br />
+          <span data-entry-refund-note="1">{t("refundNote")}</span>
+        </p>
+      ) : null}
 
       <div className="reg-list">
         {events.map((event) => (
@@ -122,6 +186,12 @@ export function EntryEnterButton({
               <span className="reg-card__title">{event.name}</span>
               <div className="reg-card__meta">
                 <span>{event.shortDate}</span>
+                <span data-entry-fee={event.slug} data-entry-fee-minor={event.feeMinor}>
+                  {t("feeLabel")}:{" "}
+                  {event.feeMinor > 0
+                    ? t("fee", { amount: minorToAcer(event.feeMinor) })
+                    : t("feeFree")}
+                </span>
               </div>
             </div>
             <div className="reg-card__actions">
@@ -155,6 +225,21 @@ export function EntryEnterButton({
             {error && failedSlug === event.slug ? (
               <span className="field-msg" role="alert" data-entry-error={event.slug}>
                 {error}
+                {/* A refusal over money is the one refusal with a fix on this
+                    very page, so it carries the way there rather than leaving
+                    the manager to find the treasury section themselves. */}
+                {failedReason === "treasury_insufficient" ? (
+                  <>
+                    {" "}
+                    <a
+                      className="iv-linkbtn"
+                      href="#treasury"
+                      data-entry-topup={event.slug}
+                    >
+                      {t("topUp")}
+                    </a>
+                  </>
+                ) : null}
               </span>
             ) : null}
           </div>
