@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 
 import { adminButton } from "@/features/admin/components/shell/admin-button";
 import { ADMIN_NOTE, ADMIN_TITLE, adminCard } from "@/features/admin/components/shell/admin-card";
 import { AdminField, adminInput } from "@/features/admin/components/shell/admin-field";
 import { AdminPill } from "@/features/admin/components/shell/admin-pill";
-import { adminTeamRefusal } from "@/features/admin/components/teams/refusal";
+import { ACTION_FAILED_TEXT, adminTeamRefusal } from "@/features/admin/components/teams/refusal";
 import { checkInTeam, type CheckinFailure } from "@/features/teams/actions/checkin";
 import type { TeamCategory } from "@/features/teams/config";
 import {
@@ -23,6 +23,7 @@ import {
 } from "@/features/teams/rating-rules";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { useActionRun } from "@/lib/use-action-run";
 
 /**
  * The composition editor: the desk's one screen for the rules' check-in
@@ -132,7 +133,9 @@ export function CompositionEditor({
   );
   const [refused, setRefused] = useState<{ code: string; text: string } | null>(null);
   const [done, setDone] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() =>
+    setRefused({ code: "failed", text: ACTION_FAILED_TEXT }),
+  );
 
   const nameOf = useMemo(() => {
     const byId = new Map(members.map((member) => [member.userId, member.displayName]));

@@ -1,10 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { FloatField } from "@/components/ui/float-field";
 import { useRouter } from "@/i18n/navigation";
+import { useActionRun } from "@/lib/use-action-run";
 
 import {
   addEntryMember,
@@ -22,7 +23,7 @@ import { entryRefusalText } from "./entry-enter-button";
  * Withdraw the whole entry.
  *
  * One island for all four, the same shape as `roster-controls.tsx`: plain
- * `useState` + `useTransition` + `router.refresh()`, refusals rendered inline
+ * `useState` + `useActionRun` + `router.refresh()`, refusals rendered inline
  * from the action's `reason`, and every destructive action behind
  * {@link ConfirmButton}.
  *
@@ -84,7 +85,7 @@ export function EntryManagerControls({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [addUserId, setAddUserId] = useState<string>("");
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() => setError(tReasons("failed")));
 
   if (locked) {
     return (
@@ -107,10 +108,11 @@ export function EntryManagerControls({
         setError(entryRefusalText(result, tEntry, tReasons));
         return;
       }
+      if (ok) setNotice(ok);
       if (leaving) {
         router.push(`/teams/${teamSlug}`);
+        return;
       }
-      if (ok) setNotice(ok);
       router.refresh();
     });
   }

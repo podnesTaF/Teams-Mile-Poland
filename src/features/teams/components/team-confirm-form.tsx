@@ -1,13 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import {
   ConsentFields,
   type ConsentItemView,
 } from "@/features/event-registration/components/consent-fields";
 import type { ConsentItemsInput } from "@/lib/legal/consent";
+import { useActionRun } from "@/lib/use-action-run";
 
 import { confirmTeamParticipation } from "../actions/confirm";
 
@@ -30,7 +31,7 @@ import { confirmTeamParticipation } from "../actions/confirm";
  * defence-in-depth twins, reached when the night is called off or a birth date
  * changes between page load and submit.
  *
- * Plain `useState` + `useTransition`, no react-hook-form (cross-cutting
+ * Plain `useState` + `useActionRun`, no react-hook-form (cross-cutting
  * checklist §7). The parent owns nothing: this island owns the submit, so it
  * owns the state.
  */
@@ -99,7 +100,7 @@ export function TeamConfirmForm({
     | { state: "age" | "cancelled" }
     | null
   >(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() => setError(tReasons("failed")));
 
   function setItem(id: string, value: true | "agree" | "disagree" | undefined) {
     setItems((current) => {

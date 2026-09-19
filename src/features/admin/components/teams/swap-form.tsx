@@ -1,17 +1,18 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 
 import { adminButton } from "@/features/admin/components/shell/admin-button";
 import { ADMIN_NOTE, ADMIN_TITLE, adminCard } from "@/features/admin/components/shell/admin-card";
 import { AdminField, adminInput } from "@/features/admin/components/shell/admin-field";
 import { checkinRefusalText } from "@/features/admin/components/teams/composition-editor";
-import { adminTeamRefusal } from "@/features/admin/components/teams/refusal";
+import { ACTION_FAILED_TEXT, adminTeamRefusal } from "@/features/admin/components/teams/refusal";
 import { markHeatStarted, swapComposed } from "@/features/teams/actions/checkin";
 import { withdrawEntry } from "@/features/teams/actions/entries";
 import { ConfirmButton } from "@/features/teams/components/confirm-button";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { useActionRun } from "@/lib/use-action-run";
 
 /**
  * The two presses a checked-in entry still takes at the desk (PRD #64 user
@@ -52,7 +53,9 @@ export function SwapForm({
   const [inUserId, setInUserId] = useState(reserves[0]?.userId ?? "");
   const [refused, setRefused] = useState<{ code: string; text: string } | null>(null);
   const [done, setDone] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() =>
+    setRefused({ code: "failed", text: ACTION_FAILED_TEXT }),
+  );
 
   const nameOf = useMemo(() => {
     const byId = new Map(
@@ -203,7 +206,9 @@ export function EntryDeskControls({
   const router = useRouter();
   const [refused, setRefused] = useState<{ code: string; text: string } | null>(null);
   const [done, setDone] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() =>
+    setRefused({ code: "failed", text: ACTION_FAILED_TEXT }),
+  );
 
   function start() {
     if (pending || !heatId) return;
@@ -231,7 +236,6 @@ export function EntryDeskControls({
         return;
       }
       router.push(`/admin/events/${eventSlug}/teams`);
-      router.refresh();
     });
   }
 

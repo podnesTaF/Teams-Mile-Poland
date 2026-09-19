@@ -1,9 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useRouter } from "@/i18n/navigation";
+import { useActionRun } from "@/lib/use-action-run";
 
 import { respondToInvitation } from "../actions/invitations";
 
@@ -26,7 +27,7 @@ export function DecisionButtons({ token }: { token: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [decision, setDecision] = useState<"accept" | "decline" | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() => setError(tReasons("failed")));
 
   function respond(next: "accept" | "decline") {
     if (pending) return;
@@ -41,6 +42,7 @@ export function DecisionButtons({ token }: { token: string }) {
       }
       if (next === "accept") {
         router.push(`/teams/${result.teamSlug}`);
+        return;
       }
       router.refresh();
     });

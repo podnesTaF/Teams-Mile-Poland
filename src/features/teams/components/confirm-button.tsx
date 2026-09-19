@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
  *
  * The admin side already has `features/admin/components/confirm-submit.tsx`,
  * but that one gates a `<form action={serverAction}>` submit and hard-codes its
- * English chrome. The team pages call their actions through `useTransition`
+ * English chrome. The team pages call their actions through `useActionRun`
  * and are translated, so this is the same `.iv-confirm-*` vocabulary driven by
  * an `onConfirm` callback instead. Only the dialog markup is shared; keeping
  * them as two files is what avoids bending the admin one out of shape.

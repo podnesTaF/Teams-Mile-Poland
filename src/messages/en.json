@@ -1539,6 +1539,7 @@
       "backToTeam": "Back to the team"
     },
     "reasons": {
+      "failed": "Something went wrong and the request did not complete. Reload the page to see whether it went through, then try again.",
       "auth": "Sign in to continue.",
       "verify": "Confirm your email address first.",
       "profile": "Complete your profile first — we need your name, date of birth, sex and phone.",

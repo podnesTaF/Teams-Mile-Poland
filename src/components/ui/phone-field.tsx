@@ -46,15 +46,22 @@ function isoForDial(dialCode: string, preferredIso?: string): string {
 export function PhoneField({ label, value, onChange, error, className, variant }: Props) {
   const t = useTranslations("common.phone");
   const parsed = parsePhone(value);
-  // Last explicit country pick — only disambiguates countries sharing a dial
-  // code; the effective country is derived from `value` on every render.
+  // Last explicit country pick. It disambiguates countries sharing a dial code,
+  // and it is the ONLY place the country lives while the number is empty:
+  // `buildPhone` returns "" for a number with no digits, so an empty value
+  // carries no dial code to derive it from.
   const [iso, setIso] = useState(() => isoForDial(parsed.dialCode));
   // Validity is only reported once the field has been left, so the message
   // doesn't fire on every keystroke of a number still being typed.
   const [touched, setTouched] = useState(false);
 
+  // With digits present the value wins, so a number loaded from the server (or
+  // pasted in full) shows its own country. With none, the pick wins — deriving
+  // it from the empty value would snap the selector straight back to Poland
+  // every time someone chose their country before typing the number.
   const selected =
-    countryByIso(isoForDial(parsed.dialCode, iso)) ?? countryByIso(DEFAULT_COUNTRY_ISO)!;
+    countryByIso(parsed.national ? isoForDial(parsed.dialCode, iso) : iso) ??
+    countryByIso(DEFAULT_COUNTRY_ISO)!;
   const nationalDisplay = formatNationalDigits(parsed.national, selected.iso);
 
   const issue = touched ? phoneIssue(value) : null;

@@ -1539,6 +1539,7 @@
       "backToTeam": "Wróć do zespołu"
     },
     "reasons": {
+      "failed": "Coś poszło nie tak i żądanie nie zostało ukończone. Odśwież stronę, aby sprawdzić, czy się powiodło, i spróbuj ponownie.",
       "auth": "Zaloguj się, aby kontynuować.",
       "verify": "Najpierw potwierdź swój adres e-mail.",
       "profile": "Najpierw uzupełnij profil — potrzebujemy imienia, daty urodzenia, płci i telefonu.",

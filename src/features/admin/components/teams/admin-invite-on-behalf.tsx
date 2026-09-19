@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { adminButton } from "@/features/admin/components/shell/admin-button";
 import { ADMIN_NOTE } from "@/features/admin/components/shell/admin-card";
 import { AdminField, adminInput } from "@/features/admin/components/shell/admin-field";
-import { adminTeamRefusal } from "@/features/admin/components/teams/refusal";
+import { ACTION_FAILED_TEXT, adminTeamRefusal } from "@/features/admin/components/teams/refusal";
 import { inviteByEmail } from "@/features/teams/actions/invitations";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { useActionRun } from "@/lib/use-action-run";
 
 /**
  * **Invite on behalf** — the one power this panel has that a manager does not
@@ -37,7 +38,9 @@ export function AdminInviteOnBehalf({ slug }: { slug: string }) {
   const [email, setEmail] = useState("");
   const [refused, setRefused] = useState<{ reason: string; text: string } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() =>
+    setRefused({ reason: "failed", text: ACTION_FAILED_TEXT }),
+  );
 
   const ready = /.+@.+\..+/.test(email.trim());
 

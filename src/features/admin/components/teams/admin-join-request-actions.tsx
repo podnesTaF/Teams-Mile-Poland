@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { adminButton } from "@/features/admin/components/shell/admin-button";
-import { adminTeamRefusal } from "@/features/admin/components/teams/refusal";
+import { ACTION_FAILED_TEXT, adminTeamRefusal } from "@/features/admin/components/teams/refusal";
 import { decideJoinRequest } from "@/features/teams/actions/join-requests";
 import { useRouter } from "@/i18n/navigation";
+import { useActionRun } from "@/lib/use-action-run";
 
 /**
  * Accept / Decline on one pending join request of `/admin/teams/[slug]` (#63).
@@ -20,7 +21,9 @@ export function AdminJoinRequestActions({ requestId }: { requestId: string }) {
   const router = useRouter();
   const [refused, setRefused] = useState<{ reason: string; text: string } | null>(null);
   const [busy, setBusy] = useState<"accept" | "decline" | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() =>
+    setRefused({ reason: "failed", text: ACTION_FAILED_TEXT }),
+  );
 
   function run(decision: "accept" | "decline") {
     if (pending) return;

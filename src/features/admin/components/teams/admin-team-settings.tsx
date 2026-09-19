@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { adminButton } from "@/features/admin/components/shell/admin-button";
 import { ADMIN_NOTE, ADMIN_TITLE, adminCard } from "@/features/admin/components/shell/admin-card";
 import { AdminField, adminInput } from "@/features/admin/components/shell/admin-field";
-import { adminTeamRefusal } from "@/features/admin/components/teams/refusal";
+import { ACTION_FAILED_TEXT, adminTeamRefusal } from "@/features/admin/components/teams/refusal";
 import { rotateTeamCode, updateTeam } from "@/features/teams/actions/team";
 import { dissolveTeam } from "@/features/teams/actions/roster";
 import { ConfirmButton } from "@/features/teams/components/confirm-button";
 import type { TeamActionResult } from "@/features/teams/config";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { useActionRun } from "@/lib/use-action-run";
 
 /**
  * The organiser's edit panel for one team (#63): name, region, description,
@@ -51,7 +52,9 @@ export function AdminTeamSettings({
   const [recruiting, setRecruiting] = useState(initial.recruiting);
   const [refused, setRefused] = useState<{ reason: string; text: string } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() =>
+    setRefused({ reason: "failed", text: ACTION_FAILED_TEXT }),
+  );
 
   const ready = name.trim().length >= 3 && region.trim().length >= 2;
 

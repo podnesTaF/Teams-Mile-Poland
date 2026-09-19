@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { adminButton } from "@/features/admin/components/shell/admin-button";
-import { adminTeamRefusal } from "@/features/admin/components/teams/refusal";
+import { ACTION_FAILED_TEXT, adminTeamRefusal } from "@/features/admin/components/teams/refusal";
 import { resendInvitation, revokeInvitation } from "@/features/teams/actions/invitations";
 import { useRouter } from "@/i18n/navigation";
+import { useActionRun } from "@/lib/use-action-run";
 
 /**
  * Resend / Revoke on one pending invitation of `/admin/teams/[slug]` (#63) —
@@ -19,7 +20,9 @@ export function AdminInvitationActions({ invitationId }: { invitationId: string 
   const router = useRouter();
   const [refused, setRefused] = useState<{ reason: string; text: string } | null>(null);
   const [busy, setBusy] = useState<"resend" | "revoke" | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() =>
+    setRefused({ reason: "failed", text: ACTION_FAILED_TEXT }),
+  );
 
   function run(which: "resend" | "revoke") {
     if (pending) return;

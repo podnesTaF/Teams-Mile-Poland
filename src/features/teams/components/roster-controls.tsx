@@ -1,11 +1,12 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useRouter } from "@/i18n/navigation";
 
 import { formatWalletBalance } from "@/features/wallet/format";
+import { useActionRun } from "@/lib/use-action-run";
 
 import { dissolveTeam, handOverManagement, leaveTeam, removeMember } from "../actions/roster";
 import type { TeamActionResult, TeamRole } from "../config";
@@ -35,7 +36,7 @@ export type RosterControlsMember = {
  *    Dissolve.
  *
  * Every one of the four is destructive and irreversible, so each goes through
- * {@link ConfirmButton}. Plain `useState` + `useTransition` + `router.refresh()`,
+ * {@link ConfirmButton}. Plain `useState` + `useActionRun` + `router.refresh()`,
  * the same shape as `rotate-code-button.tsx`; leaving or dissolving navigates to
  * the profile instead, because the page the runner is on has just stopped being
  * theirs (or stopped existing).
@@ -60,7 +61,7 @@ export function RosterControls({
   const locale = useLocale();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() => setError(tReasons("failed")));
 
   const isOnRoster = Boolean(viewerUserId) && roster.some((m) => m.userId === viewerUserId);
   const others = roster.filter((m) => m.role !== "manager" && m.userId !== viewerUserId);
@@ -77,6 +78,7 @@ export function RosterControls({
       if (leaving) {
         // The team page is gone (dissolve) or no longer the viewer's (leave).
         router.push("/profile");
+        return;
       }
       router.refresh();
     });

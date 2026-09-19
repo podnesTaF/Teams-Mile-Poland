@@ -527,6 +527,24 @@ export function countryByIso(iso: string): CountryOption | undefined {
   return COUNTRY_OPTIONS.find((c) => c.iso === iso);
 }
 
+/**
+ * The country a *shared* calling code stands for. Calling codes are not unique
+ * — +1 covers the whole NANP, +44 covers the Crown Dependencies — and without
+ * this map `countryByDial` returns whichever of them sorts first by name, so a
+ * stored US number came back as American Samoa and a UK one as Guernsey. Only
+ * the codes whose alphabetical winner is the wrong answer are listed; every
+ * other shared code (+61 Australia, +39 Italy, …) already sorts correctly.
+ */
+const PRIMARY_ISO_BY_DIAL: Record<string, string> = {
+  "1": "US",
+  "7": "RU",
+  "44": "GB",
+  "262": "RE",
+  "599": "CW",
+};
+
 export function countryByDial(dial: string): CountryOption | undefined {
+  const primary = PRIMARY_ISO_BY_DIAL[dial];
+  if (primary) return countryByIso(primary);
   return COUNTRY_OPTIONS.find((c) => c.dial === dial);
 }

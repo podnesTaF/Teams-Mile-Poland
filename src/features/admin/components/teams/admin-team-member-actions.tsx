@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
-import { adminTeamRefusal } from "@/features/admin/components/teams/refusal";
+import { ACTION_FAILED_TEXT, adminTeamRefusal } from "@/features/admin/components/teams/refusal";
 import { handOverManagement, removeMember } from "@/features/teams/actions/roster";
 import { ConfirmButton } from "@/features/teams/components/confirm-button";
 import type { TeamActionResult } from "@/features/teams/config";
 import { useRouter } from "@/i18n/navigation";
+import { useActionRun } from "@/lib/use-action-run";
 
 /**
  * Remove / Hand over on one roster row of `/admin/teams/[slug]` (#63).
@@ -30,7 +31,9 @@ export function AdminTeamMemberActions({
 }) {
   const router = useRouter();
   const [refused, setRefused] = useState<{ reason: string; text: string } | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() =>
+    setRefused({ reason: "failed", text: ACTION_FAILED_TEXT }),
+  );
 
   function run(call: () => Promise<TeamActionResult>) {
     if (pending) return;

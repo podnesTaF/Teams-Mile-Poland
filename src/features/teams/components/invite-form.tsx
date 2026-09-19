@@ -1,10 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { useActionRun } from "@/lib/use-action-run";
 
 import { inviteByEmail } from "../actions/invitations";
 
@@ -28,7 +29,7 @@ export function InviteForm({ slug }: { slug: string }) {
   const [touched, setTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() => setError(tReasons("failed")));
 
   const ready = /.+@.+\..+/.test(email.trim());
   const showInvalid = touched && email.trim().length > 0 && !ready;

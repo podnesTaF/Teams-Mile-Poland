@@ -1,9 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useRouter } from "@/i18n/navigation";
+import { useActionRun } from "@/lib/use-action-run";
 
 import { rotateTeamCode } from "../actions/team";
 
@@ -17,7 +18,7 @@ export function RotateCodeButton({ slug }: { slug: string }) {
   const tReasons = useTranslations("teams.reasons");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() => setError(tReasons("failed")));
 
   function rotate() {
     if (pending) return;

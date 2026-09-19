@@ -1,12 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { Link, useRouter } from "@/i18n/navigation";
 import { slugify } from "@/features/admin/news-slug";
 import { minorToAcer } from "@/features/wallet/config";
 import { cn } from "@/lib/utils";
+import { useActionRun } from "@/lib/use-action-run";
 
 import { createTeam, updateTeam } from "../actions/team";
 import { TEAM_CATEGORIES, type TeamCategory } from "../config";
@@ -91,7 +92,7 @@ export function TeamForm({
   });
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() => setError(tReasons("failed")));
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setData((d) => ({ ...d, [key]: value }));
@@ -146,7 +147,6 @@ export function TeamForm({
       }
       if (mode === "create" && "slug" in result) {
         router.push(`/teams/${result.slug}`);
-        router.refresh();
         return;
       }
       setSaved(true);

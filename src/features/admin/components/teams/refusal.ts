@@ -55,6 +55,14 @@ const REFUSALS: Record<TeamActionReason, string> = {
 };
 
 /** The panel's sentence for a refused team action. */
+/**
+ * Shown when an action call itself failed — thrown, or its response never
+ * arrived — rather than being refused. Not a `TeamActionReason`: no action
+ * returns it; the island's `useActionRun` catch does.
+ */
+export const ACTION_FAILED_TEXT =
+  "The request did not complete. Reload the page to see whether it went through, then try again.";
+
 export function adminTeamRefusal(reason: TeamActionReason): string {
   return REFUSALS[reason];
 }

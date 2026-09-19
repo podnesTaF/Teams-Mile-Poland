@@ -1,11 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { minorToAcer } from "@/features/wallet/config";
 import { useRouter } from "@/i18n/navigation";
 import { localePath } from "@/lib/i18n/config";
+import { useActionRun } from "@/lib/use-action-run";
 
 import { enterTeam } from "../actions/entries";
 import type { EntryFailure } from "../actions/entries";
@@ -116,7 +117,7 @@ export function EntryEnterButton({
   const [failedSlug, setFailedSlug] = useState<string | null>(null);
   /** The refusal's key, kept beside its sentence: only one of them offers a fix. */
   const [failedReason, setFailedReason] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() => setError(tReasons("failed")));
 
   if (events.length === 0) {
     return (
@@ -145,7 +146,6 @@ export function EntryEnterButton({
       // Straight to the entry page: the next thing the captain wants is the
       // checklist of who has confirmed.
       router.push(`/teams/${teamSlug}/entries/${eventSlug}`);
-      router.refresh();
     });
   }
 

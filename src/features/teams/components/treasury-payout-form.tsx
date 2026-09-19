@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import {
   TREASURY_TRANSFER_MAX_ACER,
@@ -11,6 +11,7 @@ import {
 } from "@/features/wallet/config";
 import { formatWalletBalance } from "@/features/wallet/format";
 import { useRouter } from "@/i18n/navigation";
+import { useActionRun } from "@/lib/use-action-run";
 
 import { payoutFromTreasury } from "../actions/treasury";
 
@@ -43,7 +44,7 @@ export function TreasuryPayoutForm({
   const [transferId, setTransferId] = useState(() => crypto.randomUUID());
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] = useActionRun(() => setError(tReasons("failed")));
 
   const parsed = Number(amount);
   const valid = memberUserId !== "" && amount !== "" && isValidTreasuryAmount(parsed);
