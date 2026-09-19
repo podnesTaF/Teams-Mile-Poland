@@ -69,7 +69,12 @@ export default async function TeamJoinPage({ params }: PageProps) {
     (await getManagerFirstNames([team.managerUserId])).get(team.managerUserId) ?? null;
 
   const card = (
-    <TeamCard team={team} roster={rosterSummary} managerFirstName={managerFirstName} />
+    <>
+      <Link href={`/teams/${team.slug}`} className="detail-back">
+        ← {t("backToTeam")}
+      </Link>
+      <TeamCard team={team} roster={rosterSummary} managerFirstName={managerFirstName} />
+    </>
   );
   const back = joinPath(code);
   const user = await getUser();
@@ -90,7 +95,7 @@ export default async function TeamJoinPage({ params }: PageProps) {
               className="btn btn-red"
               href={`/auth/sign-in?redirectTo=${encodeURIComponent(back)}`}
             >
-              {t("askToJoin")}
+              {t("signInToAsk")}
             </Link>
           </div>
           <p className="iv-share__hint">{t("signInHint")}</p>

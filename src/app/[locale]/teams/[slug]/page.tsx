@@ -12,6 +12,7 @@ import {
 } from "@/features/teams/components/entry-enter-button";
 import { EntryList } from "@/features/teams/components/entry-list";
 import { TeamCard } from "@/features/teams/components/team-card";
+import { TeamJoinCta } from "@/features/teams/components/team-join-cta";
 import { TeamManagerPanel } from "@/features/teams/components/team-manager-panel";
 import { TeamRoster } from "@/features/teams/components/team-roster";
 import { TeamShare } from "@/features/teams/components/team-share";
@@ -41,7 +42,8 @@ type PageProps = {
  * One team, in three views layered on top of each other:
  *
  *  - **public** — the card: name, region, category, the runner count,
- *    description, the manager's first name. No roster names, ever.
+ *    description, the manager's first name. No roster names, ever. Under it,
+ *    the join call to action ({@link TeamJoinCta}): ask to join, or why not.
  *  - **member** — plus the roster with names and roles, the runner count (with
  *    the men/women split on mixed teams), the code and the share link.
  *  - **manager** — plus the edit form, the code rotation and the recruiting
@@ -126,9 +128,15 @@ export default async function TeamPage({ params }: PageProps) {
       <InteriorHeader />
       <main className="iv-main">
         <div className="iv-wrap">
-          <Link href="/profile" className="detail-back">
-            ← {t("back")}
-          </Link>
+          {isMember ? (
+            <Link href="/profile" className="detail-back">
+              ← {t("back")}
+            </Link>
+          ) : (
+            <Link href="/teams" className="detail-back">
+              ← {t("backToTeams")}
+            </Link>
+          )}
 
           <TeamCard team={team} roster={rosterSummary} managerFirstName={managerFirstName} />
 
@@ -155,9 +163,12 @@ export default async function TeamPage({ params }: PageProps) {
               />
             </>
           ) : (
-            <p className="iv-share__hint" data-team-view="public">
-              {t("publicRosterHidden")}
-            </p>
+            <>
+              <TeamJoinCta team={team} seats={roster} user={user} />
+              <p className="iv-share__hint" data-team-view="public">
+                {t("publicRosterHidden")}
+              </p>
+            </>
           )}
 
           {isManager ? (

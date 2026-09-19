@@ -63,9 +63,14 @@ export async function RecruitingList({ category }: { category?: TeamCategory }) 
               roster={summarizeRoster(team.category, seatsByTeam.get(team.id) ?? [])}
               managerFirstName={managerNames.get(team.managerUserId) ?? null}
               action={
-                <Link className="btn btn-red btn-sm" href={`/teams/join/${team.code}`}>
-                  {t("askToJoin")}
-                </Link>
+                <div className="team-tile__actions">
+                  <Link className="btn btn-stroke-dark btn-sm" href={`/teams/${team.slug}`}>
+                    {t("viewTeam")}
+                  </Link>
+                  <Link className="btn btn-red btn-sm" href={`/teams/join/${team.code}`}>
+                    {t("askToJoin")}
+                  </Link>
+                </div>
               }
             />
           ))}

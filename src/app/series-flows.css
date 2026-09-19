@@ -2351,6 +2351,33 @@
   overflow-wrap: anywhere;
 }
 
+/* Two buttons per tile: the quiet "view" beside the red "ask". */
+.ace-landing .team-tile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* The join call to action under the team card (non-members). Its title is a
+ * section heading, not a second page title, so it sits at the pf-h2 size with
+ * a tighter top margin than the hero's. */
+.ace-landing .team-join {
+  margin-top: 20px;
+}
+.ace-landing .team-join__title {
+  margin-top: 8px;
+}
+.ace-landing .team-join .iv-sub {
+  margin-top: 10px;
+}
+.ace-landing .team-join .banner {
+  margin-top: 16px;
+}
+.ace-landing .team-join .iv-actions {
+  margin-top: 18px;
+}
+
 .ace-landing .team-list__cta {
   display: flex;
   justify-content: center;

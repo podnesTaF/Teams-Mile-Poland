@@ -8,7 +8,9 @@ import { useRouter } from "@/i18n/navigation";
 import { requestToJoin } from "../actions/join-requests";
 
 /**
- * The "Ask to join" button on `/teams/join/[code]`.
+ * The "Send request" button — on `/teams/join/[code]` and, for a signed-in
+ * eligible runner, right on the team page. `label` overrides the caption when
+ * the same press means something else (accepting an invitation).
  *
  * Two outcomes, because `requestToJoin` has two: a runner who was already
  * invited is admitted through that invitation and lands on the team page, and
@@ -21,7 +23,7 @@ import { requestToJoin } from "../actions/join-requests";
  * joined another team in this category in another tab). It is rendered in place
  * from `teams.reasons` rather than navigated to.
  */
-export function JoinConfirm({ code }: { code: string }) {
+export function JoinConfirm({ code, label }: { code: string; label?: string }) {
   const t = useTranslations("teams.requests");
   const tReasons = useTranslations("teams.reasons");
   const router = useRouter();
@@ -58,7 +60,7 @@ export function JoinConfirm({ code }: { code: string }) {
   return (
     <div className="iv-actions" data-join-confirm={code}>
       <button type="button" className="btn btn-red" onClick={ask} disabled={pending}>
-        {pending ? t("asking") : t("askToJoin")}
+        {pending ? t("asking") : (label ?? t("sendRequest"))}
       </button>
       {error ? (
         <span className="field-msg" role="alert" data-join-error="1">
