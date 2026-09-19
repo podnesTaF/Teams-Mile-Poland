@@ -47,7 +47,7 @@ import type { EventSummary } from "@/lib/events/types";
 import { getDirectResultRefs, getMergedResults } from "@/lib/events/results-data";
 import { findUserResults } from "@/lib/events/user-results";
 import { defaultLocale, localePath } from "@/lib/i18n/config";
-import { getUser, isAdmin, isProfileComplete } from "@/lib/auth/user-session";
+import { getUser, isProfileComplete } from "@/lib/auth/user-session";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
@@ -164,17 +164,18 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   ]);
   const referralUrl = makeReferralUrl(referralCode, locale);
 
-  // The wallet is admin-only while it is in testing, and `/wallet` redirects
-  // everyone else back here — so the balance card is gated by the *same*
-  // predicate rather than a second one that can drift. Ungating the card alone
-  // would hand ordinary runners a balance and two CTAs that bounce them
-  // straight back to this page. Flip both together when the wallet opens up.
+  // The wallet is open to every signed-in account (2026-09-19, owner's call);
+  // the admin-only testing gate that used to stand here and on `/wallet` is
+  // gone from both. They were always one decision, which is why they were one
+  // predicate — a card that showed a balance while the page bounced the reader
+  // back here was the failure mode being guarded against.
   //
-  // The read is skipped entirely for everyone else: no query runs for a reader
-  // who will not see the card. One balance query and no history — the card
-  // shows a single number, and movements live on `/wallet`.
-  const showWallet = isAdmin(user);
-  const walletBalances = showWallet ? await getWalletBalances(user.id) : null;
+  // Unconditional now, and the card carries its own two states: an empty wallet
+  // says how ACER is earned, a funded one says what the number is. Since every
+  // new account is credited the welcome grant on creation (ADR 0013), "empty"
+  // is the rarer case. One balance query, no history — movements live on
+  // `/wallet`.
+  const walletBalances = await getWalletBalances(user.id);
 
   // Race nights the user could still join — any registration row (even a
   // cancelled one) excludes the event, since registerForEvent rejects those
@@ -261,13 +262,11 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
           {/* Money sits directly under the identity block and above the stats
             * strip: it is the one number on this page that moves between visits,
             * so it leads rather than competing inside the grey grid. */}
-          {walletBalances ? (
-            <WalletBalanceCard
-              balanceMinor={walletBalances.ACER}
-              locale={locale}
-              canTopUp={isAcerPurchaseEnabled()}
-            />
-          ) : null}
+          <WalletBalanceCard
+            balanceMinor={walletBalances.ACER}
+            locale={locale}
+            canTopUp={isAcerPurchaseEnabled()}
+          />
 
           <div className="pf-stats">
             <div className="pf-stat">
@@ -307,11 +306,9 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
               * runner looks for the rest of their cabinet. It repeats the
               * balance card's link on purpose: the nav is sticky, so this is the
               * way back to the wallet once the card has scrolled away. */}
-            {showWallet ? (
-              <Link className="pf-nav__link pf-nav__link--go" href="/wallet">
-                {t("nav.wallet")} →
-              </Link>
-            ) : null}
+            <Link className="pf-nav__link pf-nav__link--go" href="/wallet">
+              {t("nav.wallet")} →
+            </Link>
           </nav>
 
           {incomplete ? (

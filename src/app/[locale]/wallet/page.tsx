@@ -22,7 +22,7 @@ import {
   type PurchaseFlash,
 } from "@/features/wallet/purchase";
 import { Link } from "@/i18n/navigation";
-import { getUser, isAdmin, isProfileComplete } from "@/lib/auth/user-session";
+import { getUser, isProfileComplete } from "@/lib/auth/user-session";
 import { localePath } from "@/lib/i18n/config";
 
 /**
@@ -83,11 +83,17 @@ export default async function WalletPage({ params, searchParams }: PageProps) {
     redirect(localePath(locale, `/auth/sign-up?redirectTo=${encodeURIComponent(WALLET_PATH)}`));
   }
 
-  // Admin-only while the wallet is in testing: ordinary users are sent back to
-  // their profile (the pill that links here is hidden for them too).
-  if (!isAdmin(user)) {
-    redirect(localePath(locale, "/profile"));
-  }
+  // The admin-only testing gate is gone (2026-09-19, owner's call): every
+  // signed-in account reaches its own wallet. What remains below are the two
+  // gates that were never about testing — a verified address and a complete
+  // profile — and they stay because this page is the runner's money and the
+  // rest of the cabinet already holds that line.
+  //
+  // Note what did *not* move with it: card purchases are still behind
+  // `isAcerPurchaseEnabled()`, which is a **legal** switch (issue #49 — no
+  // purchases before the #46 copy clears Polish counsel), not a testing one.
+  // Opening the wallet shows everyone their balance and their history; it does
+  // not by itself let anyone spend money at us.
 
   if (!user.emailVerified) {
     return (

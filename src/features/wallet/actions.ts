@@ -2,7 +2,7 @@
 
 import { getLocale, getTranslations } from "next-intl/server";
 
-import { getUser, isAdmin, isProfileComplete } from "@/lib/auth/user-session";
+import { getUser, isProfileComplete } from "@/lib/auth/user-session";
 
 import { isValidAcerAmount } from "./config";
 import { createAcerPurchaseSession, isAcerPurchaseEnabled } from "./purchase";
@@ -69,8 +69,11 @@ export async function createAcerCheckout({
 
   const user = await getUser();
   if (!user) return { ok: false, reason: "auth" };
-  // Admin-only while the wallet is in testing, matching the page gate.
-  if (!isAdmin(user)) return { ok: false, reason: "unavailable" };
+  // The admin-only testing gate was lifted with the page's (2026-09-19). The
+  // flag check above it is the one that decides whether anybody may buy at all,
+  // and it is deliberately the *first* line of this action: a request that
+  // arrives while purchases are off is refused before it costs a session read,
+  // whoever is asking.
   if (!user.emailVerified) return { ok: false, reason: "verify" };
   if (!isProfileComplete(user)) return { ok: false, reason: "profile" };
 
