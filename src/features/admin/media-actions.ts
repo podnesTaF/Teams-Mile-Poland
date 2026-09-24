@@ -33,12 +33,14 @@ function parseFolderId(raw: string): string | null {
 
 /** The public surfaces a media flip changes, across all three locales. */
 function revalidateMediaSurfaces() {
-  // Landing (archive card), event detail page (teaser / coming-soon), and the
-  // gallery route itself (exists ↔ 404). Route-pattern form covers pl/en/ua in
+  // Landing (archive card), event detail page (teaser / coming-soon), the
+  // gallery route itself (exists ↔ 404), and the gallery index. Route-pattern form covers pl/en/ua in
   // one call each — the `revalidateStartList` idiom.
   revalidatePath("/[locale]", "page");
   revalidatePath("/[locale]/events/[slug]", "page");
   revalidatePath("/[locale]/events/[slug]/gallery", "page");
+  // The public gallery index lists exactly the published nights.
+  revalidatePath("/[locale]/gallery", "page");
 }
 
 /**

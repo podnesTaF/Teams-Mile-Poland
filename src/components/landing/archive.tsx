@@ -32,6 +32,9 @@ export async function Archive({
           <p className="ev-eyebrow">{t("eyebrow")}</p>
           <h2 className="head t-sec">{t("title")}</h2>
           <p className="sub-lead">{t("subtitle")}</p>
+          <Link href="/gallery" className="archive-card__more archive-sec__all">
+            {t("allGalleries")}
+          </Link>
         </div>
 
         <div className="archive-sec__grid">

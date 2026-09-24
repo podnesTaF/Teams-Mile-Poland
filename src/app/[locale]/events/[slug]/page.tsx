@@ -516,6 +516,20 @@ export default async function EventDetailPage({ params }: PageProps) {
                   <span aria-hidden="true"> ↗</span>
                 </a>
               </p>
+              {/* The gallery is the other half of the archive view; a reader
+                  who came for the times should not have to scroll to find
+                  the photos. Only once one is published. */}
+              {media ? (
+                <p className="iv-meta">
+                  <Link
+                    href={`/events/${slug}/gallery`}
+                    className="iv-extlink"
+                    data-results-gallery-link
+                  >
+                    {t("media.fromResults")}
+                  </Link>
+                </p>
+              ) : null}
             </section>
           ) : null}
 
@@ -537,6 +551,9 @@ export default async function EventDetailPage({ params }: PageProps) {
               <section className="media-soon">
                 <span className="ev-eyebrow">{t("media.teaserHeading")}</span>
                 <p className="media-soon__txt">{t("media.comingSoon")}</p>
+                <Link href="/gallery" className="media-soon__link">
+                  {t("media.browseOthers")}
+                </Link>
               </section>
             ))}
         </div>

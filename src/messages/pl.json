@@ -75,7 +75,8 @@
         "audience": "DLA KOGO",
         "program": "PROGRAM",
         "location": "LOKALIZACJA",
-        "faq": "FAQ"
+        "faq": "FAQ",
+        "gallery": "GALERIA"
       },
       "ctaResults": "WYNIKI →"
     },
@@ -466,7 +467,8 @@
       "title": "Minione noce biegowe",
       "subtitle": "Każde zakończone wydarzenie z wynikami i galerią zdjęć — znajdź swój bieg, swój czas i swoje ujęcia.",
       "details": "Wyniki i szczegóły",
-      "gallery": "Galeria"
+      "gallery": "Galeria",
+      "allGalleries": "Wszystkie galerie →"
     },
     "results": {
       "eyebrow": "Wyniki biegu",
@@ -1071,7 +1073,10 @@
       "viewAll": "Zobacz pełną galerię →",
       "videoCount": "{count, plural, one {# film} few {# filmy} many {# filmów} other {# filmu}}",
       "comingSoon": "Zdjęcia i wideo z tej nocy biegowej pojawią się wkrótce — zajrzyj tu, aby zobaczyć i pobrać swoje ujęcia.",
-      "unavailable": "Nie udało się teraz wczytać zdjęć — spróbuj za chwilę albo otwórz pełny album na Dysku Google powyżej."
+      "unavailable": "Nie udało się teraz wczytać zdjęć — spróbuj za chwilę albo otwórz pełny album na Dysku Google powyżej.",
+      "allGalleries": "Wszystkie galerie",
+      "fromResults": "Zdjęcia i wideo z tej nocy →",
+      "browseOthers": "Zobacz galerie z innych nocy biegowych →"
     },
     "heats": {
       "eyebrow": "Lista startowa",
@@ -2168,5 +2173,18 @@
       "prizeDataUnderstanding": "Rozumiem, że w przypadku zajęcia przez moją drużynę miejsca nagrodzonego wypłata nagrody wymaga podania danych do przelewu i — jeśli to niezbędne — rozliczenia podatkowego.",
       "imageUse": "WYRAŻAM ZGODĘ na wykorzystywanie i rozpowszechnianie mojego indywidualnie rozpoznawalnego wizerunku utrwalonego podczas wydarzenia w materiałach informacyjnych, sprawozdawczych i promocyjnych Organizatora (strona internetowa, media społecznościowe), bez odrębnego wynagrodzenia. Zgodę mogę wycofać na przyszłość w dowolnym momencie."
     }
+  },
+  "gallery": {
+    "meta": {
+      "title": "Galeria"
+    },
+    "eyebrow": "Galeria",
+    "title": "Zdjęcia i wideo",
+    "subtitle": "Każda opublikowana noc biegowa, od najnowszej — znajdź swoje ujęcia, pobierz je i podziel się nimi.",
+    "empty": "Nie ma jeszcze opublikowanych galerii — zdjęcia z najbliższej nocy biegowej pojawią się tutaj.",
+    "view": "Zobacz galerię →",
+    "event": "Wyniki i szczegóły →",
+    "photos": "{count, plural, one {# zdjęcie} few {# zdjęcia} many {# zdjęć} other {# zdjęcia}}",
+    "videos": "{count, plural, one {# film} few {# filmy} many {# filmów} other {# filmu}}"
   }
 }

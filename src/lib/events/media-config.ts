@@ -85,3 +85,20 @@ export async function getPublishedMedia(slugs: string[]): Promise<Map<string, Ev
 export async function getArchiveEvents(): Promise<EventSummary[]> {
   return (await getPastEvents()).filter(acceptsIndividuals);
 }
+
+/** One row of the public gallery index: a completed night and its published gallery. */
+export type GalleryEntry = { event: EventSummary; media: EventMediaConfig };
+
+/**
+ * The public `/gallery` index's input: the archive events that actually have a
+ * published gallery, newest first. Same two reads as the landing archive, so the
+ * two surfaces can never disagree about which nights have photos.
+ */
+export async function getGalleryEvents(): Promise<GalleryEntry[]> {
+  const events = await getArchiveEvents();
+  const media = await getPublishedMedia(events.map((e) => e.slug));
+  return events.flatMap((event) => {
+    const published = media.get(event.slug);
+    return published ? [{ event, media: published }] : [];
+  });
+}

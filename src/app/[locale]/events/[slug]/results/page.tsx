@@ -9,6 +9,7 @@ import "../heats/heats.css";
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { ResultsTables } from "@/features/event-results/results-tables";
 import { Link } from "@/i18n/navigation";
+import { getEventMediaConfig } from "@/lib/events/media-config";
 import { getEventBySlug } from "@/lib/events/registry";
 import { getPublicResults } from "@/lib/events/results-data";
 // Straight from the store, not the `registry` compat shim: `isPubliclyVisible`
@@ -67,6 +68,9 @@ export default async function EventResultsPage({ params }: PageProps) {
 
   const t = await getTranslations("events");
   const results = await getPublicResults(slug);
+  // The night's published gallery, if any — the page is per-request anyway,
+  // so one more scoped read is cheap, and only completed nights can have one.
+  const media = event.status === "completed" ? await getEventMediaConfig(slug) : null;
 
   return (
     <div className="ace-landing iv">
@@ -96,6 +100,17 @@ export default async function EventResultsPage({ params }: PageProps) {
               <span aria-hidden="true"> ↗</span>
             </a>
           </p>
+          {media ? (
+            <p className="iv-meta">
+              <Link
+                href={`/events/${slug}/gallery`}
+                className="iv-extlink"
+                data-results-gallery-link
+              >
+                {t("media.fromResults")}
+              </Link>
+            </p>
+          ) : null}
 
           {results ? (
             <>

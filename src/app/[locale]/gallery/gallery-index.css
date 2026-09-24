@@ -1,0 +1,160 @@
+/* ===================================================================
+ * Public gallery index (`/gallery`): one card per race night with a
+ * published Drive gallery. Piggybacks on the interior `.ace-landing .iv-*`
+ * shell and the gallery tokens bridged in series-flows.css; the card
+ * borrows the landing archive card's proportions so the two read as kin.
+ * ================================================================= */
+
+.ace-landing .gi-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: clamp(28px, 4vw, 44px);
+}
+.ace-landing .gi-sub {
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.ace-landing .gi-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(22px, 3vw, 32px);
+}
+
+.ace-landing .gi-card {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+  gap: 18px 28px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: clamp(18px, 2.6vw, 26px);
+}
+.ace-landing .gi-card__cover {
+  display: block;
+  border: 1px solid var(--line-d);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--card);
+}
+.ace-landing .gi-card__cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+.ace-landing .gi-card__cover:hover img {
+  transform: scale(1.02);
+}
+
+.ace-landing .gi-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+/* The date is the kicker: the series shares one event name, so the night's
+   date is what tells the cards apart — the archive card's rule. */
+.ace-landing .gi-card__date {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--acl-red);
+}
+.ace-landing .gi-card__title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-h3);
+  line-height: 1.1;
+  margin: 0;
+}
+.ace-landing .gi-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+.ace-landing .gi-card__title a:hover {
+  color: var(--acl-red);
+}
+.ace-landing .gi-card__meta {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.55;
+  font-size: var(--fs-body-m);
+}
+.ace-landing .gi-card__counts {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ace-landing .gi-card__links {
+  margin-top: auto;
+  padding-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+}
+.ace-landing .gi-card__more {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--acl-red);
+  text-decoration: none;
+}
+.ace-landing .gi-card__more:hover {
+  text-decoration: underline;
+}
+
+.ace-landing .gi-card__strip {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(8px, 1.2vw, 12px);
+}
+.ace-landing .gi-card__cell {
+  display: block;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--line-d);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--card);
+  transition: transform 0.15s, border-color 0.15s;
+}
+.ace-landing .gi-card__cell:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-d2);
+}
+.ace-landing .gi-card__cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ace-landing .gi-actions {
+  margin-top: clamp(32px, 5vw, 52px);
+}
+
+@media (max-width: 760px) {
+  .ace-landing .gi-card {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .ace-landing .gi-card__strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

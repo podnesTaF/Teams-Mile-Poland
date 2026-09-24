@@ -4828,6 +4828,10 @@
 .ace-landing .archive-sec__head .sub-lead {
   margin-top: 12px;
 }
+.ace-landing .archive-sec__all {
+  display: inline-block;
+  margin-top: 16px;
+}
 .ace-landing .archive-sec__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

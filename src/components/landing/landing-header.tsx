@@ -19,8 +19,15 @@ const NAV_LINKS = [
   { key: "audience", href: "#audience" },
   // { key: "program", href: "#program" },
   { key: "location", href: "#location" },
+  // A route, not a section: the gallery index lives on its own page.
+  { key: "gallery", href: "/gallery" },
   { key: "faq", href: "#faq" },
 ] as const;
+
+/** Section anchors scroll; anything else is a locale-aware route. */
+function isAnchor(href: string): boolean {
+  return href.startsWith("#");
+}
 
 /**
  * Fixed landing header, always visible. Transparent over the dark hero (light
@@ -107,11 +114,17 @@ export function LandingHeader({
           </Link>
 
           <nav className="site-header__nav" aria-label={t("navLabel")}>
-            {NAV_LINKS.map(({ key, href }) => (
-              <a key={key} href={href} className="site-header__link">
-                {t(`nav.${key}`)}
-              </a>
-            ))}
+            {NAV_LINKS.map(({ key, href }) =>
+              isAnchor(href) ? (
+                <a key={key} href={href} className="site-header__link">
+                  {t(`nav.${key}`)}
+                </a>
+              ) : (
+                <Link key={key} href={href} className="site-header__link">
+                  {t(`nav.${key}`)}
+                </Link>
+              ),
+            )}
           </nav>
 
           <div className="site-header__actions">
@@ -154,11 +167,22 @@ export function LandingHeader({
         aria-hidden={!menuOpen}
       >
         <nav className="site-header__drawer-nav" aria-label={t("navLabel")}>
-          {NAV_LINKS.map(({ key, href }) => (
-            <a key={key} href={href} className="site-header__drawer-link" onClick={closeMenu}>
-              {t(`nav.${key}`)}
-            </a>
-          ))}
+          {NAV_LINKS.map(({ key, href }) =>
+            isAnchor(href) ? (
+              <a key={key} href={href} className="site-header__drawer-link" onClick={closeMenu}>
+                {t(`nav.${key}`)}
+              </a>
+            ) : (
+              <Link
+                key={key}
+                href={href}
+                className="site-header__drawer-link"
+                onClick={closeMenu}
+              >
+                {t(`nav.${key}`)}
+              </Link>
+            ),
+          )}
         </nav>
         <div className="site-header__drawer-actions">
           {!authPending ? (

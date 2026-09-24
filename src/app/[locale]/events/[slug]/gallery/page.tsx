@@ -135,14 +135,19 @@ export default async function GalleryPage({ params }: PageProps) {
                 {longDate} · {event.venue}, {event.city}
               </p>
             </div>
-            <a
-              href={driveAlbumUrl(media.driveFolderId)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-stroke-dark btn-sm gallery-album"
-            >
-              {t("media.openAlbum")}
-            </a>
+            <div className="gallery-head__actions">
+              <Link href="/gallery" className="btn btn-stroke-dark btn-sm">
+                {t("media.allGalleries")}
+              </Link>
+              <a
+                href={driveAlbumUrl(media.driveFolderId)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-stroke-dark btn-sm gallery-album"
+              >
+                {t("media.openAlbum")}
+              </a>
+            </div>
           </header>
 
           {items ? (

@@ -75,7 +75,8 @@
         "audience": "FOR WHOM",
         "program": "PROGRAM",
         "location": "LOCATION",
-        "faq": "FAQ"
+        "faq": "FAQ",
+        "gallery": "GALLERY"
       },
       "ctaResults": "RESULTS →"
     },
@@ -466,7 +467,8 @@
       "title": "Past race nights",
       "subtitle": "Every completed event with its results and photo gallery — find your race, your time and your shots.",
       "details": "Results & details",
-      "gallery": "Gallery"
+      "gallery": "Gallery",
+      "allGalleries": "All galleries →"
     },
     "results": {
       "eyebrow": "Race results",
@@ -1071,7 +1073,10 @@
       "viewAll": "View full gallery →",
       "videoCount": "{count, plural, one {# video} other {# videos}}",
       "comingSoon": "Photos & video from this race night are coming soon — check back to see and download your shots.",
-      "unavailable": "The photos can't be loaded right now — try again in a moment, or open the full album on Drive above."
+      "unavailable": "The photos can't be loaded right now — try again in a moment, or open the full album on Drive above.",
+      "allGalleries": "All galleries",
+      "fromResults": "Photos & video from this night →",
+      "browseOthers": "Browse galleries from other race nights →"
     },
     "heats": {
       "eyebrow": "Start list",
@@ -2168,5 +2173,18 @@
       "prizeDataUnderstanding": "I understand that if my team finishes in a prize position, payout of the prize requires providing bank transfer details and, where necessary, tax data.",
       "imageUse": "I AGREE to the use and dissemination of my individually recognizable image captured during the event in the Organizer's informational, reporting and promotional materials (website, social media), without separate remuneration. I may withdraw this consent for the future at any time."
     }
+  },
+  "gallery": {
+    "meta": {
+      "title": "Gallery"
+    },
+    "eyebrow": "Gallery",
+    "title": "Photos & video",
+    "subtitle": "Every race night we've published, newest first — find your shots, download them and share them.",
+    "empty": "No galleries published yet — photos from the next race night will appear here.",
+    "view": "View gallery →",
+    "event": "Results & details →",
+    "photos": "{count, plural, one {# photo} other {# photos}}",
+    "videos": "{count, plural, one {# video} other {# videos}}"
   }
 }

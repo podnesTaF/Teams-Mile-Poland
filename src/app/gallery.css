@@ -31,6 +31,12 @@
 .ace-landing .gallery-sub {
   color: var(--muted);
 }
+.ace-landing .gallery-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 0 0 auto;
+}
 .ace-landing .gallery-album {
   flex: 0 0 auto;
   white-space: nowrap;
@@ -190,6 +196,18 @@
 .ace-landing .media-soon__txt {
   color: var(--muted);
   max-width: 46ch;
+}
+.ace-landing .media-soon__link {
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--acl-red);
+  text-decoration: none;
+}
+.ace-landing .media-soon__link:hover {
+  text-decoration: underline;
 }
 
 /* --- Lightbox ----------------------------------------------------- */
