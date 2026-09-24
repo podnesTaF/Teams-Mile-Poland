@@ -1,19 +1,33 @@
 import { and, asc, eq, inArray, isNotNull, max, notInArray, sql } from "drizzle-orm";
 
-import { eventHeats, eventRegistrations, eventResults, users, type ResultStatus } from "@/db/schema";
+import {
+  eventHeats,
+  eventRegistrations,
+  eventResults,
+  teamResults,
+  userTeams,
+  users,
+  type ResultStatus,
+} from "@/db/schema";
 import { getDb } from "@/lib/db";
 import { nameKey } from "@/lib/events/name-key";
 
 import { setHeatForRegistrations } from "../heats-data";
 import type { ParsedResultRow } from "./parse";
+import type { ParsedTeam, ParsedTeamRunner } from "./parse-team";
 
 /**
  * Data layer for the results import: resolve parsed rows to registrations,
  * summarize what is already imported, and commit a file heat-by-heat.
  */
 
-/** How a row found its registration — shown in the preview, stored nowhere. */
-export type MatchSource = "lease" | "name" | null;
+/**
+ * How a row found its registration — shown in the preview, stored nowhere.
+ * `dob` is the file's date of birth plus at least one shared name token: it
+ * links a transliteration ("Vladislav" / "Vladyslav") that the exact name key
+ * misses, and is unique-or-nothing like the other two.
+ */
+export type MatchSource = "lease" | "name" | "dob" | null;
 
 export type ResolvedRow = ParsedResultRow & {
   registrationId: string | null;
@@ -27,12 +41,24 @@ export type ResolvedRow = ParsedResultRow & {
  *    that bib (`bibReturnedAt` is ignored: the value is retained after return
  *    precisely so historical results stay accurate, ADR 0003);
  * 2. a unique name-key match against the event's roster;
- * 3. otherwise unlinked (`registrationId: null`) — imported, never guessed.
+ * 3. a unique date-of-birth match sharing a name token, when the file has DoB;
+ * 4. otherwise unlinked (`registrationId: null`) — imported, never guessed.
  */
 export async function resolveRegistrations(
   eventSlug: string,
   rows: ParsedResultRow[],
 ): Promise<ResolvedRow[]> {
+  const resolve = await rosterResolver(eventSlug);
+  return rows.map((row) => ({ ...row, ...resolve(row) }));
+}
+
+/** What the resolver needs from a parsed row, individual or team. */
+type Linkable = { heat: number | null; bib: number | null; name: string; dob: string | null };
+
+/** The event's resolver, built once per import (steps in {@link resolveRegistrations}). */
+async function rosterResolver(
+  eventSlug: string,
+): Promise<(row: Linkable) => { registrationId: string | null; matchedBy: MatchSource }> {
   const db = getDb();
   const roster = await db
     .select({
@@ -42,6 +68,7 @@ export async function resolveRegistrations(
       firstName: users.firstName,
       lastName: users.lastName,
       fallbackName: users.name,
+      dateOfBirth: users.dateOfBirth,
     })
     .from(eventRegistrations)
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
@@ -54,6 +81,7 @@ export async function resolveRegistrations(
   // ambiguous key resolves to nobody rather than to somebody.
   const byLease = new Map<string, string | null>();
   const byName = new Map<string, string | null>();
+  const byDob = new Map<string, { id: string; tokens: Set<string> }[]>();
   for (const r of roster) {
     if (r.heatNumber !== null && r.bib !== null) {
       const key = `${r.heatNumber}:${r.bib}`;
@@ -61,15 +89,74 @@ export async function resolveRegistrations(
     }
     const key = nameKey([r.firstName, r.lastName].filter(Boolean).join(" ") || r.fallbackName);
     if (key) byName.set(key, byName.has(key) ? null : r.id);
+    if (key && r.dateOfBirth) {
+      const dob = r.dateOfBirth.toISOString().slice(0, 10);
+      byDob.set(dob, [...(byDob.get(dob) ?? []), { id: r.id, tokens: new Set(key.split(" ")) }]);
+    }
   }
 
-  return rows.map((row) => {
-    const leased = byLease.get(`${row.heat}:${row.bib}`);
-    if (leased) return { ...row, registrationId: leased, matchedBy: "lease" };
-    const named = byName.get(nameKey(row.name));
-    if (named) return { ...row, registrationId: named, matchedBy: "name" };
-    return { ...row, registrationId: null, matchedBy: null };
-  });
+  return (row) => {
+    const leased =
+      row.heat !== null && row.bib !== null ? byLease.get(`${row.heat}:${row.bib}`) : undefined;
+    if (leased) return { registrationId: leased, matchedBy: "lease" };
+    const key = nameKey(row.name);
+    const named = byName.get(key);
+    if (named) return { registrationId: named, matchedBy: "name" };
+    if (row.dob) {
+      const tokens = key.split(" ");
+      const hits = (byDob.get(row.dob) ?? []).filter((c) => tokens.some((t) => c.tokens.has(t)));
+      if (hits.length === 1) return { registrationId: hits[0].id, matchedBy: "dob" };
+    }
+    return { registrationId: null, matchedBy: null };
+  };
+}
+
+export type ResolvedTeamRunner = ParsedTeamRunner & {
+  registrationId: string | null;
+  matchedBy: MatchSource;
+};
+
+export type ResolvedTeam = Omit<ParsedTeam, "runners"> & {
+  /** The platform team whose name matches exactly one `user_teams` row. */
+  teamId: string | null;
+  runners: ResolvedTeamRunner[];
+};
+
+/**
+ * Resolve a team file: each runner through the same roster resolver as an
+ * individual row (no lease — a team seat number is not a bib lease), and each
+ * team to the one platform team with that name, compared case-insensitively.
+ * Accents are deliberately *not* folded: "AB Praga-Poludnie" and "AB PRAGA
+ * POŁUDNIE" are two platform teams, and folding would turn a clean match into
+ * an ambiguous one.
+ */
+export async function resolveTeamResults(
+  eventSlug: string,
+  teams: ParsedTeam[],
+): Promise<ResolvedTeam[]> {
+  const resolve = await rosterResolver(eventSlug);
+  const names = [...new Set(teams.map((t) => t.name.trim().toLowerCase()))];
+  const platform =
+    names.length === 0
+      ? []
+      : await getDb()
+          .select({ id: userTeams.id, name: userTeams.name })
+          .from(userTeams)
+          .where(inArray(sql`lower(trim(${userTeams.name}))`, names));
+  const teamIdByName = new Map<string, string | null>();
+  for (const t of platform) {
+    const key = t.name.trim().toLowerCase();
+    teamIdByName.set(key, teamIdByName.has(key) ? null : t.id);
+  }
+
+  return teams.map((team) => ({
+    ...team,
+    teamId: teamIdByName.get(team.name.trim().toLowerCase()) ?? null,
+    runners: team.runners.map((runner) => ({
+      ...runner,
+      ...resolve({ heat: null, bib: null, name: runner.name, dob: runner.dob }),
+    })),
+  }));
 }
 
 /** What one heat currently holds in `event_results` — the page's status table. */
@@ -105,7 +192,7 @@ export type ImportedResultRow = {
   heatNumber: number;
   /** Finishing place within the heat; null for DNF/DNS/DSQ. */
   place: number | null;
-  bib: number;
+  bib: number | null;
   status: ResultStatus;
   /** Net time in hundredths of a second; null for DNF/DNS/DSQ. */
   timeCs: number | null;
@@ -155,7 +242,7 @@ export async function getImportedResults(eventSlug: string): Promise<ImportedRes
         a.heatNumber - b.heatNumber ||
         STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
         (a.place ?? Infinity) - (b.place ?? Infinity) ||
-        a.bib - b.bib,
+        (a.bib ?? Infinity) - (b.bib ?? Infinity),
     );
 }
 
@@ -179,7 +266,7 @@ export async function unknownHeatNumbers(
 /** One finisher in the qualification standings, best time first. */
 export type Qualifier = {
   heatNumber: number;
-  bib: number;
+  bib: number | null;
   name: string;
   gender: "M" | "F";
   timeCs: number;
@@ -304,6 +391,10 @@ export async function replaceHeatResults(
 
   const db = getDb();
   await db.transaction(async (tx) => {
+    // A heat is replaced whole, whichever layout filled it last time.
+    await tx
+      .delete(teamResults)
+      .where(and(eq(teamResults.eventSlug, eventSlug), inArray(teamResults.heatNumber, heatNumbers)));
     await tx
       .delete(eventResults)
       .where(
@@ -320,9 +411,87 @@ export async function replaceHeatResults(
         name: r.name,
         gender: r.gender,
         registrationId: r.registrationId,
+        splits: r.splits,
       })),
     );
   });
 
   return { heats: heatNumbers.length, rows: rows.length };
+}
+
+/**
+ * Commit a team file with the same per-heat replace as
+ * {@link replaceHeatResults}: every heat in the file is deleted whole, team
+ * and individual rows alike, then rewritten — a corrected re-import is
+ * idempotent.
+ *
+ * A RACER's `place` is derived here, among the heat's finished RACERS by mile
+ * time: the file places teams, not runners, and every mile reader expects a
+ * finisher to carry a place.
+ */
+export async function replaceTeamHeatResults(
+  eventSlug: string,
+  teams: ResolvedTeam[],
+): Promise<{ heats: number; teams: number; rows: number }> {
+  const heatNumbers = [...new Set(teams.map((t) => t.heat))];
+  if (heatNumbers.length === 0) return { heats: 0, teams: 0, rows: 0 };
+
+  const racerPlace = new Map<ResolvedTeamRunner, number>();
+  for (const heat of heatNumbers) {
+    teams
+      .filter((t) => t.heat === heat)
+      .flatMap((t) => t.runners)
+      .filter((r) => r.role === "racer" && r.status === "finished" && r.timeCs !== null)
+      .sort((a, b) => (a.timeCs as number) - (b.timeCs as number))
+      .forEach((r, i) => racerPlace.set(r, i + 1));
+  }
+
+  const db = getDb();
+  let rows = 0;
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(teamResults)
+      .where(and(eq(teamResults.eventSlug, eventSlug), inArray(teamResults.heatNumber, heatNumbers)));
+    await tx
+      .delete(eventResults)
+      .where(
+        and(eq(eventResults.eventSlug, eventSlug), inArray(eventResults.heatNumber, heatNumbers)),
+      );
+    for (const team of teams) {
+      const [inserted] = await tx
+        .insert(teamResults)
+        .values({
+          eventSlug,
+          heatNumber: team.heat,
+          teamName: team.name,
+          teamId: team.teamId,
+          status: team.status,
+          place: team.place,
+          timeCs: team.timeCs,
+        })
+        .returning({ id: teamResults.id });
+      if (team.runners.length === 0) continue;
+      await tx.insert(eventResults).values(
+        team.runners.map((r) => ({
+          eventSlug,
+          heatNumber: team.heat,
+          bib: r.bib,
+          status: r.status,
+          timeCs: r.timeCs,
+          place: racerPlace.get(r) ?? null,
+          name: r.name,
+          gender: r.gender,
+          registrationId: r.registrationId,
+          splits: r.splits,
+          teamResultId: inserted.id,
+          raceRole: r.role,
+          pairNo: r.pairNo,
+          legTimeCs: r.legTimeCs,
+        })),
+      );
+      rows += team.runners.length;
+    }
+  });
+
+  return { heats: heatNumbers.length, teams: teams.length, rows };
 }

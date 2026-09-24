@@ -1,0 +1,309 @@
+/*
+ * Event detail page — layout refresh (September 2026).
+ *
+ * The old page stacked one tall dark card (hero, five facts, banner, documents)
+ * above the entry card, so on a phone the register button sat four screens
+ * down. Here every block is its own grid item: two columns on a desktop with
+ * the entry card sticky on the right, one column on a phone with the entry
+ * card directly under the hero, and a bar pinned to the bottom of the viewport
+ * that carries the CTA once the card has scrolled away.
+ *
+ * Scoped under `.ace-landing` like series-flows.css. The inner vocabulary
+ * (`.fact`, `.slots-card`, `.banner`, `.doc-row`, `.status`, `.detail-title`)
+ * is the shared one from series-flows.css; only the layout and the
+ * phone-specific overrides live here, and the register/confirm pages, which
+ * also use `.slots-card`, are untouched.
+ */
+
+.ace-landing .evd {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
+  grid-template-rows: auto auto auto 1fr;
+  column-gap: clamp(24px, 3.5vw, 48px);
+  row-gap: 16px;
+  align-items: start;
+}
+.ace-landing .evd-hero {
+  grid-column: 1;
+  grid-row: 1;
+}
+.ace-landing .evd-facts {
+  grid-column: 1;
+  grid-row: 2;
+}
+.ace-landing .evd-terms {
+  grid-column: 1;
+  grid-row: 3;
+}
+.ace-landing .evd-docs {
+  grid-column: 1;
+  grid-row: 4;
+}
+/* Spans every left-column row so the sticky card inside has room to travel. */
+.ace-landing .evd-entry {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  align-self: stretch;
+  min-width: 0;
+}
+
+/* ---- hero ------------------------------------------------------------ */
+.ace-landing .evd-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(24px, 4vw, 44px);
+  border: 1px solid var(--line-d);
+  border-radius: 12px;
+  background:
+    radial-gradient(120% 130% at 0% 0%, rgba(229, 31, 50, 0.32) 0%, rgba(229, 31, 50, 0) 58%),
+    linear-gradient(180deg, var(--card-2) 0%, var(--card) 100%);
+}
+.ace-landing .evd-hero__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: 18px;
+}
+.ace-landing .evd-hero__top .ev-eyebrow {
+  margin-bottom: 0;
+}
+.ace-landing .evd-hero .detail-title {
+  margin: 0;
+  word-break: break-word;
+}
+.ace-landing .evd-hero .detail-sub {
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+.ace-landing .evd-hero .detail-sub b {
+  color: var(--acl-white);
+  font-weight: 600;
+}
+
+/* ---- facts ----------------------------------------------------------- */
+.ace-landing .evd-facts {
+  overflow: hidden;
+  border: 1px solid var(--line-d);
+  border-radius: 12px;
+  background: var(--card);
+}
+.ace-landing .evd-facts .detail-facts {
+  grid-template-columns: repeat(2, 1fr);
+}
+.ace-landing .evd-facts .fact {
+  border-right: 1px solid var(--line-d);
+  border-bottom: 1px solid var(--line-d);
+}
+.ace-landing .evd-facts .fact:nth-child(2n) {
+  border-right: 0;
+}
+.ace-landing .evd-facts .fact:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  border-right: 0;
+}
+.ace-landing .evd-facts .fact:last-child {
+  border-bottom: 0;
+}
+
+/* ---- terms + documents ---------------------------------------------- */
+.ace-landing .evd-terms .banner {
+  border-radius: 12px;
+}
+.ace-landing .evd-docs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: clamp(18px, 2.4vw, 24px);
+  border: 1px solid var(--line-d);
+  border-radius: 12px;
+  background: var(--card);
+}
+.ace-landing .evd-docs .doc-row {
+  border-radius: 8px;
+}
+
+/* ---- entry card ------------------------------------------------------ */
+.ace-landing .evd-entry .slots-card {
+  top: 92px;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+/* Long CTA labels ("Create account to register →" in three languages) wrap
+   instead of overflowing the card. */
+.ace-landing .evd .btn-block {
+  white-space: normal;
+  text-align: center;
+}
+
+/* ---- bottom CTA bar (phones only) ------------------------------------ */
+.ace-landing .evd-bar {
+  display: none;
+}
+
+/* ---- one column ------------------------------------------------------ */
+@media (max-width: 860px) {
+  .ace-landing .evd-page .iv-main {
+    padding-top: 20px;
+  }
+  /* Room under the last block so the pinned bar never covers it. */
+  .ace-landing .evd-page--bar .iv-main {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  }
+  .ace-landing .evd-page .detail-back {
+    margin-bottom: 14px;
+  }
+
+  .ace-landing .evd {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    row-gap: 14px;
+  }
+  .ace-landing .evd > * {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  /* The order a visitor needs on a phone: what it is, how to enter, then the
+     details. */
+  .ace-landing .evd-hero {
+    order: 1;
+  }
+  .ace-landing .evd-entry {
+    order: 2;
+  }
+  .ace-landing .evd-facts {
+    order: 3;
+  }
+  .ace-landing .evd-terms {
+    order: 4;
+  }
+  .ace-landing .evd-docs {
+    order: 5;
+  }
+
+  .ace-landing .evd-hero {
+    padding: 22px 20px 24px;
+  }
+  .ace-landing .evd-hero__top {
+    margin-bottom: 14px;
+  }
+  .ace-landing .evd-hero .detail-title {
+    font-size: clamp(2rem, 9vw, 2.6rem);
+  }
+  .ace-landing .evd-hero .detail-sub {
+    font-size: 0.95rem;
+  }
+
+  .ace-landing .evd-entry .slots-card {
+    position: static;
+    padding: 20px;
+    gap: 16px;
+    box-shadow: none;
+  }
+  .ace-landing .evd-entry .slots-lbl b {
+    font-size: 1.05rem;
+  }
+  /* Two priced doors ("Individual entry: 5 ACER" over "Team entry: 100 ACER")
+     do not fit beside the label on a 360px screen; let the value wrap and
+     take the room the label leaves. */
+  .ace-landing .evd-entry .slots-val {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    text-align: right;
+    white-space: normal;
+  }
+  .ace-landing .evd-entry .slots-val--free {
+    font-size: 1.4rem;
+  }
+  .ace-landing .evd-entry .btn-block {
+    padding: 14px 18px;
+  }
+
+  .ace-landing .evd-facts .fact {
+    padding: 14px 16px;
+  }
+  .ace-landing .evd-facts .fact__v {
+    font-size: 1.15rem;
+  }
+  .ace-landing .evd-docs {
+    padding: 16px;
+  }
+
+  .ace-landing .evd-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: rgba(25, 26, 24, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    transition:
+      transform 0.25s ease,
+      opacity 0.2s ease;
+  }
+  .ace-landing .evd-bar[data-hidden] {
+    transform: translateY(110%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ace-landing .evd-bar__price {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .ace-landing .evd-bar__k {
+    font-family: var(--font-cta), "Exo 2", sans-serif;
+    font-weight: 700;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+  }
+  .ace-landing .evd-bar__v {
+    display: block;
+    font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+    font-weight: 700;
+    font-style: italic;
+    font-size: 0.9rem;
+    line-height: 1.15;
+    text-transform: uppercase;
+    /* Wraps rather than truncates: an amount cut to "10…" is worse than a
+       taller bar, and only a mixed paid night in Ukrainian gets near that. */
+    overflow-wrap: anywhere;
+  }
+  .ace-landing .evd-bar__v--free {
+    font-size: 1.2rem;
+  }
+  .ace-landing .evd-bar__v--free {
+    color: var(--ok);
+  }
+  .ace-landing .evd-bar__cta {
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    max-width: 50%;
+  }
+  .ace-landing .evd-bar__cta .btn {
+    width: auto;
+    padding: 13px 22px;
+    font-size: 0.95rem;
+    white-space: normal;
+    text-align: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ace-landing .evd-bar {
+    transition: none;
+  }
+}

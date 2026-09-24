@@ -44,7 +44,8 @@ import { isRaceRun } from "@/lib/events/participation";
 import { getEventBySlug, getSeriesEvents } from "@/lib/events/registry";
 import { formatTime } from "@/lib/events/time";
 import type { EventSummary } from "@/lib/events/types";
-import { getDirectResultRefs, getMergedResults } from "@/lib/events/results-data";
+import { SplitsDetails } from "@/features/event-results/splits";
+import { getDirectResultRefs, getMergedResults, getTeamLegs } from "@/lib/events/results-data";
 import { findUserResults } from "@/lib/events/user-results";
 import { defaultLocale, localePath } from "@/lib/i18n/config";
 import { getUser, isProfileComplete } from "@/lib/auth/user-session";
@@ -134,9 +135,11 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
     ...registrations.map((r) => ({ eventSlug: r.eventSlug, bib: r.bib })),
     ...legacySlugs.map((eventSlug) => ({ eventSlug })),
   ];
-  const [resultsBySlug, directRefs] = await Promise.all([
+  const [resultsBySlug, directRefs, teamLegs] = await Promise.all([
     getMergedResults(participations.map((p) => p.eventSlug)),
     getDirectResultRefs(registrations.map((r) => r.id)),
+    // ACE/JOKER legs of a team run: not a mile, so never in `myResults`.
+    getTeamLegs(registrations.map((r) => r.id)),
   ]);
   // The events behind those slugs, resolved once here: the matcher takes them
   // as a map now, and the registration cards below need the same lookup from
@@ -155,6 +158,14 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   );
   const bestTimeCs =
     myResults.length > 0 ? Math.min(...myResults.map((r) => r.entry.timeCs)) : null;
+  // One list, newest night first: mile cards and team-leg cards interleaved.
+  const resultCards = [
+    ...myResults.map((res) => ({ kind: "mile" as const, date: res.event.date, res })),
+    ...teamLegs.flatMap((leg) => {
+      const event = eventsBySlug.get(leg.eventSlug);
+      return event ? [{ kind: "leg" as const, date: event.date, leg, event }] : [];
+    }),
+  ].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 
   // Referral link + funnel counts (sign-ups → race registrations → checked in).
   // The code is issued lazily on first profile view.
@@ -287,7 +298,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             <a className="pf-nav__link" href="#registrations">
               {t("nav.races")}
             </a>
-            {myResults.length > 0 ? (
+            {resultCards.length > 0 ? (
               <a className="pf-nav__link" href="#results">
                 {t("nav.results")}
               </a>
@@ -463,7 +474,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             ) : null}
           </section>
 
-          {myResults.length > 0 ? (
+          {resultCards.length > 0 ? (
             <section className="regs-section pf-section" id="results">
               <div className="section-label">
                 <span className="iv-eyebrow">{t("results.title")}</span>
@@ -471,7 +482,49 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
               <h2 className="iv-title pf-h2">{t("results.heading")}</h2>
 
               <div className="reg-list">
-                {myResults.map((res) => {
+                {resultCards.map((card) => {
+                  if (card.kind === "leg") {
+                    const { leg, event } = card;
+                    const [y, m, d] = event.date.split("-");
+                    const pair = { pair: leg.pairNo ?? "" };
+                    return (
+                      <div key={leg.id} className="reg-card res-card">
+                        <div className="race-date">
+                          <span className="race-date__d">{String(parseInt(d, 10))}</span>
+                          <span className="race-date__m">{MONTHS[parseInt(m, 10) - 1] ?? ""}</span>
+                          <span className="race-date__y">{y}</span>
+                        </div>
+                        <div className="reg-card__body">
+                          <span className="reg-card__title">{event.name}</span>
+                          <div className="reg-card__meta">
+                            <span>
+                              <b>{t(`results.role.${leg.role}`, pair)}</b>
+                            </span>
+                            <span>{t("results.team", { name: leg.team.name })}</span>
+                            {leg.team.place !== null ? (
+                              <span>{t("results.teamPlace", { place: leg.team.place })}</span>
+                            ) : null}
+                            {leg.team.timeCs !== null ? (
+                              <span>
+                                {t("results.teamTime", { time: formatTime(leg.team.timeCs) })}
+                              </span>
+                            ) : null}
+                            <span>{t("results.heat", { number: leg.heatNumber })}</span>
+                          </div>
+                        </div>
+                        <div className="res-card__perf">
+                          <span className="res-card__time">
+                            {leg.legTimeCs !== null ? formatTime(leg.legTimeCs) : "—"}
+                          </span>
+                          <span className="res-card__team">
+                            {leg.role === "ace" ? t("results.legHandover") : t("results.legPair")}
+                          </span>
+                        </div>
+                        <SplitsDetails splits={leg.splits} />
+                      </div>
+                    );
+                  }
+                  const { res } = card;
                   const [y, m, d] = res.event.date.split("-");
                   return (
                     <div
@@ -492,6 +545,26 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                           </span>
                           <span>{t("results.heat", { number: res.heatNumber })}</span>
                           <span>{t(`results.category.${res.entry.gender}`)}</span>
+                          {res.entry.team ? (
+                            <>
+                              <span>
+                                <b>{t("results.role.racer")}</b>
+                              </span>
+                              <span>{t("results.team", { name: res.entry.team.name })}</span>
+                              {res.entry.team.place !== null ? (
+                                <span>
+                                  {t("results.teamPlace", { place: res.entry.team.place })}
+                                </span>
+                              ) : null}
+                              {res.entry.team.timeCs !== null ? (
+                                <span>
+                                  {t("results.teamTime", {
+                                    time: formatTime(res.entry.team.timeCs),
+                                  })}
+                                </span>
+                              ) : null}
+                            </>
+                          ) : null}
                         </div>
                       </div>
                       <div className="res-card__perf">
@@ -501,6 +574,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                         <span className="res-card__time">{formatTime(res.entry.timeCs)}</span>
                         <span className="res-card__lvl">{t("results.level", { n: res.level })}</span>
                       </div>
+                      <SplitsDetails splits={res.entry.splits} />
                     </div>
                   );
                 })}

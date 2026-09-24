@@ -178,7 +178,7 @@ async function main() {
     check("readers: DB sheet has finishers only (3 of 4)", entries.length === 3, entries.length);
 
     const refs = await getDirectResultRefs([leaseRegId]);
-    check("readers: direct ref from lease", refs.get(SLUG)?.heatNumber === HEAT_A && refs.get(SLUG)?.bib === 5);
+    check("readers: direct ref from lease", refs.get(SLUG)?.resultId !== undefined);
 
     // `findUserResults` is deliberately synchronous, so the event it needs is
     // resolved here and handed over — same contract as the profile page and the

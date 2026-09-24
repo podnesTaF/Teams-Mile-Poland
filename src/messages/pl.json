@@ -1125,7 +1125,21 @@
       "empty": {
         "title": "Wyników jeszcze nie ma",
         "txt": "Wyniki pojawią się tutaj w trakcie i po nocy biegowej, gdy tylko pliki z pomiaru czasu zostaną zaimportowane."
-      }
+      },
+      "teams": "{count, plural, one {# drużyna} few {# drużyny} many {# drużyn} other {# drużyny}}",
+      "colRole": "Rola",
+      "splits": "Międzyczasy",
+      "colDistance": "Dystans",
+      "colSplit": "Czas",
+      "colLap": "Odcinek",
+      "role": {
+        "racer": "Racer",
+        "ace": "Ace {pair}",
+        "joker": "Joker {pair}"
+      },
+      "legHandover": "zmiana",
+      "legPair": "mila pary",
+      "teamLegend": "Czas drużyny to suma mil drużyny: mila każdego RACERA plus mila każdej pary ACE + JOKER (meta JOKERA). Czas ACE to odczyt w strefie zmiany."
     },
     "mixedEvent": {
       "choiceTitle": "Jak chcesz pobiec tego wieczoru?",
@@ -1338,7 +1352,17 @@
       "category": {
         "M": "Mężczyźni",
         "F": "Kobiety"
-      }
+      },
+      "team": "Drużyna {name}",
+      "teamPlace": "Miejsce drużyny {place}",
+      "teamTime": "Czas drużyny {time}",
+      "role": {
+        "racer": "Racer",
+        "ace": "Ace {pair}",
+        "joker": "Joker {pair}"
+      },
+      "legHandover": "Zmiana",
+      "legPair": "Mila pary"
     },
     "referrals": {
       "title": "Zaproś znajomych",

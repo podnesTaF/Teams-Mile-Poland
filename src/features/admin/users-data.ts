@@ -364,7 +364,7 @@ export type UserResultRow = {
   rank: number;
   /** Finishers across all heats of the event. */
   total: number;
-  bib: number;
+  bib: number | null;
   gender: Gender;
   /** Net time in hundredths of a second. */
   timeCs: number;

@@ -4,7 +4,11 @@ import { eventRegistrations, eventResults, legacyParticipations } from "@/db/sch
 import { getDb } from "@/lib/db";
 import { getEventBySlug } from "@/lib/events/registry";
 import { getMergedResults } from "@/lib/events/results-data";
-import { findUserResults, type ParticipationRef } from "@/lib/events/user-results";
+import {
+  findUserResults,
+  type DirectResultRef,
+  type ParticipationRef,
+} from "@/lib/events/user-results";
 import type { EventSummary } from "@/lib/events/types";
 
 /**
@@ -114,14 +118,13 @@ export async function getSeasonBests(
   const linkableIds = registrationRows
     .filter((r) => r.eventSlug !== excludeSlug)
     .map((r) => r.id);
-  const refsByUser = new Map<string, Map<string, { heatNumber: number; bib: number }>>();
+  const refsByUser = new Map<string, Map<string, DirectResultRef>>();
   if (linkableIds.length > 0) {
     const refRows = await db
       .select({
+        id: eventResults.id,
         registrationId: eventResults.registrationId,
         eventSlug: eventResults.eventSlug,
-        heatNumber: eventResults.heatNumber,
-        bib: eventResults.bib,
       })
       .from(eventResults)
       .where(inArray(eventResults.registrationId, linkableIds))
@@ -139,7 +142,7 @@ export async function getSeasonBests(
         refsByUser.set(userId, refs);
       }
       if (!refs.has(row.eventSlug)) {
-        refs.set(row.eventSlug, { heatNumber: row.heatNumber, bib: row.bib });
+        refs.set(row.eventSlug, { resultId: row.id });
       }
     }
   }

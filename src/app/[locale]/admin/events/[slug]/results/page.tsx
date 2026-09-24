@@ -185,15 +185,15 @@ export default async function AdminEventResultsPage({ params, searchParams }: Pa
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((row) => (
+                    {rows.map((row, i) => (
                       <tr
-                        key={`${row.heatNumber}:${row.bib}`}
+                        key={`${row.heatNumber}:${row.bib ?? "-"}:${i}`}
                         className="border-b border-admin-line/60 last:border-b-0"
                       >
                         <td className={cn(CELL, "text-admin-ink")}>
                           {row.status === "finished" ? row.place : STATUS_LABEL[row.status]}
                         </td>
-                        <td className={CELL}>{row.bib}</td>
+                        <td className={CELL}>{row.bib ?? "—"}</td>
                         <td className={cn(CELL, "text-admin-ink")}>{row.name}</td>
                         <td className={CELL}>{row.gender}</td>
                         <td className={cn(CELL, "font-mono tabular-nums")}>

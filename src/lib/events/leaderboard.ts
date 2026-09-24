@@ -62,7 +62,7 @@ export type LeaderboardPerson = {
   bestEvent: { slug: string; date: string; shortDate: string };
   /** Heat and bib of the best-time row — the row's identity within its event. */
   bestHeatNumber: number;
-  bestBib: number;
+  bestBib: number | null;
 };
 
 /**
@@ -120,7 +120,7 @@ export function buildLeaderboard(events: LeaderboardEvent[]): LeaderboardPerson[
     bestTimeCs: number;
     bestEvent: LeaderboardEvent;
     bestHeatNumber: number;
-    bestBib: number;
+    bestBib: number | null;
     eventSlugs: Set<string>;
   };
 

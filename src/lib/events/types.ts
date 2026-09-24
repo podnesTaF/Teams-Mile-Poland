@@ -112,15 +112,27 @@ export type TimetableBlock = {
 export type Gender = "M" | "F";
 
 export type ResultEntry = {
+  /** `event_results.id` for an imported row; absent on a config-sheet entry. */
+  id?: string;
   /** Finishing place within the heat, as officially recorded. */
   place: number;
-  /** Bib number (kept for data integrity; not shown in the current table). */
-  bib: number;
+  /**
+   * Bib number (kept for data integrity; not shown in the current table). Null
+   * only on a team row the timing file recorded without one (ADR 0014).
+   */
+  bib: number | null;
   gender: Gender;
   name: string;
   /** Net time in hundredths of a second — the sortable source of truth. */
   timeCs: number;
+  /** Cumulative timing-point readings, when the import carried them. */
+  splits?: ResultSplitPoint[] | null;
+  /** Set when this mile was run as a team RACER (ADR 0014). */
+  team?: { name: string; place: number | null; timeCs: number | null } | null;
 };
+
+/** One timing point: metres from the start line, gun-relative hundredths. */
+export type ResultSplitPoint = { m: number; cs: number };
 
 export type ResultHeat = {
   /** Heat number, 1-based. */

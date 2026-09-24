@@ -2,11 +2,12 @@ import type { EventMediaItem, EventMediaKind } from "./types";
 
 /**
  * Google Drive media source. Reads a completed event's public ("anyone with
- * link") Drive folder via Drive API v3 `files.list` with a plain API key
- * (`GOOGLE_DRIVE_API_KEY`) — no OAuth, no service account. Which folder to
- * list comes from the `event_media` DB row (`media-config.ts`), so the listing
- * runs when a cached page (gallery, event detail teaser) renders after a
- * revalidation — never per request, and never at build time.
+ * link") Drive folder — on My Drive or a shared drive — via Drive API v3
+ * `files.list` with a plain API key (`GOOGLE_DRIVE_API_KEY`) — no OAuth, no
+ * service account. Which folder to list comes from the `event_media` DB row
+ * (`media-config.ts`), so the listing runs when a cached page (gallery, event
+ * detail teaser) renders after a revalidation — never per request, and never
+ * at build time.
  *
  * Fail-loud policy (PRD #14), relocated from build time to publish time: the
  * admin publish action calls this before accepting a folder, so a misconfigured
@@ -57,6 +58,11 @@ export async function listEventMedia(driveFolderId: string): Promise<EventMediaI
     url.searchParams.set("fields", DRIVE_FIELDS);
     url.searchParams.set("orderBy", "name_natural");
     url.searchParams.set("pageSize", "1000");
+    // Folders on a shared drive (`driveId` set) are invisible to `files.list`
+    // unless both flags are on — Drive answers 200 with an empty `files`, which
+    // the publish gate reads as "misconfigured share". Harmless for My Drive.
+    url.searchParams.set("supportsAllDrives", "true");
+    url.searchParams.set("includeItemsFromAllDrives", "true");
     if (pageToken) url.searchParams.set("pageToken", pageToken);
 
     // Default caching keeps the fetch prerender-friendly; `no-store` would

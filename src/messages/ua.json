@@ -1125,7 +1125,21 @@
       "empty": {
         "title": "Результатів ще немає",
         "txt": "Результати з'являться тут під час і після події, щойно буде імпортовано файли хронометражу."
-      }
+      },
+      "teams": "{count, plural, one {# команда} few {# команди} many {# команд} other {# команди}}",
+      "colRole": "Роль",
+      "splits": "Проміжні часи",
+      "colDistance": "Дистанція",
+      "colSplit": "Час",
+      "colLap": "Відрізок",
+      "role": {
+        "racer": "Racer",
+        "ace": "Ace {pair}",
+        "joker": "Joker {pair}"
+      },
+      "legHandover": "передача",
+      "legPair": "миля пари",
+      "teamLegend": "Час команди — сума миль команди: миля кожного RACER плюс миля кожної пари ACE + JOKER (фініш JOKER). Час ACE — відмітка в зоні передачі."
     },
     "mixedEvent": {
       "choiceTitle": "Як ти хочеш бігти на цій події?",
@@ -1338,7 +1352,17 @@
       "category": {
         "M": "Чоловіки",
         "F": "Жінки"
-      }
+      },
+      "team": "Команда {name}",
+      "teamPlace": "Місце команди {place}",
+      "teamTime": "Час команди {time}",
+      "role": {
+        "racer": "Racer",
+        "ace": "Ace {pair}",
+        "joker": "Joker {pair}"
+      },
+      "legHandover": "Передача",
+      "legPair": "Миля пари"
     },
     "referrals": {
       "title": "Запросіть друзів",

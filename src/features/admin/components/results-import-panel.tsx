@@ -32,11 +32,13 @@ const CELL = "px-3 py-2 align-middle text-[13px] text-admin-ink-2";
 /** How the row found its runner, as the preview badges it. */
 // Exhaustive over PreviewRow["matchedBy"] (with null spelt "none") — a new
 // match source must add its label here or fail to compile, not throw at render.
-const MATCH_LABEL: Record<"lease" | "name" | "none", { text: string; className: string }> = {
-  lease: { text: "bib lease", className: "text-admin-ok" },
-  name: { text: "name", className: "text-admin-ok" },
-  none: { text: "unlinked", className: "text-admin-warn" },
-};
+const MATCH_LABEL: Record<"lease" | "name" | "dob" | "none", { text: string; className: string }> =
+  {
+    lease: { text: "bib lease", className: "text-admin-ok" },
+    name: { text: "name", className: "text-admin-ok" },
+    dob: { text: "name + DoB", className: "text-admin-ok" },
+    none: { text: "unlinked", className: "text-admin-warn" },
+  };
 
 export function ResultsImportPanel({ locale, slug }: { locale: string; slug: string }) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -173,13 +175,20 @@ export function ResultsImportPanel({ locale, slug }: { locale: string; slug: str
                   const match = MATCH_LABEL[row.matchedBy ?? "none"];
                   return (
                     <tr
-                      key={`${row.heat}:${row.bib}`}
-                      className="border-b border-admin-line/60 last:border-b-0"
+                      key={row.sourceRow}
+                      className="border-admin-line/60 border-b last:border-b-0"
                     >
                       <td className={CELL}>{row.heat}</td>
                       <td className={CELL}>{row.place ?? "—"}</td>
-                      <td className={CELL}>{row.bib}</td>
-                      <td className={cn(CELL, "text-admin-ink")}>{row.name}</td>
+                      <td className={CELL}>{row.bib ?? "—"}</td>
+                      <td className={cn(CELL, "text-admin-ink")}>
+                        {row.name}
+                        {row.team ? (
+                          <span className="block text-[11px] text-admin-ink-2">
+                            {row.role} · {row.team}
+                          </span>
+                        ) : null}
+                      </td>
                       <td className={CELL}>{row.gender}</td>
                       <td className={cn(CELL, "font-mono text-[12px]")}>{row.time}</td>
                       <td className={CELL}>{row.status}</td>

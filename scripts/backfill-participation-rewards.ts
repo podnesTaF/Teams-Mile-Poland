@@ -182,7 +182,7 @@ type Pair = {
 type Orphan = {
   eventSlug: string;
   heatNumber: number;
-  bib: number;
+  bib: number | null;
   name: string;
   status: string;
 };
@@ -566,7 +566,7 @@ async function main() {
   const sortOrphans = (rows: Orphan[]) =>
     [...rows].sort(
       (a, b) =>
-        a.eventSlug.localeCompare(b.eventSlug) || a.heatNumber - b.heatNumber || a.bib - b.bib,
+        a.eventSlug.localeCompare(b.eventSlug) || a.heatNumber - b.heatNumber || (a.bib ?? 0) - (b.bib ?? 0),
     );
   const seriesOrphans = sortOrphans(orphans.filter((row) => !legacySlugs.has(row.eventSlug)));
   const legacyOrphans = sortOrphans(orphans.filter((row) => legacySlugs.has(row.eventSlug)));

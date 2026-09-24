@@ -2395,3 +2395,101 @@
   justify-content: center;
   margin-top: clamp(28px, 4vw, 40px);
 }
+
+/* ================================================================
+ * RESULTS — splits disclosure and team blocks (ADR 0014). Shared by
+ * the per-event results page, the completed event page's archive and
+ * the profile's result cards; native <details>, no client JS.
+ * ================================================================ */
+.ace-landing .res-splits {
+  margin-top: 6px;
+  font-family: var(--font-body, inherit);
+  font-weight: 400;
+  white-space: normal;
+}
+.ace-landing .reg-card > .res-splits {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+.ace-landing .res-splits__toggle {
+  cursor: pointer;
+  width: fit-content;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.ace-landing .res-splits__toggle:hover,
+.ace-landing .res-splits[open] > .res-splits__toggle {
+  color: var(--acl-red);
+}
+.ace-landing .res-splits__table {
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+.ace-landing .res-splits__table th,
+.ace-landing .res-splits__table td {
+  padding: 3px 18px 3px 0;
+  text-align: left;
+  border: 0;
+}
+.ace-landing .res-splits__table th {
+  font-weight: 400;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+.ace-landing .res-splits__table td:first-child {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ace-landing .sl-team {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.ace-landing .sl-team:first-of-type {
+  border-top: 0;
+  padding-top: 4px;
+}
+.ace-landing .sl-team__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-bottom: 6px;
+}
+.ace-landing .sl-team__place {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: var(--fs-h3);
+  color: var(--acl-red);
+}
+.ace-landing .sl-team__name {
+  margin: 0;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 700;
+  font-size: var(--fs-body-m);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ace-landing .sl-team__time {
+  margin-left: auto;
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+.ace-landing .res-card__team {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}

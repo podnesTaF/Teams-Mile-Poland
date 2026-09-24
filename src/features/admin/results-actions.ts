@@ -10,9 +10,13 @@ import { formatTime } from "@/lib/events/time";
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 import {
   replaceHeatResults,
+  replaceTeamHeatResults,
   resolveRegistrations,
+  resolveTeamResults,
   unknownHeatNumbers,
+  type MatchSource,
   type ResolvedRow,
+  type ResolvedTeam,
 } from "./results-import/data";
 import { parseResultsFile, type RowError } from "./results-import/parse";
 import { acceptsIndividuals } from "@/lib/events/types";
@@ -29,15 +33,18 @@ import { acceptsIndividuals } from "@/lib/events/types";
 export type PreviewRow = {
   sourceRow: number;
   heat: number;
-  bib: number;
+  bib: number | null;
+  /** Team rows only: "AB Wilanów · #1 · 22:53.92", and the runner's role. */
+  team?: string;
+  role?: string;
   name: string;
   gender: "M" | "F";
   status: string;
   /** Formatted net time; "—" for DNF/DNS/DSQ. */
   time: string;
   place: number | null;
-  /** How the row found its registration: bib lease, name match, or not at all. */
-  matchedBy: "lease" | "name" | null;
+  /** How the row found its registration: bib lease, name, DoB, or not at all. */
+  matchedBy: MatchSource;
 };
 
 export type ImportPreview =
@@ -64,19 +71,52 @@ async function fileFromForm(formData: FormData): Promise<{ name: string; buffer:
 async function parseAndResolve(
   eventSlug: string,
   formData: FormData,
-): Promise<{ rows: ResolvedRow[]; errors: RowError[] } | { fileError: string }> {
+): Promise<
+  { rows: ResolvedRow[]; teams: ResolvedTeam[]; errors: RowError[] } | { fileError: string }
+> {
   const file = await fileFromForm(formData);
   if (!file) return { fileError: "Choose a results file first." };
 
   const parsed = await parseResultsFile(file.name, file.buffer);
-  if (parsed.rows.length === 0) {
+  if (parsed.rows.length === 0 && parsed.teams.length === 0) {
     return {
       fileError:
         parsed.errors[0]?.message ?? "The file contains no result rows the parser could read.",
     };
   }
-  const rows = await resolveRegistrations(eventSlug, parsed.rows);
-  return { rows, errors: parsed.errors };
+  const [rows, teams] = await Promise.all([
+    resolveRegistrations(eventSlug, parsed.rows),
+    resolveTeamResults(eventSlug, parsed.teams),
+  ]);
+  return { rows, teams, errors: parsed.errors };
+}
+
+const ROLE_LABEL = { racer: "Racer", ace: "Pacer", joker: "Joker" } as const;
+
+/** A team file flattened to preview rows, one per runner, team facts on each. */
+function teamPreviewRows(teams: ResolvedTeam[]): PreviewRow[] {
+  return teams.flatMap((t) =>
+    t.runners.map((r) => ({
+      sourceRow: r.sourceRow,
+      heat: t.heat,
+      bib: r.bib,
+      team: `${t.name}${t.teamId ? "" : " (no platform team)"} · #${t.place ?? "—"} · ${
+        t.timeCs === null ? t.status.toUpperCase() : formatTime(t.timeCs)
+      }`,
+      role: `${ROLE_LABEL[r.role]}${r.pairNo ? ` ${r.pairNo}` : ""}`,
+      name: r.name,
+      gender: r.gender,
+      status: r.status,
+      time:
+        r.timeCs !== null
+          ? formatTime(r.timeCs)
+          : r.legTimeCs !== null
+            ? `${formatTime(r.legTimeCs)} (leg)`
+            : "—",
+      place: null,
+      matchedBy: r.matchedBy,
+    })),
+  );
 }
 
 /**
@@ -99,27 +139,36 @@ export async function previewResultsImport(
     return { ok: false, errors: [{ sourceRow: 0, message: outcome.fileError }] };
   }
 
-  const heatNumbers = [...new Set(outcome.rows.map((r) => r.heat))].sort((a, b) => a - b);
+  const heatNumbers = [
+    ...new Set([...outcome.rows.map((r) => r.heat), ...outcome.teams.map((t) => t.heat)]),
+  ].sort((a, b) => a - b);
+  const teamRunners = outcome.teams.flatMap((t) => t.runners);
   return {
     ok: true,
-    rows: outcome.rows
-      .slice()
-      .sort((a, b) => a.heat - b.heat || (a.place ?? Infinity) - (b.place ?? Infinity))
-      .map((r) => ({
-        sourceRow: r.sourceRow,
-        heat: r.heat,
-        bib: r.bib,
-        name: r.name,
-        gender: r.gender,
-        status: r.status,
-        time: r.timeCs === null ? "—" : formatTime(r.timeCs),
-        place: r.place,
-        matchedBy: r.matchedBy,
-      })),
+    rows: [
+      ...outcome.rows
+        .slice()
+        .sort((a, b) => a.heat - b.heat || (a.place ?? Infinity) - (b.place ?? Infinity))
+        .map((r) => ({
+          sourceRow: r.sourceRow,
+          heat: r.heat,
+          bib: r.bib,
+          name: r.name,
+          gender: r.gender,
+          status: r.status,
+          time: r.timeCs === null ? "—" : formatTime(r.timeCs),
+          place: r.place,
+          matchedBy: r.matchedBy,
+        })),
+      ...teamPreviewRows(outcome.teams),
+    ],
     errors: outcome.errors,
-    unknownHeats: await unknownHeatNumbers(eventSlug, heatNumbers),
+    // Team nights have no heat rows of their own (the teams raced as the
+    // timing file grouped them), so the warning only means something for
+    // individual heats.
+    unknownHeats: outcome.rows.length > 0 ? await unknownHeatNumbers(eventSlug, heatNumbers) : [],
     heats: heatNumbers.length,
-    linked: outcome.rows.filter((r) => r.registrationId !== null).length,
+    linked: [...outcome.rows, ...teamRunners].filter((r) => r.registrationId !== null).length,
   };
 }
 
@@ -142,7 +191,11 @@ export async function commitResultsImport(eventSlug: string, formData: FormData)
     redirect(`${resultsPage}?error=resultsfile`);
   }
 
-  const { heats, rows } = await replaceHeatResults(eventSlug, outcome.rows);
+  // One file is one layout: the parser returns individual rows or team blocks.
+  const { heats, rows } =
+    outcome.teams.length > 0
+      ? await replaceTeamHeatResults(eventSlug, outcome.teams)
+      : await replaceHeatResults(eventSlug, outcome.rows);
 
   // The landing renders the leaderboard (and the hero its "results" link);
   // profile pages are per-session dynamic and need no invalidation.

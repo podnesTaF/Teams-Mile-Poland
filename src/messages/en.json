@@ -1125,7 +1125,21 @@
       "empty": {
         "title": "No results yet",
         "txt": "Results appear here during and after the race night, as soon as the timing crew's files are imported."
-      }
+      },
+      "teams": "{count, plural, one {# team} other {# teams}}",
+      "colRole": "Role",
+      "splits": "Splits",
+      "colDistance": "Distance",
+      "colSplit": "Time",
+      "colLap": "Lap",
+      "role": {
+        "racer": "Racer",
+        "ace": "Ace {pair}",
+        "joker": "Joker {pair}"
+      },
+      "legHandover": "handover",
+      "legPair": "pair mile",
+      "teamLegend": "Team time is the sum of the team's miles: each RACER's mile plus each ACE + JOKER pair's mile (the JOKER's finish). An ACE's time is the handover reading."
     },
     "mixedEvent": {
       "choiceTitle": "How do you want to run this night?",
@@ -1338,7 +1352,17 @@
       "category": {
         "M": "Men",
         "F": "Women"
-      }
+      },
+      "team": "Team {name}",
+      "teamPlace": "Team place {place}",
+      "teamTime": "Team time {time}",
+      "role": {
+        "racer": "Racer",
+        "ace": "Ace {pair}",
+        "joker": "Joker {pair}"
+      },
+      "legHandover": "Handover",
+      "legPair": "Pair mile"
     },
     "referrals": {
       "title": "Invite friends",

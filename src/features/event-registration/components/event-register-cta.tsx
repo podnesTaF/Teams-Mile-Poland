@@ -9,6 +9,12 @@ type Props = {
   createLabel: string;
   signInPrompt: string;
   signInLabel: string;
+  /**
+   * One button, no prose: for the bar pinned to the bottom of a phone screen
+   * on the event page. A logged-out visitor gets the create-account button
+   * alone; the "already have an account?" line stays in the entry card.
+   */
+  compact?: boolean;
 };
 
 /**
@@ -24,6 +30,7 @@ export function EventRegisterCta({
   createLabel,
   signInPrompt,
   signInLabel,
+  compact = false,
 }: Props) {
   const { data, isPending } = authClient.useSession();
   const target = `/events/${slug}/register`;
@@ -45,6 +52,14 @@ export function EventRegisterCta({
     return (
       <Link href={target} className="btn btn-red btn-block">
         {registerLabel}
+      </Link>
+    );
+  }
+
+  if (compact) {
+    return (
+      <Link href={target} className="btn btn-red btn-block">
+        {createLabel}
       </Link>
     );
   }

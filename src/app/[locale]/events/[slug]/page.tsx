@@ -7,11 +7,11 @@ import "@/app/series-flows.css";
 import "@/app/gallery.css";
 import "./heats/heats.css";
 import "./mixed-choice.css";
+import "./event-detail.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { EventRegisterCta } from "@/features/event-registration/components/event-register-cta";
 import { ResultsTables } from "@/features/event-results/results-tables";
-import { countEntriesForEvent } from "@/features/teams/entries";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { getEventDocuments, resolveDocumentFile } from "@/lib/events/documents";
@@ -35,6 +35,7 @@ import { defaultLocale } from "@/lib/i18n/config";
 import { venueMapsUrl } from "@/lib/marketing/event";
 
 import { EventMediaTeaser } from "./event-media-teaser";
+import { StickyEntryBar } from "./sticky-entry-bar";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
@@ -135,19 +136,15 @@ export default async function EventDetailPage({ params }: PageProps) {
   /**
    * A team event is entered by its manager, never by a person (PRD #64, user
    * stories 1 and 2); a mixed night takes both paths and asks the visitor to
-   * pick one (ADR 0009). That changes exactly two things on this page — the
-   * count in the sidebar and the CTA — and nothing else: the facts, the banner,
-   * the documents, the results and the gallery all read the same.
-   *
-   * The count is a `count(*)` and never a list: this page is statically
-   * generated and public, and a team's roster names are not (PRD #57). The
-   * enter/withdraw actions revalidate this route, so the number moves without a
-   * deploy.
+   * pick one (ADR 0009). That changes exactly one thing on this page — the
+   * CTA — and nothing else: the facts, the banner, the documents, the results
+   * and the gallery all read the same. (An entered-teams count used to sit
+   * above the CTA; it was dropped in September 2026, so this page no longer
+   * reads the entries table at all.)
    */
   const teamPath = acceptsTeams(event);
   const individualPath = acceptsIndividuals(event);
   const isTeamEvent = teamPath && !individualPath;
-  const enteredTeams = teamPath ? await countEntriesForEvent(slug) : 0;
   /**
    * What each door costs, in whole ACER (ADR 0013) — read through the fee
    * helpers, never off the column, so this page, the register flow and the
@@ -201,8 +198,38 @@ export default async function EventDetailPage({ params }: PageProps) {
   // (`firstHeatTime`, the same offset the timetable below is built from).
   const startTime = await getFirstHeatTime(slug);
 
+  /**
+   * What the bottom bar on a phone offers, if anything: a bar only while
+   * registration is open, and one door per night — the register flow on an
+   * individual night, the teams area on a team night, and on a mixed night a
+   * jump to the entry card, because choosing a path (ADR 0009) is a decision
+   * the bar has no room to explain. The individual door is session-aware
+   * exactly like the card's, in its one-button form and under the one-word
+   * label: a logged-out visitor's tap lands on the register flow, which sends
+   * them through sign-up and back, so "Register" is true for both.
+   */
+  const barCta =
+    state !== "open" ? null : isTeamEvent ? (
+      <Link href="/teams" className="btn btn-red btn-block">
+        {t("teamEvent.cta")}
+      </Link>
+    ) : teamPath ? (
+      <a href="#entry" className="btn btn-red btn-block">
+        {t("detail.register")}
+      </a>
+    ) : (
+      <EventRegisterCta
+        compact
+        slug={slug}
+        registerLabel={t("detail.register")}
+        createLabel={t("detail.register")}
+        signInPrompt={t("detail.cta.signInPrompt")}
+        signInLabel={t("detail.cta.signIn")}
+      />
+    );
+
   return (
-    <div className="ace-landing iv">
+    <div className={barCta ? "ace-landing iv evd-page evd-page--bar" : "ace-landing iv evd-page"}>
       <InteriorHeader />
       <main className="iv-main">
         <div className="wrap">
@@ -210,84 +237,26 @@ export default async function EventDetailPage({ params }: PageProps) {
             {t("detail.back")}
           </Link>
 
-          <div className="detail-grid">
-            <div className="detail-card">
-              <div className="detail-hero">
-                <div className="detail-hero__badge">
-                  <span className={`status status--${state}`}>
-                    <span className="status__dot" />
-                    {t(`status.${STATUS_KEY[state]}`)}
-                  </span>
-                </div>
+          {/* Five blocks on one grid (event-detail.css): two columns on a
+              desktop with the entry card sticky on the right; one column on a
+              phone, where the entry card comes straight after the hero so the
+              way to register is on the first screen. */}
+          <div className="evd">
+            <section className="evd-hero">
+              <div className="evd-hero__top">
                 <span className="ev-eyebrow">{t(`detail.states.${copyState}.kicker`)}</span>
-                <h2 className="detail-title">{event.name}</h2>
-                <p className="detail-sub">
-                  {longDate} · {event.venue}, {event.city}
-                </p>
+                <span className={`status status--${state}`}>
+                  <span className="status__dot" />
+                  {t(`status.${STATUS_KEY[state]}`)}
+                </span>
               </div>
+              <h2 className="detail-title">{event.name}</h2>
+              <p className="detail-sub">
+                <b>{longDate}</b> · {event.venue}, {event.city}
+              </p>
+            </section>
 
-              <div className="detail-facts">
-                <Fact k={t("detail.facts.date")} v={`${d} ${MONTHS[Number(m) - 1] ?? m}`} />
-                <Fact
-                  k={t("detail.facts.venue")}
-                  v={event.venue}
-                  href={venueMapsUrl(event.venue, event.city)}
-                />
-                <Fact k={t("detail.facts.checkin")} v={event.timeRange?.start ?? "—"} />
-                <Fact k={t("detail.facts.start")} v={startTime ?? "—"} />
-                <Fact k={t("detail.facts.distance")} v={t("detail.distanceValue")} />
-              </div>
-
-              <div className="detail-terms">
-                <div className={`banner banner--${BANNER_TONE[state]}`}>
-                  <span className="banner__ic">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M12 8h.01M11 12h1v4h1" strokeLinecap="round" />
-                    </svg>
-                  </span>
-                  <div className="banner__body">
-                    <div className="banner__title">{t(`detail.states.${copyState}.bannerTitle`)}</div>
-                    <div className="banner__txt">{t(`detail.states.${copyState}.bannerTxt`)}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Attached files, picked to match the reader's locale: the
-                  regulations PDF on nights with an individual path, the team
-                  corpus as .docx on nights with a team path (ADR 0009). */}
-              {docs.length > 0 && (
-                <div className="detail-docs">
-                  <span className="ev-eyebrow">{t("docs.heading")}</span>
-                  <ul className="doc-list">
-                    {docs.map((doc) => (
-                      <li key={doc.id}>
-                        <a className="doc-row" href={doc.file.href} target="_blank" rel="noopener">
-                          <span className="doc-row__ic" aria-hidden>
-                            {(doc.file.format ?? "pdf").toUpperCase()}
-                          </span>
-                          <span className="doc-row__body">
-                            <span className="doc-row__title">
-                              {t(`docs.items.${doc.labelKey}`)}
-                            </span>
-                            <span className="doc-row__meta">
-                              {`${(doc.file.format ?? "pdf").toUpperCase()} · ${doc.file.lang.toUpperCase()}`}
-                              {doc.isFallback ? ` · ${t("docs.fallback")}` : ""}
-                            </span>
-                          </span>
-                          <span className="doc-row__act">
-                            {t("docs.download")}
-                            <span aria-hidden> ↓</span>
-                          </span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            <aside>
+            <aside className="evd-entry" id="entry">
               <div className="slots-card">
                 {/* One entry row, carrying whichever prices this night has:
                     both on a mixed night, because the two doors cost different
@@ -318,20 +287,6 @@ export default async function EventDetailPage({ params }: PageProps) {
                     {paidEntry ? null : t("detail.slots.free")}
                   </div>
                 </div>
-
-                {/* How many teams have entered — the one number a guest needs
-                    to judge a team night (user story 1). Rendered for every
-                    lifecycle state, including 0, because "no teams yet" is the
-                    answer on the day registration opens. */}
-                {teamPath ? (
-                  <div className="slots-row" data-team-entered-count={enteredTeams}>
-                    <div className="slots-lbl">
-                      <b>{t("teamEvent.enteredLabel")}</b>
-                      <small>{t("teamEvent.enteredSub")}</small>
-                    </div>
-                    <div className="slots-val">{enteredTeams}</div>
-                  </div>
-                ) : null}
 
                 {/* A team event has no individual register CTA at all — there
                     is no per-person entry into one (PRD #64). What replaces it
@@ -482,6 +437,66 @@ export default async function EventDetailPage({ params }: PageProps) {
                 ) : null}
               </div>
             </aside>
+
+            <section className="evd-facts">
+              <div className="detail-facts">
+                <Fact k={t("detail.facts.date")} v={`${d} ${MONTHS[Number(m) - 1] ?? m}`} />
+                <Fact
+                  k={t("detail.facts.venue")}
+                  v={event.venue}
+                  href={venueMapsUrl(event.venue, event.city)}
+                />
+                <Fact k={t("detail.facts.checkin")} v={event.timeRange?.start ?? "—"} />
+                <Fact k={t("detail.facts.start")} v={startTime ?? "—"} />
+                <Fact k={t("detail.facts.distance")} v={t("detail.distanceValue")} />
+              </div>
+            </section>
+
+            <section className="evd-terms">
+              <div className={`banner banner--${BANNER_TONE[state]}`}>
+                <span className="banner__ic">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 8h.01M11 12h1v4h1" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <div className="banner__body">
+                  <div className="banner__title">{t(`detail.states.${copyState}.bannerTitle`)}</div>
+                  <div className="banner__txt">{t(`detail.states.${copyState}.bannerTxt`)}</div>
+                </div>
+              </div>
+            </section>
+
+            {/* Attached files, picked to match the reader's locale: the
+                regulations PDF on nights with an individual path, the team
+                corpus as .docx on nights with a team path (ADR 0009). */}
+            {docs.length > 0 && (
+              <section className="evd-docs">
+                <span className="ev-eyebrow">{t("docs.heading")}</span>
+                <ul className="doc-list">
+                  {docs.map((doc) => (
+                    <li key={doc.id}>
+                      <a className="doc-row" href={doc.file.href} target="_blank" rel="noopener">
+                        <span className="doc-row__ic" aria-hidden>
+                          {(doc.file.format ?? "pdf").toUpperCase()}
+                        </span>
+                        <span className="doc-row__body">
+                          <span className="doc-row__title">{t(`docs.items.${doc.labelKey}`)}</span>
+                          <span className="doc-row__meta">
+                            {`${(doc.file.format ?? "pdf").toUpperCase()} · ${doc.file.lang.toUpperCase()}`}
+                            {doc.isFallback ? ` · ${t("docs.fallback")}` : ""}
+                          </span>
+                        </span>
+                        <span className="doc-row__act">
+                          {t("docs.download")}
+                          <span aria-hidden> ↓</span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
 
           {/* The archive body — only on completed events: results first,
@@ -526,6 +541,33 @@ export default async function EventDetailPage({ params }: PageProps) {
             ))}
         </div>
       </main>
+
+      {/* Phones only (event-detail.css): the CTA follows the reader down the
+          page once the entry card has scrolled off. */}
+      {barCta ? (
+        <StickyEntryBar watchId="entry">
+          <div className="evd-bar__price">
+            <span className="evd-bar__k">{t("detail.slots.entry")}</span>
+            {/* One line per priced door; the bar is 360px wide at its
+                narrowest and a single joined line does not fit beside the button. */}
+            {paidEntry ? (
+              <>
+                {individualFeeAcer > 0 ? (
+                  <span className="evd-bar__v">
+                    {t("detail.feeIndividual", { amount: individualFeeAcer })}
+                  </span>
+                ) : null}
+                {teamFeeAcer > 0 ? (
+                  <span className="evd-bar__v">{t("detail.feeTeam", { amount: teamFeeAcer })}</span>
+                ) : null}
+              </>
+            ) : (
+              <span className="evd-bar__v evd-bar__v--free">{t("detail.slots.free")}</span>
+            )}
+          </div>
+          <div className="evd-bar__cta">{barCta}</div>
+        </StickyEntryBar>
+      ) : null}
     </div>
   );
 }

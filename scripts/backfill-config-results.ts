@@ -32,7 +32,9 @@ async function backfill(slug: string) {
     heat.entries.map((entry, i) => ({
       sourceRow: i + 1,
       heat: heat.number,
-      bib: entry.bib,
+      bib: entry.bib as number,
+      dob: null,
+      splits: null,
       status: "finished" as const,
       timeCs: entry.timeCs,
       place: entry.place,

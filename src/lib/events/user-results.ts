@@ -11,6 +11,13 @@ import type { EventSummary, ResultEntry, EventResults } from "./types";
  * the (heat, bib) lease at import time; the caller passes those in as direct
  * refs, which outrank name matching.
  */
+/**
+ * The imported row the import linked to a user's registration, by row id — a
+ * `(heat, bib)` pair no longer identifies a row once two teams in one heat
+ * wear the same seat numbers (ADR 0014).
+ */
+export type DirectResultRef = { resultId: string };
+
 export type ParticipationRef = {
   eventSlug: string;
   /** Bib lease from the registration, when one was issued — tie-breaker only. */
@@ -38,7 +45,7 @@ export type UserResultMatch = {
  * by, in order:
  *
  * 1. a **direct ref** — the imported row linked to the user's registration at
- *    import time, located by its (heat, bib) identity;
+ *    import time, located by its row id;
  * 2. a normalized-name match within that event's sheet — a same-named stranger
  *    who never registered can't pick up a result. When one sheet holds several
  *    entries with the same name, the registration's bib may disambiguate;
@@ -49,7 +56,7 @@ export function findUserResults(
   fullName: string,
   participations: ParticipationRef[],
   resultsBySlug: Map<string, EventResults>,
-  directRefs: Map<string, { heatNumber: number; bib: number }> = new Map(),
+  directRefs: Map<string, DirectResultRef> = new Map(),
   /**
    * The events those participations point at, resolved by the caller. Passed in
    * rather than looked up because resolving an event is a database read now
@@ -84,9 +91,7 @@ export function findUserResults(
       .sort((a, b) => a.entry.timeCs - b.entry.timeCs);
 
     const direct = directRefs.get(slug);
-    let chosen = direct
-      ? field.find((row) => row.heatNumber === direct.heatNumber && row.entry.bib === direct.bib)
-      : undefined;
+    let chosen = direct ? field.find((row) => row.entry.id === direct.resultId) : undefined;
 
     if (!chosen && key) {
       const candidates = field.filter((row) => nameKey(row.entry.name) === key);

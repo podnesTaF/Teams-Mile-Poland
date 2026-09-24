@@ -1,6 +1,8 @@
 import ExcelJS from "exceljs";
 
-import type { ResultStatus } from "@/db/schema";
+import type { ResultSplit, ResultStatus } from "@/db/schema";
+
+import { parseTeamGrid, type ParsedTeam } from "./parse-team";
 
 /**
  * Parser for the RaceResult results export (slice: timing integration).
@@ -37,6 +39,10 @@ export type ParsedResultRow = {
   place: number | null;
   name: string;
   gender: "M" | "F";
+  /** ISO date of birth when the export carries a `DoB` column — a link aid only. */
+  dob: string | null;
+  /** Cumulative timing-point readings, when the export carries `<n> m` columns. */
+  splits: ResultSplit[] | null;
 };
 
 export type RowError = {
@@ -46,7 +52,10 @@ export type RowError = {
 };
 
 export type ParsedResults = {
+  /** Individual results. Empty for a team-layout file. */
   rows: ParsedResultRow[];
+  /** Team results (the team layout, ADR 0014). Empty for an individual file. */
+  teams: ParsedTeam[];
   /** Rows (or the file) the parser refused — none of these are imported. */
   errors: RowError[];
 };
@@ -61,7 +70,8 @@ type Field =
   | "lastName"
   | "gender"
   | "time"
-  | "status";
+  | "status"
+  | "dob";
 
 /**
  * Accepted headers per field, lowercased with spaces/dots collapsed. Includes
@@ -77,17 +87,59 @@ const HEADER_ALIASES: Record<Field, string[]> = {
   gender: ["sex", "gender", "mf"],
   time: ["time", "finishtime", "nettime", "netto", "chiptime", "result"],
   status: ["status", "comment", "remark", "remarks"],
+  dob: ["dob", "dateofbirth", "birthdate", "born"],
 };
 
 /** Lowercase and strip everything but letters, so "First name" ≡ "FirstName". */
-function normalizeHeader(cell: string): string {
+export function normalizeHeader(cell: string): string {
   return cell.toLowerCase().replace(/[^a-z]/g, "");
 }
 
-type HeaderMap = Partial<Record<Field, number>>;
+export type HeaderMap = Partial<Record<Field, number>>;
+
+/** A timing-point column: `9 m`, `109m`, `1609 m`. */
+const SPLIT_HEADER = /^\s*(\d{1,5})\s*m\s*$/i;
+
+/** Where the timing-point columns sit and the distance each one reads. */
+export type SplitColumn = { index: number; m: number };
+
+/** Every `<n> m` header cell, in column order. */
+export function splitColumns(cells: string[]): SplitColumn[] {
+  const out: SplitColumn[] = [];
+  cells.forEach((cell, index) => {
+    const match = SPLIT_HEADER.exec(cell ?? "");
+    if (match) out.push({ index, m: Number.parseInt(match[1], 10) });
+  });
+  return out;
+}
+
+/**
+ * The readings a row holds under the split columns, blanks skipped (an ACE's
+ * row stops at the handover, a JOKER's starts there). Null rather than `[]`
+ * when there are none, so "no splits" has one representation. An unreadable
+ * cell is dropped, not fatal: a split is detail, the result stands without it.
+ */
+export function readSplits(cells: string[], columns: SplitColumn[]): ResultSplit[] | null {
+  const splits: ResultSplit[] = [];
+  for (const { index, m } of columns) {
+    const cs = parseTimeCs(cells[index] ?? "");
+    if (cs !== null) splits.push({ m, cs });
+  }
+  return splits.length > 0 ? splits : null;
+}
+
+/** `30.01.1973`, `30/01/1973` or `1973-01-30` → `1973-01-30`; null otherwise. */
+export function parseDob(raw: string): string | null {
+  const text = raw.trim();
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(text);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const dmy = /^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/.exec(text);
+  if (!dmy) return null;
+  return `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
+}
 
 /** Match one row of cells against the alias table; undefined where no field fits. */
-function mapHeaderRow(cells: string[]): HeaderMap {
+export function mapHeaderRow(cells: string[]): HeaderMap {
   const map: HeaderMap = {};
   cells.forEach((cell, index) => {
     const normalized = normalizeHeader(cell);
@@ -112,7 +164,7 @@ function hasNameColumn(map: HeaderMap): boolean {
  * *not* required here — the by-heat layout carries it in banner rows instead —
  * but a file that supplies it neither way still fails, in {@link parseGrid}.
  */
-function isHeaderRow(map: HeaderMap): boolean {
+export function isHeaderRow(map: HeaderMap): boolean {
   return map.bib !== undefined && hasNameColumn(map);
 }
 
@@ -193,14 +245,14 @@ const STATUS_TEXT: Record<string, ResultStatus> = {
   ok: "finished",
 };
 
-function parseGender(raw: string): "M" | "F" | null {
+export function parseGender(raw: string): "M" | "F" | null {
   const text = raw.trim().toLowerCase();
   if (["m", "male", "men", "man"].includes(text)) return "M";
   if (["f", "w", "female", "women", "woman"].includes(text)) return "F";
   return null;
 }
 
-function parseIntCell(raw: string): number | null {
+export function parseIntCell(raw: string): number | null {
   const text = raw.trim();
   if (!/^\d+$/.test(text)) return null;
   return Number.parseInt(text, 10);
@@ -215,6 +267,7 @@ function parseIntCell(raw: string): number | null {
 function parseRow(
   cells: string[],
   map: HeaderMap,
+  splitCols: SplitColumn[],
   sourceRow: number,
   bannerHeatNumber: number | null,
 ): ParsedResultRow | RowError {
@@ -258,8 +311,11 @@ function parseRow(
     );
   }
 
+  const dob = parseDob(cell("dob"));
+  const splits = readSplits(cells, splitCols);
+
   if (status !== "finished") {
-    return { sourceRow, heat, bib, status, timeCs: null, place: null, name, gender };
+    return { sourceRow, heat, bib, status, timeCs: null, place: null, name, gender, dob, splits };
   }
 
   const timeCs = parseTimeCs(timeRaw);
@@ -267,7 +323,7 @@ function parseRow(
   const place = parseIntCell(cell("place"));
   if (place === null || place < 1) return refuse(`unreadable place "${cell("place")}"`);
 
-  return { sourceRow, heat, bib, status, timeCs, place, name, gender };
+  return { sourceRow, heat, bib, status, timeCs, place, name, gender, dob, splits };
 }
 
 /**
@@ -286,9 +342,16 @@ function parseGrid(grid: string[][]): ParsedResults {
       break;
     }
   }
+  // A `Joker` column is the team layout's signature (role + handover time):
+  // no individual export carries one.
+  if (map && grid[headerRow - 1].some((c) => normalizeHeader(c ?? "") === "joker")) {
+    const team = parseTeamGrid(grid, headerRow - 1, map);
+    return { rows: [], teams: team.teams, errors: team.errors };
+  }
   if (!map) {
     return {
       rows: [],
+      teams: [],
       errors: [
         {
           sourceRow: 0,
@@ -301,9 +364,14 @@ function parseGrid(grid: string[][]): ParsedResults {
     };
   }
   if (map.gender === undefined) {
-    return { rows: [], errors: [{ sourceRow: 0, message: "No sex column in the header row." }] };
+    return {
+      rows: [],
+      teams: [],
+      errors: [{ sourceRow: 0, message: "No sex column in the header row." }],
+    };
   }
 
+  const splitCols = splitColumns(grid[headerRow - 1]);
   const rows: ParsedResultRow[] = [];
   const errors: RowError[] = [];
   let bannerHeatNumber: number | null = null;
@@ -316,7 +384,7 @@ function parseGrid(grid: string[][]): ParsedResults {
       continue;
     }
     if (isContinuationRow(cells, map)) continue;
-    const parsed = parseRow(cells, map, i + 1, bannerHeatNumber);
+    const parsed = parseRow(cells, map, splitCols, i + 1, bannerHeatNumber);
     if ("message" in parsed) errors.push(parsed);
     else rows.push(parsed);
   }
@@ -337,10 +405,10 @@ function parseGrid(grid: string[][]): ParsedResults {
     }
   }
   if (errors.some((e) => e.message.startsWith("duplicate heat"))) {
-    return { rows: [], errors };
+    return { rows: [], teams: [], errors };
   }
 
-  return { rows, errors };
+  return { rows, teams: [], errors };
 }
 
 /** Split one CSV line on the delimiter, honouring double-quoted fields. */
