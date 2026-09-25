@@ -1,24 +1,21 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import type { TeamEntryRow } from "@/db/schema/team-entries";
 import type { UserTeamRow } from "@/db/schema/user-teams";
 import { getTeamAcerBalance } from "@/features/wallet/data";
 import { teamEntryFeeMinor } from "@/features/wallet/entry-fees";
 import { isInsufficientAcer } from "@/features/wallet/errors";
 import { meetsMinParticipantAge, parseDateOnly } from "@/lib/age";
+import { startTeamEntryCheckout } from "@/features/event-payments/checkout";
 import { getEventBySlug } from "@/lib/events/registry";
-import { isPubliclyVisible } from "@/lib/events/store";
-import { acceptsTeams, type EventSummary } from "@/lib/events/types";
+import { entryPricePln } from "@/lib/events/types";
+import { defaultLocale, locales } from "@/lib/i18n/config";
 
 import { teamFailure, type TeamActionFailure } from "../config";
-import { entryShortfall } from "../eligibility";
 import {
   addMemberRows,
   createEntryRows,
   findIndividuallyRegistered,
-  getEntryByTeamAndEvent,
   getEntryMembers,
   getEntryWithTeam,
   getTeamEntryCandidates,
@@ -26,12 +23,19 @@ import {
   removeMemberRows,
   withdrawEntryRows,
 } from "../entries";
+import {
+  checkTeamEntry,
+  loadTeamEvent,
+  revalidateEntrySurfaces,
+  toMailEvent,
+  type EntryActionResult,
+  type EntryFailure,
+} from "../entry-service";
 import { requireTeamManagerOrAdmin } from "../guards";
 import {
   lastConfirmRequestAt,
   sendConfirmRequestEmail,
   sendEntryWithdrawnEmail,
-  type EntryMailEvent,
 } from "../mail-entries";
 
 /**
@@ -55,64 +59,10 @@ import {
  * its error so Remind has something to act on.
  */
 
-/**
- * A refusal that can name what it is refusing over.
- *
- * The frozen failure shape (`{ ok: false, reason, message }`) is a *key*, not a
- * sentence, and `teams.reasons.incomplete_team` cannot say "two more needed"
- * without one. So two refusals carry a datum alongside the key — the issue asks
- * for `incomplete_team` "with the count needed" and `member_underage` "naming
- * the member" — and the copy for those detailed variants lives in
- * `teams.entry.*`, with `teams.reasons.*` as the fallback. No reason key was
- * added: the reason set is frozen in `config.ts` for all three slices.
- */
-export type EntryFailure = TeamActionFailure & {
-  /** `incomplete_team`: members still needed before the team could field a race composition. */
-  missing?: number;
-  /** `member_underage`: the member who will not be 18 on the event date;
-   * `registered_individually`: the member already registered alone (ADR 0009). */
-  memberName?: string;
-  /**
-   * `treasury_insufficient`: what the night costs and what the treasury holds,
-   * both in ACER **minor units**, read together so they cannot disagree.
-   *
-   * Two numbers rather than one shortfall because that is what the copy asks
-   * for — `teams.entry.insufficientDetail` interpolates the price *and* the
-   * balance ("Entering costs 100 ACER and the treasury holds 40"), and a
-   * manager who is short needs to know how much is already there before
-   * deciding who chips in. The plan called this datum `shortfallMinor`; the
-   * difference is `feeMinor - treasuryMinor` and is deliberately not carried,
-   * because a derived third number is a third place for the arithmetic to
-   * drift. The refusal itself is still just the key `treasury_insufficient` —
-   * these travel beside it exactly as `missing` and `memberName` do.
-   */
-  feeMinor?: number;
-  treasuryMinor?: number;
-};
-
-export type EntryActionResult<T = object> = ({ ok: true } & T) | EntryFailure;
+export type { EntryActionResult, EntryFailure };
 
 /** 24 hours — the floor between two reminders to the same member. */
 const REMIND_INTERVAL_MS = 24 * 60 * 60 * 1000;
-
-/** The event facts the two mails name, from the summary the action already holds. */
-function toMailEvent(event: EventSummary): EntryMailEvent {
-  return { slug: event.slug, name: event.name, date: event.date };
-}
-
-/**
- * The public event page shows the entered-teams count, and it is statically
- * generated (PRD #64, Cross-Cutting Decision 4) — so entering and withdrawing
- * have to push the new count out themselves.
- *
- * The route-pattern form covers pl/en/ua in one call, and covers every event's
- * page rather than one slug's, because `[slug]` is a pattern and not a value —
- * the same trade `revalidateEventSurfaces` makes and for the same reason. The
- * entry page itself is dynamic and needs no invalidation.
- */
-function revalidateEntrySurfaces(): void {
-  revalidatePath("/[locale]/events/[slug]", "page");
-}
 
 /**
  * The entry-id twin of `requireTeamManagerOrAdmin`, which is keyed by a team
@@ -149,22 +99,6 @@ async function gateEntry(entryId: string): Promise<
 }
 
 /**
- * Resolve an event slug to a **team event that can still be acted on**: it
- * exists, it is not the frozen legacy night, and it is publicly visible.
- *
- * A `draft` is `notfound` here for the same reason it 404s on every public
- * surface: it has not been announced, so from outside `/admin` it does not
- * exist. Lifecycle refusals past that point (`cancelled`, `not_open`) differ per
- * action and stay at the call sites.
- */
-async function loadTeamEvent(eventSlug: string): Promise<EventSummary | null> {
-  const event = await getEventBySlug(eventSlug);
-  if (!event) return null;
-  if (!acceptsTeams(event) || !isPubliclyVisible(event)) return null;
-  return event;
-}
-
-/**
  * Enter a team into an open team event.
  *
  * The guard order is the issue's, and it is the order a human would explain a
@@ -190,7 +124,9 @@ async function loadTeamEvent(eventSlug: string): Promise<EventSummary | null> {
 export async function enterTeam(
   teamSlug: string,
   eventSlug: string,
-): Promise<EntryActionResult<{ entryId: string }>> {
+  /** The page's locale — where Stripe sends the manager back on a card-paid night. */
+  locale: string = defaultLocale,
+): Promise<EntryActionResult<{ entryId: string } | { checkoutUrl: string }>> {
   const gate = await requireTeamManagerOrAdmin(teamSlug);
   if (!gate.ok) return gate;
   const team = gate.team;
@@ -200,32 +136,23 @@ export async function enterTeam(
   if (event.status === "cancelled") return teamFailure("cancelled");
   if (event.status !== "registration_open") return teamFailure("not_open");
 
-  if (await getEntryByTeamAndEvent(team.id, eventSlug)) return teamFailure("already_entered");
+  const check = await checkTeamEntry(team, event);
+  if (!check.ok) return check;
+  const roster = check.roster;
 
-  const roster = await getTeamEntryCandidates(team.id);
-  const shortfall = entryShortfall(team.category, roster);
-  if (shortfall > 0) {
-    return { ...teamFailure("incomplete_team"), missing: shortfall };
-  }
-
-  const eventDate = parseDateOnly(event.date);
-  const underage = roster.find(
-    (member) => !member.dateOfBirth || !meetsMinParticipantAge(member.dateOfBirth, eventDate),
-  );
-  if (underage) {
-    return { ...teamFailure("member_underage"), memberName: underage.displayName };
-  }
-
-  // One entry path per runner per night (ADR 0009): on a mixed night a member
-  // who already registered alone is named, and the manager sorts it out with
-  // them — the platform never silently converts their registration.
-  const solo = await findIndividuallyRegistered(
-    eventSlug,
-    roster.map((member) => member.userId),
-  );
-  const soloMember = roster.find((member) => solo.has(member.userId));
-  if (soloMember) {
-    return { ...teamFailure("registered_individually"), memberName: soloMember.displayName };
+  // A night priced in PLN (ADR 0015): nothing is written yet. The manager pays
+  // by card at Stripe, and the webhook re-runs `checkTeamEntry` and writes the
+  // entry once the money has settled (`features/event-payments`). It takes over
+  // from the ACER fee below — a night is never charged in both.
+  if (entryPricePln(event, "team") > 0) {
+    const checkout = await startTeamEntryCheckout({
+      team,
+      event,
+      payerUserId: gate.userId,
+      locale: (locales as readonly string[]).includes(locale) ? locale : defaultLocale,
+    });
+    if (!checkout.ok) return teamFailure(checkout.reason);
+    return { ok: true, checkoutUrl: checkout.url };
   }
 
   // Money last, and deliberately so. Every refusal above is about whether this

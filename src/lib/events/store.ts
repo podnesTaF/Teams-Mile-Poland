@@ -91,6 +91,8 @@ function toSummary(row: EventRow): EventSummary {
     heatIntervalMinutes: row.heatIntervalMinutes,
     teamEntryFeeAcer: row.teamEntryFeeAcer,
     individualEntryFeeAcer: row.individualEntryFeeAcer,
+    individualPricePln: row.individualPricePln,
+    teamPricePln: row.teamPricePln,
     ...(RESULTS_SHEETS[row.slug] ? { results: RESULTS_SHEETS[row.slug] } : {}),
   };
 }

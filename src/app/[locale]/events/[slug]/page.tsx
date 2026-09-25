@@ -27,6 +27,7 @@ import { formatEventLongDate } from "@/lib/events/time";
 import {
   acceptsIndividuals,
   acceptsTeams,
+  entryPricePln,
   isSeriesEvent,
   type EventStatus,
   RACE_RESULT_GROUP_URL,
@@ -156,9 +157,28 @@ export default async function EventDetailPage({ params }: PageProps) {
    * until an admin prices one, and the entry row keeps reading "Free" exactly
    * as it did before fees existed.
    */
-  const individualFeeAcer = individualPath ? minorToAcer(individualEntryFeeMinor(event)) : 0;
-  const teamFeeAcer = teamPath ? minorToAcer(teamEntryFeeMinor(event)) : 0;
-  const paidEntry = individualFeeAcer > 0 || teamFeeAcer > 0;
+  //
+  // A door priced in PLN is paid by card (ADR 0015) and its ACER fee is not
+  // taken, so the PLN price replaces it here too. Each door ends up with one
+  // label, whichever currency it is in, and every site below prints that.
+  const individualPricePln = individualPath ? entryPricePln(event, "individual") : 0;
+  const teamPricePln = teamPath ? entryPricePln(event, "team") : 0;
+  const individualFeeAcer =
+    individualPath && individualPricePln === 0 ? minorToAcer(individualEntryFeeMinor(event)) : 0;
+  const teamFeeAcer = teamPath && teamPricePln === 0 ? minorToAcer(teamEntryFeeMinor(event)) : 0;
+  const individualFeeLabel =
+    individualPricePln > 0
+      ? t("detail.priceIndividual", { price: individualPricePln })
+      : individualFeeAcer > 0
+        ? t("detail.feeIndividual", { amount: individualFeeAcer })
+        : null;
+  const teamFeeLabel =
+    teamPricePln > 0
+      ? t("detail.priceTeam", { price: teamPricePln })
+      : teamFeeAcer > 0
+        ? t("detail.feeTeam", { amount: teamFeeAcer })
+        : null;
+  const paidEntry = individualFeeLabel !== null || teamFeeLabel !== null;
   /**
    * Which of the state copy blocks the hero, the banner and the note read from.
    *
@@ -268,18 +288,16 @@ export default async function EventDetailPage({ params }: PageProps) {
                   className="slots-row"
                   data-event-fee-individual={individualFeeAcer}
                   data-event-fee-team={teamFeeAcer}
+                  data-event-price-individual={individualPricePln}
+                  data-event-price-team={teamPricePln}
                 >
                   <div className="slots-lbl">
                     <b>{t("detail.slots.entry")}</b>
                     <small>{t("detail.slots.entrySub")}</small>
                   </div>
                   <div className={paidEntry ? "slots-val" : "slots-val slots-val--free"}>
-                    {individualFeeAcer > 0 ? (
-                      <div>{t("detail.feeIndividual", { amount: individualFeeAcer })}</div>
-                    ) : null}
-                    {teamFeeAcer > 0 ? (
-                      <div>{t("detail.feeTeam", { amount: teamFeeAcer })}</div>
-                    ) : null}
+                    {individualFeeLabel ? <div>{individualFeeLabel}</div> : null}
+                    {teamFeeLabel ? <div>{teamFeeLabel}</div> : null}
                     {/* `detail.feeFree` is deliberately unused: this row has
                         said "Free" through `detail.slots.free` since the page
                         existed, and two sentences for one fact are two
@@ -333,9 +351,11 @@ export default async function EventDetailPage({ params }: PageProps) {
                           chooses a door by, and "5 ACER" alone does not say what
                           they would be signing up for. */}
                       <small>
-                        {individualFeeAcer > 0
-                          ? t("mixedEvent.individualSubPaid", { amount: individualFeeAcer })
-                          : t("mixedEvent.individualSub")}
+                        {individualPricePln > 0
+                          ? t("mixedEvent.individualSubPln", { price: individualPricePln })
+                          : individualFeeAcer > 0
+                            ? t("mixedEvent.individualSubPaid", { amount: individualFeeAcer })
+                            : t("mixedEvent.individualSub")}
                       </small>
                       <EventRegisterCta
                         slug={slug}
@@ -355,9 +375,11 @@ export default async function EventDetailPage({ params }: PageProps) {
                           manager's own wallet (ADR 0012), which is the single
                           most surprising thing about the team door. */}
                       <small>
-                        {teamFeeAcer > 0
-                          ? t("mixedEvent.teamSubPaid", { amount: teamFeeAcer })
-                          : t("mixedEvent.teamSub")}
+                        {teamPricePln > 0
+                          ? t("mixedEvent.teamSubPln", { price: teamPricePln })
+                          : teamFeeAcer > 0
+                            ? t("mixedEvent.teamSubPaid", { amount: teamFeeAcer })
+                            : t("mixedEvent.teamSub")}
                       </small>
                       <Link href="/teams" className="btn btn-stroke-dark btn-block">
                         {t("mixedEvent.teamCta")}
@@ -569,14 +591,10 @@ export default async function EventDetailPage({ params }: PageProps) {
                 narrowest and a single joined line does not fit beside the button. */}
             {paidEntry ? (
               <>
-                {individualFeeAcer > 0 ? (
-                  <span className="evd-bar__v">
-                    {t("detail.feeIndividual", { amount: individualFeeAcer })}
-                  </span>
+                {individualFeeLabel ? (
+                  <span className="evd-bar__v">{individualFeeLabel}</span>
                 ) : null}
-                {teamFeeAcer > 0 ? (
-                  <span className="evd-bar__v">{t("detail.feeTeam", { amount: teamFeeAcer })}</span>
-                ) : null}
+                {teamFeeLabel ? <span className="evd-bar__v">{teamFeeLabel}</span> : null}
               </>
             ) : (
               <span className="evd-bar__v evd-bar__v--free">{t("detail.slots.free")}</span>

@@ -64,7 +64,7 @@ export function Roles({ registerHref }: { registerHref?: string }) {
                 <div key={c.id} className="comp">
                   <span className="badges">
                     {Array.from({ length: c.count }).map((_, i) => (
-                      <span key={i} className="badge">
+                      <span key={i} className="badge" data-role={c.id}>
                         {c.badge}
                       </span>
                     ))}
@@ -79,7 +79,7 @@ export function Roles({ registerHref }: { registerHref?: string }) {
         <div className="role-cards">
           {CARDS.map((c) => (
             <article key={c.id} className="rcard">
-              <span className="rcard__badge">{c.badge}</span>
+              <span className="rcard__badge" data-role={c.id}>{c.badge}</span>
               <h3 className="head t-24 rcard__name">{t(`cards.${c.id}.name`)}</h3>
               <p className="body rcard__desc">{t(`cards.${c.id}.desc`)}</p>
               <span className="rcard__tag">{t(`cards.${c.id}.tag`)}</span>

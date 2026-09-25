@@ -52,6 +52,9 @@ const REFUSALS: Record<TeamActionReason, string> = {
   invalid_amount: "Enter a whole number of ACER within the treasury bounds.",
   stale_form: "That form was already submitted with different values. Reload and retry.",
   payouts_disabled: "Treasury payouts are switched off (TREASURY_PAYOUTS_ENABLED is not set).",
+  // Card-paid team nights (ADR 0015).
+  payment_unavailable: "Stripe could not start the entry-fee checkout. Try again shortly.",
+  payment_pending: "That team's entry fee has been paid and the entry is still being written.",
 };
 
 /** The panel's sentence for a refused team action. */

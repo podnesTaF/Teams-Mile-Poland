@@ -8,7 +8,8 @@ import "./wallet.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { WALLET_ASSETS } from "@/db/schema";
-import { AcerPurchaseForm } from "@/features/wallet/components/purchase-form";
+// ACER top-up is off (ADR 0015) — ACER is a reward currency for now.
+// import { AcerPurchaseForm } from "@/features/wallet/components/purchase-form";
 import { WalletReference } from "@/features/wallet/components/team-reference";
 import { getWalletBalances, listWalletTransactions, parseWalletPage } from "@/features/wallet/data";
 import {
@@ -17,7 +18,7 @@ import {
   formatWalletDateTime,
 } from "@/features/wallet/format";
 import {
-  isAcerPurchaseEnabled,
+  // isAcerPurchaseEnabled, — top-up is off (ADR 0015), see below.
   resolvePurchaseFlash,
   type PurchaseFlash,
 } from "@/features/wallet/purchase";
@@ -150,11 +151,13 @@ export default async function WalletPage({ params, searchParams }: PageProps) {
             ))}
           </section>
 
-          {/* Off until the #46 legal copy clears Polish counsel review (#49
-              launch note) — the affordance is absent, not merely disabled. */}
+          {/* ACER top-up is commented out (ADR 0015): ACER is earned as a
+              reward, not bought, and entry fees are paid in PLN by card. The
+              balances above stay. Restore this block (and its import) to bring
+              the top-up back; it is still gated by `isAcerPurchaseEnabled()`.
           {isAcerPurchaseEnabled() ? (
             <AcerPurchaseForm email={user.email} redirectTo={WALLET_PATH} />
-          ) : null}
+          ) : null} */}
 
           <section className="wl-history">
             <div className="section-label">

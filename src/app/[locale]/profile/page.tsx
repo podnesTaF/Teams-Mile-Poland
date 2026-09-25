@@ -37,7 +37,6 @@ import { InviteLink } from "@/features/team/components/invite-link";
 import { ProfileTeamsSection } from "@/features/teams/components/profile-teams-section";
 import { WalletBalanceCard } from "@/features/wallet/components/balance-card";
 import { getWalletBalances } from "@/features/wallet/data";
-import { isAcerPurchaseEnabled } from "@/features/wallet/purchase";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { isRaceRun } from "@/lib/events/participation";
@@ -276,7 +275,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
           <WalletBalanceCard
             balanceMinor={walletBalances.ACER}
             locale={locale}
-            canTopUp={isAcerPurchaseEnabled()}
+            // ACER top-up is off (ADR 0015) — see /wallet.
+            canTopUp={false}
           />
 
           <div className="pf-stats">

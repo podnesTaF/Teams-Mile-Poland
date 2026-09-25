@@ -52,6 +52,12 @@ export type EnterableEvent = {
    * rather than as "0 ACER", which reads like a bug.
    */
   feeMinor: number;
+  /**
+   * Card entry fee in whole PLN, paid once via Stripe (ADR 0015); `0` = not
+   * card-paid. The page passes `feeMinor: 0` for such a night — a night is
+   * never charged in both.
+   */
+  pricePln: number;
 };
 
 /**
@@ -97,6 +103,7 @@ export function EntryEnterButton({
   events,
   locale,
   treasuryMinor,
+  payment,
 }: {
   teamSlug: string;
   events: EnterableEvent[];
@@ -109,6 +116,8 @@ export function EntryEnterButton({
    * ACER" beside a free night is noise.
    */
   treasuryMinor: number;
+  /** `?payment=` on the way back from Stripe Checkout: `success` or `cancelled`. */
+  payment?: string;
 }) {
   const t = useTranslations("teams.entry");
   const tReasons = useTranslations("teams.reasons");
@@ -136,11 +145,17 @@ export function EntryEnterButton({
     setFailedSlug(null);
     setFailedReason(null);
     startTransition(async () => {
-      const result = await enterTeam(teamSlug, eventSlug);
+      const result = await enterTeam(teamSlug, eventSlug, locale);
       if (!result.ok) {
         setError(entryRefusalText(result, t, tReasons));
         setFailedSlug(eventSlug);
         setFailedReason(result.reason);
+        return;
+      }
+      // A card-paid night: the entry is written by the webhook once Stripe has
+      // the fee, so the next stop is Stripe, not the entry page.
+      if ("checkoutUrl" in result) {
+        window.location.assign(result.checkoutUrl);
         return;
       }
       // Straight to the entry page: the next thing the captain wants is the
@@ -162,6 +177,15 @@ export function EntryEnterButton({
         <span className="iv-eyebrow">{t("heading")}</span>
       </div>
       <p className="pf-block__sub">{t("hint")}</p>
+      {payment === "success" ? (
+        <div className="banner banner--info" role="status" data-entry-payment="success">
+          {t("paymentSettling")}
+        </div>
+      ) : payment === "cancelled" ? (
+        <div className="banner banner--info" role="status" data-entry-payment="cancelled">
+          {t("paymentCancelled")}
+        </div>
+      ) : null}
 
       {anyPriced ? (
         <p className="pf-block__sub" data-entry-treasury={treasuryMinor}>
@@ -186,11 +210,17 @@ export function EntryEnterButton({
               <span className="reg-card__title">{event.name}</span>
               <div className="reg-card__meta">
                 <span>{event.shortDate}</span>
-                <span data-entry-fee={event.slug} data-entry-fee-minor={event.feeMinor}>
+                <span
+                  data-entry-fee={event.slug}
+                  data-entry-fee-minor={event.feeMinor}
+                  data-entry-price-pln={event.pricePln || undefined}
+                >
                   {t("feeLabel")}:{" "}
-                  {event.feeMinor > 0
-                    ? t("fee", { amount: minorToAcer(event.feeMinor) })
-                    : t("feeFree")}
+                  {event.pricePln > 0
+                    ? t("pricePln", { price: event.pricePln })
+                    : event.feeMinor > 0
+                      ? t("fee", { amount: minorToAcer(event.feeMinor) })
+                      : t("feeFree")}
                 </span>
               </div>
             </div>
@@ -218,7 +248,11 @@ export function EntryEnterButton({
                   data-entry-action="enter"
                   data-entry-target={event.slug}
                 >
-                  {pending ? t("working") : t("enter")}
+                  {pending
+                    ? t("working")
+                    : event.pricePln > 0
+                      ? t("enterPaid", { price: event.pricePln })
+                      : t("enter")}
                 </button>
               )}
             </div>

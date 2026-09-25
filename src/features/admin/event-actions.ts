@@ -146,6 +146,8 @@ function readFields(formData: FormData): EventFields | null {
     heatIntervalMinutes: field(formData, "heatIntervalMinutes"),
     teamEntryFeeAcer: field(formData, "teamEntryFeeAcer") || "0",
     individualEntryFeeAcer: field(formData, "individualEntryFeeAcer") || "0",
+    individualPricePln: field(formData, "individualPricePln") || "0",
+    teamPricePln: field(formData, "teamPricePln") || "0",
   });
   return parsed.success ? parsed.data : null;
 }
@@ -353,6 +355,8 @@ export async function createEvent(formData: FormData): Promise<void> {
     heatIntervalMinutes: fields.heatIntervalMinutes,
     teamEntryFeeAcer: fields.teamEntryFeeAcer,
     individualEntryFeeAcer: fields.individualEntryFeeAcer,
+    individualPricePln: fields.individualPricePln,
+    teamPricePln: fields.teamPricePln,
     createdBy: actor.id,
   };
 
@@ -461,6 +465,8 @@ export async function updateEvent(formData: FormData): Promise<void> {
       // charged is the one in that entry's ledger row (ADR 0013).
       teamEntryFeeAcer: fields.teamEntryFeeAcer,
       individualEntryFeeAcer: fields.individualEntryFeeAcer,
+      individualPricePln: fields.individualPricePln,
+      teamPricePln: fields.teamPricePln,
       updatedAt: new Date(),
     })
     .where(eq(events.slug, slug));

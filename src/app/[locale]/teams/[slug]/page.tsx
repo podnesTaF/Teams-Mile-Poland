@@ -32,10 +32,12 @@ import { Link } from "@/i18n/navigation";
 import { getAppUrl } from "@/lib/app-url";
 import { getUser, userCan } from "@/lib/auth/user-session";
 import { getAllEvents } from "@/lib/events/store";
+import { entryPricePln } from "@/lib/events/types";
 import { localePath } from "@/lib/i18n/config";
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<{ payment?: string | string[] }>;
 };
 
 /**
@@ -52,8 +54,9 @@ type PageProps = {
  * Dynamic on purpose (no `generateStaticParams`): what this page shows depends
  * on who is asking.
  */
-export default async function TeamPage({ params }: PageProps) {
+export default async function TeamPage({ params, searchParams }: PageProps) {
   const { locale, slug } = await params;
+  const { payment } = await searchParams;
   setRequestLocale(locale);
 
   const team = await getTeamBySlug(slug);
@@ -90,7 +93,9 @@ export default async function TeamPage({ params }: PageProps) {
         // Priced through the helper, never off the column (ADR 0013), so the
         // number beside the button is the number `enterTeam` pre-checks and
         // the number `createEntryRows` debits.
-        feeMinor: teamEntryFeeMinor(event),
+        // A night priced in PLN is paid by card instead (ADR 0015).
+        feeMinor: entryPricePln(event, "team") > 0 ? 0 : teamEntryFeeMinor(event),
+        pricePln: entryPricePln(event, "team"),
       }))
     : [];
   // Names for the Entries list, including events that have since closed — the
@@ -177,6 +182,7 @@ export default async function TeamPage({ params }: PageProps) {
               events={enterableEvents}
               locale={locale}
               treasuryMinor={treasuryMinor}
+              payment={typeof payment === "string" ? payment : undefined}
             />
           ) : null}
 

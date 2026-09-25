@@ -89,6 +89,15 @@ export const events = pgTable("events", {
   teamEntryFeeAcer: integer("team_entry_fee_acer").default(0).notNull(),
   /** Per-runner entry fee in whole ACER; see {@link events}.`teamEntryFeeAcer`. */
   individualEntryFeeAcer: integer("individual_entry_fee_acer").default(0).notNull(),
+  /**
+   * Entry fee for one individual registration, in whole PLN, taken by card
+   * through Stripe Checkout before the registration is written (ADR 0015).
+   * 0 = free. Supersedes `individualEntryFeeAcer` for new pricing: ACER is a
+   * reward currency, and the admin form no longer offers the ACER fee.
+   */
+  individualPricePln: integer("individual_price_pln").default(0).notNull(),
+  /** Entry fee for one team entry, in whole PLN, paid once by the manager via Stripe. 0 = free. */
+  teamPricePln: integer("team_price_pln").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   /** The admin who created it; null for the rows seeded from the old registry. */

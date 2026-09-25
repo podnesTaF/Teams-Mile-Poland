@@ -1027,14 +1027,16 @@
         "openPaid": {
           "kicker": "Otwarte · wstęp płatny",
           "bannerTitle": "Zapisy otwarte",
-          "bannerTxt": "Zapisy są otwarte. Wstęp opłacasz w ACER — cena jest poniżej. Obowiązuje regulamin.",
+          "bannerTxt": "Zapisy są otwarte. Wstęp jest płatny — cena jest poniżej. Obowiązuje regulamin.",
           "note": "Przed finalizacją potwierdzisz datę, godzinę, miejsce i regulamin.",
           "cta": "Zapisz się →"
         }
       },
       "feeIndividual": "Zapis indywidualny: {amount} ACER",
       "feeTeam": "Zgłoszenie drużyny: {amount} ACER",
-      "feeFree": "Wstęp bezpłatny"
+      "feeFree": "Wstęp bezpłatny",
+      "priceIndividual": "Start indywidualny: {price} zł",
+      "priceTeam": "Start drużyny: {price} zł"
     },
     "docs": {
       "heading": "Dokumenty",
@@ -1156,7 +1158,9 @@
       "teamSub": "Menedżer drużyny zgłasza całą drużynę; każdy członek potem potwierdza swoje miejsce. Jeden biegacz, jedno zgłoszenie na wieczór.",
       "teamCta": "Znajdź lub załóż drużynę",
       "individualSubPaid": "Przebiegnij milę samodzielnie — zapis zajmuje chwilę i kosztuje {amount} ACER z portfela.",
-      "teamSubPaid": "Menedżer zgłasza całą drużynę za {amount} ACER z kasy drużyny; potem każdy zawodnik potwierdza swoje miejsce. Jeden zawodnik, jedno zgłoszenie na wieczór."
+      "teamSubPaid": "Menedżer zgłasza całą drużynę za {amount} ACER z kasy drużyny; potem każdy zawodnik potwierdza swoje miejsce. Jeden zawodnik, jedno zgłoszenie na wieczór.",
+      "individualSubPln": "Przebiegnij milę samodzielnie — zapis zajmuje chwilę i kosztuje {price} zł, płatne kartą.",
+      "teamSubPln": "Menedżer zgłasza całą drużynę za {price} zł, płatne jednorazowo kartą; potem każdy członek sam potwierdza swój udział. Jeden biegacz, jedno zgłoszenie na wieczór."
     },
     "teamEvent": {
       "enteredLabel": "Zgłoszone drużyny",
@@ -1602,7 +1606,9 @@
       "invalid_amount": "Podaj kwotę w pełnych ACER w dozwolonym zakresie.",
       "stale_form": "Ten formularz był już wysłany z innymi danymi. Odśwież stronę i spróbuj ponownie.",
       "payouts_disabled": "Wypłaty z kasy drużyny nie są jeszcze dostępne.",
-      "cancelled": "To wydarzenie zostało odwołane."
+      "cancelled": "To wydarzenie zostało odwołane.",
+      "payment_unavailable": "Płatność jest teraz niedostępna. Spróbuj ponownie za kilka minut.",
+      "payment_pending": "Opłata za to zgłoszenie została już wniesiona — zgłoszenie jest potwierdzane. Odśwież za chwilę."
     },
     "roster": {
       "managerHint": "Zanim odejdziesz, przekaż rolę kapitana innemu zawodnikowi — albo rozwiąż zespół, jeśli nie udało się go skompletować.",
@@ -1815,7 +1821,11 @@
       "insufficientDetail": "Zgłoszenie kosztuje {needed} ACER, a w kasie drużyny jest {balance}.",
       "topUp": "Wpłać do kasy drużyny",
       "refundNote": "Wycofanie zgłoszenia przed zamknięciem zapisów zwraca opłatę do kasy drużyny.",
-      "withdrawNoRefundNote": "Zapisy są już zamknięte, więc opłata za zgłoszenie nie wraca."
+      "withdrawNoRefundNote": "Zapisy są już zamknięte, więc opłata za zgłoszenie nie wraca.",
+      "pricePln": "{price} zł, płatne kartą",
+      "enterPaid": "Zgłoś · {price} zł",
+      "paymentSettling": "Płatność otrzymana — zgłoszenie drużyny jest potwierdzane. Odśwież za chwilę.",
+      "paymentCancelled": "Płatność została anulowana — drużyna nie jest jeszcze zgłoszona."
     },
     "entryPage": {
       "back": "Wróć do {team}",
@@ -2009,6 +2019,17 @@
       "insufficientTitle": "Za mało ACER",
       "insufficientBody": "Zapis na ten bieg kosztuje {needed} ACER, a w portfelu masz {balance}. Doładuj portfel i wróć — miejsce nie jest w tym czasie rezerwowane.",
       "topUp": "Doładuj portfel"
+    },
+    "payment": {
+      "amount": "{price} zł",
+      "submit": "Zapłać {price} zł i zapisz się",
+      "note": "Płatność kartą na bezpiecznej stronie Stripe. Miejsce i bilet potwierdzamy, gdy tylko płatność przejdzie.",
+      "guestNote": "płatne kartą przy potwierdzeniu zapisu.",
+      "settlingTitle": "Płatność otrzymana",
+      "settlingBody": "Potwierdzamy Twój zapis — bilet za chwilę dotrze e-mailem. Odśwież stronę, jeśli się nie pojawi.",
+      "refresh": "Odśwież",
+      "cancelled": "Płatność została anulowana — nie jesteś jeszcze zapisany(-a). Możesz spróbować ponownie.",
+      "unavailable": "Płatność jest teraz niedostępna. Spróbuj ponownie za kilka minut."
     }
   },
   "unsubscribe": {

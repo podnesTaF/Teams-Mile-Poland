@@ -51,8 +51,12 @@ export const REFERRAL_REWARD_ACER = 1;
  * (`events.team_entry_fee_acer`, ADR 0013), not here. Changing this is a
  * deploy, not a migration; a
  * value of 0 skips the debit entirely rather than writing zero-amount rows.
+ *
+ * 0 since 2026-09-25 (ADR 0015): founding a team is free. ACER is a reward
+ * currency for now, and entry fees are paid in PLN by card. The four teams
+ * founded at 100 ACER before this keep that debit — the owner's call.
  */
-export const TEAM_CREATION_PRICE_ACER = 100;
+export const TEAM_CREATION_PRICE_ACER = 0;
 
 /** Preset top-up amounts, in whole ACER (= whole USD). */
 export const ACER_PACKS: readonly number[] = [10, 25, 50, 100];

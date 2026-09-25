@@ -24,3 +24,4 @@ export * from "./consent";
 export * from "./user-teams";
 export * from "./team-entries";
 export * from "./team-results";
+export * from "./event-payments";

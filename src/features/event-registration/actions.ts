@@ -15,6 +15,7 @@ import { toE164 } from "@/lib/phone";
 import { applyReferralAttribution, REF_COOKIE } from "@/features/referral/data";
 import { minorToAcer } from "@/features/wallet/config";
 import { getAcerBalance } from "@/features/wallet/data";
+import { startIndividualCheckout } from "@/features/event-payments/checkout";
 import { individualEntryFeeMinor } from "@/features/wallet/entry-fees";
 
 import {
@@ -39,7 +40,7 @@ import {
   parseDateOnly,
   formatDateOnly,
 } from "@/lib/age";
-import { acceptsIndividuals } from "@/lib/events/types";
+import { acceptsIndividuals, entryPricePln } from "@/lib/events/types";
 
 /**
  * Locale-aware return path baked into the verification link. On click, Better
@@ -80,6 +81,8 @@ export type AcerShortfall = { needed: number; balance: number };
 
 export type RegisterResult =
   | { ok: true; ticketUrl: string }
+  /** A card-paid night (ADR 0015): nothing is written yet — send the runner to Stripe. */
+  | { ok: true; checkoutUrl: string }
   | {
       ok: false;
       reason:
@@ -92,6 +95,8 @@ export type RegisterResult =
         | "duplicate"
         | "consent"
         | "insufficient_acer"
+        | "payment_unavailable"
+        | "payment_pending"
         | "error";
       message: string;
       /** Present only when `reason === "consent"`. */
@@ -180,7 +185,11 @@ export async function registerForEvent(
   // and the number that is charged cannot differ, even across a re-pricing
   // mid-request. Never the column directly — `individualEntryFeeMinor` is the
   // single answer to "what does this night cost a runner" (ADR 0013).
-  const feeMinor = individualEntryFeeMinor(event);
+  //
+  // A night priced in PLN is paid by card instead (ADR 0015), and the ACER fee
+  // is then not taken at all: a night is never charged in both.
+  const pricePln = entryPricePln(event, "individual");
+  const feeMinor = pricePln > 0 ? 0 : individualEntryFeeMinor(event);
   if (feeMinor > 0) {
     const balanceMinor = await getAcerBalance(user.id);
     if (balanceMinor < feeMinor) return insufficientAcer(feeMinor, balanceMinor);
@@ -238,30 +247,55 @@ export async function registerForEvent(
     user.name ||
     user.email;
 
-  try {
-    const registration = await createRegistrationWithConsent({
-      registration: {
-        eventSlug,
-        userId: user.id,
-        locale,
-        terms: termsAcceptedFrom(docSet, submission.items),
+  const input: Parameters<typeof createRegistrationWithConsent>[0] = {
+    registration: {
+      eventSlug,
+      userId: user.id,
+      locale,
+      terms: termsAcceptedFrom(docSet, submission.items),
+    },
+    submission: {
+      docSet,
+      locale,
+      snapshot: {
+        fullName,
+        birthDate: formatDateOnly(dob),
+        phoneEmail: phoneEmailLine({ email: user.email, phone: profile.phone }),
+        address: submission.address ?? "",
+        emergencyContact: submission.emergencyContact,
       },
-      submission: {
-        docSet,
-        locale,
-        snapshot: {
-          fullName,
-          birthDate: formatDateOnly(dob),
-          phoneEmail: phoneEmailLine({ email: user.email, phone: profile.phone }),
-          address: submission.address ?? "",
-          emergencyContact: submission.emergencyContact,
-        },
-        ip: requestIp(requestHeaders),
-        userAgent: requestHeaders.get("user-agent"),
-      },
-      consents: buildConsentRows(docSet, submission.items),
-      feeMinor,
+      ip: requestIp(requestHeaders),
+      userAgent: requestHeaders.get("user-agent"),
+    },
+    consents: buildConsentRows(docSet, submission.items),
+    feeMinor,
+  };
+
+  // Card-paid: the validated input is parked on an `event_payments` row and
+  // written by the Stripe webhook once the fee has settled — the same
+  // transaction, just later (`features/event-payments`).
+  if (pricePln > 0) {
+    const checkout = await startIndividualCheckout({
+      event,
+      payer: { id: user.id, email: user.email },
+      payload: input,
+      locale,
     });
+    if (!checkout.ok) {
+      return {
+        ok: false,
+        reason: checkout.reason,
+        message:
+          checkout.reason === "payment_pending"
+            ? "Your payment is being confirmed — your ticket will arrive by email shortly."
+            : "Payment is unavailable right now. Please try again shortly.",
+      };
+    }
+    return { ok: true, checkoutUrl: checkout.url };
+  }
+
+  try {
+    const registration = await createRegistrationWithConsent(input);
     await sendEventTicketEmail({ registration, user });
     return { ok: true, ticketUrl: makeEventTicketUrl(registration.id, { locale }) };
   } catch (error) {

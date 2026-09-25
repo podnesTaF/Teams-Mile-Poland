@@ -51,6 +51,10 @@ export type EventFormValues = {
   teamEntryFeeAcer: number;
   /** Whole ACER one runner's registration costs on this night; 0 = free. */
   individualEntryFeeAcer: number;
+  /** Whole PLN, card via Stripe; 0 = free. */
+  individualPricePln: number;
+  /** Whole PLN, card via Stripe; 0 = free. */
+  teamPricePln: number;
 };
 
 /**
@@ -81,6 +85,8 @@ export const NEW_EVENT_DEFAULTS: EventFormValues = {
   // event created from here unaffected by ADR 0013.
   teamEntryFeeAcer: 0,
   individualEntryFeeAcer: 0,
+  individualPricePln: 0,
+  teamPricePln: 0,
 };
 
 /** The two patterns the series alternates between — one press each. */
@@ -281,6 +287,10 @@ export function EventForm({
           </p>
         </div>
 
+        {/* The ACER entry fees (ADR 0013) are off the form since ADR 0015:
+            entry is paid in PLN by card, and ACER is a reward currency. The
+            columns stay; a save posts no ACER fee, which the action reads as
+            0, so saving a night also clears any ACER price it still carried.
         <div>
           <AdminField label="Team entry fee (ACER)" className="max-w-[130px]">
             <input
@@ -318,6 +328,44 @@ export function EventForm({
             Debited from the runner&rsquo;s wallet when they register for this night. 0 means free.
             Keep it at or below the welcome grant a new account gets, or a first-timer who signs up
             for this night cannot finish registering.
+          </p>
+        </div> */}
+
+        <div>
+          <AdminField label="Team entry fee (PLN)" className="max-w-[160px]">
+            <input
+              className={adminInput()}
+              type="number"
+              name="teamPricePln"
+              min={0}
+              step={1}
+              defaultValue={initial.teamPricePln}
+              data-event-teamprice
+            />
+          </AdminField>
+          <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[52ch]")}>
+            Paid once per team, by card through Stripe, when the manager enters this night. The
+            entry is created after the payment goes through. 0 means free. Changing it does not
+            affect teams already entered. Withdrawals are not refunded automatically — refund in
+            the Stripe dashboard if you choose to.
+          </p>
+        </div>
+
+        <div>
+          <AdminField label="Individual entry fee (PLN)" className="max-w-[160px]">
+            <input
+              className={adminInput()}
+              type="number"
+              name="individualPricePln"
+              min={0}
+              step={1}
+              defaultValue={initial.individualPricePln}
+              data-event-indivprice
+            />
+          </AdminField>
+          <p className={cn(ADMIN_NOTE, "mt-1.5 max-w-[52ch]")}>
+            Paid by card through Stripe when a runner registers alone for this night. The
+            registration and ticket are created after the payment goes through. 0 means free.
           </p>
         </div>
       </div>
