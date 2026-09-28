@@ -315,7 +315,7 @@
       },
       "hasTeam": {
         "title": "Mam drużynę",
-        "body": "Masz już drużynę (7–12) i chcesz ją zarejestrować?",
+        "body": "Masz już drużynę (7–50) i chcesz ją zarejestrować?",
         "cta": "Zarejestruj drużynę",
         "alt": "Drużyna"
       }
@@ -552,11 +552,11 @@
       },
       "chooser": {
         "title": "Rejestracja",
-        "sub": "Masz drużynę (7–12 osób) czy<br></br>rejestrujesz się indywidualnie?",
+        "sub": "Masz drużynę (7–50 osób) czy<br></br>rejestrujesz się indywidualnie?",
         "quickTitle": "Nie mam drużyny",
         "quickDesc": "Pomóżcie mi dołączyć do innych zawodników.",
         "createTitle": "Mam drużynę",
-        "createDesc": "Mam drużynę (7–12 osób) i ją zarejestruję."
+        "createDesc": "Mam drużynę (7–50 osób) i ją zarejestruję."
       },
       "quick": {
         "title": "Rejestracja zawodnika",

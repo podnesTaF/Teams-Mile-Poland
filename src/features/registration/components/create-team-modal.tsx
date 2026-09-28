@@ -10,6 +10,7 @@ import { Loader } from "@/components/ui/loader";
 import { Modal, ModalBody, ModalFoot, ModalHead } from "@/components/ui/modal";
 import { PhoneField } from "@/components/ui/phone-field";
 
+import { MAX_TEAM_SIZE } from "@/features/team/constants";
 import { Link } from "@/i18n/navigation";
 
 import { trackFormSubmit } from "@/lib/analytics";
@@ -46,7 +47,7 @@ export function CreateTeamModal() {
   const [pending, startTransition] = useTransition();
 
   const sizeNum = Number(data.teamSize);
-  const sizeOk = Number.isInteger(sizeNum) && sizeNum >= 7 && sizeNum <= 12;
+  const sizeOk = Number.isInteger(sizeNum) && sizeNum >= 7 && sizeNum <= MAX_TEAM_SIZE;
   const ready =
     data.fullName &&
     data.email &&
@@ -119,7 +120,7 @@ export function CreateTeamModal() {
           label={t("teamSize")}
           type="number"
           min={7}
-          max={12}
+          max={MAX_TEAM_SIZE}
           value={data.teamSize}
           onChange={(event) => setData((d) => ({ ...d, teamSize: event.target.value }))}
         />

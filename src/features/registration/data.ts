@@ -7,6 +7,7 @@ import { magicLinks, pendingRegistrations, runners, slotCounter, teams } from "@
 import { getAppUrl } from "@/lib/app-url";
 import { getDb } from "@/lib/db";
 import { EVENT } from "@/lib/marketing/event";
+import { MAX_TEAM_SIZE } from "@/features/team/constants";
 
 import {
   normalizeTeamCode,
@@ -15,7 +16,6 @@ import {
 
 export { getAppUrl } from "@/lib/app-url";
 
-const MAX_TEAM_SIZE = 12;
 const COUNTER_ID = 1;
 
 export type RegistrationCounters = {
@@ -100,8 +100,9 @@ export async function validateJoinCode(code: string): Promise<JoinValidation> {
     };
   }
 
-  const cap = team.size ?? MAX_TEAM_SIZE;
-  if (preview.runnerCount >= cap) {
+  // Every team takes up to MAX_TEAM_SIZE runners, whatever size the captain
+  // declared at registration.
+  if (preview.runnerCount >= MAX_TEAM_SIZE) {
     return {
       ok: false,
       reason: "full",
@@ -248,7 +249,7 @@ async function buildTeamPreview(teamId: string): Promise<TeamPreview> {
     captainName: captain ? shortCaptainName(captain.fullName) : null,
     captainEmail: captain?.email ?? null,
     runnerCount: runnerCount?.value ?? 0,
-    capacity: team.size ?? MAX_TEAM_SIZE,
+    capacity: MAX_TEAM_SIZE,
   };
 }
 

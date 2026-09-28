@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { MAX_TEAM_SIZE } from "@/features/team/constants";
 import { phoneFieldSchema } from "@/lib/phone";
 
 export const FLOW_IDS = ["start", "join", "free"] as const;
@@ -29,7 +30,7 @@ export const localeSchema = z.enum(["ua", "pl", "en"]).default("ua");
 export const startTeamSchema = z.object({
   flow: z.literal("start"),
   teamName: z.string().trim().min(2, "Team name is required").max(80),
-  teamSize: z.coerce.number().int().min(7, "At least 7 runners").max(12, "At most 12 runners"),
+  teamSize: z.coerce.number().int().min(7, "At least 7 runners").max(MAX_TEAM_SIZE, `At most ${MAX_TEAM_SIZE} runners`),
   person: personSchema,
   terms: termsSchema,
   locale: localeSchema,

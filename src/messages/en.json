@@ -315,7 +315,7 @@
       },
       "hasTeam": {
         "title": "I have a team",
-        "body": "You've already got a team of 7–12 people and you're ready to register it?",
+        "body": "You've already got a team of 7–50 people and you're ready to register it?",
         "cta": "Register the team",
         "alt": "Team"
       }
@@ -552,11 +552,11 @@
       },
       "chooser": {
         "title": "Registration",
-        "sub": "Do you already have a team (7–12 people) or<br></br>are you registering on your own?",
+        "sub": "Do you already have a team (7–50 people) or<br></br>are you registering on your own?",
         "quickTitle": "No team yet",
         "quickDesc": "Help me join other participants.",
         "createTitle": "I have a team",
-        "createDesc": "I have a team (7–12) people and I will register it."
+        "createDesc": "I have a team (7–50) people and I will register it."
       },
       "quick": {
         "title": "Participant registration",

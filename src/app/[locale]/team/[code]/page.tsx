@@ -9,7 +9,7 @@ import { CaptainControls } from "@/features/team/components/captain-controls";
 import { InviteLink } from "@/features/team/components/invite-link";
 import { RosterList } from "@/features/team/components/roster-list";
 import { SignOutButton } from "@/features/team/components/sign-out-button";
-import { MAX_TEAM_SIZE } from "@/features/team/constants";
+import { MAX_TEAM_SIZE, MIN_TEAM_SIZE } from "@/features/team/constants";
 import { makeInviteUrl } from "@/features/registration/data";
 import {
   getRosterByTeamId,
@@ -49,7 +49,8 @@ export default async function TeamDashboardPage({
     .concat(roster.captain ? [roster.captain] : [])
     .filter((r) => r.paymentStatus === "paid" || r.paymentStatus === "free").length;
 
-  const emptyCount = Math.max(0, (team.size ?? MAX_TEAM_SIZE) - roster.count);
+  // Placeholders fill up to the declared size only, not to the 50-runner cap.
+  const emptyCount = Math.max(0, (team.size ?? MIN_TEAM_SIZE) - roster.count);
 
   return (
     <div className="ace-landing iv">
@@ -69,7 +70,7 @@ export default async function TeamDashboardPage({
             </div>
 
             <div className="iv-grid">
-              <Info label={t("roster")} value={`${roster.count} / ${team.size ?? MAX_TEAM_SIZE}`} />
+              <Info label={t("roster")} value={`${roster.count} / ${MAX_TEAM_SIZE}`} />
               <Info label={t("paid")} value={String(paidCount)} />
               <Info
                 label={t("captainLabel")}

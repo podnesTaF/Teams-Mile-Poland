@@ -1,5 +1,5 @@
 export const MIN_TEAM_SIZE = 7;
-export const MAX_TEAM_SIZE = 12;
+export const MAX_TEAM_SIZE = 50;
 
 export const LOGIN_TOKEN_TTL_MS = 15 * 60 * 1000;
 
