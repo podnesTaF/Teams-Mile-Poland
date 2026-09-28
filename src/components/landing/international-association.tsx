@@ -2,10 +2,15 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 const ABA_URL = "https://aba.run";
+export const MARATONY_POLSKIE_URL = "https://maratonypolskie.pl";
 
-/** Licensed-event band linking to the international Ace Battle Association. */
+/**
+ * Licensed-event band linking to the international Ace Battle Association,
+ * followed by the media partner panel (maratonypolskie.pl).
+ */
 export function InternationalAssociation() {
   const t = useTranslations("landing.internationalAssociation");
+  const mp = useTranslations("landing.mediaPartner");
 
   return (
     <section
@@ -49,6 +54,35 @@ export function InternationalAssociation() {
               rel="noopener noreferrer"
             >
               {t("cta")}
+            </a>
+          </div>
+        </div>
+        <div className="aba-panel aba-panel--partner">
+          <a
+            className="aba-panel__logo"
+            href={MARATONY_POLSKIE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={mp("logoAriaLabel")}
+          >
+            <Image
+              src="/brand/maratony-polskie.png"
+              alt={mp("logoAlt")}
+              width={393}
+              height={276}
+            />
+          </a>
+          <div className="aba-panel__copy">
+            <span className="aba-panel__eyebrow">{mp("eyebrow")}</span>
+            <h2 className="head t-sec">{mp("title")}</h2>
+            <p className="lead">{mp("body")}</p>
+            <a
+              className="btn btn-stroke"
+              href={MARATONY_POLSKIE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {mp("cta")}
             </a>
           </div>
         </div>

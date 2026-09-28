@@ -416,6 +416,15 @@
       "logoAlt": "Ace Battle Association",
       "logoAriaLabel": "Ace Battle Association — odwiedź aba.run"
     },
+    "mediaPartner": {
+      "eyebrow": "Partner medialny",
+      "title": "Maratonypolskie.pl",
+      "body": "Polski portal dla biegaczy i miłośników wydarzeń biegowych. Aktualności, kalendarz zawodów, praktyczne porady i duża społeczność ruchu biegowego w Polsce.",
+      "short": "Polski portal dla biegaczy i miłośników wydarzeń biegowych.",
+      "cta": "Przejdź na maratonypolskie.pl →",
+      "logoAlt": "Maratony Polskie",
+      "logoAriaLabel": "Maratony Polskie — przejdź na maratonypolskie.pl"
+    },
     "faq": {
       "title": "Masz pytania?",
       "sub": "nasz manager skontaktuje się z Tobą i odpowie na wszystko",

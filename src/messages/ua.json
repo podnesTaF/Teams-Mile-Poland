@@ -416,6 +416,15 @@
       "logoAlt": "Ace Battle Association",
       "logoAriaLabel": "Ace Battle Association — відвідати aba.run"
     },
+    "mediaPartner": {
+      "eyebrow": "Інформаційний партнер",
+      "title": "Maratonypolskie.pl",
+      "body": "Польський портал для бігунів та любителів бігових подій. Новини, календар змагань, корисні поради та велика спільнота бігового руху в Польщі.",
+      "short": "Польський портал для бігунів та любителів бігових подій.",
+      "cta": "Перейти на maratonypolskie.pl →",
+      "logoAlt": "Maratony Polskie",
+      "logoAriaLabel": "Maratony Polskie — перейти на maratonypolskie.pl"
+    },
     "faq": {
       "title": "Є запитання?",
       "sub": "наш менеджер зв’яжеться з тобою та відповість на всі питання",

@@ -416,6 +416,15 @@
       "logoAlt": "Ace Battle Association",
       "logoAriaLabel": "Ace Battle Association — visit aba.run"
     },
+    "mediaPartner": {
+      "eyebrow": "Media partner",
+      "title": "Maratonypolskie.pl",
+      "body": "The Polish portal for runners and running-event fans. News, a race calendar, practical tips and a large community of the running movement in Poland.",
+      "short": "The Polish portal for runners and running-event fans.",
+      "cta": "Go to maratonypolskie.pl →",
+      "logoAlt": "Maratony Polskie",
+      "logoAriaLabel": "Maratony Polskie — go to maratonypolskie.pl"
+    },
     "faq": {
       "title": "Got questions?",
       "sub": "our manager will reach out and answer everything",

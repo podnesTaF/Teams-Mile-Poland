@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { formatEventDayMonth } from "@/lib/events/time";
 
 import { FooterActions } from "./footer-actions";
+import { MARATONY_POLSKIE_URL } from "./international-association";
 import { Wordmark } from "./wordmark";
 
 /**
@@ -29,6 +30,7 @@ export function FinalCta({
   const t = useTranslations("landing.finalCta");
   const f = useTranslations("landing.footer");
   const hero = useTranslations("landing.hero");
+  const mp = useTranslations("landing.mediaPartner");
   const locale = useLocale();
 
   return (
@@ -93,6 +95,24 @@ export function FinalCta({
             shareLabel={f("share")}
             copiedLabel={f("shareCopied")}
           />
+          <div className="footer-partner">
+            <span className="footer-partner__label">{mp("eyebrow")}</span>
+            <a
+              className="footer-partner__logo"
+              href={MARATONY_POLSKIE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={mp("logoAriaLabel")}
+            >
+              <Image
+                src="/brand/maratony-polskie.png"
+                alt={mp("logoAlt")}
+                width={393}
+                height={276}
+              />
+            </a>
+            <p className="footer-partner__text">{mp("short")}</p>
+          </div>
           <nav className="footer__legal" aria-label={f("terms")}>
             <Link href="/terms">{f("terms")}</Link>
           </nav>
