@@ -1677,6 +1677,19 @@
   font-size: var(--fs-h3); /* H3 */
   flex: 0 0 auto;
 }
+/* Badge colour per role: ACE keeps the brand red, RACER is white, JOKER is
+   black with a white border so it still reads against the dark shell. */
+.ace-landing .badge[data-role="runner"],
+.ace-landing .rcard__badge[data-role="runner"] {
+  background: #fff;
+  color: #000;
+}
+.ace-landing .badge[data-role="joker"],
+.ace-landing .rcard__badge[data-role="joker"] {
+  background: #000;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px #fff;
+}
 .ace-landing .rcard__name {
   margin: 0;
 }

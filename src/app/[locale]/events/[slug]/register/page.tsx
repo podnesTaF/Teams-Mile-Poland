@@ -9,10 +9,12 @@ import { Link } from "@/i18n/navigation";
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<{ payment?: string | string[] }>;
 };
 
-export default async function EventRegisterPage({ params }: PageProps) {
+export default async function EventRegisterPage({ params, searchParams }: PageProps) {
   const { locale, slug } = await params;
+  const { payment } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("register");
 
@@ -24,7 +26,11 @@ export default async function EventRegisterPage({ params }: PageProps) {
           <Link href={`/events/${slug}`} className="detail-back">
             ← {t("confirm.back")}
           </Link>
-          <EventRegisterContent slug={slug} locale={locale} />
+          <EventRegisterContent
+            slug={slug}
+            locale={locale}
+            payment={typeof payment === "string" ? payment : undefined}
+          />
         </div>
       </main>
     </div>

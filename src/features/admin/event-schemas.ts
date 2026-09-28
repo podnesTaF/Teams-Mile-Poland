@@ -122,6 +122,16 @@ const MAX_ENTRY_FEE_ACER = 10_000;
 /** `HH:MM` on a 24-hour clock — the shape both window fields are stored in. */
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+/** Upper bound on a card entry fee, in whole PLN — a typo guard, not a policy. */
+const MAX_ENTRY_PRICE_PLN = 10_000;
+
+const entryPricePln = z.coerce
+  .number()
+  .int()
+  .min(0)
+  .max(MAX_ENTRY_PRICE_PLN)
+  .refine((n) => n === 0 || n >= 2, "Stripe's smallest charge is 2 PLN");
+
 /**
  * The fields an event's create and edit forms share, minus the window.
  *
@@ -152,6 +162,10 @@ export const eventFieldsSchema = z.object({
   // applies to a top-up).
   teamEntryFeeAcer: z.coerce.number().int().min(0).max(MAX_ENTRY_FEE_ACER),
   individualEntryFeeAcer: z.coerce.number().int().min(0).max(MAX_ENTRY_FEE_ACER),
+  // Whole PLN, `0` = free, paid by card via Stripe (ADR 0015). Stripe's
+  // smallest PLN charge is 2 zł, so 1 is refused rather than failing at checkout.
+  individualPricePln: entryPricePln,
+  teamPricePln: entryPricePln,
 });
 
 export type EventFields = z.infer<typeof eventFieldsSchema>;

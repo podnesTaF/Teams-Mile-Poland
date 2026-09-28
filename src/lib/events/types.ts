@@ -228,5 +228,27 @@ export type EventSummary = {
   teamEntryFeeAcer?: number;
   /** What one individual registration costs, in whole ACER. See {@link EventSummary.teamEntryFeeAcer}. */
   individualEntryFeeAcer?: number;
+  /**
+   * Individual entry fee in whole PLN, paid by card through Stripe Checkout
+   * before the registration is written (ADR 0015). 0 or absent = free. When set
+   * it takes over from {@link EventSummary.individualEntryFeeAcer}: a night is
+   * never charged in both.
+   */
+  individualPricePln?: number;
+  /** Team entry fee in whole PLN, paid once by the manager via Stripe (ADR 0015). 0 or absent = free. */
+  teamPricePln?: number;
   results?: EventResults;
 };
+
+/**
+ * The card entry fee, in whole PLN, for one path into an event — 0 when that
+ * path is not paid by card. The one reader of the two PLN columns, so "absent"
+ * and "0" cannot mean different things in different places.
+ */
+export function entryPricePln(
+  event: Pick<EventSummary, "individualPricePln" | "teamPricePln"> | null | undefined,
+  path: "individual" | "team",
+): number {
+  const price = path === "individual" ? event?.individualPricePln : event?.teamPricePln;
+  return price && Number.isInteger(price) && price > 0 ? price : 0;
+}

@@ -1027,14 +1027,16 @@
         "openPaid": {
           "kicker": "Now open · paid entry",
           "bannerTitle": "Registration open",
-          "bannerTxt": "Registration is open. Entry is paid in ACER — the price is below. Terms of entry apply.",
+          "bannerTxt": "Registration is open. Entry is paid — the price is below. Terms of entry apply.",
           "note": "You'll confirm date, time, venue and terms before anything is final.",
           "cta": "Register →"
         }
       },
       "feeIndividual": "Individual entry: {amount} ACER",
       "feeTeam": "Team entry: {amount} ACER",
-      "feeFree": "Free entry"
+      "feeFree": "Free entry",
+      "priceIndividual": "Individual entry: {price} zł",
+      "priceTeam": "Team entry: {price} zł"
     },
     "docs": {
       "heading": "Documents",
@@ -1156,7 +1158,9 @@
       "teamSub": "Your team manager enters the whole team; every member then confirms their own place. One runner, one entry per night.",
       "teamCta": "Find or create a team",
       "individualSubPaid": "Run the mile on your own — registration takes a minute and costs {amount} ACER from your wallet.",
-      "teamSubPaid": "Your team manager enters the whole team for {amount} ACER from the team treasury; every member then confirms their own place. One runner, one entry per night."
+      "teamSubPaid": "Your team manager enters the whole team for {amount} ACER from the team treasury; every member then confirms their own place. One runner, one entry per night.",
+      "individualSubPln": "Run the mile on your own — registration takes a minute and costs {price} zł, paid by card.",
+      "teamSubPln": "Your team manager enters the whole team for {price} zł, paid once by card; every member then confirms their own place. One runner, one entry per night."
     },
     "teamEvent": {
       "enteredLabel": "Teams entered",
@@ -1602,7 +1606,9 @@
       "invalid_amount": "Enter a whole number of ACER within the allowed range.",
       "stale_form": "This form was already submitted with different values. Refresh the page and try again.",
       "payouts_disabled": "Treasury payouts are not available yet.",
-      "cancelled": "This event has been cancelled."
+      "cancelled": "This event has been cancelled.",
+      "payment_unavailable": "Payment is unavailable right now. Please try again in a few minutes.",
+      "payment_pending": "This entry's fee has already been paid — the entry is being confirmed. Refresh in a moment."
     },
     "roster": {
       "managerHint": "Make another runner captain before you leave, or dissolve the team if it is not coming together.",
@@ -1815,7 +1821,11 @@
       "insufficientDetail": "Entering costs {needed} ACER and the treasury holds {balance}.",
       "topUp": "Contribute to the treasury",
       "refundNote": "Withdraw while registration is open and the fee goes back to the treasury.",
-      "withdrawNoRefundNote": "Registration has closed, so the entry fee stays spent."
+      "withdrawNoRefundNote": "Registration has closed, so the entry fee stays spent.",
+      "pricePln": "{price} zł, paid by card",
+      "enterPaid": "Enter · {price} zł",
+      "paymentSettling": "Payment received — your team's entry is being confirmed. Refresh in a moment to see it.",
+      "paymentCancelled": "Payment was cancelled — your team is not entered yet."
     },
     "entryPage": {
       "back": "Back to {team}",
@@ -2009,6 +2019,17 @@
       "insufficientTitle": "Not enough ACER",
       "insufficientBody": "Entry for this night costs {needed} ACER and your wallet holds {balance}. Top up and come back — no place is held for you in the meantime.",
       "topUp": "Top up your wallet"
+    },
+    "payment": {
+      "amount": "{price} zł",
+      "submit": "Pay {price} zł and register",
+      "note": "Paid by card on Stripe's secure page. Your place and ticket are confirmed as soon as the payment goes through.",
+      "guestNote": "paid by card when you confirm your registration.",
+      "settlingTitle": "Payment received",
+      "settlingBody": "We're confirming your registration — your ticket will arrive by email in a moment. Refresh this page if it doesn't show up.",
+      "refresh": "Refresh",
+      "cancelled": "Payment was cancelled — you're not registered yet. You can try again.",
+      "unavailable": "Payment is unavailable right now. Please try again in a few minutes."
     }
   },
   "unsubscribe": {

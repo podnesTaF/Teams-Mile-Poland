@@ -35,6 +35,14 @@ type Props = {
   feeAcer: number;
   /** The runner's ACER at render time, whole ACER. Only shown on a priced night. */
   balanceAcer: number;
+  /**
+   * Card entry fee in whole PLN (ADR 0015); `0` = not card-paid. A card-paid
+   * night goes to Stripe Checkout on submit, and the caller passes `feeAcer: 0`
+   * for it — a night is never charged in both.
+   */
+  pricePln: number;
+  /** Back from Stripe without paying (`?payment=cancelled`). */
+  paymentCancelled?: boolean;
 };
 
 /**
@@ -77,6 +85,8 @@ export function RegisterConfirm({
   prefillAddress,
   feeAcer,
   balanceAcer,
+  pricePln,
+  paymentCancelled = false,
 }: Props) {
   const t = useTranslations("register");
   const router = useRouter();
@@ -86,10 +96,13 @@ export function RegisterConfirm({
   const [error, setError] = useState<string | null>(null);
   const [problemItems, setProblemItems] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [outcome, setOutcome] = useState<"age" | "duplicate" | "closed" | null>(null);
+  const [outcome, setOutcome] = useState<"age" | "duplicate" | "closed" | "paying" | null>(
+    null,
+  );
   const [shortfall, setShortfall] = useState<AcerShortfall | null>(null);
   const [pending, startTransition] = useTransition();
   const paid = feeAcer > 0;
+  const cardPaid = pricePln > 0;
 
   function setItem(id: string, value: true | "agree" | "disagree" | undefined) {
     setItems((current) => {
@@ -153,6 +166,14 @@ export function RegisterConfirm({
           router.refresh();
           return;
         }
+        if (result.reason === "payment_pending") {
+          setOutcome("paying");
+          return;
+        }
+        if (result.reason === "payment_unavailable") {
+          setError(t("payment.unavailable"));
+          return;
+        }
         if (result.reason === "insufficient_acer") {
           // Not a terminal state and not a banner over the form: the form is
           // still valid and the runner can finish it the moment the wallet is
@@ -176,8 +197,8 @@ export function RegisterConfirm({
         setError(result.message);
         return;
       }
-      // Absolute, signed ticket URL — assign directly.
-      window.location.assign(result.ticketUrl);
+      // Absolute URLs either way — Stripe Checkout, or the signed ticket.
+      window.location.assign("checkoutUrl" in result ? result.checkoutUrl : result.ticketUrl);
     });
   }
 
@@ -197,6 +218,9 @@ export function RegisterConfirm({
   }
   if (outcome === "duplicate") {
     return <StateCard title={t("alreadyTitle")} body={t("alreadyBody")} />;
+  }
+  if (outcome === "paying") {
+    return <StateCard title={t("payment.settlingTitle")} body={t("payment.settlingBody")} />;
   }
   if (outcome === "closed") {
     return <StateCard title={t("lifecycle.closedTitle")} body={t("lifecycle.closedBody")} />;
@@ -224,10 +248,17 @@ export function RegisterConfirm({
                 verifier asserts on the price and not on a translated string. */}
             <Row
               k={t("confirm.cost")}
-              v={paid ? t("fee.amount", { amount: feeAcer }) : t("summary.free")}
+              v={
+                cardPaid
+                  ? t("payment.amount", { price: pricePln })
+                  : paid
+                    ? t("fee.amount", { amount: feeAcer })
+                    : t("summary.free")
+              }
               sub={paid ? t("fee.wallet", { balance: balanceAcer }) : undefined}
               priceTag
               data-entry-fee={feeAcer}
+              data-entry-price-pln={cardPaid ? pricePln : undefined}
               data-entry-fee-balance={paid ? balanceAcer : undefined}
             />
           </div>
@@ -278,16 +309,27 @@ export function RegisterConfirm({
               </div>
             ) : null}
             {error ? <div className="banner banner--red">{error}</div> : null}
+            {paymentCancelled && !error ? (
+              <div className="banner banner--info" role="status" data-payment-cancelled="1">
+                {t("payment.cancelled")}
+              </div>
+            ) : null}
             <p className="slots-note" style={{ marginBottom: 12 }}>
               {t("consent.requiredNotice")}
             </p>
             <button type="submit" className="btn btn-red btn-block" disabled={pending}>
-              {pending ? t("submitting") : t("confirm.submit")}
+              {pending
+                ? t("submitting")
+                : cardPaid
+                  ? t("payment.submit", { price: pricePln })
+                  : t("confirm.submit")}
             </button>
             {!complete && !pending ? (
               <p className="slots-note">{t("consent.incompleteHint")}</p>
             ) : null}
-            <p className="slots-note">{t("confirm.note")}</p>
+            <p className="slots-note">
+              {cardPaid ? t("payment.note", { price: pricePln }) : t("confirm.note")}
+            </p>
           </div>
         </aside>
       </div>

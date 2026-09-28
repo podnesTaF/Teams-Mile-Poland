@@ -162,6 +162,8 @@ function toFormValues(event: EventSummary): EventFormValues {
     heatIntervalMinutes: event.heatIntervalMinutes ?? DEFAULT_HEAT_INTERVAL_MINUTES,
     teamEntryFeeAcer: event.teamEntryFeeAcer ?? 0,
     individualEntryFeeAcer: event.individualEntryFeeAcer ?? 0,
+    individualPricePln: event.individualPricePln ?? 0,
+    teamPricePln: event.teamPricePln ?? 0,
   };
 }
 

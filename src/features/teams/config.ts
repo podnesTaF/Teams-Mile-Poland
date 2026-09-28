@@ -89,7 +89,12 @@ export type TeamActionReason =
   | "not_a_member"
   | "invalid_amount"
   | "stale_form"
-  | "payouts_disabled";
+  | "payouts_disabled"
+  // Card-paid team nights (ADR 0015): Stripe could not start a checkout; or a
+  // payment for this team and night has settled and the entry is still being
+  // written.
+  | "payment_unavailable"
+  | "payment_pending";
 
 /** The frozen failure half of every team action's return value. */
 export type TeamActionFailure = {

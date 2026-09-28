@@ -4,6 +4,8 @@ import Stripe from "stripe";
 
 import { promotePendingRegistration } from "@/features/registration/data";
 import { sendRegistrationEmails } from "@/features/registration/email";
+import { EVENT_ENTRY_KIND } from "@/features/event-payments/checkout";
+import { expireEventPayment, fulfilEventPayment } from "@/features/event-payments/fulfil";
 import { ACER_PURCHASE_KIND, creditAcerPurchase } from "@/features/wallet/purchase";
 import { getStripe } from "@/lib/stripe";
 
@@ -26,6 +28,37 @@ export async function POST(request: Request) {
       { error: error instanceof Error ? error.message : "Invalid webhook signature" },
       { status: 400 },
     );
+  }
+
+  // Entry fees for paid nights (`features/event-payments`). Handled before
+  // everything else and **returns**, so neither the ACER top-up nor the legacy
+  // flow ever sees an entry-fee session. `async_payment_*` covers methods that
+  // settle after the redirect (bank transfers); `completed` with
+  // `payment_status: "unpaid"` is such a method still on its way and is ignored
+  // until `async_payment_succeeded` arrives. 500 on a thrown error so Stripe
+  // retries — the claim inside makes the retry safe.
+  if (
+    (event.type === "checkout.session.completed" ||
+      event.type === "checkout.session.async_payment_succeeded" ||
+      event.type === "checkout.session.expired" ||
+      event.type === "checkout.session.async_payment_failed") &&
+    event.data.object.metadata?.kind === EVENT_ENTRY_KIND
+  ) {
+    const session = event.data.object;
+    try {
+      if (
+        event.type === "checkout.session.expired" ||
+        event.type === "checkout.session.async_payment_failed"
+      ) {
+        await expireEventPayment(session);
+        return NextResponse.json({ received: true, outcome: "expired" });
+      }
+      const outcome = await fulfilEventPayment(session);
+      return NextResponse.json({ received: true, outcome });
+    } catch (error) {
+      console.error(`[event-payments] fulfilling session ${session.id} failed:`, error);
+      return NextResponse.json({ error: "Could not fulfil the entry" }, { status: 500 });
+    }
   }
 
   if (event.type === "checkout.session.completed") {

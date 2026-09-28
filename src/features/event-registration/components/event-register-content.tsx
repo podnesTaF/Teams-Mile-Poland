@@ -22,7 +22,8 @@ import { coerceToDate, meetsMinParticipantAge, parseDateOnly } from "@/lib/age";
 import { defaultLocale } from "@/lib/i18n/config";
 import { isTwoAnswerItem } from "@/lib/legal/consent";
 import { getConsentItems, type DocSet } from "@/lib/legal/manifest";
-import { acceptsIndividuals, acceptsTeams } from "@/lib/events/types";
+import { acceptsIndividuals, acceptsTeams, entryPricePln } from "@/lib/events/types";
+import { hasSettlingIndividualPayment } from "@/features/event-payments/checkout";
 
 /** Serialize a stored DOB (Date via mode:"date", or string) to YYYY-MM-DD. */
 function toDateInput(value: unknown): string {
@@ -37,7 +38,16 @@ function toDateInput(value: unknown): string {
  * inline profile-completion step, already-registered state, or the confirm
  * form. Served by the full `/events/[slug]/register` page.
  */
-export async function EventRegisterContent({ slug, locale }: { slug: string; locale: string }) {
+export async function EventRegisterContent({
+  slug,
+  locale,
+  payment,
+}: {
+  slug: string;
+  locale: string;
+  /** `?payment=` on the way back from Stripe Checkout: `success` or `cancelled`. */
+  payment?: string;
+}) {
   const event = await getEventBySlug(slug);
   if (!acceptsIndividuals(event)) {
     redirect(locale === defaultLocale ? "/" : `/${locale}`);
@@ -68,7 +78,11 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
   // Priced once for this whole card, through the one helper (ADR 0013) — the
   // guest notice below, the confirm screen's cost row and the action's debit all
   // read the same number, so a night can never be advertised free and charged.
-  const feeAcer = minorToAcer(individualEntryFeeMinor(event));
+  //
+  // A night priced in PLN is paid by card (ADR 0015) and its ACER fee is not
+  // taken, so it is not shown either.
+  const pricePln = entryPricePln(event, "individual");
+  const feeAcer = pricePln > 0 ? 0 : minorToAcer(individualEntryFeeMinor(event));
   /**
    * The price, said before anything is asked for. A guest sees it above the
    * sign-up form — creating an account to discover at the last screen that the
@@ -78,7 +92,11 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
    * account is created (slice 2).
    */
   const feeNotice =
-    feeAcer > 0 ? (
+    pricePln > 0 ? (
+      <p className="slots-note register-fee-notice" data-entry-price-notice={pricePln}>
+        {t("payment.amount", { price: pricePln })} — {t("payment.guestNote")}
+      </p>
+    ) : feeAcer > 0 ? (
       <p className="slots-note register-fee-notice" data-entry-fee-notice={feeAcer}>
         {t("fee.amount", { amount: feeAcer })} — {t("fee.note")}
       </p>
@@ -138,6 +156,27 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
           <a href={makeEventTicketUrl(existing.id, { locale })} className="btn btn-red">
             {t("viewTicket")}
           </a>
+        </div>
+      </section>
+    );
+  }
+
+  // Back from Stripe with the fee paid, and the webhook has not written the
+  // registration yet — usually a second or two. Before the lifecycle notice:
+  // a runner who paid as entries closed has still paid.
+  if (
+    pricePln > 0 &&
+    payment !== "cancelled" &&
+    (payment === "success" || (await hasSettlingIndividualPayment(slug, user.id)))
+  ) {
+    return (
+      <section className="iv-card center-narrow" data-payment-settling="1">
+        <span className="iv-eyebrow">{t("payment.settlingTitle")}</span>
+        <p className="iv-sub">{t("payment.settlingBody")}</p>
+        <div className="iv-actions">
+          <Link href={`/events/${slug}/register`} className="btn btn-red">
+            {t("payment.refresh")}
+          </Link>
         </div>
       </section>
     );
@@ -248,6 +287,8 @@ export async function EventRegisterContent({ slug, locale }: { slug: string; loc
         prefillAddress={snapshot?.address ?? ""}
         feeAcer={feeAcer}
         balanceAcer={balanceAcer}
+        pricePln={pricePln}
+        paymentCancelled={payment === "cancelled"}
       />
     </>
   );
