@@ -219,28 +219,6 @@ export async function createRegistrationWithConsent(input: {
   });
 }
 
-/**
- * The runner's most recent consent snapshot, for prefilling the confirm step.
- *
- * Newest submission across all of *their* registrations, so a second race night
- * does not ask for the emergency contact again (user story 10). Read for prefill
- * only — the value written is whatever they submit this time, because the
- * snapshot is a record of a moment and is never edited in place.
- */
-export async function getLatestConsentSnapshot(
-  userId: string,
-): Promise<ConsentSnapshot | null> {
-  const db = getDb();
-  const [row] = await db
-    .select({ snapshot: consentSubmissions.snapshot })
-    .from(consentSubmissions)
-    .innerJoin(eventRegistrations, eq(consentSubmissions.registrationId, eventRegistrations.id))
-    .where(eq(eventRegistrations.userId, userId))
-    .orderBy(desc(consentSubmissions.acceptedAt))
-    .limit(1);
-  return row?.snapshot ?? null;
-}
-
 /** A registration's consent evidence: the submission plus its rows. */
 export type ConsentRecord = {
   submission: ConsentSubmissionRow;
@@ -313,7 +291,9 @@ export async function publishedHeatsByRegistration(
     .innerJoin(eventHeats, eq(eventRegistrations.heatId, eventHeats.id))
     .where(and(inArray(eventRegistrations.id, ids), isNotNull(eventHeats.publishedAt)));
 
-  return new Map(rows.map((r) => [r.registrationId, { number: r.number, scheduledAt: r.scheduledAt }]));
+  return new Map(
+    rows.map((r) => [r.registrationId, { number: r.number, scheduledAt: r.scheduledAt }]),
+  );
 }
 
 /** One runner who refused image use — enough identity to check a gallery against. */
@@ -390,10 +370,9 @@ export async function getImageUseRefusals(eventSlug: string): Promise<ImageUseRe
 }
 
 /** Load one registration joined with its user, for ticket rendering. */
-export async function loadEventRegistration(registrationId: string): Promise<
-  | { registration: EventRegistrationRow; user: typeof users.$inferSelect }
-  | null
-> {
+export async function loadEventRegistration(
+  registrationId: string,
+): Promise<{ registration: EventRegistrationRow; user: typeof users.$inferSelect } | null> {
   const db = getDb();
   const [row] = await db
     .select({ registration: eventRegistrations, user: users })

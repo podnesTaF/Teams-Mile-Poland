@@ -7,6 +7,7 @@ import { useRouter } from "@/i18n/navigation";
 
 import { PhoneField } from "@/components/ui/phone-field";
 import { maxDobForMinAge, MIN_PARTICIPANT_AGE, parseDateOnly } from "@/lib/age";
+import { useValidationMessage } from "@/lib/validation-messages";
 
 import { updateProfile } from "../actions";
 import type { ProfileInput } from "../schemas";
@@ -28,6 +29,7 @@ type Props = {
 export function ProfileForm({ initial, redirectTo, maxDobAsOf }: Props) {
   const t = useTranslations("profile");
   const router = useRouter();
+  const message = useValidationMessage();
   const [data, setData] = useState<ProfileInput>(initial);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -76,7 +78,7 @@ export function ProfileForm({ initial, redirectTo, maxDobAsOf }: Props) {
         <div className="form-section__h">{t("sections.detailsTitle")}</div>
         <p className="form-section__sub">{t("sections.detailsSub")}</p>
         <div className="fgrid">
-          <Field label={t("fields.firstName")} error={fieldErrors.firstName?.[0]}>
+          <Field label={t("fields.firstName")} error={message(fieldErrors.firstName?.[0])}>
             <input
               className="finput on-dark"
               autoComplete="given-name"
@@ -85,7 +87,7 @@ export function ProfileForm({ initial, redirectTo, maxDobAsOf }: Props) {
               required
             />
           </Field>
-          <Field label={t("fields.lastName")} error={fieldErrors.lastName?.[0]}>
+          <Field label={t("fields.lastName")} error={message(fieldErrors.lastName?.[0])}>
             <input
               className="finput on-dark"
               autoComplete="family-name"
@@ -101,7 +103,7 @@ export function ProfileForm({ initial, redirectTo, maxDobAsOf }: Props) {
         <div className="form-section__h">{t("sections.runnerTitle")}</div>
         <p className="form-section__sub">{t("sections.runnerSub")}</p>
         <div className="fgrid">
-          <Field label={t("fields.dateOfBirth")} error={fieldErrors.dateOfBirth?.[0]}>
+          <Field label={t("fields.dateOfBirth")} error={message(fieldErrors.dateOfBirth?.[0])}>
             <input
               className="finput on-dark"
               type="date"
@@ -111,7 +113,7 @@ export function ProfileForm({ initial, redirectTo, maxDobAsOf }: Props) {
               required
             />
           </Field>
-          <Field label={t("fields.sex")} error={fieldErrors.sex?.[0]}>
+          <Field label={t("fields.sex")} error={message(fieldErrors.sex?.[0])}>
             <select
               className="fselect on-dark"
               value={data.sex}
@@ -125,7 +127,7 @@ export function ProfileForm({ initial, redirectTo, maxDobAsOf }: Props) {
               <option value="F">{t("fields.sexF")}</option>
             </select>
           </Field>
-          <Field label={t("fields.club")} error={fieldErrors.club?.[0]}>
+          <Field label={t("fields.club")} error={message(fieldErrors.club?.[0])}>
             <input
               className="finput on-dark"
               value={data.club ?? ""}
@@ -140,16 +142,14 @@ export function ProfileForm({ initial, redirectTo, maxDobAsOf }: Props) {
               variant="dark"
               value={data.phone}
               onChange={(value) => set("phone", value)}
-              error={fieldErrors.phone?.[0]}
+              error={message(fieldErrors.phone?.[0])}
             />
           </div>
         </div>
       </div>
 
       <div className="form-actions">
-        <span className="form-actions__note">
-          {redirectTo ? t("continueNote") : t("editNote")}
-        </span>
+        <span className="form-actions__note">{redirectTo ? t("continueNote") : t("editNote")}</span>
         <button type="submit" className="btn btn-red" disabled={pending}>
           {pending ? t("saving") : redirectTo ? t("saveContinue") : t("save")}
         </button>

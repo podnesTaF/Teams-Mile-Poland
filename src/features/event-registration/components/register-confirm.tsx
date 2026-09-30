@@ -9,6 +9,7 @@ import type { DocSet } from "@/lib/legal/manifest";
 
 import { type AcerShortfall, registerForEvent } from "../actions";
 import { ConsentFields, type ConsentItemView } from "./consent-fields";
+import { RegisterSummary } from "./register-summary";
 
 type Props = {
   eventSlug: string;
@@ -23,9 +24,6 @@ type Props = {
   /** The language the documents are being shown in, stored with the evidence. */
   docLocale: "pl" | "en" | "ua";
   consentItems: ConsentItemView[];
-  /** From the runner's most recent snapshot, or "" for a first registration. */
-  prefillEmergencyContact: string;
-  prefillAddress: string;
   /**
    * What this night costs, in **whole ACER**; `0` is a free night and the cost
    * row falls back to "Free" exactly as it read before fees existed. Resolved
@@ -46,14 +44,14 @@ type Props = {
 };
 
 /**
- * Auth-gated confirm step (design `f-register`): a white commit-list summary
- * plus the consent section, and a confirm aside. Registration is free, so
- * success routes straight to the ticket.
+ * Auth-gated confirm step: the consent card on the left, the night's facts,
+ * the price and the button on the right (`RegisterSummary`) — the same two-column
+ * page the team confirmation screen is, since 2026-09-30 no longer a modal.
  *
- * **This is where consent is captured** (ADR 0006). Every declaration and
- * acceptance is its own checkbox linking to its full document, the image
- * question is a genuine yes/no, and an emergency contact is required — all of it
- * submitted with the registration so the two are written in one transaction.
+ * **This is where consent is captured** (ADR 0006): one combined confirmation
+ * covering the Rules and the declarations, and the image question as a genuine
+ * yes/no, submitted with the registration so the two are written in one
+ * transaction (see `ConsentFields`).
  *
  * **And this is the last screen before money moves** (ADR 0013). On a priced
  * night the cost row carries the real price instead of "Free", the runner's
@@ -63,12 +61,10 @@ type Props = {
  * that card come from the server's refusal, not from the props: between render
  * and press the wallet may have moved.
  *
- * The `?verified=1` auto-submit is gone. A guest returning from the verification
- * link now sees the documents and confirms, because a registration whose
- * acceptance was inherited from a form filled days earlier is exactly the
- * evidence gap this feature closes. Guard failures (verify/profile) still route
- * to the right fix; age, duplicate and closed each render their own state rather
- * than a generic banner.
+ * Guard failures (verify/profile) route to the right fix; age, duplicate and
+ * closed each render their own state rather than a generic banner. Every banner
+ * is a translated key chosen by `reason` — the action's English `message` is a
+ * log line, never what a Polish runner reads.
  */
 export function RegisterConfirm({
   eventSlug,
@@ -81,8 +77,6 @@ export function RegisterConfirm({
   docSet,
   docLocale,
   consentItems,
-  prefillEmergencyContact,
-  prefillAddress,
   feeAcer,
   balanceAcer,
   pricePln,
@@ -91,14 +85,9 @@ export function RegisterConfirm({
   const t = useTranslations("register");
   const router = useRouter();
   const [items, setItems] = useState<ConsentItemsInput>({});
-  const [emergencyContact, setEmergencyContact] = useState(prefillEmergencyContact);
-  const [address, setAddress] = useState(prefillAddress);
   const [error, setError] = useState<string | null>(null);
   const [problemItems, setProblemItems] = useState<string[]>([]);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [outcome, setOutcome] = useState<"age" | "duplicate" | "closed" | "paying" | null>(
-    null,
-  );
+  const [outcome, setOutcome] = useState<"age" | "duplicate" | "closed" | "paying" | null>(null);
   const [shortfall, setShortfall] = useState<AcerShortfall | null>(null);
   const [pending, startTransition] = useTransition();
   const paid = feeAcer > 0;
@@ -114,27 +103,20 @@ export function RegisterConfirm({
   }
 
   /**
-   * Which items the *client* can already see are unanswered. Purely to keep the
-   * submit button honest and to highlight without a round-trip — the decision
-   * that matters is the server's, re-derived from the manifest.
+   * Which items the *client* can already see are unanswered. Purely for the hint
+   * under the button — the decision that matters is the server's, re-derived
+   * from the manifest.
    */
   const unanswered = consentItems.filter((item) => items[item.id] === undefined).map((i) => i.id);
-  const complete = unanswered.length === 0 && emergencyContact.trim().length > 0;
+  const complete = unanswered.length === 0;
 
   function run() {
     if (pending) return;
     setError(null);
     setProblemItems([]);
-    setFieldErrors({});
     setShortfall(null);
     startTransition(async () => {
-      const result = await registerForEvent(eventSlug, {
-        docSet,
-        locale: docLocale,
-        items,
-        emergencyContact,
-        address,
-      });
+      const result = await registerForEvent(eventSlug, { docSet, locale: docLocale, items });
       if (!result.ok) {
         if (result.reason === "profile") {
           router.push(`/profile?redirectTo=/events/${eventSlug}/register`);
@@ -190,11 +172,10 @@ export function RegisterConfirm({
             ...(refusal?.invalid ?? []),
             ...(refusal?.unknown ?? []),
           ]);
-          setFieldErrors(refusal?.fields ?? {});
-          setError(result.message);
+          setError(t("consent.validationError"));
           return;
         }
-        setError(result.message);
+        setError(t("errors.failed"));
         return;
       }
       // Absolute URLs either way — Stripe Checkout, or the signed ticket.
@@ -226,47 +207,71 @@ export function RegisterConfirm({
     return <StateCard title={t("lifecycle.closedTitle")} body={t("lifecycle.closedBody")} />;
   }
 
+  const costLabel = cardPaid
+    ? t("payment.amount", { price: pricePln })
+    : paid
+      ? t("fee.amount", { amount: feeAcer })
+      : t("summary.free");
+
+  // The cost is the price on a priced night and "Free" on every other one — one
+  // figure, not a second "fee" line that could disagree with it. `data-entry-fee`
+  // carries the number in ACER so a verifier asserts on the price and not on a
+  // translated string.
+  const price = (
+    <>
+      <strong
+        className={cardPaid || paid ? "reg-price" : "reg-price reg-price--free"}
+        data-entry-fee={feeAcer}
+        data-entry-price-pln={cardPaid ? pricePln : undefined}
+        data-entry-fee-balance={paid ? balanceAcer : undefined}
+      >
+        {costLabel}
+      </strong>
+      {paid ? <small>{t("fee.wallet", { balance: balanceAcer })}</small> : null}
+    </>
+  );
+
   return (
-    <form onSubmit={onSubmit}>
-      <div className="page-head" style={{ marginBottom: 22 }}>
+    <div className="reg">
+      <header className="page-head reg-head">
         <span className="iv-eyebrow">{t("confirm.eyebrow")}</span>
         <h1 className="iv-title">{t("confirm.title")}</h1>
         <p className="iv-sub">{t("confirm.subtitle")}</p>
-      </div>
+      </header>
 
-      <div className="detail-grid">
-        <div className="card-white" style={{ padding: "clamp(24px, 3vw, 36px)" }}>
-          <div className="commit-list">
-            <Row k={t("confirm.race")} v={eventName} />
-            <Row k={t("confirm.dateTime")} v={dateTime} />
-            <Row k={t("confirm.venue")} v={venue} />
-            <Row k={t("confirm.distance")} v={t("confirm.distanceValue")} sub={t("confirm.distanceSub")} />
-            <Row k={t("confirm.runner")} v={runnerName} sub={runnerEmail} />
-            {/* The cost row is the price on a priced night and "Free" on every
-                other one — one row, not a second "fee" row that could disagree
-                with it. `data-entry-fee` carries the number in ACER so a
-                verifier asserts on the price and not on a translated string. */}
-            <Row
-              k={t("confirm.cost")}
-              v={
-                cardPaid
-                  ? t("payment.amount", { price: pricePln })
-                  : paid
-                    ? t("fee.amount", { amount: feeAcer })
-                    : t("summary.free")
-              }
-              sub={paid ? t("fee.wallet", { balance: balanceAcer }) : undefined}
-              priceTag
-              data-entry-fee={feeAcer}
-              data-entry-price-pln={cardPaid ? pricePln : undefined}
-              data-entry-fee-balance={paid ? balanceAcer : undefined}
-            />
-          </div>
-
-          {paid ? (
-            <p className="slots-note" data-entry-fee-note="1">
-              {t("fee.note")}
-            </p>
+      <form onSubmit={onSubmit} className="detail-grid reg-grid">
+        <div className="card-white reg-card">
+          {shortfall ? (
+            <div
+              className="banner banner--warn"
+              role="status"
+              data-entry-fee-short="1"
+              data-entry-fee-needed={shortfall.needed}
+              data-entry-fee-balance={shortfall.balance}
+            >
+              <div className="banner__body">
+                <div className="banner__title">{t("fee.insufficientTitle")}</div>
+                <div className="banner__txt">
+                  {t("fee.insufficientBody", {
+                    needed: shortfall.needed,
+                    balance: shortfall.balance,
+                  })}{" "}
+                  <Link href="/wallet" className="link" data-entry-fee-topup="1">
+                    {t("fee.topUp")}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {error ? (
+            <div className="banner banner--red" role="alert">
+              {error}
+            </div>
+          ) : null}
+          {paymentCancelled && !error ? (
+            <div className="banner banner--info" role="status" data-payment-cancelled="1">
+              {t("payment.cancelled")}
+            </div>
           ) : null}
 
           <ConsentFields
@@ -274,66 +279,40 @@ export function RegisterConfirm({
             items={consentItems}
             values={items}
             onChange={setItem}
-            emergencyContact={emergencyContact}
-            onEmergencyContact={setEmergencyContact}
-            address={address}
-            onAddress={setAddress}
             problemItems={problemItems}
-            fieldErrors={fieldErrors}
             disabled={pending}
           />
         </div>
 
-        <aside>
-          <div className="slots-card">
-            {shortfall ? (
-              <div
-                className="banner banner--warn"
-                role="status"
-                data-entry-fee-short="1"
-                data-entry-fee-needed={shortfall.needed}
-                data-entry-fee-balance={shortfall.balance}
-              >
-                <div className="banner__body">
-                  <div className="banner__title">{t("fee.insufficientTitle")}</div>
-                  <div className="banner__txt">
-                    {t("fee.insufficientBody", {
-                      needed: shortfall.needed,
-                      balance: shortfall.balance,
-                    })}{" "}
-                    <Link href="/wallet" className="link" data-entry-fee-topup="1">
-                      {t("fee.topUp")}
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-            {error ? <div className="banner banner--red">{error}</div> : null}
-            {paymentCancelled && !error ? (
-              <div className="banner banner--info" role="status" data-payment-cancelled="1">
-                {t("payment.cancelled")}
-              </div>
-            ) : null}
-            <p className="slots-note" style={{ marginBottom: 12 }}>
-              {t("consent.requiredNotice")}
+        <RegisterSummary
+          eventName={eventName}
+          dateTime={dateTime}
+          venue={venue}
+          runner={{ name: runnerName, email: runnerEmail }}
+          price={price}
+        >
+          <button type="submit" className="btn btn-red btn-block" disabled={pending}>
+            {pending
+              ? t("submitting")
+              : cardPaid
+                ? t("payment.submit", { price: pricePln })
+                : t("confirm.submit")}
+          </button>
+          {!complete && !pending ? (
+            <p className="slots-note slots-note--todo">{t("consent.incompleteHint")}</p>
+          ) : null}
+          {paid ? (
+            <p className="slots-note" data-entry-fee-note="1">
+              {t("fee.note")}
             </p>
-            <button type="submit" className="btn btn-red btn-block" disabled={pending}>
-              {pending
-                ? t("submitting")
-                : cardPaid
-                  ? t("payment.submit", { price: pricePln })
-                  : t("confirm.submit")}
-            </button>
-            {!complete && !pending ? (
-              <p className="slots-note">{t("consent.incompleteHint")}</p>
-            ) : null}
-            <p className="slots-note">
-              {cardPaid ? t("payment.note", { price: pricePln }) : t("confirm.note")}
-            </p>
-          </div>
-        </aside>
-      </div>
-    </form>
+          ) : null}
+          <p className="slots-note">
+            {cardPaid ? t("payment.note", { price: pricePln }) : t("confirm.note")}{" "}
+            {t("consent.requiredNotice")}
+          </p>
+        </RegisterSummary>
+      </form>
+    </div>
   );
 }
 
@@ -343,33 +322,5 @@ function StateCard({ title, body }: { title: string; body: string }) {
       <span className="iv-eyebrow">{title}</span>
       <p className="iv-sub">{body}</p>
     </section>
-  );
-}
-
-/**
- * A summary line. Any `data-*` prop passes through to the row element — the
- * cost row needs machine-readable numbers on it (a verifier must assert the
- * price, not a translated sentence that changes with the locale).
- */
-function Row({
-  k,
-  v,
-  sub,
-  priceTag,
-  ...markers
-}: {
-  k: string;
-  v: string;
-  sub?: string;
-  priceTag?: boolean;
-} & Record<`data-${string}`, string | number | undefined>) {
-  return (
-    <div className="commit-row" {...markers}>
-      <span className="commit-k">{k}</span>
-      <span className={priceTag ? "commit-v price-tag" : "commit-v"}>
-        {v}
-        {sub ? <small>{sub}</small> : null}
-      </span>
-    </div>
   );
 }

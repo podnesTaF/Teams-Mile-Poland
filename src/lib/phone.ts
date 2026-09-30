@@ -3,7 +3,6 @@ import {
   formatIncompletePhoneNumber as formatIncomplete,
   getExampleNumber as getExample,
   parsePhoneNumberFromString as parseNumber,
-  validatePhoneNumberLength as validateLength,
 } from "libphonenumber-js/core";
 import examples from "libphonenumber-js/examples.mobile.json";
 import metadata from "libphonenumber-js/metadata.max.json";
@@ -50,12 +49,13 @@ export const DEFAULT_DIAL_CODE = "48"; // Poland
 export const DEFAULT_COUNTRY_ISO = "PL";
 
 /**
- * Require a mobile number and reject confirmed landlines. Runners are texted
- * their heat assignment, so a landline is a dead end. Flip to `false` to accept
- * any valid number — `phoneIssue` stops reporting "landline" and nothing else
- * changes.
+ * Whether to reject confirmed landlines. Off: heat assignments go out by
+ * e-mail (`features/event-mailings/heat-assignment.ts`), nothing is texted, and
+ * the mobile-only rule was refusing real numbers — Polish VoIP ranges and every
+ * fixed line — for a reason the product does not have. Flip to `true` and
+ * `phoneIssue` starts reporting "landline" again; nothing else changes.
  */
-export const REQUIRE_MOBILE = true;
+export const REQUIRE_MOBILE = false;
 
 /** E.164 caps a full number (country code included) at 15 digits. */
 const E164_MAX_DIGITS = 15;
@@ -113,17 +113,44 @@ function dialForIso(iso: string): string {
 }
 
 /**
- * Trim national digits to the most the selected country can hold, so the mask
- * stops accepting input rather than building a number that can never validate.
- * Countries libphonenumber doesn't know (e.g. PN) fall back to the E.164 cap.
+ * Cap national digits at what E.164 can hold after the dial code. That is the
+ * only hard limit the mask enforces: it used to also drop digits the moment
+ * libphonenumber judged the number "too long" for the country, which silently
+ * ate the last digit of a number typed with a trunk zero or a pasted dial code
+ * and left the runner staring at a number that would not validate. A number one
+ * digit too long now stays on screen and gets the "invalid" message instead —
+ * see {@link interpretNationalInput} for how the common cases are repaired.
  */
 export function capNationalDigits(digits: string, iso: string): string {
   const dial = dialForIso(iso);
-  let out = onlyDigits(digits).slice(0, Math.max(1, E164_MAX_DIGITS - dial.length));
-  while (out.length > 1 && validateLength(out, iso as CountryCode, metadata) === "TOO_LONG") {
-    out = out.slice(0, -1);
+  return onlyDigits(digits).slice(0, Math.max(1, E164_MAX_DIGITS - dial.length));
+}
+
+/**
+ * Read what a runner typed or pasted into the *national* half of the phone
+ * field and return the national digits — and the country — it actually means.
+ *
+ * The field asks for the national number only, but nobody who autofills or
+ * pastes gives it that: browsers fill the full "+48 512 345 678", Ukrainians
+ * type the trunk "0", Britons the "07…". Read as bare digits those become
+ * "+48 48512345678" — a number that can never validate, with no hint why. So a
+ * complete, valid number is parsed for the selected country first, and its
+ * national number (and country, when a pasted dial code names another one) wins.
+ * Anything libphonenumber cannot confirm — above all a number still being typed
+ * — falls back to the digits as written, so the mask behaves as before on every
+ * keystroke and only a finished number is re-read.
+ */
+export function interpretNationalInput(
+  raw: string,
+  iso: string,
+): { iso: string; national: string } {
+  const digits = onlyDigits(raw);
+  if (!digits) return { iso, national: "" };
+  const parsed = parseNumber(raw, iso as CountryCode, metadata);
+  if (parsed?.isValid()) {
+    return { iso: parsed.country ?? iso, national: parsed.nationalNumber };
   }
-  return out;
+  return { iso, national: digits };
 }
 
 /**

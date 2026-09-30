@@ -65,9 +65,11 @@ type Props = {
   docLocale: "pl" | "en" | "ua";
   consentItems: ConsentItemView[];
   facts: TeamConfirmFacts;
-  /** From the member's most recent snapshot, or "" for a first confirmation. */
-  prefillEmergencyContact: string;
-  prefillAddress: string;
+  /**
+   * The one sentence over the combined consent box, resolved by the page from
+   * `legal.teamItems.combined` (see `ConsentFields`).
+   */
+  combinedLabel: string;
 };
 
 export function TeamConfirmForm({
@@ -77,28 +79,22 @@ export function TeamConfirmForm({
   docLocale,
   consentItems,
   facts,
-  prefillEmergencyContact,
-  prefillAddress,
+  combinedLabel,
 }: Props) {
   const t = useTranslations("register.teamConfirm");
   // Two sentences the confirm aside says that are not set-specific — "we cannot
   // admit you to the start line without the required consents" and "answer every
-  // item and give an emergency contact". Borrowed from the individual step's
+  // item". Borrowed from the individual step's
   // catalog rather than duplicated under `teamConfirm`, for the same reason the
   // register page borrows the event page's cancelled copy: it must not be
   // possible for the two forms to disagree about what is required.
   const tConsent = useTranslations("register.consent");
   const tReasons = useTranslations("teams.reasons");
   const [items, setItems] = useState<ConsentItemsInput>({});
-  const [emergencyContact, setEmergencyContact] = useState(prefillEmergencyContact);
-  const [address, setAddress] = useState(prefillAddress);
   const [error, setError] = useState<string | null>(null);
   const [problemItems, setProblemItems] = useState<string[]>([]);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [outcome, setOutcome] = useState<
-    | { state: "already_confirmed"; ticketUrl: string }
-    | { state: "age" | "cancelled" }
-    | null
+    { state: "already_confirmed"; ticketUrl: string } | { state: "age" | "cancelled" } | null
   >(null);
   const [pending, startTransition] = useActionRun(() => setError(tReasons("failed")));
 
@@ -117,17 +113,16 @@ export function TeamConfirmForm({
    * manifest, which is why an incomplete form still submits (below).
    */
   const unanswered = consentItems.filter((item) => items[item.id] === undefined).map((i) => i.id);
-  const complete = unanswered.length === 0 && emergencyContact.trim().length > 0;
+  const complete = unanswered.length === 0;
 
   function run() {
     if (pending) return;
     setError(null);
     setProblemItems([]);
-    setFieldErrors({});
     startTransition(async () => {
       const result = await confirmTeamParticipation(
         registrationId,
-        { docSet: "team", locale: docLocale, items, emergencyContact, address },
+        { docSet: "team", locale: docLocale, items },
         sig ?? undefined,
       );
 
@@ -148,7 +143,6 @@ export function TeamConfirmForm({
         if (result.reason === "invalid" && result.consent) {
           const refusal = result.consent;
           setProblemItems([...refusal.missing, ...refusal.invalid, ...refusal.unknown]);
-          setFieldErrors(refusal.fields);
           setError(t("validationError"));
           return;
         }
@@ -210,13 +204,9 @@ export function TeamConfirmForm({
             items={consentItems}
             values={items}
             onChange={setItem}
-            emergencyContact={emergencyContact}
-            onEmergencyContact={setEmergencyContact}
-            address={address}
-            onAddress={setAddress}
             problemItems={problemItems}
-            fieldErrors={fieldErrors}
             disabled={pending}
+            combinedLabel={combinedLabel}
           />
         </div>
 

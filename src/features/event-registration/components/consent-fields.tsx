@@ -17,17 +17,11 @@ export type ConsentItemView = {
   /** True for a genuine agree/disagree question (a GDPR `consent`), not a tick. */
   twoAnswer: boolean;
   /**
-   * The checkbox label, already resolved by the server (for `twoAnswer`, the
-   * AGREE sentence).
-   *
-   * Absent for the individual set, which keeps reading
-   * `register.consent.items.<id>` / `register.consent.image.agree` from this
-   * island — unchanged behaviour. The team set (#68) passes it, because its
-   * labels live under `legal.teamItems.<id>` and are the *same six ids* against
-   * different documents and different wording: a `t()` branch inside a client
-   * island would have to know which namespace an item id belongs to, which is
-   * exactly the knowledge the server already has. Passing the resolved string
-   * in keeps this island ignorant of both catalogs.
+   * For a `twoAnswer` item, the AGREE sentence, already resolved by the server.
+   * Absent for the individual set, which reads `register.consent.image.agree`
+   * from this island. The team set passes it, because its wording lives under
+   * `legal.teamItems` and a client island must not have to know which catalog
+   * an item id belongs to. Ignored for tick items — they share one box (below).
    */
   label?: string;
 };
@@ -37,28 +31,35 @@ type Props = {
   items: ConsentItemView[];
   values: ConsentItemsInput;
   onChange: (id: string, value: true | "agree" | "disagree" | undefined) => void;
-  emergencyContact: string;
-  onEmergencyContact: (value: string) => void;
-  address: string;
-  onAddress: (value: string) => void;
   /** Item ids the server refused as missing or malformed — highlighted inline. */
   problemItems: string[];
-  /** Field-level errors keyed by input name (`emergencyContact`, `address`). */
-  fieldErrors: Record<string, string>;
   disabled: boolean;
+  /**
+   * The one sentence over the combined box, resolved by the caller when the set
+   * is not the individual one (`legal.teamItems.combined`). Falls back to
+   * `register.consent.combined`.
+   */
+  combinedLabel?: string;
 };
 
 /**
- * The consent section of the confirm step (ADR 0006, user stories 6–12).
+ * The consent section of the confirm step (ADR 0006), reduced to two controls.
  *
- * One checkbox per declaration and acceptance — never one blanket "I accept the
- * terms" — each linking out to the full document at
- * `/events/[slug]/legal/[doc]`, the public route from #52. The image question is
- * a real pair of radios with **neither preselected**: a consent that is on by
- * default is not a consent, and refusing costs nobody their entry.
+ * **One checkbox stands for every tick item of the set** — the acceptance of
+ * the Rules and the four declarations — under a single sentence that says all
+ * of it, with every document it refers to linked beneath. Ticking it answers
+ * all five manifest items at once, so the evidence written is unchanged: five
+ * `registration_consents` rows, each naming its own document and version. What
+ * changed is the screen, which asked a runner on a phone to read and tick five
+ * paragraphs that say "I have read it, I am 18, my data is true" in five ways.
+ *
+ * **The image question stays its own control**, a pair of radios with neither
+ * preselected: it is a GDPR consent, the one thing that may be refused without
+ * consequence, and bundling it into the box above would make it neither
+ * voluntary nor separate.
  *
  * Presentational and fully controlled: the parent owns the state because it owns
- * the submit. Plain inputs and `.auth-check` / `.radio` / `.finput` classes, no
+ * the submit. Plain inputs and `.auth-check` / `.radio` classes, no
  * react-hook-form (cross-cutting checklist §7).
  */
 export function ConsentFields({
@@ -66,155 +67,111 @@ export function ConsentFields({
   items,
   values,
   onChange,
-  emergencyContact,
-  onEmergencyContact,
-  address,
-  onAddress,
   problemItems,
-  fieldErrors,
   disabled,
+  combinedLabel,
 }: Props) {
   const t = useTranslations("register");
+  const tDocs = useTranslations("legal.docs");
   const flagged = new Set(problemItems);
 
-  return (
-    <div className="form-section" style={{ marginTop: 28 }}>
-      <div className="form-section__h">{t("consent.title")}</div>
-      <p className="form-section__sub">{t("consent.subtitle")}</p>
+  const tickItems = items.filter((item) => !item.twoAnswer);
+  const questions = items.filter((item) => item.twoAnswer);
+  const allTicked = tickItems.length > 0 && tickItems.every((item) => values[item.id] === true);
+  const tickFlagged = tickItems.some((item) => flagged.has(item.id));
+  // Each document once, in manifest order — the Rules, the Statement, the GDPR
+  // clause — however many items point at it.
+  const docSlugs = [...new Set(tickItems.map((item) => item.docSlug))];
 
-      {items.map((item) =>
-        item.twoAnswer ? (
-          <fieldset
-            key={item.id}
-            style={{ border: 0, padding: 0, margin: "18px 0 0" }}
-            aria-invalid={flagged.has(item.id) || undefined}
-            data-consent-item={item.id}
-          >
-            <legend className="flabel" style={{ marginBottom: 10 }}>
-              {t(`consent.image.question`)}
-            </legend>
-            <div className="radios" style={{ flexDirection: "column", gap: 12 }}>
-              <label className="radio" style={{ alignItems: "flex-start" }}>
-                <input
-                  type="radio"
-                  name={`consent-${item.id}`}
-                  checked={values[item.id] === "agree"}
-                  onChange={() => onChange(item.id, "agree")}
-                  disabled={disabled}
-                />
-                <span>
-                  {item.label ?? t("consent.image.agree")}
-                  <small style={{ display: "block", opacity: 0.7 }}>
-                    {t("consent.image.agreeNote")}
-                  </small>
-                </span>
-              </label>
-              <label className="radio" style={{ alignItems: "flex-start" }}>
-                <input
-                  type="radio"
-                  name={`consent-${item.id}`}
-                  checked={values[item.id] === "disagree"}
-                  onChange={() => onChange(item.id, "disagree")}
-                  disabled={disabled}
-                />
-                <span>
-                  {t("consent.image.disagree")}
-                  <small style={{ display: "block", opacity: 0.7 }}>
-                    {t("consent.image.disagreeNote")}
-                  </small>
-                </span>
-              </label>
-            </div>
-            <DocLink eventSlug={eventSlug} docSlug={item.docSlug} />
-            {flagged.has(item.id) ? <span className="field-msg">{t("consent.answerRequired")}</span> : null}
-          </fieldset>
-        ) : (
-          <div key={item.id} style={{ marginTop: 18 }} data-consent-item={item.id}>
-            <label className="auth-check" style={{ color: "var(--ink)" }}>
+  function setAll(checked: boolean) {
+    for (const item of tickItems) onChange(item.id, checked ? true : undefined);
+  }
+
+  return (
+    <div className="reg-consent">
+      <div className="reg-section__h">{t("consent.title")}</div>
+      <p className="reg-section__sub">{t("consent.subtitle")}</p>
+
+      {tickItems.length > 0 ? (
+        <div
+          className="reg-consent__item"
+          data-consent-item={tickItems.map((item) => item.id).join(" ")}
+          aria-invalid={tickFlagged || undefined}
+        >
+          <label className="auth-check">
+            <input
+              type="checkbox"
+              checked={allTicked}
+              onChange={(event) => setAll(event.target.checked)}
+              disabled={disabled}
+              data-consent-combined="1"
+            />
+            <span>{combinedLabel ?? t("consent.combined")}</span>
+          </label>
+          <div className="reg-consent__docs">
+            <span>{t("consent.readDocs")}</span>
+            {docSlugs.map((slug) => (
+              <Link
+                key={slug}
+                href={`/events/${eventSlug}/legal/${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link"
+              >
+                {tDocs(slug)}
+              </Link>
+            ))}
+          </div>
+          {tickFlagged ? <span className="field-msg">{t("consent.itemRequired")}</span> : null}
+        </div>
+      ) : null}
+
+      {questions.map((item) => (
+        <fieldset
+          key={item.id}
+          className="reg-consent__item reg-consent__q"
+          aria-invalid={flagged.has(item.id) || undefined}
+          data-consent-item={item.id}
+        >
+          <legend className="reg-consent__legend">{t("consent.image.question")}</legend>
+          <div className="reg-consent__radios">
+            <label className="radio">
               <input
-                type="checkbox"
-                checked={values[item.id] === true}
-                onChange={(e) => onChange(item.id, e.target.checked ? true : undefined)}
+                type="radio"
+                name={`consent-${item.id}`}
+                checked={values[item.id] === "agree"}
+                onChange={() => onChange(item.id, "agree")}
                 disabled={disabled}
               />
-              <span>{item.label ?? t(`consent.items.${item.id}`)}</span>
+              <span>{item.label ?? t("consent.image.agree")}</span>
             </label>
-            <DocLink eventSlug={eventSlug} docSlug={item.docSlug} />
-            {flagged.has(item.id) ? <span className="field-msg">{t("consent.itemRequired")}</span> : null}
+            <label className="radio">
+              <input
+                type="radio"
+                name={`consent-${item.id}`}
+                checked={values[item.id] === "disagree"}
+                onChange={() => onChange(item.id, "disagree")}
+                disabled={disabled}
+              />
+              <span>{t("consent.image.disagree")}</span>
+            </label>
           </div>
-        ),
-      )}
-
-      <div className="fgrid" style={{ marginTop: 24 }}>
-        <label className="block col-2">
-          <span className="flabel">{t("consent.emergencyContact.label")}</span>
-          <input
-            className="finput"
-            name="emergencyContact"
-            value={emergencyContact}
-            onChange={(e) => onEmergencyContact(e.target.value)}
-            placeholder={t("consent.emergencyContact.placeholder")}
-            maxLength={200}
-            disabled={disabled}
-            required
-          />
-          {fieldErrors.emergencyContact ? (
-            <span className="field-msg">{fieldErrors.emergencyContact}</span>
-          ) : (
-            <span className="iv-note" style={{ marginTop: 4, display: "block" }}>
-              {t("consent.emergencyContact.hint")}
-            </span>
-          )}
-        </label>
-        <label className="block col-2">
-          <span className="flabel">{t("consent.address.label")}</span>
-          <input
-            className="finput"
-            name="address"
-            value={address}
-            onChange={(e) => onAddress(e.target.value)}
-            placeholder={t("consent.address.placeholder")}
-            maxLength={300}
-            disabled={disabled}
-          />
-          {fieldErrors.address ? (
-            <span className="field-msg">{fieldErrors.address}</span>
-          ) : (
-            <span className="iv-note" style={{ marginTop: 4, display: "block" }}>
-              {t("consent.address.hint")}
-            </span>
-          )}
-        </label>
-      </div>
-    </div>
-  );
-}
-
-/**
- * The "read the full document" link beside every item (user story 6).
- *
- * `target="_blank"`: opening the 4000-word Regulamin in place would throw away a
- * half-filled form, and the confirm step may itself be a modal.
- *
- * The event-scoped route serves **both** document sets, so the team
- * confirmation screen (#68) needs no second link shape: of the team items' three
- * documents only `team-regulations` carries the manifest's `eventless` flag, so
- * `/legal/team-oswiadczenie` and `/legal/team-rodo` 404 by design (see
- * `src/app/[locale]/legal/[doc]/page.tsx`) — and this route is in any case the
- * only one that prints the night's date into the text.
- */
-function DocLink({ eventSlug, docSlug }: { eventSlug: string; docSlug: string }) {
-  const t = useTranslations("register");
-  return (
-    <div style={{ marginTop: 6, marginLeft: 33 }}>
-      <Link
-        href={`/events/${eventSlug}/legal/${docSlug}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="link"
-      >
-        {t("consent.readDoc")}
-      </Link>
+          <div className="reg-consent__docs">
+            <span>{t("consent.image.note")}</span>
+            <Link
+              href={`/events/${eventSlug}/legal/${item.docSlug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link"
+            >
+              {tDocs(item.docSlug)}
+            </Link>
+          </div>
+          {flagged.has(item.id) ? (
+            <span className="field-msg">{t("consent.answerRequired")}</span>
+          ) : null}
+        </fieldset>
+      ))}
     </div>
   );
 }

@@ -52,3 +52,25 @@ Consent is written atomically with the registration, so the returning-guest
 auto-complete shortcut in `register-confirm.tsx` is removed: every registration
 has a fresh acceptance, and "a signed statement exists for every registration"
 becomes an invariant rather than a hope.
+
+## Amendment 2026-09-30 — two controls, same rows
+
+The confirm step showed the five tick items as five checkboxes, each with its
+own paragraph, plus the image question, an emergency contact and an address.
+Runners on phones were abandoning it. The screen now has **two controls**: one
+checkbox whose sentence covers the acceptance of the Rules and the four
+declarations, with every document it refers to linked beneath it, and the image
+question as before — a GDPR consent stays a separate, unpreselected yes/no.
+
+The evidence is unchanged. Ticking the one box answers all five manifest items,
+so five `registration_consents` rows are still written, each naming its own
+document slug and version; the manifest, `validateConsentItems`,
+`buildConsentRows` and the statements printer did not change. What the row
+records is that the item was accepted in this submission, which remains true.
+
+Emergency contact and address are no longer asked for. Neither is a fact the
+platform acts on — the organiser has the runner's own phone from the profile —
+and both existed only to be printed into the Statement. The snapshot keeps both
+keys as empty strings so older rows and the `__ADDRESS__` /
+`__EMERGENCY_CONTACT__` fill tokens render as blank lines, exactly as an
+omitted optional address always did.

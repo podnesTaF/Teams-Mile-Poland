@@ -2,21 +2,13 @@
 
 import { headers } from "next/headers";
 
-import {
-  makeEventTicketUrl,
-  sendEventTicketEmail,
-} from "@/features/event-registration/ticket";
+import { makeEventTicketUrl, sendEventTicketEmail } from "@/features/event-registration/ticket";
 import {
   consentSubmissionSchema,
   type ConsentSubmissionInput,
 } from "@/features/event-registration/schemas";
 import { verifyEventTicket } from "@/features/ticket/sign";
-import {
-  coerceToDate,
-  formatDateOnly,
-  meetsMinParticipantAge,
-  parseDateOnly,
-} from "@/lib/age";
+import { coerceToDate, formatDateOnly, meetsMinParticipantAge, parseDateOnly } from "@/lib/age";
 import { getUser } from "@/lib/auth/user-session";
 import {
   buildConsentRows,
@@ -51,8 +43,8 @@ import { loadConfirmScreen, writeTeamConsent } from "../confirm-service";
  * `EntryFailure` has two:
  *
  *  - `consent` — the field-level detail (`missing` / `invalid` / `unknown` item
- *    ids, plus `fields` for the emergency-contact and address inputs). A banner
- *    saying "check the consent section" on a six-checkbox form is not an answer;
+ *    ids; `fields` is kept for the shape but the form has no text inputs left).
+ *    A banner saying "check the consent section" is not an answer;
  *    this is the same `ConsentProblem` the individual path returns (#53, user
  *    story 12), so the reused `ConsentFields` island highlights team items the
  *    way it highlights individual ones.
@@ -143,7 +135,8 @@ export async function confirmTeamParticipation(
   // request, so this costs nothing on a signed link.
   const session = await getUser();
   const bySession = session?.id === registration.userId;
-  const bySignature = typeof sig === "string" && sig.length > 0 && verifyEventTicket(registrationId, sig);
+  const bySignature =
+    typeof sig === "string" && sig.length > 0 && verifyEventTicket(registrationId, sig);
   if (!bySession && !bySignature) return teamFailure("forbidden");
 
   const ticketUrl = makeEventTicketUrl(registrationId, { locale: registration.locale });
@@ -179,7 +172,10 @@ export async function confirmTeamParticipation(
   // individual corpus would otherwise be validated against items this screen
   // never showed — and would store consent to documents nobody read.
   if (submission.docSet !== "team") {
-    return { ...teamFailure("invalid"), consent: { missing: [], invalid: [], unknown: [], fields: {} } };
+    return {
+      ...teamFailure("invalid"),
+      consent: { missing: [], invalid: [], unknown: [], fields: {} },
+    };
   }
 
   const problem = validateConsentItems("team", submission.items);
@@ -198,8 +194,10 @@ export async function confirmTeamParticipation(
       fullName,
       birthDate: formatDateOnly(dob),
       phoneEmail: phoneEmailLine(user.email, user.phone),
-      address: submission.address ?? "",
-      emergencyContact: submission.emergencyContact,
+      // Not asked for any more (see `consentSubmissionSchema`) — blank, so the
+      // Statement's fill tokens render as empty lines.
+      address: "",
+      emergencyContact: "",
     },
     ip: requestIp(await headers()),
     userAgent: (await headers()).get("user-agent"),
@@ -238,9 +236,7 @@ export async function confirmTeamParticipation(
     } else {
       // A skip (no transport) or a Resend refusal, already logged by the sender
       // as `failed` in `event_email_log`; the member is confirmed either way.
-      console.warn(
-        `[teams] confirmed registration ${registrationId} but no ticket email went out`,
-      );
+      console.warn(`[teams] confirmed registration ${registrationId} but no ticket email went out`);
     }
   } catch (error) {
     console.error(

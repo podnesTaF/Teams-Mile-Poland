@@ -7,9 +7,11 @@ import { Link } from "@/i18n/navigation";
 
 import { PhoneField } from "@/components/ui/phone-field";
 import { maxDobForMinAge, MIN_PARTICIPANT_AGE, parseDateOnly } from "@/lib/age";
+import { useValidationMessage } from "@/lib/validation-messages";
 
-import { registerAsGuest } from "../actions";
-import type { GuestRegisterInput } from "../schemas";
+import { type GuestRegisterResult, registerAsGuest } from "../actions";
+import { type GuestRegisterInput, guestRegisterSchema } from "../schemas";
+import { RegisterSummary } from "./register-summary";
 
 type Props = {
   eventSlug: string;
@@ -19,6 +21,10 @@ type Props = {
   eventTime: string | null;
   venue: string;
   locale: string;
+  /** Card price in whole PLN (ADR 0015); `0` = not card-paid. */
+  pricePln: number;
+  /** ACER fee in whole ACER (ADR 0013); `0` = free. Never both with `pricePln`. */
+  feeAcer: number;
 };
 
 const EMPTY: GuestRegisterInput = {
@@ -31,24 +37,53 @@ const EMPTY: GuestRegisterInput = {
   phone: "",
 };
 
+type FieldErrors = Partial<Record<keyof GuestRegisterInput, string>>;
+
+/** First message per field, from a zod failure or the action's `fieldErrors`. */
+function firstErrors(errors: Record<string, string[]> | undefined): FieldErrors {
+  const out: FieldErrors = {};
+  for (const [key, messages] of Object.entries(errors ?? {})) {
+    if (messages?.[0]) out[key as keyof GuestRegisterInput] = messages[0];
+  }
+  return out;
+}
+
 /**
  * Passwordless "register for this race" form for logged-out visitors. Collects
  * the runner details and creates an **unverified** account; the server action
  * mails a verification link whose callback returns here, signed in, at the
  * confirm step. Existing verified emails are pointed at sign-in instead.
  *
- * It captures **no consent** (ADR 0006): the documents, the declarations and the
- * image question all live at the confirm step, so acceptance and the
- * registration it covers are one atomic act rather than a box ticked days
- * earlier against a document nobody was shown.
+ * It captures **no consent** (ADR 0006): the documents and the image question
+ * live at the confirm step, so acceptance and the registration it covers are one
+ * atomic act rather than a box ticked days earlier against a document nobody was
+ * shown.
+ *
+ * Validation runs **here first**, with the same zod schema the action uses, and
+ * every message is translated through `useValidationMessage`. The form is
+ * `noValidate` on purpose: the browser's own `required` bubbles were the only
+ * validation most fields ever showed, in the browser's language and gone on the
+ * next click, while the phone field — which had none — went to the server and
+ * came back in English. Now every field fails the same way, inline and red.
  */
-export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIso, eventTime, venue, locale }: Props) {
+export function GuestRegisterForm({
+  eventSlug,
+  eventName,
+  eventDate,
+  eventDateIso,
+  eventTime,
+  venue,
+  locale,
+  pricePln,
+  feeAcer,
+}: Props) {
   const t = useTranslations("register");
   const tp = useTranslations("profile");
+  const message = useValidationMessage();
   const [data, setData] = useState<GuestRegisterInput>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [showSignIn, setShowSignIn] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [sent, setSent] = useState(false);
   const [resent, setResent] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -59,6 +94,25 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
 
   function set<K extends keyof GuestRegisterInput>(key: K, value: GuestRegisterInput[K]) {
     setData((d) => ({ ...d, [key]: value }));
+    if (fieldErrors[key]) setFieldErrors((e) => ({ ...e, [key]: undefined }));
+  }
+
+  /** The banner for a refusal, in the runner's language — never `result.message`. */
+  function bannerFor(result: Extract<GuestRegisterResult, { ok: false }>): string {
+    switch (result.reason) {
+      case "invalid":
+        return t("errors.invalid");
+      case "exists":
+        return t("errors.exists");
+      case "closed":
+        return t("lifecycle.closedBody");
+      case "notfound":
+        return t("errors.notfound");
+      case "age":
+        return t("ageBody");
+      default:
+        return t("errors.failed");
+    }
   }
 
   function submit(isResend: boolean) {
@@ -66,20 +120,22 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
     setError(null);
     setShowSignIn(false);
     setFieldErrors({});
+
+    // Same schema as the action: nothing the server would refuse leaves the
+    // browser, and the runner sees every problem at once, in their language.
+    const checked = guestRegisterSchema.safeParse(data);
+    if (!checked.success) {
+      setFieldErrors(firstErrors(checked.error.flatten().fieldErrors as Record<string, string[]>));
+      setError(t("errors.invalid"));
+      return;
+    }
+
     startTransition(async () => {
       const result = await registerAsGuest(eventSlug, data, locale);
       if (!result.ok) {
         if (result.reason === "exists") setShowSignIn(true);
-        if (result.reason === "age") {
-          // Server-side refusal regardless of what the (bypassable) date
-          // input's `max` bound let through — its own clear reason, not the
-          // generic "check the highlighted fields" banner.
-          setError(t("ageBody"));
-          setFieldErrors({ dateOfBirth: [t("ageBody")] });
-          return;
-        }
-        setError(result.message);
-        setFieldErrors(result.fieldErrors ?? {});
+        setError(bannerFor(result));
+        setFieldErrors(firstErrors(result.fieldErrors));
         return;
       }
       // No ticket yet — an unverified account + verification email were created.
@@ -94,6 +150,20 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
     submit(false);
   }
 
+  const banner = error ? (
+    <div className="banner banner--red" role="alert">
+      {error}
+      {showSignIn ? (
+        <>
+          {" "}
+          <Link href={signInHref} className="link">
+            {t("guest.signIn")}
+          </Link>
+        </>
+      ) : null}
+    </div>
+  ) : null;
+
   // "Check your email" state — no registration exists until the visitor clicks
   // the verification link, which returns them to this same page, now signed in,
   // at the confirm step where the documents are.
@@ -103,19 +173,7 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
         <span className="iv-eyebrow">{t("checkEmail.title")}</span>
         <p className="iv-sub">{t("checkEmail.body", { email: data.email })}</p>
         {resent ? <div className="banner banner--info">{t("checkEmail.resent")}</div> : null}
-        {error ? (
-          <div className="banner banner--red">
-            {error}
-            {showSignIn ? (
-              <>
-                {" "}
-                <Link href={signInHref} className="link">
-                  {t("guest.signIn")}
-                </Link>
-              </>
-            ) : null}
-          </div>
-        ) : null}
+        {banner}
         <div className="iv-actions">
           <button
             type="button"
@@ -130,84 +188,80 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
     );
   }
 
+  const cardPaid = pricePln > 0;
+  const paid = feeAcer > 0;
+  const price = (
+    <strong
+      className={cardPaid || paid ? "reg-price" : "reg-price reg-price--free"}
+      data-entry-price-notice={cardPaid ? pricePln : undefined}
+      data-entry-fee-notice={paid ? feeAcer : undefined}
+    >
+      {cardPaid
+        ? t("payment.amount", { price: pricePln })
+        : paid
+          ? t("fee.amount", { amount: feeAcer })
+          : t("summary.free")}
+    </strong>
+  );
+
   return (
-    <div>
-      <div className="page-head" style={{ marginBottom: 22 }}>
-        <span className="iv-eyebrow">{t("confirm.eyebrow")}</span>
+    <div className="reg">
+      <header className="page-head reg-head">
+        <span className="iv-eyebrow">{t("guest.eyebrow")}</span>
         <h1 className="iv-title">{t("guest.title", { event: eventName })}</h1>
-        <p className="iv-sub">
-          {dateTime} · {venue}
-        </p>
-      </div>
+        <p className="iv-sub">{t("guest.detailsSub")}</p>
+      </header>
 
-      <form onSubmit={onSubmit} className="profile-form center-narrow" style={{ maxWidth: 620 }}>
-        {error ? (
-          <div className="banner banner--red">
-            {error}
-            {showSignIn ? (
-              <>
-                {" "}
-                <Link href={signInHref} className="link">
-                  {t("guest.signIn")}
-                </Link>
-              </>
-            ) : null}
-          </div>
-        ) : null}
-
-        <div className="form-section">
-          <div className="form-section__h">{t("guest.detailsTitle")}</div>
-          <p className="form-section__sub">{t("guest.detailsSub")}</p>
+      <form onSubmit={onSubmit} noValidate className="detail-grid reg-grid">
+        <div className="card-white reg-card">
+          {banner}
+          <div className="reg-section__h">{t("guest.detailsTitle")}</div>
           <div className="fgrid">
-            <Field label={t("guest.email")} error={fieldErrors.email?.[0]} full>
+            <Field label={t("guest.email")} error={message(fieldErrors.email)} full>
               <input
-                className="finput on-dark"
+                className={fieldErrors.email ? "finput finput--err" : "finput"}
                 type="email"
                 autoComplete="email"
+                inputMode="email"
                 value={data.email}
                 onChange={(e) => set("email", e.target.value)}
                 placeholder="you@email.com"
-                required
               />
             </Field>
-            <Field label={tp("fields.firstName")} error={fieldErrors.firstName?.[0]}>
+            <Field label={tp("fields.firstName")} error={message(fieldErrors.firstName)}>
               <input
-                className="finput on-dark"
+                className={fieldErrors.firstName ? "finput finput--err" : "finput"}
                 autoComplete="given-name"
                 value={data.firstName}
                 onChange={(e) => set("firstName", e.target.value)}
-                required
               />
             </Field>
-            <Field label={tp("fields.lastName")} error={fieldErrors.lastName?.[0]}>
+            <Field label={tp("fields.lastName")} error={message(fieldErrors.lastName)}>
               <input
-                className="finput on-dark"
+                className={fieldErrors.lastName ? "finput finput--err" : "finput"}
                 autoComplete="family-name"
                 value={data.lastName}
                 onChange={(e) => set("lastName", e.target.value)}
-                required
               />
             </Field>
             <Field
               label={tp("fields.dateOfBirth")}
-              error={fieldErrors.dateOfBirth?.[0]}
+              error={message(fieldErrors.dateOfBirth)}
               hint={fieldErrors.dateOfBirth ? undefined : t("ageBody")}
             >
               <input
-                className="finput on-dark"
+                className={fieldErrors.dateOfBirth ? "finput finput--err" : "finput"}
                 type="date"
                 value={data.dateOfBirth}
                 onChange={(e) => set("dateOfBirth", e.target.value)}
                 max={maxDob}
-                required
               />
             </Field>
-            <Field label={tp("fields.sex")} error={fieldErrors.sex?.[0]}>
+            <Field label={tp("fields.sex")} error={message(fieldErrors.sex)}>
               <select
-                className="fselect on-dark"
+                className={fieldErrors.sex ? "fselect finput--err" : "fselect"}
                 value={data.sex}
                 onChange={(e) => set("sex", e.target.value as GuestRegisterInput["sex"])}
-                required
               >
                 <option value="" disabled>
                   {tp("fields.sexPlaceholder")}
@@ -217,48 +271,44 @@ export function GuestRegisterForm({ eventSlug, eventName, eventDate, eventDateIs
               </select>
             </Field>
             {/* PhoneField renders its own <label> root — no Field wrapper. */}
-            <div className="block col-2">
-              <span className="flabel on-dark">{tp("fields.phone")}</span>
+            <div className="col-2 block">
+              <span className="flabel">{tp("fields.phone")}</span>
               <PhoneField
-                variant="dark"
+                variant="light"
                 value={data.phone}
                 onChange={(value) => set("phone", value)}
-                error={fieldErrors.phone?.[0]}
+                error={message(fieldErrors.phone)}
               />
             </div>
-            <Field label={tp("fields.club")} error={fieldErrors.club?.[0]} full>
+            <Field
+              label={tp("fields.club")}
+              error={message(fieldErrors.club)}
+              hint={tp("fields.clubPlaceholder")}
+              full
+            >
               <input
-                className="finput on-dark"
+                className={fieldErrors.club ? "finput finput--err" : "finput"}
                 value={data.club ?? ""}
                 onChange={(e) => set("club", e.target.value)}
-                placeholder={tp("fields.clubPlaceholder")}
               />
             </Field>
           </div>
         </div>
 
-        {/*
-          No terms checkbox here any more (ADR 0006). Consent is captured at the
-          confirm step, after the address is verified and next to the documents
-          themselves — ticking a blanket box days earlier, on a form that names
-          no document and no version, is precisely the evidence gap this feature
-          closes. What this form does is create an unverified account.
-        */}
-        <p className="iv-note">{t("guest.consentNote")}</p>
-
-        <div className="form-actions">
-          <span className="form-actions__note">{t("guest.passwordNote")}</span>
-          <button type="submit" className="btn btn-red" disabled={pending}>
+        <RegisterSummary eventName={eventName} dateTime={dateTime} venue={venue} price={price}>
+          <button type="submit" className="btn btn-red btn-block" disabled={pending}>
             {pending ? t("submitting") : t("guest.submit")}
           </button>
-        </div>
-
-        <p className="auth-foot">
-          {t("guest.signInPrompt")}{" "}
-          <Link href={signInHref} className="link">
-            {t("guest.signIn")}
-          </Link>
-        </p>
+          <p className="slots-note">{t("guest.passwordNote")}</p>
+          {cardPaid ? <p className="slots-note">{t("payment.guestNote")}</p> : null}
+          <p className="slots-note">{t("guest.consentNote")}</p>
+          <p className="slots-note reg-foot">
+            {t("guest.signInPrompt")}{" "}
+            <Link href={signInHref} className="link">
+              {t("guest.signIn")}
+            </Link>
+          </p>
+        </RegisterSummary>
       </form>
     </div>
   );
@@ -279,15 +329,13 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className={full ? "block col-2" : "block"}>
-      <span className="flabel on-dark">{label}</span>
+    <label className={full ? "col-2 block" : "block"}>
+      <span className="flabel">{label}</span>
       {children}
       {error ? (
         <span className="field-msg">{error}</span>
       ) : hint ? (
-        <span className="iv-note" style={{ marginTop: 4, display: "block" }}>
-          {hint}
-        </span>
+        <span className="fhint">{hint}</span>
       ) : null}
     </label>
   );

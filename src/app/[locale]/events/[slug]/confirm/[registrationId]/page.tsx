@@ -5,13 +5,9 @@ import "@/app/landing.css";
 import "@/app/series-flows.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
-import { getLatestConsentSnapshot } from "@/features/event-registration/data";
 import { makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { loadConfirmScreen } from "@/features/teams/confirm-service";
-import {
-  StateCard,
-  TeamConfirmForm,
-} from "@/features/teams/components/team-confirm-form";
+import { StateCard, TeamConfirmForm } from "@/features/teams/components/team-confirm-form";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { coerceToDate, formatDateOnly, meetsMinParticipantAge, parseDateOnly } from "@/lib/age";
 import { getUser } from "@/lib/auth/user-session";
@@ -160,22 +156,19 @@ export default async function TeamConfirmPage({ params, searchParams }: PageProp
   }
 
   // The team corpus and its six items, resolved server-side so the client never
-  // chooses which documents apply to it (ADR 0006). Labels come from
-  // `legal.teamItems.<id>` — the team documents' own wording against the same
-  // six frozen ids as the individual set — and are passed in resolved, because
-  // a client island must not have to know which catalog an item id lives in.
+  // chooses which documents apply to it (ADR 0006). Wording comes from
+  // `legal.teamItems` — the team documents' own sentences against the same six
+  // frozen ids as the individual set — and is passed in resolved, because a
+  // client island must not have to know which catalog an item id lives in. The
+  // five tick items share one box (`combined`); only the image question keeps
+  // a label of its own.
   const tItems = await getTranslations("legal.teamItems");
   const consentItems = getConsentItems("team").map((item) => ({
     id: item.id,
     docSlug: item.docSlug,
     twoAnswer: isTwoAnswerItem(item),
-    label: tItems(item.id),
+    label: isTwoAnswerItem(item) ? tItems(item.id) : undefined,
   }));
-
-  // Emergency contact (and address) carried over from the member's most recent
-  // snapshot, so a second race night is not a retype (user story 18). Never
-  // read from `users` — neither is a profile field, deliberately.
-  const snapshot = await getLatestConsentSnapshot(user.id);
 
   const memberName =
     [user.firstName, user.lastName].filter(Boolean).join(" ").trim() || user.name || user.email;
@@ -206,8 +199,7 @@ export default async function TeamConfirmPage({ params, searchParams }: PageProp
           memberBirthDate: formatDateOnly(dob),
           memberPhone: user.phone ?? "",
         }}
-        prefillEmergencyContact={snapshot?.emergencyContact ?? ""}
-        prefillAddress={snapshot?.address ?? ""}
+        combinedLabel={tItems("combined")}
       />
     </Shell>
   );

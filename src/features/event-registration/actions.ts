@@ -18,11 +18,7 @@ import { getAcerBalance } from "@/features/wallet/data";
 import { startIndividualCheckout } from "@/features/event-payments/checkout";
 import { individualEntryFeeMinor } from "@/features/wallet/entry-fees";
 
-import {
-  buildConsentRows,
-  termsAcceptedFrom,
-  validateConsentItems,
-} from "@/lib/legal/consent";
+import { buildConsentRows, termsAcceptedFrom, validateConsentItems } from "@/lib/legal/consent";
 import type { DocSet } from "@/lib/legal/manifest";
 
 import { createRegistrationWithConsent, hasRegistration, isInsufficientAcer } from "./data";
@@ -61,7 +57,8 @@ function verifiedCallbackPath(locale: string, eventSlug: string): string {
 /**
  * Field-level detail for a refused consent submission, so the form can point at
  * the box the runner missed instead of showing a banner and letting them hunt
- * (user story 12). Ids are `ConsentItem.id`s; `fields` names a text input.
+ * (user story 12). Ids are `ConsentItem.id`s; `fields` names a text input (none
+ * today — the consent step has no free-text inputs left — kept for the shape).
  */
 export type ConsentRefusal = {
   missing: string[];
@@ -261,8 +258,11 @@ export async function registerForEvent(
         fullName,
         birthDate: formatDateOnly(dob),
         phoneEmail: phoneEmailLine({ email: user.email, phone: profile.phone }),
-        address: submission.address ?? "",
-        emergencyContact: submission.emergencyContact,
+        // No longer asked for (see `consentSubmissionSchema`); written blank so
+        // the Statement's `__ADDRESS__` / `__EMERGENCY_CONTACT__` lines render
+        // empty rather than undefined, exactly as an optional address always did.
+        address: "",
+        emergencyContact: "",
       },
       ip: requestIp(requestHeaders),
       userAgent: requestHeaders.get("user-agent"),

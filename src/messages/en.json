@@ -14,7 +14,18 @@
     "language": "Language",
     "english": "English",
     "polish": "Polski",
-    "ukrainian": "Українська"
+    "ukrainian": "Українська",
+    "validation": {
+      "required": "This field is required.",
+      "email": "Enter a valid email address.",
+      "selectOne": "Select one.",
+      "date": "Enter a valid date.",
+      "tooYoung": "You must be at least 18 years old on race day.",
+      "phoneRequired": "Phone number is required.",
+      "phoneInvalid": "Enter a valid phone number for the selected country.",
+      "phoneMobile": "Enter a mobile number.",
+      "tooLong": "This is too long."
+    }
   },
   "cookies": {
     "title": "We use cookies",
@@ -723,9 +734,7 @@
         "sections": [
           {
             "h": "Data Controller",
-            "p": [
-              "The data controller within the meaning of GDPR is:"
-            ],
+            "p": ["The data controller within the meaning of GDPR is:"],
             "list": [
               "Company name: ACE BATTLE POLAND Sp. z o.o.",
               "Address: ul. Pańska 96/80, 00-837 Warszawa",
@@ -1897,17 +1906,18 @@
     "guest": {
       "title": "Register for {event}",
       "detailsTitle": "Your details",
-      "detailsSub": "We'll email a link to confirm your address and finish your registration.",
+      "detailsSub": "Fill in your details and we'll email a link to confirm your address. The documents and consents come after that.",
       "email": "Email",
-      "passwordNote": "First confirm your email; your ticket (with a set-password link) arrives right after.",
+      "passwordNote": "First confirm your email (check spam if it doesn't arrive); your ticket with a set-password link follows right after.",
       "consentNote": "After confirming your email you'll be shown the event documents — the rules, the participant statement and the GDPR clause — and asked for your consents there.",
       "submit": "Register",
       "signInPrompt": "Already have an account?",
-      "signIn": "Sign in"
+      "signIn": "Sign in",
+      "eyebrow": "Registration"
     },
     "checkEmail": {
       "title": "Check your email",
-      "body": "We've sent a confirmation link to {email}. Open it to confirm your address — your registration completes and your ticket arrives right after.",
+      "body": "We've sent a confirmation link to {email}. Open it to confirm your address — your registration completes and your ticket arrives right after. Not there within a minute? Check your spam folder.",
       "resend": "Resend link",
       "resending": "Sending…",
       "resent": "Link sent again — check your inbox (and spam)."
@@ -1945,35 +1955,19 @@
     "ageBody": "You must be at least 18 years old on race day to register.",
     "consent": {
       "title": "Documents and consents",
-      "subtitle": "Read each document and confirm the statements below. They are recorded with your registration — the version you read, in the language you read it in.",
-      "readDoc": "Read the full document",
+      "subtitle": "Two answers and you're in. Both are recorded with your registration — the version you read, in the language you read it in.",
+      "readDocs": "Read:",
+      "combined": "I have read and accept the Public Regulations, the Participant Statement and the GDPR Information Clause. I confirm that on race day I am 18 or older, that I take part voluntarily and my health allows it, and I accept the typical risks of a street race. My details are true; I understand that my name, time and ranking may be published, and that a prize is paid out only against bank details and, where required, tax data.",
       "itemRequired": "This confirmation is required.",
       "answerRequired": "Choose one of the two answers.",
       "requiredNotice": "We cannot admit you to the start line without the required consents.",
-      "incompleteHint": "Answer every item and give an emergency contact to confirm.",
-      "items": {
-        "rulesAndRegulations": "I have read the event rules (\"Public Regulations\") and I agree to follow the course and the instructions of the Organizer, judges and safety services.",
-        "ageHealthRisks": "I declare that on the day of the event I am 18 years of age or older, I take part voluntarily, and my health allows me to safely take part — and I knowingly accept the typical risks of a street race (falls, collisions, dehydration, injuries and others).",
-        "dataTruthfulAndRodo": "I confirm that the details I have provided are true, and I have read the GDPR Information Clause for event participants.",
-        "publicResultsAwareness": "I understand that my name, surname, finishing time, ranking position and sport category may be published publicly, while my contact details, address, date of birth and health information are NOT published.",
-        "prizeDataUnderstanding": "I understand that if I finish in a prize position, payout of the prize requires providing bank transfer details and, where necessary, tax data (§ 7A of the Rules)."
-      },
+      "incompleteHint": "Tick the confirmation and answer the image question to continue.",
+      "validationError": "Please tick the confirmation and answer the image question.",
       "image": {
         "question": "Image, photos and recordings — separate voluntary consent",
         "agree": "I AGREE to the use and dissemination of my individually recognizable image captured during the event in the Organizer's informational, reporting and promotional materials (website, social media), without separate remuneration. I may withdraw this consent for the future at any time.",
-        "agreeNote": "Voluntary consent — you can withdraw it at any time.",
         "disagree": "I DO NOT CONSENT to the use of my individually recognizable image on the basis of voluntary consent.",
-        "disagreeNote": "Declining does not affect your right to take part in the event."
-      },
-      "emergencyContact": {
-        "label": "Emergency contact (name and phone)",
-        "placeholder": "Anna Kowalska, +48 500 111 222",
-        "hint": "Required — who we call if something happens to you on race night."
-      },
-      "address": {
-        "label": "Home address",
-        "placeholder": "Street, number, postcode, city",
-        "hint": "Optional — never published with the results."
+        "note": "Voluntary — declining does not affect your entry, and you can withdraw at any time."
       }
     },
     "lifecycle": {
@@ -2039,6 +2033,12 @@
       "refresh": "Refresh",
       "cancelled": "Payment was cancelled — you're not registered yet. You can try again.",
       "unavailable": "Payment is unavailable right now. Please try again in a few minutes."
+    },
+    "errors": {
+      "invalid": "Check the highlighted fields and try again.",
+      "exists": "You already have an account — sign in to register.",
+      "notfound": "This event could not be found.",
+      "failed": "Registration failed. Please try again."
     }
   },
   "unsubscribe": {
@@ -2196,11 +2196,7 @@
       "team-appendix5": "Appendix 5 — Team Ranking Criteria"
     },
     "teamItems": {
-      "rulesAndRegulations": "I have read the Rules for conducting the team ranking race and the Public Regulations of ACE BATTLE RUN — TEAM MILE POLAND, and I agree to follow the course, the procedure for my race role and the instructions of the Organizer, judges and safety services.",
-      "ageHealthRisks": "I declare that on the day of the event I am 18 years of age or older, I take part voluntarily as a member of my team, and my health allows me to safely run my stage — and I knowingly accept the typical risks of a team ranking race (falls, collisions in the handover zone, dehydration, injuries and others).",
-      "dataTruthfulAndRodo": "I confirm that the details I have provided are true, and I have read the GDPR Information Clause for participants of the TEAM MILE event.",
-      "publicResultsAwareness": "I understand that my name, surname, team, race role, times and ranking position may be published publicly, while my contact details, address, date of birth and health information are NOT published.",
-      "prizeDataUnderstanding": "I understand that if my team finishes in a prize position, payout of the prize requires providing bank transfer details and, where necessary, tax data.",
+      "combined": "I have read and accept the Rules for conducting the team ranking race, the Public Regulations of ACE BATTLE RUN — TEAM MILE POLAND, the Participant Statement and the GDPR Information Clause, and I will follow the course, the procedure for my race role and the instructions of the Organizer, judges and safety services. I confirm that on race day I am 18 or older, that I take part voluntarily as a member of my team and my health allows it, and I accept the typical risks of a team ranking race. My details are true; I understand that my name, team, role, times and ranking may be published, and that a team prize is paid out only against bank details and, where required, tax data.",
       "imageUse": "I AGREE to the use and dissemination of my individually recognizable image captured during the event in the Organizer's informational, reporting and promotional materials (website, social media), without separate remuneration. I may withdraw this consent for the future at any time."
     }
   },

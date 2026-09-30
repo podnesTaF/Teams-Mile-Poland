@@ -36,15 +36,16 @@ export type GuestRegisterInput = z.infer<typeof guestRegisterSchema>;
  * the English page accepted the English text, and the stored evidence has to say
  * so.
  *
- * `emergencyContact` is required and `address` is not — the Statement prints
- * both, but only the first is a fact the organiser needs on race night.
+ * No emergency contact and no address any more (2026-09-30): both were asked
+ * for only so the Statement could print them, and the organiser has the runner's
+ * own phone from the profile. The snapshot keeps both keys as empty strings so
+ * the Statement's fill tokens and the rows written before this change render
+ * unchanged.
  */
 export const consentSubmissionSchema = z.object({
   docSet: z.enum(["individual", "team"]),
   locale: z.enum(["pl", "en", "ua"]),
   items: z.record(z.string(), z.union([z.literal(true), z.enum(["agree", "disagree"])])),
-  emergencyContact: z.string().trim().min(1, "Emergency contact is required").max(200),
-  address: z.string().trim().max(300).optional().or(z.literal("")),
 });
 
 export type ConsentSubmissionInput = z.infer<typeof consentSubmissionSchema>;

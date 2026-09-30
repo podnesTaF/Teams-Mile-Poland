@@ -9,6 +9,7 @@ import {
   buildPhone,
   examplePhoneForCountry,
   formatNationalDigits,
+  interpretNationalInput,
   isPhoneEmpty,
   parsePhone,
   phoneIssue,
@@ -78,7 +79,12 @@ export function PhoneField({ label, value, onChange, error, className, variant }
   }
 
   function updateNational(raw: string) {
-    onChange(buildPhone(selected.iso, raw));
+    // A pasted or autofilled full number ("+48 512 345 678", "0671234567") is
+    // read for what it means, not masked as extra digits — see
+    // `interpretNationalInput`. A pasted dial code may also move the country.
+    const read = interpretNationalInput(raw, selected.iso);
+    if (read.iso !== selected.iso) setIso(read.iso);
+    onChange(buildPhone(read.iso, read.national));
   }
 
   return (

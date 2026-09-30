@@ -14,7 +14,18 @@
     "language": "Język",
     "english": "English",
     "polish": "Polski",
-    "ukrainian": "Українська"
+    "ukrainian": "Українська",
+    "validation": {
+      "required": "To pole jest wymagane.",
+      "email": "Podaj poprawny adres e-mail.",
+      "selectOne": "Wybierz jedną opcję.",
+      "date": "Podaj poprawną datę.",
+      "tooYoung": "W dniu biegu musisz mieć ukończone 18 lat.",
+      "phoneRequired": "Numer telefonu jest wymagany.",
+      "phoneInvalid": "Podaj poprawny numer telefonu dla wybranego kraju.",
+      "phoneMobile": "Podaj numer komórkowy.",
+      "tooLong": "Za długi tekst."
+    }
   },
   "cookies": {
     "title": "Używamy plików cookie",
@@ -723,9 +734,7 @@
         "sections": [
           {
             "h": "Administrator danych osobowych (ADO)",
-            "p": [
-              "Administratorem danych osobowych w rozumieniu RODO jest:"
-            ],
+            "p": ["Administratorem danych osobowych w rozumieniu RODO jest:"],
             "list": [
               "Nazwa: ACE BATTLE POLAND Sp. z o.o.",
               "Adres: ul. Pańska 96/80, 00-837 Warszawa",
@@ -1897,17 +1906,18 @@
     "guest": {
       "title": "Zapisz się na {event}",
       "detailsTitle": "Twoje dane",
-      "detailsSub": "Wyślemy link, aby potwierdzić Twój adres i dokończyć rejestrację.",
+      "detailsSub": "Wpisz swoje dane, a wyślemy link do potwierdzenia adresu. Dokumenty i zgody są krokiem później.",
       "email": "E-mail",
-      "passwordNote": "Najpierw potwierdź e-mail; bilet (z linkiem do ustawienia hasła) przyjdzie zaraz potem.",
+      "passwordNote": "Najpierw potwierdź e-mail (jeśli nie dotarł, sprawdź spam); bilet z linkiem do ustawienia hasła przyjdzie zaraz potem.",
       "consentNote": "Po potwierdzeniu e-maila pokażemy Ci dokumenty wydarzenia — przepisy, oświadczenie uczestnika i klauzulę RODO — i tam poprosimy o zgody.",
       "submit": "Zarejestruj się",
       "signInPrompt": "Masz już konto?",
-      "signIn": "Zaloguj się"
+      "signIn": "Zaloguj się",
+      "eyebrow": "Rejestracja"
     },
     "checkEmail": {
       "title": "Sprawdź skrzynkę e-mail",
-      "body": "Wysłaliśmy link potwierdzający na adres {email}. Otwórz go, aby potwierdzić adres — rejestracja zostanie dokończona, a bilet przyjdzie zaraz potem.",
+      "body": "Wysłaliśmy link potwierdzający na adres {email}. Otwórz go, aby potwierdzić adres — rejestracja zostanie dokończona, a bilet przyjdzie zaraz potem. Nie ma go po minucie? Sprawdź folder spam.",
       "resend": "Wyślij link ponownie",
       "resending": "Wysyłanie…",
       "resent": "Link wysłany ponownie — sprawdź skrzynkę (i spam)."
@@ -1945,35 +1955,19 @@
     "ageBody": "Aby się zapisać, w dniu wyścigu musisz mieć ukończone co najmniej 18 lat.",
     "consent": {
       "title": "Dokumenty i zgody",
-      "subtitle": "Zapoznaj się z każdym dokumentem i potwierdź poniższe oświadczenia. Zapisujemy je razem z Twoim zgłoszeniem — wersję, którą przeczytałeś/-aś, w języku, w którym ją przeczytałeś/-aś.",
-      "readDoc": "Przeczytaj pełny dokument",
+      "subtitle": "Dwie odpowiedzi i jesteś na liście. Obie zapisujemy razem ze zgłoszeniem — wersję, którą przeczytałeś/-aś, w języku, w którym ją przeczytałeś/-aś.",
+      "readDocs": "Przeczytaj:",
+      "combined": "Zapoznałem/-am się z Przepisami Publicznymi, Oświadczeniem Uczestnika i Klauzulą Informacyjną RODO i je akceptuję. Oświadczam, że w dniu wydarzenia mam ukończone 18 lat, biorę udział dobrowolnie, a mój stan zdrowia na to pozwala, i przyjmuję typowe ryzyka biegu ulicznego. Podane dane są prawdziwe; rozumiem, że moje imię, nazwisko, czas i miejsce w rankingu mogą zostać opublikowane, a wypłata nagrody wymaga podania danych do przelewu i — jeśli to niezbędne — danych podatkowych.",
       "itemRequired": "To potwierdzenie jest wymagane.",
       "answerRequired": "Wybierz jedną z dwóch odpowiedzi.",
       "requiredNotice": "Bez zaznaczenia wymaganych zgód nie będziemy mogli dopuścić Cię do startu.",
-      "incompleteHint": "Odpowiedz na wszystkie punkty i podaj osobę do kontaktu w nagłym wypadku, aby potwierdzić.",
-      "items": {
-        "rulesAndRegulations": "Zapoznałem/-am się z zasadami wydarzenia („Przepisy Publiczne”) i zobowiązuję się przestrzegać trasy oraz poleceń Organizatora, sędziów i służb bezpieczeństwa.",
-        "ageHealthRisks": "Oświadczam, że w dniu wydarzenia mam ukończone 18 lat, biorę udział dobrowolnie, a mój stan zdrowia pozwala mi na bezpieczny udział — i świadomie przyjmuję typowe ryzyka biegu ulicznego (upadek, zderzenie, odwodnienie, urazy i inne).",
-        "dataTruthfulAndRodo": "Potwierdzam prawdziwość podanych przeze mnie danych oraz zapoznałem/-am się z Klauzulą Informacyjną RODO dla uczestników wydarzenia.",
-        "publicResultsAwareness": "Rozumiem, że moje imię, nazwisko, czas biegu, miejsce w rankingu i kategoria sportowa mogą zostać opublikowane publicznie, natomiast dane kontaktowe, adres, data urodzenia i informacje o zdrowiu NIE są publikowane.",
-        "prizeDataUnderstanding": "Rozumiem, że w przypadku zajęcia miejsca nagrodzonego wypłata nagrody wymaga podania danych do przelewu i — jeśli to niezbędne — rozliczenia podatkowego (§ 7A Regulaminu)."
-      },
+      "incompleteHint": "Zaznacz potwierdzenie i odpowiedz na pytanie o wizerunek, aby przejść dalej.",
+      "validationError": "Zaznacz potwierdzenie i odpowiedz na pytanie o wizerunek.",
       "image": {
         "question": "Wizerunek, zdjęcia i nagrania — odrębna dobrowolna zgoda",
         "agree": "WYRAŻAM ZGODĘ na wykorzystywanie i rozpowszechnianie mojego indywidualnie rozpoznawalnego wizerunku utrwalonego podczas wydarzenia w materiałach informacyjnych, sprawozdawczych i promocyjnych Organizatora (strona internetowa, media społecznościowe), bez odrębnego wynagrodzenia. Zgodę mogę wycofać na przyszłość w dowolnym momencie.",
-        "agreeNote": "Zgoda dobrowolna — możesz ją wycofać w każdej chwili.",
         "disagree": "NIE WYRAŻAM ZGODY na wykorzystywanie mojego indywidualnie rozpoznawalnego wizerunku na podstawie dobrowolnej zgody.",
-        "disagreeNote": "Brak zgody nie wpływa na Twoje prawo udziału w wydarzeniu."
-      },
-      "emergencyContact": {
-        "label": "Osoba do kontaktu w nagłym wypadku (imię i telefon)",
-        "placeholder": "Anna Kowalska, +48 500 111 222",
-        "hint": "Wymagane — do kogo zadzwonimy, jeśli coś Ci się stanie w trakcie biegu."
-      },
-      "address": {
-        "label": "Adres zamieszkania",
-        "placeholder": "Ulica, numer, kod pocztowy, miasto",
-        "hint": "Opcjonalnie — nie jest publikowany w wynikach."
+        "note": "Dobrowolnie — brak zgody nie wpływa na Twój udział, a zgodę możesz wycofać w każdej chwili."
       }
     },
     "lifecycle": {
@@ -2039,6 +2033,12 @@
       "refresh": "Odśwież",
       "cancelled": "Płatność została anulowana — nie jesteś jeszcze zapisany(-a). Możesz spróbować ponownie.",
       "unavailable": "Płatność jest teraz niedostępna. Spróbuj ponownie za kilka minut."
+    },
+    "errors": {
+      "invalid": "Sprawdź zaznaczone pola i spróbuj ponownie.",
+      "exists": "Masz już konto — zaloguj się, aby się zapisać.",
+      "notfound": "Nie znaleziono tego wydarzenia.",
+      "failed": "Rejestracja nie powiodła się. Spróbuj ponownie."
     }
   },
   "unsubscribe": {
@@ -2196,11 +2196,7 @@
       "team-appendix5": "Załącznik 5 — Kryteria rankingów zespołowych"
     },
     "teamItems": {
-      "rulesAndRegulations": "Zapoznałem/-am się z Zasadami Przeprowadzania Drużynowego Biegu Rankingowego oraz z Regulaminem Publicznym ACE BATTLE RUN – TEAM MILE POLAND i zobowiązuję się przestrzegać trasy, procedury właściwej dla mojej roli w biegu oraz poleceń Organizatora, sędziów i służb bezpieczeństwa.",
-      "ageHealthRisks": "Oświadczam, że w dniu wydarzenia mam ukończone 18 lat, biorę udział dobrowolnie jako członek/członkini swojej drużyny, a mój stan zdrowia pozwala mi bezpiecznie przebiec swój odcinek — i świadomie przyjmuję typowe ryzyka drużynowego biegu rankingowego (upadek, zderzenie w strefie zmiany, odwodnienie, urazy i inne).",
-      "dataTruthfulAndRodo": "Potwierdzam prawdziwość podanych przeze mnie danych oraz zapoznałem/-am się z Klauzulą Informacyjną RODO dla uczestników wydarzenia TEAM MILE.",
-      "publicResultsAwareness": "Rozumiem, że moje imię, nazwisko, drużyna, rola w biegu, czasy i miejsce w rankingu mogą zostać opublikowane publicznie, natomiast dane kontaktowe, adres, data urodzenia i informacje o zdrowiu NIE są publikowane.",
-      "prizeDataUnderstanding": "Rozumiem, że w przypadku zajęcia przez moją drużynę miejsca nagrodzonego wypłata nagrody wymaga podania danych do przelewu i — jeśli to niezbędne — rozliczenia podatkowego.",
+      "combined": "Zapoznałem/-am się z Regułami przeprowadzania biegu rankingu drużynowego, Przepisami Publicznymi ACE BATTLE RUN — TEAM MILE POLAND, Oświadczeniem Uczestnika i Klauzulą Informacyjną RODO i je akceptuję; zobowiązuję się przestrzegać trasy, procedury mojej roli w biegu oraz poleceń Organizatora, sędziów i służb bezpieczeństwa. Oświadczam, że w dniu wydarzenia mam ukończone 18 lat, biorę udział dobrowolnie jako członek mojej drużyny, a mój stan zdrowia na to pozwala, i przyjmuję typowe ryzyka biegu rankingu drużynowego. Podane dane są prawdziwe; rozumiem, że moje imię, nazwisko, drużyna, rola, czasy i miejsce w rankingu mogą zostać opublikowane, a wypłata nagrody drużynowej wymaga podania danych do przelewu i — jeśli to niezbędne — danych podatkowych.",
       "imageUse": "WYRAŻAM ZGODĘ na wykorzystywanie i rozpowszechnianie mojego indywidualnie rozpoznawalnego wizerunku utrwalonego podczas wydarzenia w materiałach informacyjnych, sprawozdawczych i promocyjnych Organizatora (strona internetowa, media społecznościowe), bez odrębnego wynagrodzenia. Zgodę mogę wycofać na przyszłość w dowolnym momencie."
     }
   },

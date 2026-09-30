@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 
 import { GuestRegisterForm } from "@/features/event-registration/components/guest-register-form";
 import { RegisterConfirm } from "@/features/event-registration/components/register-confirm";
-import { getLatestConsentSnapshot, getRegistration } from "@/features/event-registration/data";
+import { getRegistration } from "@/features/event-registration/data";
 import { makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import { getEntryWithTeam } from "@/features/teams/entries";
@@ -83,24 +83,10 @@ export async function EventRegisterContent({
   // taken, so it is not shown either.
   const pricePln = entryPricePln(event, "individual");
   const feeAcer = pricePln > 0 ? 0 : minorToAcer(individualEntryFeeMinor(event));
-  /**
-   * The price, said before anything is asked for. A guest sees it above the
-   * sign-up form — creating an account to discover at the last screen that the
-   * night costs money is the failure this line exists to prevent — and it is a
-   * price only, with no balance: a visitor with no account has no wallet to
-   * report, and the signup grant that pays for their first night lands when the
-   * account is created (slice 2).
-   */
-  const feeNotice =
-    pricePln > 0 ? (
-      <p className="slots-note register-fee-notice" data-entry-price-notice={pricePln}>
-        {t("payment.amount", { price: pricePln })} — {t("payment.guestNote")}
-      </p>
-    ) : feeAcer > 0 ? (
-      <p className="slots-note register-fee-notice" data-entry-fee-notice={feeAcer}>
-        {t("fee.amount", { amount: feeAcer })} — {t("fee.note")}
-      </p>
-    ) : null;
+  // A guest sees the price in the summary card beside the form — creating an
+  // account to discover at the last screen that the night costs money is the
+  // failure that placement exists to prevent. Price only, no balance: a
+  // visitor with no account has no wallet to report.
 
   const user = await getUser();
   if (!user) {
@@ -113,7 +99,6 @@ export async function EventRegisterContent({
     return (
       <>
         {teamAlternative}
-        {feeNotice}
         <GuestRegisterForm
           eventSlug={slug}
           eventName={event.name}
@@ -122,6 +107,8 @@ export async function EventRegisterContent({
           eventTime={event.timeRange ? `${event.timeRange.start}–${event.timeRange.end}` : null}
           venue={`${event.venue}, ${event.city}`}
           locale={locale}
+          pricePln={pricePln}
+          feeAcer={feeAcer}
         />
       </>
     );
@@ -260,10 +247,6 @@ export async function EventRegisterContent({
     docSlug: item.docSlug,
     twoAnswer: isTwoAnswerItem(item),
   }));
-  // Emergency contact (and address) carried over from the runner's most recent
-  // registration, so a second race night is not a retype (user story 10). Never
-  // read from `users` — it is not a profile field, deliberately.
-  const snapshot = await getLatestConsentSnapshot(user.id);
   // Read only when there is something to spend it on: a free night asks nobody's
   // wallet, and a `SUM` over the ledger is not worth issuing to render a number
   // the screen will not show.
@@ -283,8 +266,6 @@ export async function EventRegisterContent({
         docSet={docSet}
         docLocale={locale as "pl" | "en" | "ua"}
         consentItems={consentItems}
-        prefillEmergencyContact={snapshot?.emergencyContact ?? ""}
-        prefillAddress={snapshot?.address ?? ""}
         feeAcer={feeAcer}
         balanceAcer={balanceAcer}
         pricePln={pricePln}

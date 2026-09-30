@@ -51,7 +51,7 @@ export function maxDobForMinAge(minAge: number, asOf: Date = new Date()): string
   return `${y}-${m}-${d}`;
 }
 
-const DATE_FORMAT_ERROR = "Enter a valid date";
+export const DATE_FORMAT_ERROR = "Enter a valid date";
 
 /**
  * Zod schema for an HTML date input (YYYY-MM-DD), format only. The minimum-age
