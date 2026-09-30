@@ -1404,7 +1404,8 @@
     "teams": {
       "title": "My teams",
       "heading": "Your teams"
-    }
+    },
+    "checkFields": "Check the highlighted fields and try again."
   },
   "teams": {
     "landingCta": "Find a team",

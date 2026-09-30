@@ -121,8 +121,8 @@ export async function EventRegisterContent({
     // One person, one entry path per night (ADR 0009), so no second register.
     const found = await getEntryWithTeam(existing.teamEntryId);
     return (
-      <section className="iv-card center-narrow" data-registered-via-team="1">
-        <span className="iv-eyebrow">{t("alreadyTeamTitle")}</span>
+      <section className="card-white rp-state" data-registered-via-team="1">
+        <h1 className="rp-state__title">{t("alreadyTeamTitle")}</h1>
         <p className="iv-sub">{t("alreadyTeamBody", { team: found?.team.name ?? "—" })}</p>
         {found ? (
           <div className="iv-actions">
@@ -136,8 +136,8 @@ export async function EventRegisterContent({
   }
   if (existing) {
     return (
-      <section className="iv-card center-narrow">
-        <span className="iv-eyebrow">{t("alreadyTitle")}</span>
+      <section className="card-white rp-state">
+        <h1 className="rp-state__title">{t("alreadyTitle")}</h1>
         <p className="iv-sub">{t("alreadyBody")}</p>
         <div className="iv-actions">
           <a href={makeEventTicketUrl(existing.id, { locale })} className="btn btn-red">
@@ -157,8 +157,8 @@ export async function EventRegisterContent({
     (payment === "success" || (await hasSettlingIndividualPayment(slug, user.id)))
   ) {
     return (
-      <section className="iv-card center-narrow" data-payment-settling="1">
-        <span className="iv-eyebrow">{t("payment.settlingTitle")}</span>
+      <section className="card-white rp-state" data-payment-settling="1">
+        <h1 className="rp-state__title">{t("payment.settlingTitle")}</h1>
         <p className="iv-sub">{t("payment.settlingBody")}</p>
         <div className="iv-actions">
           <Link href={`/events/${slug}/register`} className="btn btn-red">
@@ -201,22 +201,23 @@ export async function EventRegisterContent({
       club: pu.club ?? "",
       phone: pu.phone ?? "",
     };
+    // Same page shape as the guest and confirm steps: the page head, then the
+    // white card — here holding the profile form in its light variant.
     return (
-      <div className="center-narrow" style={{ maxWidth: 620 }}>
-        <div className="page-head" style={{ marginBottom: 16 }}>
+      <div className="rp">
+        <header className="page-head rp-head">
           <span className="iv-eyebrow">{t("confirm.eyebrow")}</span>
           <h1 className="iv-title">{t("profileTitle")}</h1>
+          <p className="iv-sub">{t("profileBody")}</p>
+        </header>
+        <div className="card-white rp-card rp-card--single">
+          <ProfileForm
+            initial={initial}
+            redirectTo={`/events/${slug}/register`}
+            maxDobAsOf={event.date}
+            variant="light"
+          />
         </div>
-        <div className="banner banner--info" style={{ marginBottom: 16 }}>
-          <div className="banner__body">
-            <div className="banner__txt">{t("profileBody")}</div>
-          </div>
-        </div>
-        <ProfileForm
-          initial={initial}
-          redirectTo={`/events/${slug}/register`}
-          maxDobAsOf={event.date}
-        />
       </div>
     );
   }
@@ -333,8 +334,8 @@ function Notice({
   linkText?: string;
 }) {
   return (
-    <section className="iv-card center-narrow">
-      <span className="iv-eyebrow">{title}</span>
+    <section className="card-white rp-state">
+      <h1 className="rp-state__title">{title}</h1>
       <p className="iv-sub">{body}</p>
       {linkHref && linkText ? (
         <div className="iv-actions">

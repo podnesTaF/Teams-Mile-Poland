@@ -31,20 +31,20 @@ type Props = {
 export function RegisterSummary({ eventName, dateTime, venue, runner, price, children }: Props) {
   const t = useTranslations("register.confirm");
   return (
-    <aside className="reg-aside">
-      <div className="slots-card reg-summary">
-        <dl className="reg-facts">
+    <aside className="rp-aside">
+      <div className="slots-card rp-summary">
+        <dl className="rp-facts">
           <Fact k={t("race")} v={eventName} />
           <Fact k={t("dateTime")} v={dateTime} />
           <Fact k={t("venue")} v={venue} />
           <Fact k={t("distance")} v={t("distanceValue")} sub={t("distanceSub")} />
           {runner ? <Fact k={t("runner")} v={runner.name} sub={runner.email} /> : null}
         </dl>
-        <div className="reg-cost">
-          <span className="reg-k">{t("cost")}</span>
+        <div className="rp-cost">
+          <span className="rp-k">{t("cost")}</span>
           {price}
         </div>
-        <div className="reg-actions">{children}</div>
+        <div className="rp-actions">{children}</div>
       </div>
     </aside>
   );
@@ -53,8 +53,8 @@ export function RegisterSummary({ eventName, dateTime, venue, runner, price, chi
 /** One fact: a small label over its value. */
 function Fact({ k, v, sub }: { k: string; v: string; sub?: string }) {
   return (
-    <div className="reg-fact">
-      <dt className="reg-k">{k}</dt>
+    <div className="rp-fact">
+      <dt className="rp-k">{k}</dt>
       <dd>
         {v}
         {sub ? <small>{sub}</small> : null}

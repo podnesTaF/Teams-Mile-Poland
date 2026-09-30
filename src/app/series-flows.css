@@ -1464,31 +1464,31 @@
  * sticky `.slots-card` on the right (`RegisterSummary`). Everything here sits
  * on white, so the light `.finput` / `.flabel` skin applies unchanged and the
  * hint text gets its own class instead of the dark page's white `.iv-note`. */
-.ace-landing .reg {
+.ace-landing .rp {
   display: flex;
   flex-direction: column;
   gap: 26px;
 }
-.ace-landing .reg-head {
+.ace-landing .rp-head {
   margin: 0;
 }
-.ace-landing .reg-head .iv-sub {
+.ace-landing .rp-head .iv-sub {
   max-width: 62ch;
 }
-.ace-landing .reg-grid {
+.ace-landing .rp-grid {
   grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.85fr);
 }
-.ace-landing .reg-card {
+.ace-landing .rp-card {
   padding: clamp(24px, 3vw, 36px);
   display: flex;
   flex-direction: column;
   gap: 18px;
   min-width: 0;
 }
-.ace-landing .reg-card .banner {
+.ace-landing .rp-card .banner {
   margin: 0;
 }
-.ace-landing .reg-section__h {
+.ace-landing .rp-section__h {
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
@@ -1497,13 +1497,13 @@
   line-height: 1.1;
   color: var(--ink);
 }
-.ace-landing .reg-section__sub {
+.ace-landing .rp-section__sub {
   margin: -8px 0 0;
   font-size: 0.9rem;
   line-height: 1.5;
   color: var(--muted);
 }
-.ace-landing .reg-card .fgrid {
+.ace-landing .rp-card .fgrid {
   gap: 16px 18px;
 }
 .ace-landing .fhint {
@@ -1518,11 +1518,41 @@
 .ace-landing .slots-card .iv-note {
   color: var(--muted);
 }
-.ace-landing .reg-card .fselect.finput--err,
-.ace-landing .reg-card .finput--err {
+.ace-landing .rp-card .fselect.finput--err,
+.ace-landing .rp-card .finput--err {
   border-color: var(--red);
 }
-.ace-landing .reg-card .phone-field .ff-error-msg {
+.ace-landing .rp-card .phone-field .ff-error-msg {
+  margin: 6px 0 0;
+  font-family: inherit;
+  font-size: 0.78rem;
+  color: var(--red);
+}
+
+/* The complete-your-profile step: the profile form on the white card, its own
+ * dark card chrome dropped and its section heads read as ink. */
+.ace-landing .rp-card--single {
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+}
+.ace-landing .profile-form--light {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+.ace-landing .profile-form--light .form-section {
+  border-bottom-color: var(--grey-line);
+}
+.ace-landing .profile-form--light .form-section__h {
+  color: var(--ink);
+}
+.ace-landing .profile-form--light .form-section__sub,
+.ace-landing .profile-form--light .form-actions__note {
+  color: var(--muted);
+}
+.ace-landing .profile-form--light .phone-field .ff-error-msg {
   margin: 6px 0 0;
   font-family: inherit;
   font-size: 0.78rem;
@@ -1530,31 +1560,31 @@
 }
 
 /* Consent: two controls, each with its document links beneath. */
-.ace-landing .reg-consent {
+.ace-landing .rp-consent {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
-.ace-landing .reg-consent__item {
+.ace-landing .rp-consent__item {
   border: 1px solid var(--grey-line);
   border-radius: 6px;
   padding: 16px 18px;
   margin: 0;
   min-width: 0;
 }
-.ace-landing .reg-consent__item[aria-invalid="true"] {
+.ace-landing .rp-consent__item[aria-invalid="true"] {
   border-color: var(--red);
   box-shadow: 0 0 0 3px var(--red-soft);
 }
-.ace-landing .reg-consent .auth-check {
+.ace-landing .rp-consent .auth-check {
   font-size: 0.9rem;
   line-height: 1.5;
   color: var(--ink);
 }
-.ace-landing .reg-consent .auth-check input {
+.ace-landing .rp-consent .auth-check input {
   margin-top: 1px;
 }
-.ace-landing .reg-consent__legend {
+.ace-landing .rp-consent__legend {
   font-family: var(--font-cta), "Exo 2", sans-serif;
   font-weight: 700;
   font-size: 0.9rem;
@@ -1562,23 +1592,23 @@
   padding: 0;
   margin-bottom: 12px;
 }
-.ace-landing .reg-consent__radios {
+.ace-landing .rp-consent__radios {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.ace-landing .reg-consent__radios .radio {
+.ace-landing .rp-consent__radios .radio {
   display: flex;
   align-items: flex-start;
   font-size: 0.9rem;
   line-height: 1.5;
   color: var(--ink);
 }
-.ace-landing .reg-consent__radios .radio input {
+.ace-landing .rp-consent__radios .radio input {
   flex: 0 0 auto;
   margin-top: 2px;
 }
-.ace-landing .reg-consent__docs {
+.ace-landing .rp-consent__docs {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
@@ -1587,18 +1617,62 @@
   line-height: 1.45;
   color: var(--muted);
 }
-.ace-landing .reg-consent__docs .link {
+.ace-landing .rp-consent__docs .link {
   color: var(--red);
 }
-.ace-landing .reg-consent .field-msg {
+.ace-landing .rp-consent .field-msg {
   margin-top: 10px;
 }
 
+/* Terminal states of the register flow — "check your email", already
+ * registered, verify, age, closed. A white card like the form they replace,
+ * not the dark translucent `.iv-card`: the eyebrow stays red, the body reads
+ * as ink, and the info banner turns light so it is legible on white. */
+.ace-landing .rp-state {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 44px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.ace-landing .rp-state__title {
+  font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1.05;
+  color: var(--ink);
+  margin: 6px 0 0;
+}
+.ace-landing .rp-state .iv-sub {
+  color: var(--ink-soft);
+  margin-top: 12px;
+}
+.ace-landing .rp-state .iv-actions {
+  margin-top: 22px;
+}
+.ace-landing .rp-state .banner {
+  width: 100%;
+  margin: 16px 0 0;
+}
+.ace-landing .rp-state .banner--info {
+  background: #f6f6f4;
+  border-color: var(--grey-line);
+  color: var(--ink-soft);
+}
+.ace-landing .rp-state .btn-stroke-dark {
+  background: #fff;
+  backdrop-filter: none;
+}
+
 /* Summary aside: facts, price, button. */
-.ace-landing .reg-summary {
+.ace-landing .rp-summary {
   gap: 18px;
 }
-.ace-landing .reg-k {
+.ace-landing .rp-k {
   font-family: var(--font-cta), "Exo 2", sans-serif;
   font-weight: 700;
   font-size: 0.7rem;
@@ -1606,13 +1680,13 @@
   text-transform: uppercase;
   color: var(--muted);
 }
-.ace-landing .reg-facts {
+.ace-landing .rp-facts {
   display: flex;
   flex-direction: column;
   gap: 0;
   margin: 0;
 }
-.ace-landing .reg-fact {
+.ace-landing .rp-fact {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -1620,10 +1694,10 @@
   border-bottom: 1px solid #ececec;
   min-width: 0;
 }
-.ace-landing .reg-fact:first-child {
+.ace-landing .rp-fact:first-child {
   padding-top: 0;
 }
-.ace-landing .reg-fact dd {
+.ace-landing .rp-fact dd {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
@@ -1631,18 +1705,18 @@
   color: var(--ink);
   overflow-wrap: anywhere;
 }
-.ace-landing .reg-fact dd small {
+.ace-landing .rp-fact dd small {
   display: block;
   font-size: 0.8rem;
   font-weight: 400;
   color: var(--muted);
 }
-.ace-landing .reg-cost {
+.ace-landing .rp-cost {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-.ace-landing .reg-price {
+.ace-landing .rp-price {
   font-family: var(--font-head), "Fira Sans Condensed", sans-serif;
   font-weight: 700;
   font-style: italic;
@@ -1650,41 +1724,41 @@
   line-height: 1.1;
   color: var(--ink);
 }
-.ace-landing .reg-price--free {
+.ace-landing .rp-price--free {
   color: var(--ok);
 }
-.ace-landing .reg-cost small {
+.ace-landing .rp-cost small {
   font-size: 0.8rem;
   color: var(--muted);
 }
-.ace-landing .reg-actions {
+.ace-landing .rp-actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.ace-landing .reg-actions .slots-note {
+.ace-landing .rp-actions .slots-note {
   margin: 0;
 }
 .ace-landing .slots-note--todo {
   color: var(--ink-soft);
   font-weight: 600;
 }
-.ace-landing .reg-foot .link {
+.ace-landing .rp-foot .link {
   color: var(--red);
 }
 @media (max-width: 860px) {
-  .ace-landing .reg-grid {
+  .ace-landing .rp-grid {
     grid-template-columns: 1fr;
   }
 }
 @media (max-width: 560px) {
-  .ace-landing .reg-card .fgrid {
+  .ace-landing .rp-card .fgrid {
     grid-template-columns: 1fr;
   }
-  .ace-landing .reg-card .fgrid .col-2 {
+  .ace-landing .rp-card .fgrid .col-2 {
     grid-column: auto;
   }
-  .ace-landing .reg-consent__item {
+  .ace-landing .rp-consent__item {
     padding: 14px;
   }
 }

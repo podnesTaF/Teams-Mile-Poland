@@ -88,13 +88,13 @@ export function ConsentFields({
   }
 
   return (
-    <div className="reg-consent">
-      <div className="reg-section__h">{t("consent.title")}</div>
-      <p className="reg-section__sub">{t("consent.subtitle")}</p>
+    <div className="rp-consent">
+      <div className="rp-section__h">{t("consent.title")}</div>
+      <p className="rp-section__sub">{t("consent.subtitle")}</p>
 
       {tickItems.length > 0 ? (
         <div
-          className="reg-consent__item"
+          className="rp-consent__item"
           data-consent-item={tickItems.map((item) => item.id).join(" ")}
           aria-invalid={tickFlagged || undefined}
         >
@@ -108,7 +108,7 @@ export function ConsentFields({
             />
             <span>{combinedLabel ?? t("consent.combined")}</span>
           </label>
-          <div className="reg-consent__docs">
+          <div className="rp-consent__docs">
             <span>{t("consent.readDocs")}</span>
             {docSlugs.map((slug) => (
               <Link
@@ -129,12 +129,12 @@ export function ConsentFields({
       {questions.map((item) => (
         <fieldset
           key={item.id}
-          className="reg-consent__item reg-consent__q"
+          className="rp-consent__item rp-consent__q"
           aria-invalid={flagged.has(item.id) || undefined}
           data-consent-item={item.id}
         >
-          <legend className="reg-consent__legend">{t("consent.image.question")}</legend>
-          <div className="reg-consent__radios">
+          <legend className="rp-consent__legend">{t("consent.image.question")}</legend>
+          <div className="rp-consent__radios">
             <label className="radio">
               <input
                 type="radio"
@@ -156,7 +156,7 @@ export function ConsentFields({
               <span>{t("consent.image.disagree")}</span>
             </label>
           </div>
-          <div className="reg-consent__docs">
+          <div className="rp-consent__docs">
             <span>{t("consent.image.note")}</span>
             <Link
               href={`/events/${eventSlug}/legal/${item.docSlug}`}

@@ -220,7 +220,7 @@ export function RegisterConfirm({
   const price = (
     <>
       <strong
-        className={cardPaid || paid ? "reg-price" : "reg-price reg-price--free"}
+        className={cardPaid || paid ? "rp-price" : "rp-price rp-price--free"}
         data-entry-fee={feeAcer}
         data-entry-price-pln={cardPaid ? pricePln : undefined}
         data-entry-fee-balance={paid ? balanceAcer : undefined}
@@ -232,15 +232,15 @@ export function RegisterConfirm({
   );
 
   return (
-    <div className="reg">
-      <header className="page-head reg-head">
+    <div className="rp">
+      <header className="page-head rp-head">
         <span className="iv-eyebrow">{t("confirm.eyebrow")}</span>
         <h1 className="iv-title">{t("confirm.title")}</h1>
         <p className="iv-sub">{t("confirm.subtitle")}</p>
       </header>
 
-      <form onSubmit={onSubmit} className="detail-grid reg-grid">
-        <div className="card-white reg-card">
+      <form onSubmit={onSubmit} className="detail-grid rp-grid">
+        <div className="card-white rp-card">
           {shortfall ? (
             <div
               className="banner banner--warn"
@@ -318,8 +318,8 @@ export function RegisterConfirm({
 
 function StateCard({ title, body }: { title: string; body: string }) {
   return (
-    <section className="iv-card center-narrow">
-      <span className="iv-eyebrow">{title}</span>
+    <section className="card-white rp-state">
+      <h1 className="rp-state__title">{title}</h1>
       <p className="iv-sub">{body}</p>
     </section>
   );

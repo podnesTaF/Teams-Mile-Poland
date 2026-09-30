@@ -169,8 +169,9 @@ export function GuestRegisterForm({
   // at the confirm step where the documents are.
   if (sent) {
     return (
-      <section className="iv-card center-narrow">
-        <span className="iv-eyebrow">{t("checkEmail.title")}</span>
+      <section className="card-white rp-state" data-register-state="check-email">
+        <span className="iv-eyebrow">{t("guest.eyebrow")}</span>
+        <h1 className="rp-state__title">{t("checkEmail.title")}</h1>
         <p className="iv-sub">{t("checkEmail.body", { email: data.email })}</p>
         {resent ? <div className="banner banner--info">{t("checkEmail.resent")}</div> : null}
         {banner}
@@ -192,7 +193,7 @@ export function GuestRegisterForm({
   const paid = feeAcer > 0;
   const price = (
     <strong
-      className={cardPaid || paid ? "reg-price" : "reg-price reg-price--free"}
+      className={cardPaid || paid ? "rp-price" : "rp-price rp-price--free"}
       data-entry-price-notice={cardPaid ? pricePln : undefined}
       data-entry-fee-notice={paid ? feeAcer : undefined}
     >
@@ -205,17 +206,17 @@ export function GuestRegisterForm({
   );
 
   return (
-    <div className="reg">
-      <header className="page-head reg-head">
+    <div className="rp">
+      <header className="page-head rp-head">
         <span className="iv-eyebrow">{t("guest.eyebrow")}</span>
         <h1 className="iv-title">{t("guest.title", { event: eventName })}</h1>
         <p className="iv-sub">{t("guest.detailsSub")}</p>
       </header>
 
-      <form onSubmit={onSubmit} noValidate className="detail-grid reg-grid">
-        <div className="card-white reg-card">
+      <form onSubmit={onSubmit} noValidate className="detail-grid rp-grid">
+        <div className="card-white rp-card">
           {banner}
-          <div className="reg-section__h">{t("guest.detailsTitle")}</div>
+          <div className="rp-section__h">{t("guest.detailsTitle")}</div>
           <div className="fgrid">
             <Field label={t("guest.email")} error={message(fieldErrors.email)} full>
               <input
@@ -302,7 +303,7 @@ export function GuestRegisterForm({
           <p className="slots-note">{t("guest.passwordNote")}</p>
           {cardPaid ? <p className="slots-note">{t("payment.guestNote")}</p> : null}
           <p className="slots-note">{t("guest.consentNote")}</p>
-          <p className="slots-note reg-foot">
+          <p className="slots-note rp-foot">
             {t("guest.signInPrompt")}{" "}
             <Link href={signInHref} className="link">
               {t("guest.signIn")}

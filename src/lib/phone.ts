@@ -101,6 +101,19 @@ function splitDialCode(digits: string): ParsedPhone {
 export function parsePhone(value: string): ParsedPhone {
   const digits = onlyDigits(value);
   if (!digits) return { dialCode: DEFAULT_DIAL_CODE, national: "" };
+  // Only a value written with "+" carries a dial code. A bare "512345678" — the
+  // shape the legacy import stored, and what `toE164` reads as Polish — must not
+  // be split by longest prefix, or the "51" makes it a Peruvian number and the
+  // profile form shows a runner their own phone under the wrong flag.
+  if (!value.trim().startsWith("+")) {
+    // Read the bare digits the way `toE164` does — against PL — so a legacy
+    // "48512345678" lands on +48 512… rather than on a 11-digit Polish number.
+    const parsed = parseNumber(digits, DEFAULT_COUNTRY_ISO as CountryCode, metadata);
+    if (parsed?.isValid()) {
+      return { dialCode: parsed.countryCallingCode, national: parsed.nationalNumber };
+    }
+    return { dialCode: DEFAULT_DIAL_CODE, national: digits };
+  }
   return splitDialCode(digits);
 }
 

@@ -1404,7 +1404,8 @@
     "teams": {
       "title": "Moje zespoły",
       "heading": "Twoje zespoły"
-    }
+    },
+    "checkFields": "Sprawdź zaznaczone pola i spróbuj ponownie."
   },
   "teams": {
     "landingCta": "Znajdź zespół",
