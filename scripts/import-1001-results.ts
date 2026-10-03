@@ -48,8 +48,8 @@ import { formatTime } from "../src/lib/events/time";
 
 const SLUG = "mile-2026-10-01";
 const HEAT = 1;
-/** The pick-up team's name on the results page — a text column, rename freely. */
-const TEAM_NAME = "Combined team 01.10";
+/** Owner (2026-10-03): the run counts for the platform team AB Wilanów; resolveTeamResults links it by name. */
+const TEAM_NAME = "AB Wilanów";
 const WRITE = process.argv.includes("--write");
 const filePath = process.argv[2];
 
