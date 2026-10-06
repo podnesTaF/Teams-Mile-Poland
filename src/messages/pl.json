@@ -1005,7 +1005,7 @@
           "bannerTitle": "Zapisy otwarte",
           "bannerTxt": "Zapisy są bezpłatne i otwarte — zajmij miejsce. Obowiązuje regulamin.",
           "note": "Przed finalizacją potwierdzisz datę, godzinę, miejsce i regulamin.",
-          "cta": "Zapisz się za darmo →"
+          "cta": "Zapisz się na wydarzenie →"
         },
         "full": {
           "kicker": "Brak miejsc",
@@ -1047,7 +1047,7 @@
           "bannerTitle": "Zapisy otwarte",
           "bannerTxt": "Zapisy są otwarte. Wstęp jest płatny — cena jest poniżej. Obowiązuje regulamin.",
           "note": "Przed finalizacją potwierdzisz datę, godzinę, miejsce i regulamin.",
-          "cta": "Zapisz się →"
+          "cta": "Zapisz się na wydarzenie →"
         }
       },
       "feeIndividual": "Zapis indywidualny: {amount} ACER",

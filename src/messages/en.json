@@ -1005,7 +1005,7 @@
           "bannerTitle": "Registration open",
           "bannerTxt": "Registration is free and open — claim your place. Terms of entry apply.",
           "note": "You'll confirm date, time, venue and terms before anything is final.",
-          "cta": "Register free →"
+          "cta": "Register for the event →"
         },
         "full": {
           "kicker": "Sold out",
@@ -1047,7 +1047,7 @@
           "bannerTitle": "Registration open",
           "bannerTxt": "Registration is open. Entry is paid — the price is below. Terms of entry apply.",
           "note": "You'll confirm date, time, venue and terms before anything is final.",
-          "cta": "Register →"
+          "cta": "Register for the event →"
         }
       },
       "feeIndividual": "Individual entry: {amount} ACER",
