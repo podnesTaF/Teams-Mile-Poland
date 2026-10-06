@@ -2026,7 +2026,7 @@
     },
     "payment": {
       "amount": "{price} zł",
-      "submit": "Pay {price} zł and register",
+      "submit": "Register",
       "note": "Paid by card on Stripe's secure page. Your place and ticket are confirmed as soon as the payment goes through.",
       "guestNote": "paid by card when you confirm your registration.",
       "settlingTitle": "Payment received",

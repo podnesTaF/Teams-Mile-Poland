@@ -295,7 +295,7 @@ export function RegisterConfirm({
             {pending
               ? t("submitting")
               : cardPaid
-                ? t("payment.submit", { price: pricePln })
+                ? t("payment.submit")
                 : t("confirm.submit")}
           </button>
           {!complete && !pending ? (
