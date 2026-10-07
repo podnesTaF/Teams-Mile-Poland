@@ -5,7 +5,6 @@ import { Archive } from "@/components/landing/archive";
 import { Atmosphere } from "@/components/landing/atmosphere";
 import { Audience } from "@/components/landing/audience";
 import { Contact } from "@/components/landing/contact";
-import { CookieConsent } from "@/components/landing/cookie-consent";
 import { EventSeries } from "@/components/landing/event-series";
 import { Faq } from "@/components/landing/faq";
 import { FinalCta } from "@/components/landing/final-cta";
@@ -98,7 +97,6 @@ export async function LandingView() {
         nextEventDate={featuredEvent?.date ?? null}
         registerHref={registerHref}
       />
-      <CookieConsent />
     </div>
   );
 }

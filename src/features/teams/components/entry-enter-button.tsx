@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { minorToAcer } from "@/features/wallet/config";
 import { useRouter } from "@/i18n/navigation";
+import { trackFormSubmit, trackFormSubmitThen } from "@/lib/analytics";
 import { localePath } from "@/lib/i18n/config";
 import { useActionRun } from "@/lib/use-action-run";
 
@@ -155,9 +156,19 @@ export function EntryEnterButton({
       // A card-paid night: the entry is written by the webhook once Stripe has
       // the fee, so the next stop is Stripe, not the entry page.
       if ("checkoutUrl" in result) {
-        window.location.assign(result.checkoutUrl);
+        const url = result.checkoutUrl;
+        trackFormSubmitThen(
+          "team_entry",
+          { team_slug: teamSlug, event_slug: eventSlug, payment: "card", status: "checkout" },
+          () => window.location.assign(url),
+        );
         return;
       }
+      trackFormSubmit("team_entry", {
+        team_slug: teamSlug,
+        event_slug: eventSlug,
+        status: "entered",
+      });
       // Straight to the entry page: the next thing the captain wants is the
       // checklist of who has confirmed.
       router.push(`/teams/${teamSlug}/entries/${eventSlug}`);
@@ -265,11 +276,7 @@ export function EntryEnterButton({
                 {failedReason === "treasury_insufficient" ? (
                   <>
                     {" "}
-                    <a
-                      className="iv-linkbtn"
-                      href="#treasury"
-                      data-entry-topup={event.slug}
-                    >
+                    <a className="iv-linkbtn" href="#treasury" data-entry-topup={event.slug}>
                       {t("topUp")}
                     </a>
                   </>

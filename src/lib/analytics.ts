@@ -2,9 +2,14 @@
  * Lightweight dataLayer helpers for Google Tag Manager.
  *
  * GTM itself is loaded by <GoogleTagManager /> (see components/analytics/gtm).
- * Marketing wires up tags/triggers in the GTM UI; the app's only contract is
- * to push a `form_submit` event whenever a form is successfully submitted,
- * carrying a `form_name` (and any extra context) so GTM can hook each form.
+ * Marketing wires up tags/triggers in the GTM UI; the app's contract is two
+ * custom events: `form_submit` (with `form_name`) whenever a form succeeds,
+ * and `link_click` (with `link_name`) for the clicks marketing counts.
+ *
+ * `form_name` values: registration_solo / registration_team /
+ * registration_join (legacy /register modal), registration_event (per-event
+ * registration, `mode` account|guest), sign_up, sign_in, team_create,
+ * team_entry, team_join, contact.
  */
 
 declare global {
@@ -28,14 +33,43 @@ export function trackFormSubmit(formName: string, extra?: Record<string, unknown
 }
 
 /**
+ * `trackFormSubmit` for a submit that leaves the page right after (Stripe
+ * Checkout, the signed ticket): a push followed by a hard navigation can be
+ * lost before GTM's tags send. `next` runs once GTM reports its tags fired
+ * (`eventCallback`), or after a short timeout when GTM is absent, blocked or
+ * slow — so the runner is never stranded on the form.
+ */
+export function trackFormSubmitThen(
+  formName: string,
+  extra: Record<string, unknown> | undefined,
+  next: () => void,
+) {
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    next();
+  };
+  pushDataLayer({
+    event: "form_submit",
+    form_name: formName,
+    ...extra,
+    eventCallback: finish,
+    eventTimeout: 800,
+  });
+  setTimeout(finish, 1000);
+}
+
+/**
  * Click event for the action links/buttons marketing cares about — the
- * group (WhatsApp/Telegram) joins, phone/email links, and link-copy buttons
- * that sit after a form or in the footer. `linkName` identifies which one
- * fired (e.g. "footer_whatsapp", "success_copy_link"); `extra` adds context.
+ * group (WhatsApp/Telegram) joins, phone/email links, link-copy buttons, and
+ * the entry points into registration. `linkName` identifies which one fired
+ * (e.g. "footer_whatsapp", "event_register_cta"); `extra` adds context.
  *
- * Uses GTM's `gtm.linkClick` event name so marketing can hook these the same
- * way they hook GTM's built-in click triggers.
+ * A custom `link_click` event, not GTM's reserved `gtm.linkClick`, so these
+ * don't collide with GTM's built-in Just Links triggers. In GTM, hook them
+ * with a Custom Event trigger on `link_click`.
  */
 export function trackLinkClick(linkName: string, extra?: Record<string, unknown>) {
-  pushDataLayer({ event: "gtm.linkClick", link_name: linkName, ...extra });
+  pushDataLayer({ event: "link_click", link_name: linkName, ...extra });
 }

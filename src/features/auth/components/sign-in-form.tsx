@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { Link, useRouter } from "@/i18n/navigation";
+import { trackFormSubmit } from "@/lib/analytics";
 import { authClient } from "@/lib/auth/auth-client";
 
 import { GoogleButton } from "./google-button";
@@ -32,9 +33,7 @@ export function SignInForm({
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(true);
-  const [error, setError] = useState<string | null>(
-    oauthError ? t("errors.oauthCallback") : null,
-  );
+  const [error, setError] = useState<string | null>(oauthError ? t("errors.oauthCallback") : null);
   // Shown verbatim under the translated banner. Untranslated on purpose: it is
   // a support handle, not prose, and it must read the same in every locale.
   const [errorCode, setErrorCode] = useState<string | null>(oauthError ? oauthErrorCode : null);
@@ -76,6 +75,7 @@ export function SignInForm({
         }
         return;
       }
+      trackFormSubmit("sign_in", { method: "email", redirect_to: redirectTo });
       router.push(redirectTo);
       router.refresh();
     });

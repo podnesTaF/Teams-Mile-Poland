@@ -1,6 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
+import { trackLinkClick } from "@/lib/analytics";
 import { authClient } from "@/lib/auth/auth-client";
 
 type Props = {
@@ -35,6 +36,9 @@ export function EventRegisterCta({
   const { data, isPending } = authClient.useSession();
   const target = `/events/${slug}/register`;
   const enc = encodeURIComponent(target);
+  const placement = compact ? "sticky_bar" : "entry_card";
+  const track = (action: "register" | "create_account" | "sign_in") => () =>
+    trackLinkClick("event_register_cta", { event_slug: slug, action, placement });
 
   if (isPending) {
     return (
@@ -50,7 +54,7 @@ export function EventRegisterCta({
 
   if (data) {
     return (
-      <Link href={target} className="btn btn-red btn-block">
+      <Link href={target} className="btn btn-red btn-block" onClick={track("register")}>
         {registerLabel}
       </Link>
     );
@@ -58,7 +62,7 @@ export function EventRegisterCta({
 
   if (compact) {
     return (
-      <Link href={target} className="btn btn-red btn-block">
+      <Link href={target} className="btn btn-red btn-block" onClick={track("create_account")}>
         {createLabel}
       </Link>
     );
@@ -66,12 +70,12 @@ export function EventRegisterCta({
 
   return (
     <div className="ev-auth-cta">
-      <Link href={target} className="btn btn-red btn-block">
+      <Link href={target} className="btn btn-red btn-block" onClick={track("create_account")}>
         {createLabel}
       </Link>
       <p className="slots-note">
         {signInPrompt}{" "}
-        <Link href={`/auth/sign-in?redirectTo=${enc}`} className="link">
+        <Link href={`/auth/sign-in?redirectTo=${enc}`} className="link" onClick={track("sign_in")}>
           {signInLabel}
         </Link>
       </p>

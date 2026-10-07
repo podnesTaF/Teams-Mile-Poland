@@ -18,6 +18,7 @@ import { getFeaturedEvent } from "@/lib/events/registry";
 import { formatEventLongDate } from "@/lib/events/time";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/analytics/gtm";
 import { GoogleConsentInit } from "@/components/analytics/consent-init";
+import { CookieConsent } from "@/components/landing/cookie-consent";
 
 const display = Alumni_Sans({
   subsets: ["latin"],
@@ -139,6 +140,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider>
           {children}
           {modal}
+          <CookieConsent />
         </NextIntlClientProvider>
       </body>
     </html>

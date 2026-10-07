@@ -4344,6 +4344,12 @@
 }
 
 /* ---- cookie consent banner ---- */
+/* The banner's own `.ace-landing` wrapper (rendered in the locale layout on
+ * every page): keep the scoped tokens/type, drop the landing root's paint. */
+.ace-landing.cookie-consent-root {
+  background: none;
+  overflow: visible;
+}
 .ace-landing .cookie-consent {
   position: fixed;
   left: 16px;

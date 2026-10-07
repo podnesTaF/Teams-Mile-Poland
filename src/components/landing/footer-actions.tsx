@@ -43,7 +43,7 @@ type Props = {
 /**
  * Interactive footer cluster: group/social links, phone + email, and the
  * "share the site with a friend" button. Every action pushes a
- * `gtm.linkClick` event so marketing can count group joins, phone taps, and
+ * `link_click` event so marketing can count group joins, phone taps, and
  * link copies. The share button copies the current site URL to the clipboard
  * instead of navigating.
  */

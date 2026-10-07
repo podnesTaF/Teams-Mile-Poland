@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import type { ConsentItemsInput } from "@/lib/legal/consent";
 import type { DocSet } from "@/lib/legal/manifest";
+import { trackFormSubmitThen } from "@/lib/analytics";
 
 import { type AcerShortfall, registerForEvent } from "../actions";
 import { ConsentFields, type ConsentItemView } from "./consent-fields";
@@ -179,7 +180,18 @@ export function RegisterConfirm({
         return;
       }
       // Absolute URLs either way — Stripe Checkout, or the signed ticket.
-      window.location.assign("checkoutUrl" in result ? result.checkoutUrl : result.ticketUrl);
+      const checkout = "checkoutUrl" in result;
+      trackFormSubmitThen(
+        "registration_event",
+        {
+          mode: "account",
+          event_slug: eventSlug,
+          payment: checkout ? "card" : paid ? "acer" : "free",
+          // Card nights finish on Stripe; this marks the hand-off, not the payment.
+          status: checkout ? "checkout" : "registered",
+        },
+        () => window.location.assign(checkout ? result.checkoutUrl : result.ticketUrl),
+      );
     });
   }
 
@@ -292,11 +304,7 @@ export function RegisterConfirm({
           price={price}
         >
           <button type="submit" className="btn btn-red btn-block" disabled={pending}>
-            {pending
-              ? t("submitting")
-              : cardPaid
-                ? t("payment.submit")
-                : t("confirm.submit")}
+            {pending ? t("submitting") : cardPaid ? t("payment.submit") : t("confirm.submit")}
           </button>
           {!complete && !pending ? (
             <p className="slots-note slots-note--todo">{t("consent.incompleteHint")}</p>

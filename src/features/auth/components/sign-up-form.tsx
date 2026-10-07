@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 
 import { PhoneField } from "@/components/ui/phone-field";
 import { Link, useRouter } from "@/i18n/navigation";
+import { trackFormSubmit } from "@/lib/analytics";
 import { authClient } from "@/lib/auth/auth-client";
 import { isValidPhone } from "@/lib/phone";
 
@@ -65,6 +66,7 @@ export function SignUpForm({
         setError(err.message ?? t("errors.generic"));
         return;
       }
+      trackFormSubmit("sign_up", { method: "email", redirect_to: redirectTo });
       const params = new URLSearchParams({ email: email.trim().toLowerCase(), redirectTo });
       router.push(`/auth/verify-email?${params.toString()}`);
     });

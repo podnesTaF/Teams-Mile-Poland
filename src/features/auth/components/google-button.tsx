@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { trackLinkClick } from "@/lib/analytics";
 import { authClient } from "@/lib/auth/auth-client";
 import { localePath } from "@/lib/i18n/config";
 
@@ -35,6 +36,9 @@ export function GoogleButton({ callbackURL = "/profile" }: { callbackURL?: strin
   async function onClick() {
     setPending(true);
     setError(null);
+    // The browser leaves for Google next; GA4 can't tell a new account from a
+    // returning one here, so this is the intent, not a completed sign-up.
+    trackLinkClick("auth_google", { redirect_to: callbackURL });
     try {
       const { error: err } = await authClient.signIn.social({
         provider: "google",

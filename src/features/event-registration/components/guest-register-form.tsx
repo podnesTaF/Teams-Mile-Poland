@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 
 import { PhoneField } from "@/components/ui/phone-field";
 import { maxDobForMinAge, MIN_PARTICIPANT_AGE, parseDateOnly } from "@/lib/age";
+import { trackFormSubmit } from "@/lib/analytics";
 import { useValidationMessage } from "@/lib/validation-messages";
 
 import { type GuestRegisterResult, registerAsGuest } from "../actions";
@@ -141,6 +142,12 @@ export function GuestRegisterForm({
       // No ticket yet — an unverified account + verification email were created.
       // Switch to the "check your email" state (or confirm a re-send).
       if (isResend) setResent(true);
+      else
+        trackFormSubmit("registration_event", {
+          mode: "guest",
+          event_slug: eventSlug,
+          status: "verify_email",
+        });
       setSent(true);
     });
   }

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Link, useRouter } from "@/i18n/navigation";
+import { trackFormSubmit } from "@/lib/analytics";
 import { slugify } from "@/features/admin/news-slug";
 import { minorToAcer } from "@/features/wallet/config";
 import { cn } from "@/lib/utils";
@@ -146,6 +147,7 @@ export function TeamForm({
         return;
       }
       if (mode === "create" && "slug" in result) {
+        trackFormSubmit("team_create", { team_slug: result.slug, category: data.category });
         router.push(`/teams/${result.slug}`);
         return;
       }
@@ -186,7 +188,7 @@ export function TeamForm({
 
       <div className="form-section">
         <div className="fgrid">
-          <label className="block col-2">
+          <label className="col-2 block">
             <span className="flabel on-dark">{t("name")}</span>
             <input
               className={cn("finput on-dark", showNameError && "finput--err")}
