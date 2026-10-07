@@ -96,7 +96,7 @@
       "kicker": "For running enthusiasts and professional athletes",
       "title": "Individual and team <red>rating races</red> over one mile.",
       "sub": "RUN • COMPETE • SHOW YOUR LEVEL",
-      "ctaPrimary": "REGISTER FOR FREE →",
+      "ctaPrimary": "REGISTER FOR EVENT →",
       "ctaSecondary": "Contact us",
       "venue": "Stadion Podskarbińska",
       "stats": {
@@ -472,7 +472,7 @@
     },
     "finalCta": {
       "title": "Register while there are still spots",
-      "cta": "REGISTER FOR FREE →"
+      "cta": "REGISTER FOR EVENT →"
     },
     "footer": {
       "sub": "WARSZAWA",
