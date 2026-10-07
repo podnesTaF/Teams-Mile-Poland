@@ -17,6 +17,7 @@ import { minorToAcer } from "@/features/wallet/config";
 import { getAcerBalance } from "@/features/wallet/data";
 import { startIndividualCheckout } from "@/features/event-payments/checkout";
 import { individualEntryFeeMinor } from "@/features/wallet/entry-fees";
+import { isUniqueViolation } from "@/features/teams/creation";
 
 import { buildConsentRows, termsAcceptedFrom, validateConsentItems } from "@/lib/legal/consent";
 import type { DocSet } from "@/lib/legal/manifest";
@@ -306,7 +307,9 @@ export async function registerForEvent(
     if (isInsufficientAcer(error)) {
       return insufficientAcer(feeMinor, await getAcerBalance(user.id));
     }
-    if (error instanceof Error && /unique|duplicate/i.test(error.message)) {
+    // Matched on the index by name, through the `cause` chain: Drizzle wraps
+    // the driver error, so the top-level message never says "duplicate".
+    if (isUniqueViolation(error, "event_registrations_event_user_uq")) {
       return { ok: false, reason: "duplicate", message: "You're already registered." };
     }
     return { ok: false, reason: "error", message: "Registration failed. Please try again." };
