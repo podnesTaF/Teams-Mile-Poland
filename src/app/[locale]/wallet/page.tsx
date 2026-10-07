@@ -6,6 +6,7 @@ import "@/app/landing.css";
 import "@/app/series-flows.css";
 import "./wallet.css";
 
+import { CheckoutReturn } from "@/components/analytics/checkout-return";
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { WALLET_ASSETS } from "@/db/schema";
 // ACER top-up is off (ADR 0015) — ACER is a reward currency for now.
@@ -133,6 +134,7 @@ export default async function WalletPage({ params, searchParams }: PageProps) {
           <h1 className="iv-title">{t("title")}</h1>
           <p className="iv-sub">{t("subtitle")}</p>
 
+          {flash === "success" || flash === "settling" ? <CheckoutReturn kind="acer" /> : null}
           {flash ? (
             <p className="wl-flash" data-tone={FLASH_TONE[flash]} role="status">
               {t(`purchase.flash.${flash}`)}

@@ -6,6 +6,7 @@ import { localePath } from "@/lib/i18n/config";
 
 import { TeamJoinRequestDecidedEmail } from "./emails/join-request-decided";
 import { TeamJoinRequestReceivedEmail } from "./emails/join-request-received";
+import { TeamJoinRequestSentEmail } from "./emails/join-request-sent";
 import {
   sendTeamMail,
   teamMailFacts,
@@ -14,8 +15,9 @@ import {
 } from "./mail-invitations";
 
 /**
- * The two join-request emails (#61): **received** to the manager when a runner
- * knocks, **decided** to the runner when the manager answers.
+ * The join-request emails (#61): **received** to the manager when a runner
+ * knocks, **sent** to the runner as the receipt for that knock, and **decided**
+ * to the runner when the manager answers.
  *
  * Transport, locale narrowing and the team-facts block all come from
  * `mail-invitations.ts` — there is one `sendTeamMail` for the whole feature, so
@@ -71,6 +73,51 @@ export async function sendJoinRequestReceivedEmail({
         body: t("body", { name: runnerName, team: team.name }),
         roster: t("roster", { count }),
         intro: t("intro"),
+        cta: t("cta"),
+        labels,
+      },
+    }),
+  });
+}
+
+/**
+ * The runner's receipt: "your request to join <team> is with the captain".
+ * Without it a runner who knocks hears nothing until the manager decides, which
+ * may be days — or never. The button goes to the profile's request list.
+ */
+export async function sendJoinRequestSentEmail({
+  to,
+  locale,
+  team,
+  firstName,
+}: {
+  to: string;
+  locale: TeamMailLocale;
+  team: UserTeamRow;
+  /** The runner's first name, for the greeting. */
+  firstName: string;
+}): Promise<boolean> {
+  const t = (await getTranslations({
+    locale,
+    namespace: "teams.emails.requestSent",
+  })) as Translate;
+  const { facts, labels } = await teamMailFacts(locale, team, t);
+  const url = `${getAppUrl()}${localePath(locale, "/profile")}#teams`;
+
+  return sendTeamMail({
+    to,
+    locale,
+    subject: t("subject", { team: team.name }),
+    react: TeamJoinRequestSentEmail({
+      url,
+      team: facts,
+      copy: {
+        preview: t("preview", { team: team.name }),
+        eyebrow: t("eyebrow"),
+        title: t("title"),
+        greeting: t("greeting", { name: firstName }),
+        body: t("body", { team: team.name }),
+        outro: t("outro"),
         cta: t("cta"),
         labels,
       },

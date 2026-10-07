@@ -174,7 +174,7 @@ export default async function TeamJoinPage({ params }: PageProps) {
         <Offer card={card} state="pending" title={t("pendingTitle")}>
           <p className="iv-sub">{t("pendingBody", { team: team.name })}</p>
           <div className="iv-actions">
-            <Link className="btn btn-stroke-dark" href="/profile#teams">
+            <Link className="btn btn-stroke-dark" href="/profile?tab=teams">
               {t("profileCta")}
             </Link>
           </div>

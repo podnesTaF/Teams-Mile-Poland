@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useRouter } from "@/i18n/navigation";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { useActionRun } from "@/lib/use-action-run";
 
@@ -49,6 +50,7 @@ export function InviteForm({ slug }: { slug: string }) {
         setError(tReasons(result.reason));
         return;
       }
+      trackEvent("team_invite_send");
       setNotice(t("sent", { email: result.email }));
       setEmail("");
       setTouched(false);

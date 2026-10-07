@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useRouter } from "@/i18n/navigation";
+import { trackEvent } from "@/lib/analytics";
 import { useActionRun } from "@/lib/use-action-run";
 
 import { requestToJoin } from "../actions/join-requests";
@@ -41,6 +42,7 @@ export function JoinConfirm({ code, label }: { code: string; label?: string }) {
         setError(tReasons(result.reason));
         return;
       }
+      trackEvent("team_join_request", { joined: result.joined });
       if (result.joined) {
         router.push(`/teams/${result.teamSlug}`);
         return;

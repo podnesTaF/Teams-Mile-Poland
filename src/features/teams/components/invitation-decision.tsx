@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useRouter } from "@/i18n/navigation";
+import { trackEvent } from "@/lib/analytics";
 import { useActionRun } from "@/lib/use-action-run";
 
 import { respondToInvitation } from "../actions/invitations";
@@ -40,6 +41,7 @@ export function DecisionButtons({ token }: { token: string }) {
         setError(tReasons(result.reason));
         return;
       }
+      trackEvent("team_invite_response", { decision: next });
       if (next === "accept") {
         router.push(`/teams/${result.teamSlug}`);
         return;

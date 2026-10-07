@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { Link, useRouter } from "@/i18n/navigation";
+import { trackEvent, trackFunnelBlocked } from "@/lib/analytics";
 import { authClient } from "@/lib/auth/auth-client";
 
 import { GoogleButton } from "./google-button";
@@ -62,6 +63,7 @@ export function SignInForm({
         // not match the host being browsed). Telling someone to verify an
         // already-verified email sends them after the wrong problem.
         if (err.code === "EMAIL_NOT_VERIFIED") {
+          trackFunnelBlocked("login", "verify");
           setNeedsVerify(true);
           setError(t("errors.notVerified"));
         } else if (err.code === "INVALID_EMAIL_OR_PASSWORD") {
@@ -76,6 +78,7 @@ export function SignInForm({
         }
         return;
       }
+      trackEvent("login", { method: "email" });
       router.push(redirectTo);
       router.refresh();
     });

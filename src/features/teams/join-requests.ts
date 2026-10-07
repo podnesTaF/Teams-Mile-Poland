@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, or, sql } from "drizzle-orm";
 
 import { users } from "@/db/schema/auth";
 import {
@@ -112,17 +112,39 @@ export async function listPendingJoinRequests(teamId: string): Promise<PendingJo
   }));
 }
 
-/** Every open request one runner has out, across teams — the profile's list. */
-export async function listPendingJoinRequestsForUser(
-  userId: string,
-): Promise<JoinRequestWithTeam[]> {
+/** How long an answered request stays on the runner's profile. */
+const DECIDED_REQUEST_VISIBLE_DAYS = 30;
+
+/**
+ * The profile's "requests you have sent": every open request **plus** the ones
+ * a manager answered in the last {@link DECIDED_REQUEST_VISIBLE_DAYS} days, so
+ * an accept or a decline is something the runner can see where they asked —
+ * not only in a mail they may have missed. Withdrawn rows are the runner's own
+ * act and are left out. Pending first, then newest.
+ */
+export async function listJoinRequestsForUser(userId: string): Promise<JoinRequestWithTeam[]> {
   const db = getDb();
+  const since = new Date(Date.now() - DECIDED_REQUEST_VISIBLE_DAYS * 24 * 60 * 60 * 1000);
   return db
     .select({ request: userTeamJoinRequests, team: userTeams })
     .from(userTeamJoinRequests)
     .innerJoin(userTeams, eq(userTeams.id, userTeamJoinRequests.teamId))
-    .where(and(eq(userTeamJoinRequests.userId, userId), eq(userTeamJoinRequests.status, "pending")))
-    .orderBy(desc(userTeamJoinRequests.createdAt));
+    .where(
+      and(
+        eq(userTeamJoinRequests.userId, userId),
+        or(
+          eq(userTeamJoinRequests.status, "pending"),
+          and(
+            inArray(userTeamJoinRequests.status, ["accepted", "declined"]),
+            gte(userTeamJoinRequests.decidedAt, since),
+          ),
+        ),
+      ),
+    )
+    .orderBy(
+      sql`case when ${userTeamJoinRequests.status} = 'pending' then 0 else 1 end`,
+      desc(sql`coalesce(${userTeamJoinRequests.decidedAt}, ${userTeamJoinRequests.createdAt})`),
+    );
 }
 
 /** Postgres unique-violation, optionally on one named constraint. */

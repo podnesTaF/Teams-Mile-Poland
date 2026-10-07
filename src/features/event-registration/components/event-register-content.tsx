@@ -24,6 +24,7 @@ import { isTwoAnswerItem } from "@/lib/legal/consent";
 import { getConsentItems, type DocSet } from "@/lib/legal/manifest";
 import { acceptsIndividuals, acceptsTeams, entryPricePln } from "@/lib/events/types";
 import { hasSettlingIndividualPayment } from "@/features/event-payments/checkout";
+import { CheckoutReturn } from "@/components/analytics/checkout-return";
 
 /** Serialize a stored DOB (Date via mode:"date", or string) to YYYY-MM-DD. */
 function toDateInput(value: unknown): string {
@@ -134,9 +135,14 @@ export async function EventRegisterContent({
       </section>
     );
   }
+  // Back from Stripe: report the purchase whichever card renders below.
+  const checkoutReturn =
+    payment === "success" && pricePln > 0 ? <CheckoutReturn kind="entry_individual" /> : null;
+
   if (existing) {
     return (
       <section className="card-white rp-state">
+        {checkoutReturn}
         <h1 className="rp-state__title">{t("alreadyTitle")}</h1>
         <p className="iv-sub">{t("alreadyBody")}</p>
         <div className="iv-actions">
@@ -158,6 +164,7 @@ export async function EventRegisterContent({
   ) {
     return (
       <section className="card-white rp-state" data-payment-settling="1">
+        {checkoutReturn}
         <h1 className="rp-state__title">{t("payment.settlingTitle")}</h1>
         <p className="iv-sub">{t("payment.settlingBody")}</p>
         <div className="iv-actions">

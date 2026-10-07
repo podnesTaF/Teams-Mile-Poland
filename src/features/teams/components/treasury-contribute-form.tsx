@@ -11,6 +11,7 @@ import {
 } from "@/features/wallet/config";
 import { formatWalletBalance } from "@/features/wallet/format";
 import { useRouter } from "@/i18n/navigation";
+import { trackEvent } from "@/lib/analytics";
 import { useActionRun } from "@/lib/use-action-run";
 
 import { contributeToTreasury } from "../actions/treasury";
@@ -63,6 +64,7 @@ export function TreasuryContributeForm({
         setError(tReasons(result.reason));
         return;
       }
+      if (!result.alreadyRecorded) trackEvent("treasury_contribute", { value: parsed, currency: "ACER" });
       setAmount("");
       setNotice(
         result.alreadyRecorded

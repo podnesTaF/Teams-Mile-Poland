@@ -1930,63 +1930,307 @@
   }
 }
 
-/* Sticky pill nav — sits flush under the sticky .iv-header, whose height is
- * 28px padding + 1px border + the clamp()ed logo. Full-bleed to the wrap
- * edges so the pills scroll edge-to-edge on mobile. */
-.ace-landing .pf-nav {
-  position: sticky;
-  top: calc(clamp(20px, 2.4vw, 30px) + 29px);
-  z-index: 40;
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  margin: clamp(20px, 3vw, 28px) -24px 0;
-  padding: 10px 24px;
-  background: rgba(25, 26, 24, 0.92);
-  backdrop-filter: blur(8px);
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+/* Profile shell — the admin pattern: one nav element, two behaviours.
+ * Phone: a sticky strip of tabs flush under the sticky .iv-header (whose height
+ * is 28px padding + 1px border + the clamp()ed logo). Desktop (>= 960px): a
+ * sticky left rail beside the content column. */
+.ace-landing .pf-main {
+  padding-top: 0;
 }
-.ace-landing .pf-nav::-webkit-scrollbar {
+.ace-landing .pf-shell {
+  max-width: 1160px;
+}
+.ace-landing .pf-side {
+  position: sticky;
+  top: var(--pf-top, calc(clamp(20px, 2.4vw, 30px) + 29px));
+  z-index: 40;
+  margin: 0 -24px;
+  background: rgba(25, 26, 24, 0.94);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line-d);
+}
+.ace-landing .pf-side__id,
+.ace-landing .pf-side__foot {
   display: none;
 }
-.ace-landing .pf-nav__link {
+.ace-landing .pf-tabs {
+  display: flex;
+  gap: 2px;
+  margin: 0;
+  padding: 0 12px;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  /* Fade the right edge so a strip that overflows says "there is more". */
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+}
+.ace-landing .pf-tabs::-webkit-scrollbar {
+  display: none;
+}
+.ace-landing .pf-tabs > li {
   flex: 0 0 auto;
-  font-family: var(--font-cta), "Exo 2", sans-serif;
-  font-weight: 700;
-  font-size: 0.74rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #d8d8d6;
+}
+.ace-landing .pf-tabs > li:last-child {
+  padding-right: 20px;
+}
+.ace-landing .pf-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 48px;
+  padding: 0 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--muted);
   text-decoration: none;
-  padding: 8px 14px;
-  border: 1px solid var(--line-d);
-  border-radius: 999px;
-  background: var(--card);
   white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  -webkit-tap-highlight-color: transparent;
   transition:
+    color 0.15s,
     border-color 0.15s,
+    background 0.15s;
+}
+.ace-landing .pf-tab:hover {
+  color: #fff;
+}
+.ace-landing .pf-tab:focus-visible {
+  outline: 2px solid var(--acl-red);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+.ace-landing .pf-tab[aria-current="page"] {
+  color: #fff;
+  border-bottom-color: var(--acl-red);
+}
+.ace-landing .pf-tab__ic {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+.ace-landing .pf-tab[aria-current="page"] .pf-tab__ic {
+  color: var(--acl-red);
+}
+.ace-landing .pf-tab__dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--acl-red);
+  box-shadow: 0 0 0 3px var(--red-soft);
+}
+.ace-landing .pf-tab--wallet {
+  color: #f6899a;
+}
+.ace-landing .pf-tab__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* `.ace-landing` sets overflow-x: hidden, which turns it into a scroll
+ * container and silently disables every position: sticky inside it — the site
+ * header, the tab strip and the rail. `clip` keeps the horizontal guard
+ * without creating a scroll container. */
+.ace-landing.iv:has(.pf-shell) {
+  overflow-x: clip;
+}
+
+/* Sign-out at the foot of the rail: a quiet row, not a second call to action. */
+.ace-landing .pf-side__out {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition:
     color 0.15s,
     background 0.15s;
 }
-.ace-landing .pf-nav__link:hover,
-.ace-landing .pf-nav__link:focus-visible {
-  border-color: var(--line-d2);
+.ace-landing .pf-side__out:hover,
+.ace-landing .pf-side__out:focus-visible {
   color: #fff;
   background: var(--card-2);
 }
 
-/* The pill that leaves the page (the wallet) rather than scrolling to a
- * section — tinted so it does not read as another anchor in the same strip. */
-.ace-landing .pf-nav__link--go {
-  border-color: rgba(229, 31, 50, 0.45);
-  color: #f6899a;
+/* Phone: the hero is one compact row so the tab's content starts high. */
+@media (max-width: 959px) {
+  .ace-landing .pf-content > .pf-hero {
+    flex-wrap: nowrap;
+    gap: 12px;
+  }
+  .ace-landing .pf-content .pf-hero__avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 1.3rem;
+  }
+  .ace-landing .pf-content .pf-hero .iv-eyebrow {
+    display: none;
+  }
+  .ace-landing .pf-content .pf-hero__id {
+    flex: 1 1 auto;
+  }
+  .ace-landing .pf-content .pf-hero__name {
+    font-size: 1.3rem;
+    margin: 0;
+  }
+  .ace-landing .pf-content .pf-hero .profile-email {
+    font-size: 0.82rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ace-landing .pf-content .pf-hero__out {
+    align-self: center;
+  }
 }
-.ace-landing .pf-nav__link--go:hover,
-.ace-landing .pf-nav__link--go:focus-visible {
-  border-color: var(--acl-red);
-  color: #fff;
-  background: var(--red-soft);
+@media (max-width: 640px) {
+  .ace-landing .pf-content .pf-wal {
+    flex-direction: row;
+    align-items: flex-end;
+    margin-top: 16px;
+  }
+  .ace-landing .pf-content .pf-wal__main {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .ace-landing .pf-content .pf-wal__cta > .btn {
+    flex: 0 0 auto;
+  }
+  .ace-landing .pf-content .pf-stats {
+    margin-top: 12px;
+  }
+}
+
+/* The content column dims while a pressed tab is rendering on the server. */
+.ace-landing .pf-content {
+  min-width: 0;
+  padding-top: 20px;
+  transition: opacity 0.15s;
+}
+.ace-landing .pf-content[data-busy="true"] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.ace-landing .pf-content .banner {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+@media (min-width: 960px) {
+  .ace-landing .pf-main {
+    padding-top: clamp(32px, 4vw, 48px);
+  }
+  .ace-landing .pf-shell {
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+  .ace-landing .pf-side {
+    top: calc(var(--pf-top, calc(clamp(20px, 2.4vw, 30px) + 29px)) + 24px);
+    margin: 0;
+    padding: 14px 10px 10px;
+    background: var(--card);
+    backdrop-filter: none;
+    border: 1px solid var(--line-d);
+    border-radius: 8px;
+  }
+  .ace-landing .pf-side__id {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 2px 8px 14px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--line-d);
+  }
+  .ace-landing .pf-side__avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+    flex: 0 0 auto;
+  }
+  .ace-landing .pf-side__who {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .ace-landing .pf-side__name {
+    font-weight: 700;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ace-landing .pf-side__email {
+    font-size: 0.8rem;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ace-landing .pf-tabs {
+    flex-direction: column;
+    gap: 2px;
+    padding: 0;
+    overflow: visible;
+    mask-image: none;
+  }
+  .ace-landing .pf-tabs > li:last-child {
+    padding-right: 0;
+  }
+  .ace-landing .pf-tab {
+    min-height: 42px;
+    padding: 0 12px;
+    border-bottom: 0;
+    border-radius: 6px;
+  }
+  .ace-landing .pf-tab:hover {
+    background: var(--card-2);
+  }
+  .ace-landing .pf-tab[aria-current="page"] {
+    background: var(--card-2);
+    box-shadow: inset 3px 0 0 var(--acl-red);
+  }
+  .ace-landing .pf-tab__dot {
+    margin-left: auto;
+  }
+  .ace-landing .pf-tabs__wallet {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line-d);
+  }
+  .ace-landing .pf-tab__value {
+    margin-left: auto;
+  }
+  .ace-landing .pf-side__foot {
+    display: block;
+    padding: 10px 2px 2px;
+  }
+  .ace-landing .pf-side__out {
+    width: 100%;
+  }
+  .ace-landing .pf-content {
+    padding-top: 0;
+  }
+  /* The rail says who is signed in; the hero would only repeat it. */
+  .ace-landing .pf-content > .pf-hero {
+    display: none;
+  }
+  .ace-landing .pf-content > .pf-wal:first-of-type {
+    margin-top: 0;
+  }
 }
 
 /* Anchor targets stop below the sticky header + nav instead of under them. */

@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { Link } from "@/i18n/navigation";
 
 import { PhoneField } from "@/components/ui/phone-field";
+import { trackEvent } from "@/lib/analytics";
 import { maxDobForMinAge, MIN_PARTICIPANT_AGE, parseDateOnly } from "@/lib/age";
 import { useValidationMessage } from "@/lib/validation-messages";
 
@@ -141,6 +142,7 @@ export function GuestRegisterForm({
       // No ticket yet — an unverified account + verification email were created.
       // Switch to the "check your email" state (or confirm a re-send).
       if (isResend) setResent(true);
+      else trackEvent("sign_up", { method: "event_guest", event_slug: eventSlug });
       setSent(true);
     });
   }
@@ -172,7 +174,9 @@ export function GuestRegisterForm({
       <section className="card-white rp-state" data-register-state="check-email">
         <span className="iv-eyebrow">{t("guest.eyebrow")}</span>
         <h1 className="rp-state__title">{t("checkEmail.title")}</h1>
-        <p className="iv-sub">{t("checkEmail.body", { email: data.email })}</p>
+        <p className="iv-sub">
+          {t.rich("checkEmail.body", { email: data.email, b: (chunks) => <strong>{chunks}</strong> })}
+        </p>
         {resent ? <div className="banner banner--info">{t("checkEmail.resent")}</div> : null}
         {banner}
         <div className="iv-actions">

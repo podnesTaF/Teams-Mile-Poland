@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { Link, useRouter } from "@/i18n/navigation";
+import { beginCheckout, trackEvent, trackFunnelBlocked } from "@/lib/analytics";
 import type { ConsentItemsInput } from "@/lib/legal/consent";
 import type { DocSet } from "@/lib/legal/manifest";
 
@@ -118,6 +119,9 @@ export function RegisterConfirm({
     startTransition(async () => {
       const result = await registerForEvent(eventSlug, { docSet, locale: docLocale, items });
       if (!result.ok) {
+        if (result.reason === "profile" || result.reason === "verify" || result.reason === "insufficient_acer") {
+          trackFunnelBlocked("event_register", result.reason, { event_slug: eventSlug });
+        }
         if (result.reason === "profile") {
           router.push(`/profile?redirectTo=/events/${eventSlug}/register`);
           return;
@@ -177,6 +181,17 @@ export function RegisterConfirm({
         }
         setError(t("errors.failed"));
         return;
+      }
+      if ("checkoutUrl" in result) {
+        beginCheckout({
+          kind: "entry_individual",
+          itemId: eventSlug,
+          itemName: eventName,
+          value: pricePln,
+          currency: "PLN",
+        });
+      } else {
+        trackEvent("event_register", { event_slug: eventSlug, fee: paid ? "acer" : "free" });
       }
       // Absolute URLs either way — Stripe Checkout, or the signed ticket.
       window.location.assign("checkoutUrl" in result ? result.checkoutUrl : result.ticketUrl);

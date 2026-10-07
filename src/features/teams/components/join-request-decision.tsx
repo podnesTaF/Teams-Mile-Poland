@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useRouter } from "@/i18n/navigation";
+import { trackEvent } from "@/lib/analytics";
 import { useActionRun } from "@/lib/use-action-run";
 
 import { decideJoinRequest } from "../actions/join-requests";
@@ -43,6 +44,7 @@ export function JoinRequestDecision({ requestId }: { requestId: string }) {
         setError(tReasons(result.reason));
         return;
       }
+      trackEvent("team_join_decision", { decision: next });
       router.refresh();
     });
   }

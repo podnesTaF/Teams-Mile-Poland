@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { Link, useRouter } from "@/i18n/navigation";
+import { beginCheckout, trackFunnelBlocked } from "@/lib/analytics";
 
 import { createAcerCheckout, type AcerCheckoutRefusal } from "../actions";
 import { ACER_CUSTOM_MAX, ACER_CUSTOM_MIN, ACER_PACKS, isValidAcerAmount } from "../config";
@@ -77,6 +78,14 @@ export function AcerPurchaseForm({ email, redirectTo }: Props) {
     startTransition(async () => {
       const result = await createAcerCheckout({ amountAcer: amount });
       if (result.ok) {
+        beginCheckout({
+          kind: "acer",
+          itemId: "acer",
+          itemName: "ACER credit",
+          // 1 ACER = 1 USD (see PURCHASE_CURRENCY).
+          value: amount,
+          currency: "USD",
+        });
         // Stripe's hosted page is an absolute URL on their origin — a full
         // assignment, not a client-side route push.
         window.location.assign(result.url);
@@ -88,6 +97,9 @@ export function AcerPurchaseForm({ email, redirectTo }: Props) {
       // address that stopped being verified). Send them to the fix, carrying the
       // wallet as the destination so the round trip ends where it started.
       const back = encodeURIComponent(redirectTo);
+      if (result.reason === "auth" || result.reason === "verify" || result.reason === "profile") {
+        trackFunnelBlocked("acer_purchase", result.reason);
+      }
       if (result.reason === "auth") {
         router.push(`/auth/sign-up?redirectTo=${back}`);
         return;

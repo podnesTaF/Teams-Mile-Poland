@@ -27,6 +27,11 @@ import {
 import { makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { SeriesList, type RaceRow } from "@/features/event-registration/components/series-list";
 import { ProfileForm } from "@/features/profile/components/profile-form";
+import {
+  ProfileShell,
+  type ProfileTabItem,
+  type ProfileTabKey,
+} from "@/features/profile/components/profile-shell";
 import { getAttendedLegacySlugs } from "@/features/profile/data";
 import {
   getOrCreateReferralCode,
@@ -37,6 +42,7 @@ import { InviteLink } from "@/features/team/components/invite-link";
 import { ProfileTeamsSection } from "@/features/teams/components/profile-teams-section";
 import { WalletBalanceCard } from "@/features/wallet/components/balance-card";
 import { getWalletBalances } from "@/features/wallet/data";
+import { formatWalletBalance } from "@/features/wallet/format";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { isRaceRun } from "@/lib/events/participation";
@@ -53,8 +59,11 @@ const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "
 
 type PageProps = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ redirectTo?: string; c?: string }>;
+  searchParams: Promise<{ redirectTo?: string; c?: string; tab?: string }>;
 };
+
+/** The profile's tabs, in bar order. Each is a `?tab=` value on `/profile`. */
+const TABS: ProfileTabKey[] = ["races", "results", "teams", "invite", "settings"];
 
 /** Serialize a stored DOB (Date via mode:"date", or string) to YYYY-MM-DD. */
 function toDateInput(value: unknown): string {
@@ -70,7 +79,14 @@ function toDateInput(value: unknown): string {
 function AccordionChevron() {
   return (
     <span className="pf-acc__chev" aria-hidden>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+      >
         <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </span>
@@ -79,7 +95,7 @@ function AccordionChevron() {
 
 export default async function ProfilePage({ params, searchParams }: PageProps) {
   const { locale } = await params;
-  const { redirectTo, c } = await searchParams;
+  const { redirectTo, c, tab } = await searchParams;
   setRequestLocale(locale);
 
   const user = await getUser();
@@ -110,8 +126,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const registrations = await getUserRegistrations(user.id);
   const incomplete = !isProfileComplete(user);
   // The finish-profile round-trip (registration sends people here to fill the
-  // form) and an incomplete profile both make settings the main event: the
-  // section moves to the top and the details accordion starts open.
+  // form) and an incomplete profile both make settings the main event: it is
+  // the tab that opens by default and its details accordion starts open.
   const settingsFirst = incomplete || Boolean(redirectTo);
 
   // Confirmation closes once the heat card is published — one query for the
@@ -212,12 +228,48 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   // rows are already loaded, so this counts in memory instead of re-querying;
   // `legacySlugs` is the attended-only legacy read, one slug per legacy race.
   const raceCount = registrations.filter((r) => isRaceRun(r.status)).length + legacySlugs.length;
-  const initials =
-    (
-      [u.firstName?.[0], u.lastName?.[0]].filter(Boolean).join("") ||
-      (fullName || user.email)[0] ||
-      "?"
-    ).toUpperCase();
+  const initials = (
+    [u.firstName?.[0], u.lastName?.[0]].filter(Boolean).join("") ||
+    (fullName || user.email)[0] ||
+    "?"
+  ).toUpperCase();
+
+  // One section at a time, chosen by `?tab=` — the admin pattern, so a tab is a
+  // URL that can be linked and reloaded. Results only exist as a tab once there
+  // is a result; an unknown or unavailable tab falls back to the default.
+  const available = TABS.filter((key) => key !== "results" || resultCards.length > 0);
+  const defaultTab: ProfileTabKey = settingsFirst ? "settings" : "races";
+  const activeTab: ProfileTabKey = available.find((key) => key === tab) ?? defaultTab;
+  const tabHref = (key: ProfileTabKey) => {
+    const query = new URLSearchParams({ tab: key });
+    // Keep the finish-profile round-trip alive across tab switches.
+    if (redirectTo) query.set("redirectTo", redirectTo);
+    return `/profile?${query}`;
+  };
+  // A registration waiting on the runner — the team document set, or the
+  // remote attendance confirmation — flags the Races tab from any other tab,
+  // with the same rule the cards below use to show their buttons.
+  const racesNeedAction = registrations.some(
+    (reg) =>
+      reg.consentPending ||
+      (awaitingConfirmation(reg) &&
+        isConfirmationOpen({
+          event: eventsBySlug.get(reg.eventSlug),
+          now,
+          heatsPublished: publishedSlugs.has(reg.eventSlug),
+        })),
+  );
+  const attention: Partial<Record<ProfileTabKey, string>> = {
+    races: racesNeedAction ? t("registrations.confirm.ask") : undefined,
+    settings: incomplete ? t("completePrompt") : undefined,
+  };
+  const tabItems: ProfileTabItem[] = available.map((key) => ({
+    key,
+    href: tabHref(key),
+    label: t(`nav.${key}`),
+    attention: attention[key],
+  }));
+  const tw = await getTranslations("wallet");
 
   const settingsSection = (
     <section className="regs-section pf-section" id="settings">
@@ -255,8 +307,30 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   return (
     <div className="ace-landing iv">
       <InteriorHeader />
-      <main className="iv-main">
-        <div className="iv-wrap">
+      <main className="iv-main pf-main">
+        <ProfileShell
+          tabs={tabItems}
+          active={activeTab}
+          navLabel={t("nav.label")}
+          identity={
+            <>
+              <div className="avatar pf-side__avatar" aria-hidden>
+                {initials}
+              </div>
+              <div className="pf-side__who">
+                <span className="pf-side__name">{fullName || t("title")}</span>
+                <span className="pf-side__email">{user.email}</span>
+              </div>
+            </>
+          }
+          wallet={{
+            href: "/wallet",
+            label: t("nav.wallet"),
+            value: `${formatWalletBalance(walletBalances.ACER, locale)} ${tw("assets.ACER")}`,
+          }}
+          footer={<LogOutButton className="pf-side__out" />}
+        >
+          {/* Phone only — on desktop the rail carries who is signed in. */}
           <header className="pf-hero">
             <div className="avatar pf-hero__avatar" aria-hidden>
               {initials}
@@ -270,8 +344,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
           </header>
 
           {/* Money sits directly under the identity block and above the stats
-            * strip: it is the one number on this page that moves between visits,
-            * so it leads rather than competing inside the grey grid. */}
+           * strip: it is the one number on this page that moves between visits,
+           * so it leads rather than competing inside the grey grid. */}
           <WalletBalanceCard
             balanceMinor={walletBalances.ACER}
             locale={locale}
@@ -285,7 +359,9 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
               <span className="pf-stat__k">{t("stats.races")}</span>
             </div>
             <div className="pf-stat">
-              <span className="pf-stat__v">{bestTimeCs !== null ? formatTime(bestTimeCs) : "—"}</span>
+              <span className="pf-stat__v">
+                {bestTimeCs !== null ? formatTime(bestTimeCs) : "—"}
+              </span>
               <span className="pf-stat__k">{t("stats.best")}</span>
             </div>
             <div className="pf-stat">
@@ -293,34 +369,6 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
               <span className="pf-stat__k">{t("stats.invited")}</span>
             </div>
           </div>
-
-          <nav className="pf-nav" aria-label={t("nav.label")}>
-            <a className="pf-nav__link" href="#registrations">
-              {t("nav.races")}
-            </a>
-            {resultCards.length > 0 ? (
-              <a className="pf-nav__link" href="#results">
-                {t("nav.results")}
-              </a>
-            ) : null}
-            <a className="pf-nav__link" href="#teams">
-              {t("nav.teams")}
-            </a>
-            <a className="pf-nav__link" href="#referrals">
-              {t("nav.invite")}
-            </a>
-            <a className="pf-nav__link" href="#settings">
-              {t("nav.settings")}
-            </a>
-            {/* The one pill that leaves the page — the wallet is its own screen
-              * (per-user money, never pre-rendered), and this strip is where a
-              * runner looks for the rest of their cabinet. It repeats the
-              * balance card's link on purpose: the nav is sticky, so this is the
-              * way back to the wallet once the card has scrolled away. */}
-            <Link className="pf-nav__link pf-nav__link--go" href="/wallet">
-              {t("nav.wallet")} →
-            </Link>
-          </nav>
 
           {incomplete ? (
             <div className="banner banner--info" style={{ marginTop: 20 }}>
@@ -333,148 +381,162 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
               <div className="banner__body">
                 <div className="banner__txt">{t("completePrompt")}</div>
               </div>
+              {activeTab !== "settings" ? (
+                <Link className="btn btn-red btn-sm" href={tabHref("settings")} scroll={false}>
+                  {t("nav.settings")} →
+                </Link>
+              ) : null}
             </div>
           ) : null}
 
-          {settingsFirst ? settingsSection : null}
-
-          <section className="regs-section pf-section" id="registrations">
-            <div className="section-label">
-              <span className="iv-eyebrow">{t("registrations.title")}</span>
-            </div>
-            <h2 className="iv-title pf-h2">{t("registrations.heading")}</h2>
-
-            {notice ? (
-              <div
-                className={`banner ${notice.ok ? "banner--ok" : "banner--warn"}`}
-                style={{ marginTop: 16 }}
-                role="status"
-              >
-                <div className="banner__body">
-                  <div className="banner__txt">{t(`registrations.confirm.${notice.key}`)}</div>
-                </div>
+          {activeTab === "races" ? (
+            <section className="regs-section pf-section" id="registrations">
+              <div className="section-label">
+                <span className="iv-eyebrow">{t("registrations.title")}</span>
               </div>
-            ) : null}
+              <h2 className="iv-title pf-h2">{t("registrations.heading")}</h2>
 
-            {registrations.length === 0 ? (
-              <div className="regs-empty">{t("registrations.empty")}</div>
-            ) : (
-              <div className="reg-list">
-                {registrations.map((reg) => {
-                  const event = eventsBySlug.get(reg.eventSlug);
-                  const active =
-                    reg.status === "registered" ||
-                    reg.status === "confirmed" ||
-                    reg.status === "checked_in";
-                  const [y, m, d] = (event?.date ?? "").split("-");
-                  const day = d ? String(parseInt(d, 10)) : reg.eventSlug;
-                  const month = m ? MONTHS[parseInt(m, 10) - 1] ?? "" : "";
-                  // A team-entered registration whose member has not opened
-                  // their link yet (PRD #64, user story 24). It is *not* the
-                  // same thing as the remote attendance confirmation below:
-                  // this one is the Statement and the team document set, and
-                  // until it is done the runner cannot be checked in at all —
-                  // so it takes over the card's action slot entirely. No ticket
-                  // button either: there is nothing to show at the desk yet.
-                  const awaitingTeamConfirm = reg.consentPending;
-                  const canConfirm =
-                    !awaitingTeamConfirm &&
-                    awaitingConfirmation(reg) &&
-                    isConfirmationOpen({
-                      event,
-                      now,
-                      heatsPublished: publishedSlugs.has(reg.eventSlug),
-                    });
-                  // A heat is only meaningful in the run-up to the race; once the
-                  // event is completed the result, not the lane, is the story.
-                  const heat = event?.status === "completed" ? undefined : heats.get(reg.id);
-                  return (
-                    <div key={reg.id} className="reg-card" data-state={active ? "registered" : "completed"}>
-                      <div className="race-date">
-                        <span className="race-date__d">{day}</span>
-                        {month ? <span className="race-date__m">{month}</span> : null}
-                        {y ? <span className="race-date__y">{y}</span> : null}
-                      </div>
-                      <div className="reg-card__body">
-                        <span className="reg-card__title">{event?.name ?? reg.eventSlug}</span>
-                        <div className="reg-card__meta">
-                          <span>
-                            {reg.bib
-                              ? `${t("registrations.bib")} #${reg.bib}`
-                              : t("registrations.bibPending")}
-                          </span>
-                          {heat ? (
+              {notice ? (
+                <div
+                  className={`banner ${notice.ok ? "banner--ok" : "banner--warn"}`}
+                  style={{ marginTop: 16 }}
+                  role="status"
+                >
+                  <div className="banner__body">
+                    <div className="banner__txt">{t(`registrations.confirm.${notice.key}`)}</div>
+                  </div>
+                </div>
+              ) : null}
+
+              {registrations.length === 0 ? (
+                <div className="regs-empty">{t("registrations.empty")}</div>
+              ) : (
+                <div className="reg-list">
+                  {registrations.map((reg) => {
+                    const event = eventsBySlug.get(reg.eventSlug);
+                    const active =
+                      reg.status === "registered" ||
+                      reg.status === "confirmed" ||
+                      reg.status === "checked_in";
+                    const [y, m, d] = (event?.date ?? "").split("-");
+                    const day = d ? String(parseInt(d, 10)) : reg.eventSlug;
+                    const month = m ? (MONTHS[parseInt(m, 10) - 1] ?? "") : "";
+                    // A team-entered registration whose member has not opened
+                    // their link yet (PRD #64, user story 24). It is *not* the
+                    // same thing as the remote attendance confirmation below:
+                    // this one is the Statement and the team document set, and
+                    // until it is done the runner cannot be checked in at all —
+                    // so it takes over the card's action slot entirely. No ticket
+                    // button either: there is nothing to show at the desk yet.
+                    const awaitingTeamConfirm = reg.consentPending;
+                    const canConfirm =
+                      !awaitingTeamConfirm &&
+                      awaitingConfirmation(reg) &&
+                      isConfirmationOpen({
+                        event,
+                        now,
+                        heatsPublished: publishedSlugs.has(reg.eventSlug),
+                      });
+                    // A heat is only meaningful in the run-up to the race; once the
+                    // event is completed the result, not the lane, is the story.
+                    const heat = event?.status === "completed" ? undefined : heats.get(reg.id);
+                    return (
+                      <div
+                        key={reg.id}
+                        className="reg-card"
+                        data-state={active ? "registered" : "completed"}
+                      >
+                        <div className="race-date">
+                          <span className="race-date__d">{day}</span>
+                          {month ? <span className="race-date__m">{month}</span> : null}
+                          {y ? <span className="race-date__y">{y}</span> : null}
+                        </div>
+                        <div className="reg-card__body">
+                          <span className="reg-card__title">{event?.name ?? reg.eventSlug}</span>
+                          <div className="reg-card__meta">
                             <span>
-                              {t("registrations.heat")}{" "}
-                              {t("registrations.heatValue", {
-                                number: heat.number,
-                                time: formatHeatTime(heat.scheduledAt),
-                              })}
+                              {reg.bib
+                                ? `${t("registrations.bib")} #${reg.bib}`
+                                : t("registrations.bibPending")}
                             </span>
+                            {heat ? (
+                              <span>
+                                {t("registrations.heat")}{" "}
+                                {t("registrations.heatValue", {
+                                  number: heat.number,
+                                  time: formatHeatTime(heat.scheduledAt),
+                                })}
+                              </span>
+                            ) : null}
+                          </div>
+                          {awaitingTeamConfirm ? (
+                            <div className="reg-card__ask" data-awaiting-confirmation={reg.id}>
+                              {t("registrations.awaitingConfirmation")}
+                            </div>
+                          ) : null}
+                          {canConfirm ? (
+                            <div className="reg-card__ask">{t("registrations.confirm.ask")}</div>
                           ) : null}
                         </div>
-                        {awaitingTeamConfirm ? (
-                          <div className="reg-card__ask" data-awaiting-confirmation={reg.id}>
-                            {t("registrations.awaitingConfirmation")}
-                          </div>
-                        ) : null}
-                        {canConfirm ? (
-                          <div className="reg-card__ask">{t("registrations.confirm.ask")}</div>
-                        ) : null}
-                      </div>
-                      <div className="reg-card__actions">
-                        <span className={`status ${active ? "status--registered" : "status--completed"}`}>
-                          <span className="status__dot" />
-                          {t(`registrations.status.${reg.status}`)}
-                        </span>
-                        {canConfirm ? (
-                          <ConfirmAttendanceForm
-                            registrationId={reg.id}
-                            locale={locale}
-                            surface="profile"
-                          />
-                        ) : null}
-                        {awaitingTeamConfirm ? (
-                          // The signed-in route into the confirmation screen
-                          // (#68) — the same page the emailed link opens, minus
-                          // the `?s=` signature, which the screen only needs
-                          // when there is no session (user story 21).
-                          <a
-                            className="btn btn-sm btn-red"
-                            href={localePath(
-                              locale,
-                              `/events/${reg.eventSlug}/confirm/${reg.id}`,
-                            )}
-                            data-confirm-cta={reg.id}
+                        <div className="reg-card__actions">
+                          <span
+                            className={`status ${active ? "status--registered" : "status--completed"}`}
                           >
-                            {t("registrations.confirmCta")}
-                          </a>
-                        ) : active ? (
-                          <a
-                            className={`btn btn-sm ${canConfirm ? "btn-stroke-dark" : "btn-red"}`}
-                            href={makeEventTicketUrl(reg.id, { locale })}
-                          >
-                            {t("registrations.ticket")}
-                          </a>
-                        ) : null}
+                            <span className="status__dot" />
+                            {t(`registrations.status.${reg.status}`)}
+                          </span>
+                          {canConfirm ? (
+                            <ConfirmAttendanceForm
+                              registrationId={reg.id}
+                              locale={locale}
+                              surface="profile"
+                            />
+                          ) : null}
+                          {awaitingTeamConfirm ? (
+                            // The signed-in route into the confirmation screen
+                            // (#68) — the same page the emailed link opens, minus
+                            // the `?s=` signature, which the screen only needs
+                            // when there is no session (user story 21).
+                            <a
+                              className="btn btn-sm btn-red"
+                              href={localePath(
+                                locale,
+                                `/events/${reg.eventSlug}/confirm/${reg.id}`,
+                              )}
+                              data-confirm-cta={reg.id}
+                            >
+                              {t("registrations.confirmCta")}
+                            </a>
+                          ) : active ? (
+                            <a
+                              className={`btn btn-sm ${canConfirm ? "btn-stroke-dark" : "btn-red"}`}
+                              href={makeEventTicketUrl(reg.id, { locale })}
+                            >
+                              {t("registrations.ticket")}
+                            </a>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              )}
 
-            {otherEvents.length > 0 ? (
-              <div className="regs-more">
-                <h3 className="iv-title" style={{ fontSize: "clamp(1.15rem, 2.2vw, 1.4rem)", marginTop: 32 }}>
-                  {t("registrations.moreHeading")}
-                </h3>
-                <SeriesList rows={otherEvents} />
-              </div>
-            ) : null}
-          </section>
+              {otherEvents.length > 0 ? (
+                <div className="regs-more">
+                  <h3
+                    className="iv-title"
+                    style={{ fontSize: "clamp(1.15rem, 2.2vw, 1.4rem)", marginTop: 32 }}
+                  >
+                    {t("registrations.moreHeading")}
+                  </h3>
+                  <SeriesList rows={otherEvents} />
+                </div>
+              ) : null}
+            </section>
+          ) : null}
 
-          {resultCards.length > 0 ? (
+          {activeTab === "results" ? (
             <section className="regs-section pf-section" id="results">
               <div className="section-label">
                 <span className="iv-eyebrow">{t("results.title")}</span>
@@ -572,7 +634,9 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                           <span className="res-card__best">{t("results.best")}</span>
                         ) : null}
                         <span className="res-card__time">{formatTime(res.entry.timeCs)}</span>
-                        <span className="res-card__lvl">{t("results.level", { n: res.level })}</span>
+                        <span className="res-card__lvl">
+                          {t("results.level", { n: res.level })}
+                        </span>
                       </div>
                       <SplitsDetails splits={res.entry.splits} />
                     </div>
@@ -583,44 +647,46 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
           ) : null}
 
           {/* Team formation (PRD #57): "my teams", the create link, and the
-            * slots #60 and #61 hang their pending-invitation and pending-request
-            * lists off. Its own component so the section can grow without this
-            * page growing with it. */}
-          <ProfileTeamsSection userId={user.id} />
+           * slots #60 and #61 hang their pending-invitation and pending-request
+           * lists off. Its own component so the section can grow without this
+           * page growing with it. */}
+          {activeTab === "teams" ? <ProfileTeamsSection userId={user.id} /> : null}
 
-          <section className="regs-section pf-section" id="referrals">
-            <div className="section-label">
-              <span className="iv-eyebrow">{t("referrals.title")}</span>
-            </div>
-            <h2 className="iv-title pf-h2">{t("referrals.heading")}</h2>
+          {activeTab === "invite" ? (
+            <section className="regs-section pf-section" id="referrals">
+              <div className="section-label">
+                <span className="iv-eyebrow">{t("referrals.title")}</span>
+              </div>
+              <h2 className="iv-title pf-h2">{t("referrals.heading")}</h2>
 
-            <section className="iv-share" style={{ marginTop: 16 }}>
-              <p className="iv-share__hint">{t("referrals.hint")}</p>
-              <InviteLink
-                url={referralUrl}
-                copyLabel={t("referrals.copy")}
-                copiedLabel={t("referrals.copied")}
-              />
+              <section className="iv-share" style={{ marginTop: 16 }}>
+                <p className="iv-share__hint">{t("referrals.hint")}</p>
+                <InviteLink
+                  url={referralUrl}
+                  copyLabel={t("referrals.copy")}
+                  copiedLabel={t("referrals.copied")}
+                />
+              </section>
+
+              <div className="pf-ref-stats">
+                <div className="iv-info">
+                  <div className="iv-info__label">{t("referrals.signups")}</div>
+                  <div className="iv-info__value">{referralStats.signups}</div>
+                </div>
+                <div className="iv-info">
+                  <div className="iv-info__label">{t("referrals.raceRegistrations")}</div>
+                  <div className="iv-info__value">{referralStats.raceRegistrations}</div>
+                </div>
+                <div className="iv-info">
+                  <div className="iv-info__label">{t("referrals.participations")}</div>
+                  <div className="iv-info__value">{referralStats.participations}</div>
+                </div>
+              </div>
             </section>
+          ) : null}
 
-            <div className="pf-ref-stats">
-              <div className="iv-info">
-                <div className="iv-info__label">{t("referrals.signups")}</div>
-                <div className="iv-info__value">{referralStats.signups}</div>
-              </div>
-              <div className="iv-info">
-                <div className="iv-info__label">{t("referrals.raceRegistrations")}</div>
-                <div className="iv-info__value">{referralStats.raceRegistrations}</div>
-              </div>
-              <div className="iv-info">
-                <div className="iv-info__label">{t("referrals.participations")}</div>
-                <div className="iv-info__value">{referralStats.participations}</div>
-              </div>
-            </div>
-          </section>
-
-          {settingsFirst ? null : settingsSection}
-        </div>
+          {activeTab === "settings" ? settingsSection : null}
+        </ProfileShell>
       </main>
     </div>
   );

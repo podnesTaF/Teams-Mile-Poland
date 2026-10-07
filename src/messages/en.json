@@ -1588,7 +1588,14 @@
       "sentTitle": "Request sent",
       "invitedTitle": "You are invited",
       "acceptInvitation": "Accept the invitation",
-      "backToTeam": "Back to the team"
+      "backToTeam": "Back to the team",
+      "decidedOn": "Answered {date}",
+      "requestStatus": {
+        "pending": "Waiting",
+        "accepted": "Accepted",
+        "declined": "Declined",
+        "withdrawn": "Withdrawn"
+      }
     },
     "reasons": {
       "failed": "Something went wrong and the request did not complete. Reload the page to see whether it went through, then try again.",
@@ -1721,6 +1728,19 @@
         "categoryLabel": "Category",
         "regionLabel": "Region"
       },
+      "requestSent": {
+        "subject": "Your request to join {team} is sent",
+        "preview": "The captain of {team} has your request.",
+        "eyebrow": "Join request",
+        "title": "Request sent",
+        "greeting": "Hi {name},",
+        "body": "Your request to join {team} is with the captain. You are not on the roster until they accept it.",
+        "outro": "We will email you as soon as the captain answers. You can follow the status, or withdraw the request, on your profile.",
+        "cta": "See my requests",
+        "teamLabel": "Team",
+        "categoryLabel": "Category",
+        "regionLabel": "Region"
+      },
       "requestDecided": {
         "subjectAccepted": "You are on the roster of {team}",
         "subjectDeclined": "{team} could not take you",
@@ -1833,6 +1853,8 @@
       },
       "incompleteDetail": "Your team needs {count, plural, one {# more runner} other {# more runners}} before it can enter.",
       "underageDetail": "{name} will be under 18 on the event date.",
+      "individualDetail": "{name} is already registered individually for this night — one entry per runner.",
+      "cannotEnter": "Can't enter yet",
       "feeLabel": "Entry fee",
       "fee": "{amount} ACER from the team treasury",
       "feeFree": "Free",
@@ -1918,7 +1940,7 @@
     },
     "checkEmail": {
       "title": "Check your email",
-      "body": "We've sent a confirmation link to {email}. Open it to confirm your address — your registration completes and your ticket arrives right after. Not there within a minute? Check your spam folder.",
+      "body": "We've sent a confirmation link to {email}. Open it to confirm your address — your registration completes and your ticket arrives right after. <b>Not there within a minute? Check your spam folder.</b>",
       "resend": "Resend link",
       "resending": "Sending…",
       "resent": "Link sent again — check your inbox (and spam)."

@@ -51,7 +51,7 @@ export async function confirmAttendance(formData: FormData): Promise<void> {
       redirect(path);
     }
     revalidatePath(localePath(locale, "/profile"));
-    redirect(localePath(locale, `/profile?c=${outcome}#registrations`));
+    redirect(localePath(locale, `/profile?tab=races&c=${outcome}`));
   }
 
   if (!registrationId) back("notfound");

@@ -3,8 +3,10 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { CheckoutReturn } from "@/components/analytics/checkout-return";
 import { minorToAcer } from "@/features/wallet/config";
 import { useRouter } from "@/i18n/navigation";
+import { beginCheckout, trackEvent, trackFunnelBlocked } from "@/lib/analytics";
 import { localePath } from "@/lib/i18n/config";
 import { useActionRun } from "@/lib/use-action-run";
 
@@ -58,6 +60,13 @@ export type EnterableEvent = {
    * never charged in both.
    */
   pricePln: number;
+  /**
+   * Why this team cannot enter this night as it stands, from the same
+   * `checkTeamEntry` the action runs — `null` when it could. A blocked row
+   * shows the reason under a disabled button instead of a button that is
+   * only refused once pressed.
+   */
+  blocked: EntryFailure | null;
 };
 
 /**
@@ -80,6 +89,9 @@ export function entryRefusalText(
   }
   if (failure.reason === "member_underage" && failure.memberName) {
     return t("underageDetail", { name: failure.memberName });
+  }
+  if (failure.reason === "registered_individually" && failure.memberName) {
+    return t("individualDetail", { name: failure.memberName });
   }
   // `teams.reasons.treasury_insufficient` is worded for a payout ("…for this
   // payout"), which is the wrong sentence for an entry — so a priced refusal
@@ -147,6 +159,7 @@ export function EntryEnterButton({
     startTransition(async () => {
       const result = await enterTeam(teamSlug, eventSlug, locale);
       if (!result.ok) {
+        trackFunnelBlocked("team_entry", result.reason, { event_slug: eventSlug });
         setError(entryRefusalText(result, t, tReasons));
         setFailedSlug(eventSlug);
         setFailedReason(result.reason);
@@ -154,10 +167,22 @@ export function EntryEnterButton({
       }
       // A card-paid night: the entry is written by the webhook once Stripe has
       // the fee, so the next stop is Stripe, not the entry page.
+      const event = events.find((e) => e.slug === eventSlug);
       if ("checkoutUrl" in result) {
+        beginCheckout({
+          kind: "entry_team",
+          itemId: eventSlug,
+          itemName: event?.name ?? eventSlug,
+          value: event?.pricePln ?? 0,
+          currency: "PLN",
+        });
         window.location.assign(result.checkoutUrl);
         return;
       }
+      trackEvent("team_entry", {
+        event_slug: eventSlug,
+        fee: event && event.feeMinor > 0 ? "treasury" : "free",
+      });
       // Straight to the entry page: the next thing the captain wants is the
       // checklist of who has confirmed.
       router.push(`/teams/${teamSlug}/entries/${eventSlug}`);
@@ -179,6 +204,7 @@ export function EntryEnterButton({
       <p className="pf-block__sub">{t("hint")}</p>
       {payment === "success" ? (
         <div className="banner banner--info" role="status" data-entry-payment="success">
+          <CheckoutReturn kind="entry_team" />
           {t("paymentSettling")}
         </div>
       ) : payment === "cancelled" ? (
@@ -239,6 +265,17 @@ export function EntryEnterButton({
                     {t("openEntry")}
                   </a>
                 </>
+              ) : event.blocked ? (
+                <button
+                  type="button"
+                  className="btn btn-sm btn-stroke-dark"
+                  disabled
+                  aria-describedby={`entry-blocked-${event.slug}`}
+                  data-entry-action="blocked"
+                  data-entry-blocked-reason={event.blocked.reason}
+                >
+                  {t("cannotEnter")}
+                </button>
               ) : (
                 <button
                   type="button"
@@ -256,6 +293,15 @@ export function EntryEnterButton({
                 </button>
               )}
             </div>
+            {event.blocked && !event.entryId ? (
+              <span
+                className="field-msg"
+                id={`entry-blocked-${event.slug}`}
+                data-entry-blocked={event.slug}
+              >
+                {entryRefusalText(event.blocked, t, tReasons)}
+              </span>
+            ) : null}
             {error && failedSlug === event.slug ? (
               <span className="field-msg" role="alert" data-entry-error={event.slug}>
                 {error}

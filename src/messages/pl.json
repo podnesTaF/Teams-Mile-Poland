@@ -1588,7 +1588,14 @@
       "sentTitle": "Prośba wysłana",
       "invitedTitle": "Masz zaproszenie",
       "acceptInvitation": "Przyjmij zaproszenie",
-      "backToTeam": "Wróć do zespołu"
+      "backToTeam": "Wróć do zespołu",
+      "decidedOn": "Odpowiedź {date}",
+      "requestStatus": {
+        "pending": "Czeka",
+        "accepted": "Przyjęta",
+        "declined": "Odrzucona",
+        "withdrawn": "Wycofana"
+      }
     },
     "reasons": {
       "failed": "Coś poszło nie tak i żądanie nie zostało ukończone. Odśwież stronę, aby sprawdzić, czy się powiodło, i spróbuj ponownie.",
@@ -1721,6 +1728,19 @@
         "categoryLabel": "Kategoria",
         "regionLabel": "Region"
       },
+      "requestSent": {
+        "subject": "Twoja prośba o dołączenie do zespołu {team} została wysłana",
+        "preview": "Kapitan zespołu {team} ma Twoją prośbę.",
+        "eyebrow": "Prośba o dołączenie",
+        "title": "Prośba wysłana",
+        "greeting": "Cześć {name},",
+        "body": "Twoja prośba o dołączenie do zespołu {team} trafiła do kapitana. Nie jesteś w składzie, dopóki jej nie przyjmie.",
+        "outro": "Napiszemy do Ciebie, gdy tylko kapitan odpowie. Status prośby zobaczysz — i możesz ją wycofać — w swoim profilu.",
+        "cta": "Moje prośby",
+        "teamLabel": "Zespół",
+        "categoryLabel": "Kategoria",
+        "regionLabel": "Region"
+      },
       "requestDecided": {
         "subjectAccepted": "Jesteś w składzie zespołu {team}",
         "subjectDeclined": "Zespół {team} nie mógł Cię przyjąć",
@@ -1833,6 +1853,8 @@
       },
       "incompleteDetail": "Aby się zgłosić, zespół potrzebuje jeszcze {count, plural, one {# zawodnika} few {# zawodników} many {# zawodników} other {# zawodnika}}.",
       "underageDetail": "{name} nie będzie mieć 18 lat w dniu biegu.",
+      "individualDetail": "{name} jest już zapisany(-a) indywidualnie na ten bieg — jeden start na zawodnika.",
+      "cannotEnter": "Nie można jeszcze zgłosić",
       "feeLabel": "Opłata za zgłoszenie",
       "fee": "{amount} ACER z kasy drużyny",
       "feeFree": "Bezpłatnie",
@@ -1918,7 +1940,7 @@
     },
     "checkEmail": {
       "title": "Sprawdź skrzynkę e-mail",
-      "body": "Wysłaliśmy link potwierdzający na adres {email}. Otwórz go, aby potwierdzić adres — rejestracja zostanie dokończona, a bilet przyjdzie zaraz potem. Nie ma go po minucie? Sprawdź folder spam.",
+      "body": "Wysłaliśmy link potwierdzający na adres {email}. Otwórz go, aby potwierdzić adres — rejestracja zostanie dokończona, a bilet przyjdzie zaraz potem. <b>Nie ma go po minucie? Sprawdź folder spam.</b>",
       "resend": "Wyślij link ponownie",
       "resending": "Wysyłanie…",
       "resent": "Link wysłany ponownie — sprawdź skrzynkę (i spam)."

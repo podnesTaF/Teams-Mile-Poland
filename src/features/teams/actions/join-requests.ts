@@ -24,7 +24,7 @@ import {
   withdrawJoinRequestRow,
 } from "../join-requests";
 import { asTeamMailLocale } from "../mail-invitations";
-import { sendJoinRequestReceivedEmail } from "../mail-requests";
+import { sendJoinRequestReceivedEmail, sendJoinRequestSentEmail } from "../mail-requests";
 
 /**
  * The runner's door (#61): knock, take the knock back, and — for the manager —
@@ -53,9 +53,10 @@ import { sendJoinRequestReceivedEmail } from "../mail-requests";
  *     runner is told which of the five reasons applies and the database is
  *     untouched — a queue full of requests that can only ever be declined is
  *     worse than an immediate answer (PRD #57, user story 30).
- *  3. **The row, then the mail.** The partial unique index enforces one open
+ *  3. **The row, then the mails.** The partial unique index enforces one open
  *     request per runner per team; a declined runner may knock again and gets a
- *     new row.
+ *     new row. The manager is told somebody knocked, and the runner gets a
+ *     receipt — otherwise they hear nothing until the manager decides.
  */
 export async function requestToJoin(
   code: string,
@@ -92,6 +93,7 @@ export async function requestToJoin(
   if (!created.ok) return created;
 
   await mailManager(team, actor.userId, seats);
+  await mailRunnerReceipt(team, actor.userId);
 
   return { ok: true, teamSlug: team.slug, joined: false };
 }
@@ -184,5 +186,31 @@ async function mailManager(
       requester.name ||
       requester.email,
     count: seats.length,
+  });
+}
+
+/**
+ * The runner's receipt for their own knock, in the **runner's** language. Like
+ * the manager's mail it is sent after the row exists and never changes the
+ * result; the profile's request list is the source of truth.
+ */
+async function mailRunnerReceipt(team: UserTeamRow, requesterUserId: string): Promise<void> {
+  const [runner] = await getDb()
+    .select({
+      email: users.email,
+      locale: users.locale,
+      firstName: users.firstName,
+      name: users.name,
+    })
+    .from(users)
+    .where(eq(users.id, requesterUserId))
+    .limit(1);
+  if (!runner) return;
+
+  await sendJoinRequestSentEmail({
+    to: runner.email,
+    locale: asTeamMailLocale(runner.locale),
+    team,
+    firstName: runner.firstName?.trim() || runner.name.split(" ")[0] || runner.email,
   });
 }

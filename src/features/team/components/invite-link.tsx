@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { trackLinkClick } from "@/lib/analytics";
 
 /**
  * Prominent, copyable team invite link for the dashboard share panel.
@@ -24,6 +25,8 @@ export function InviteLink({
     try {
       navigator.clipboard.writeText(url);
       setCopied(true);
+      // Not the URL itself: it carries the team's join code.
+      trackLinkClick("team_invite_copy");
       setTimeout(() => setCopied(false), 1600);
     } catch {
       // Clipboard API can fail in non-secure contexts; ignore.

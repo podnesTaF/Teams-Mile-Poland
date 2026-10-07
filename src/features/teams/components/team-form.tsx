@@ -7,6 +7,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { slugify } from "@/features/admin/news-slug";
 import { minorToAcer } from "@/features/wallet/config";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 import { useActionRun } from "@/lib/use-action-run";
 
 import { createTeam, updateTeam } from "../actions/team";
@@ -146,6 +147,7 @@ export function TeamForm({
         return;
       }
       if (mode === "create" && "slug" in result) {
+        trackEvent("team_create", { category: data.category, recruiting: data.recruiting });
         router.push(`/teams/${result.slug}`);
         return;
       }

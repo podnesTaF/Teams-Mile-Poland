@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { trackEvent } from "@/lib/analytics";
 import { authClient } from "@/lib/auth/auth-client";
 import { localePath } from "@/lib/i18n/config";
 
@@ -35,6 +36,9 @@ export function GoogleButton({ callbackURL = "/profile" }: { callbackURL?: strin
   async function onClick() {
     setPending(true);
     setError(null);
+    // Google decides on its side whether this is a sign-up or a login, so the
+    // app can only report the attempt.
+    trackEvent("auth_google_start");
     try {
       const { error: err } = await authClient.signIn.social({
         provider: "google",

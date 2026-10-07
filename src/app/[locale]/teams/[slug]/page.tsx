@@ -24,6 +24,7 @@ import {
   getTeamRoster,
 } from "@/features/teams/data";
 import { summarizeRoster } from "@/features/teams/eligibility";
+import { checkTeamEntry } from "@/features/teams/entry-service";
 import { getOpenTeamEvents, listEntriesForTeam } from "@/features/teams/entries";
 import { getAcerBalance, getTeamAcerBalance, listWalletTransactions } from "@/features/wallet/data";
 import { teamEntryFeeMinor } from "@/features/wallet/entry-fees";
@@ -85,18 +86,31 @@ export default async function TeamPage({ params, searchParams }: PageProps) {
   // offering it. `getOpenTeamEvents` already excludes the frozen legacy night.
   const entries = isMember ? await listEntriesForTeam(team.id) : [];
   const enterableEvents: EnterableEvent[] = isManager
-    ? (await getOpenTeamEvents()).map((event) => ({
-        slug: event.slug,
-        name: event.name,
-        shortDate: event.shortDate,
-        entryId: entries.find((row) => row.entry.eventSlug === event.slug)?.entry.id ?? null,
-        // Priced through the helper, never off the column (ADR 0013), so the
-        // number beside the button is the number `enterTeam` pre-checks and
-        // the number `createEntryRows` debits.
-        // A night priced in PLN is paid by card instead (ADR 0015).
-        feeMinor: entryPricePln(event, "team") > 0 ? 0 : teamEntryFeeMinor(event),
-        pricePln: entryPricePln(event, "team"),
-      }))
+    ? await Promise.all(
+        (await getOpenTeamEvents()).map(async (event) => {
+          const entryId =
+            entries.find((row) => row.entry.eventSlug === event.slug)?.entry.id ?? null;
+          // The roster refusals `enterTeam` would answer with, asked up front so
+          // the row says *why* before the manager presses — a short team, an
+          // underage member, a member registered alone. Money is left to the
+          // press: the treasury line already shows it, and a card night's
+          // checkout is the fix rather than a refusal.
+          const check = entryId ? null : await checkTeamEntry(team, event);
+          return {
+            slug: event.slug,
+            name: event.name,
+            shortDate: event.shortDate,
+            entryId,
+            // Priced through the helper, never off the column (ADR 0013), so the
+            // number beside the button is the number `enterTeam` pre-checks and
+            // the number `createEntryRows` debits.
+            // A night priced in PLN is paid by card instead (ADR 0015).
+            feeMinor: entryPricePln(event, "team") > 0 ? 0 : teamEntryFeeMinor(event),
+            pricePln: entryPricePln(event, "team"),
+            blocked: check && !check.ok ? check : null,
+          };
+        }),
+      )
     : [];
   // Names for the Entries list, including events that have since closed — the
   // entry outlives `registration_open`, so `getOpenTeamEvents` cannot name it.

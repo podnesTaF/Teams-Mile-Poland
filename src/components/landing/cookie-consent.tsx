@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 import { readConsent, setConsent, type ConsentChoice } from "@/lib/consent";
+import { trackEvent } from "@/lib/analytics";
 
 /**
  * Cookie-consent banner for the landing.
@@ -25,6 +26,7 @@ export function CookieConsent() {
 
   function choose(choice: ConsentChoice) {
     setConsent(choice);
+    trackEvent("consent_choice", { choice });
     setOpen(false);
   }
 
