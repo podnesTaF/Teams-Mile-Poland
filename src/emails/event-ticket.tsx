@@ -27,7 +27,7 @@ export function EventTicketEmail({ view, ticketUrl, qrCid, setPassword }: Props)
       <SectionPad>
         <Field label="Runner" value={view.fullName} />
         {view.club ? <Field label="Club" value={view.club} /> : null}
-        <Field label="Entry" value="Free — confirmed." />
+        <Field label="Entry" value={`${view.entryLabel} — confirmed.`} />
       </SectionPad>
 
       <Rule />
