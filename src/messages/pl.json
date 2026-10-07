@@ -96,7 +96,7 @@
       "kicker": "Dla miłośników biegania i profesjonalnych sportowców",
       "title": "Indywidualno-drużynowe <red>zawody rankingowe</red> na jedną milę.",
       "sub": "BIEC • RYWALIZUJ • POKAŻ SWÓJ POZIOM",
-      "ctaPrimary": "ZAREJESTRUJ SIĘ ZA DARMO →",
+      "ctaPrimary": "ZAREJESTRUJ SIĘ NA WYDARZENIE →",
       "ctaSecondary": "Skontaktuj się z nami",
       "venue": "Stadion Podskarbińska",
       "stats": {
@@ -472,7 +472,7 @@
     },
     "finalCta": {
       "title": "Zarejestruj się, dopóki są wolne miejsca",
-      "cta": "ZAREJESTRUJ SIĘ ZA DARMO →"
+      "cta": "ZAREJESTRUJ SIĘ NA WYDARZENIE →"
     },
     "footer": {
       "sub": "WARSZAWA",
