@@ -18,7 +18,7 @@ import {
   isConfirmationOpen,
   slugsWithPublishedHeats,
 } from "@/features/event-registration/confirmation";
-import { buildEventTicketView, makeEventTicketUrl } from "@/features/event-registration/ticket";
+import { buildEventTicketView, loadEntryFee, makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { generateTicketQrPng } from "@/features/ticket/qr";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { DownloadTicketButton } from "@/features/ticket/components/download-ticket-button";
@@ -49,7 +49,12 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
   }
 
   const event = await getEventBySlug(loaded.registration.eventSlug);
-  const view = buildEventTicketView(loaded.registration, loaded.user, event);
+  const view = buildEventTicketView(
+    loaded.registration,
+    loaded.user,
+    event,
+    await loadEntryFee(loaded.registration),
+  );
 
   const qrBuffer = await generateTicketQrPng(makeEventTicketUrl(registrationId, { locale }));
   const qrDataUri = `data:image/png;base64,${qrBuffer.toString("base64")}`;
@@ -120,7 +125,7 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
 
               <div className="tk-grid">
                 <Field label="Runner" value={view.fullName} />
-                <Field label="Entry" value="Free" />
+                <Field label="Entry" value={view.entryLabel} />
                 <Field label="Email" value={view.email} />
                 {view.club ? <Field label="Club" value={view.club} /> : null}
                 <Field label="Bib" value={view.bib ? String(view.bib) : "Assigned at check-in"} />

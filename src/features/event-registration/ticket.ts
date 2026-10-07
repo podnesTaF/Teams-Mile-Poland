@@ -1,7 +1,9 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 
-import { eventEmailLog } from "@/db/schema";
+import { eventEmailLog, walletTransactions } from "@/db/schema";
+import { eventPayments } from "@/db/schema/event-payments";
 import { getAppUrl } from "@/features/registration/data";
+import { teamEntryFeeKey } from "@/features/teams/entries";
 import { generateTicketQrPng } from "@/features/ticket/qr";
 import { signEventTicket } from "@/features/ticket/sign";
 import { EventTicketEmail, eventTicketSubject } from "@/emails/event-ticket";
@@ -10,6 +12,7 @@ import { getEventBySlug } from "@/lib/events/registry";
 import type { EventSummary } from "@/lib/events/types";
 import { FROM_EMAIL, resend } from "@/lib/email";
 import { defaultLocale } from "@/lib/i18n/config";
+import { individualEntryFeeKey } from "@/features/wallet/refunds";
 
 import type { EventRegistrationRow } from "./data";
 
@@ -34,7 +37,80 @@ export type EventTicketView = {
   eventTime: string | null;
   eventVenue: string;
   checkedInAt: Date | null;
+  /** What the entry cost, already worded for the ticket ("Free", "Paid · 50.00 PLN"). */
+  entryLabel: string;
 };
+
+/**
+ * What was actually paid for a registration. `null` means free — the night
+ * was unpriced, or the runner was comped.
+ *
+ * There is no payment column on the registration (see `event_registrations`),
+ * so this reads the two places money can live: a fulfilled Stripe session
+ * (`event_payments`), and the ACER ledger debit keyed on the cause. Either can
+ * be the runner's own (keyed on the registration) or the team's (keyed on the
+ * team entry the registration belongs to).
+ */
+export type EntryFee = {
+  amountMinor: number;
+  currency: "PLN" | "ACER";
+  viaTeam: boolean;
+};
+
+export async function loadEntryFee(
+  registration: Pick<EventRegistrationRow, "id" | "teamEntryId">,
+): Promise<EntryFee | null> {
+  const db = getDb();
+  const teamEntryId = registration.teamEntryId ?? null;
+
+  const [stripe] = await db
+    .select({ amountMinor: eventPayments.amountMinor, teamEntryId: eventPayments.teamEntryId })
+    .from(eventPayments)
+    .where(
+      and(
+        eq(eventPayments.status, "fulfilled"),
+        teamEntryId
+          ? or(
+              eq(eventPayments.registrationId, registration.id),
+              eq(eventPayments.teamEntryId, teamEntryId),
+            )
+          : eq(eventPayments.registrationId, registration.id),
+      ),
+    )
+    .limit(1);
+  if (stripe) {
+    return { amountMinor: stripe.amountMinor, currency: "PLN", viaTeam: stripe.teamEntryId !== null };
+  }
+
+  const keys = [individualEntryFeeKey(registration.id)];
+  if (teamEntryId) keys.push(teamEntryFeeKey(teamEntryId));
+  const [ledger] = await db
+    .select({ amountMinor: walletTransactions.amountMinor, kind: walletTransactions.kind })
+    .from(walletTransactions)
+    .where(inArray(walletTransactions.idempotencyKey, keys))
+    .limit(1);
+  if (ledger && ledger.amountMinor !== 0) {
+    return {
+      amountMinor: Math.abs(ledger.amountMinor),
+      currency: "ACER",
+      viaTeam: ledger.kind === "team_entry_fee",
+    };
+  }
+
+  return null;
+}
+
+/** The ticket's "Entry" line. English, like the rest of the ticket's literals. */
+export function entryLabelOf(fee: EntryFee | null): string {
+  if (!fee) return "Free";
+  const amount = new Intl.NumberFormat("en-GB", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(fee.amountMinor / 100);
+  return fee.viaTeam
+    ? `Paid by team · ${amount} ${fee.currency}`
+    : `Paid · ${amount} ${fee.currency}`;
+}
 
 function fullNameOf(user: TicketUser): string {
   const composed = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
@@ -81,6 +157,7 @@ export function buildEventTicketView(
   registration: EventRegistrationRow,
   user: TicketUser,
   event: EventSummary | undefined,
+  fee: EntryFee | null = null,
 ): EventTicketView {
   return {
     registrationId: registration.id,
@@ -94,6 +171,7 @@ export function buildEventTicketView(
     eventTime: event?.timeRange ? `${event.timeRange.start}–${event.timeRange.end}` : null,
     eventVenue: event ? `${event.venue}, ${event.city}` : "",
     checkedInAt: registration.checkedInAt ?? null,
+    entryLabel: entryLabelOf(fee),
   };
 }
 
@@ -111,7 +189,12 @@ export async function sendEventTicketEmail(input: {
   user: TicketUser;
 }) {
   const event = await getEventBySlug(input.registration.eventSlug);
-  const view = buildEventTicketView(input.registration, input.user, event);
+  const view = buildEventTicketView(
+    input.registration,
+    input.user,
+    event,
+    await loadEntryFee(input.registration),
+  );
   const ticketUrl = makeEventTicketUrl(input.registration.id, {
     locale: input.registration.locale,
   });

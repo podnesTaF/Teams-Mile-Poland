@@ -11,6 +11,7 @@ import {
   makeTicketUrl,
   verifyTicket,
 } from "@/features/ticket";
+import { REGISTRATION_PRICE_PLN } from "@/lib/stripe";
 
 type PageProps = {
   params: Promise<{ locale: string; runnerId: string }>;
@@ -33,7 +34,7 @@ export default async function TicketPage({ params, searchParams }: PageProps) {
 
   const { view, checkedInAt } = loaded;
   const paymentLine =
-    view.paymentStatus === "free" ? "Free runner slot" : "50 PLN registration paid";
+    view.paymentStatus === "free" ? "Free runner slot" : `${REGISTRATION_PRICE_PLN / 100} PLN registration paid`;
 
   // QR encodes the (re-signed) ticket URL so check-in staff scan straight
   // back to this ticket. Embedded as a data URI so it's part of the print.

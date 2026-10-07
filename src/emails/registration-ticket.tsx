@@ -1,6 +1,7 @@
 import { Img, Section, Text } from "@react-email/components";
 
 import type { TicketView } from "@/features/ticket/types";
+import { REGISTRATION_PRICE_PLN } from "@/lib/stripe";
 
 import { Btn, C, EmailShell, Field, HeroBand, Rule, SectionPad } from "./components";
 
@@ -16,7 +17,7 @@ export function RegistrationTicketEmail({ ticket, magicUrl, ticketUrl, inviteUrl
   const paymentLine =
     ticket.paymentStatus === "free"
       ? "Free runner slot — entry confirmed."
-      : "50 PLN registration payment confirmed.";
+      : `${REGISTRATION_PRICE_PLN / 100} PLN registration payment confirmed.`;
 
   return (
     <EmailShell preview={subjectForFlow(ticket)}>
