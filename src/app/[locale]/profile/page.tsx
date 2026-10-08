@@ -40,7 +40,6 @@ import {
 } from "@/features/referral/data";
 import { InviteLink } from "@/features/team/components/invite-link";
 import { ProfileTeamsSection } from "@/features/teams/components/profile-teams-section";
-import { WalletBalanceCard } from "@/features/wallet/components/balance-card";
 import { getWalletBalances } from "@/features/wallet/data";
 import { formatWalletBalance } from "@/features/wallet/format";
 import type { ProfileInput } from "@/features/profile/schemas";
@@ -127,7 +126,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const incomplete = !isProfileComplete(user);
   // The finish-profile round-trip (registration sends people here to fill the
   // form) and an incomplete profile both make settings the main event: it is
-  // the tab that opens by default and its details accordion starts open.
+  // the tab that opens by default.
   const settingsFirst = incomplete || Boolean(redirectTo);
 
   // Confirmation closes once the heat card is published — one query for the
@@ -196,11 +195,9 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   // predicate — a card that showed a balance while the page bounced the reader
   // back here was the failure mode being guarded against.
   //
-  // Unconditional now, and the card carries its own two states: an empty wallet
-  // says how ACER is earned, a funded one says what the number is. Since every
-  // new account is credited the welcome grant on creation (ADR 0013), "empty"
-  // is the rarer case. One balance query, no history — movements live on
-  // `/wallet`.
+  // Unconditional now. The balance is shown once, on the wallet row of the
+  // profile nav (rail on desktop, last tab on phones) — not as a card on every
+  // tab. One balance query, no history — movements live on `/wallet`.
   const walletBalances = await getWalletBalances(user.id);
 
   // Race nights the user could still join — any registration row (even a
@@ -279,7 +276,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
       <h2 className="iv-title pf-h2">{t("settings.heading")}</h2>
 
       <div className="pf-acc-list">
-        <details className="pf-acc" open={settingsFirst}>
+        <details className="pf-acc" open>
           <summary className="pf-acc__head">
             <span className="pf-acc__tw">
               <span className="pf-acc__t">{t("settings.profileSummary")}</span>
@@ -290,7 +287,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
           <ProfileForm initial={initial} redirectTo={redirectTo} />
         </details>
 
-        <details className="pf-acc">
+        <details className="pf-acc" open>
           <summary className="pf-acc__head">
             <span className="pf-acc__tw">
               <span className="pf-acc__t">{t("settings.passwordSummary")}</span>
@@ -342,16 +339,6 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             </div>
             <LogOutButton className="btn btn-stroke-dark btn-sm pf-hero__out" />
           </header>
-
-          {/* Money sits directly under the identity block and above the stats
-           * strip: it is the one number on this page that moves between visits,
-           * so it leads rather than competing inside the grey grid. */}
-          <WalletBalanceCard
-            balanceMinor={walletBalances.ACER}
-            locale={locale}
-            // ACER top-up is off (ADR 0015) — see /wallet.
-            canTopUp={false}
-          />
 
           <div className="pf-stats">
             <div className="pf-stat">

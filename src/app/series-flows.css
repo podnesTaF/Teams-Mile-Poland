@@ -2095,18 +2095,6 @@
   }
 }
 @media (max-width: 640px) {
-  .ace-landing .pf-content .pf-wal {
-    flex-direction: row;
-    align-items: flex-end;
-    margin-top: 16px;
-  }
-  .ace-landing .pf-content .pf-wal__main {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-  .ace-landing .pf-content .pf-wal__cta > .btn {
-    flex: 0 0 auto;
-  }
   .ace-landing .pf-content .pf-stats {
     margin-top: 12px;
   }
@@ -2228,7 +2216,7 @@
   .ace-landing .pf-content > .pf-hero {
     display: none;
   }
-  .ace-landing .pf-content > .pf-wal:first-of-type {
+  .ace-landing .pf-content > .pf-hero + .pf-stats {
     margin-top: 0;
   }
 }
