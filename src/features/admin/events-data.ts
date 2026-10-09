@@ -1,6 +1,6 @@
 import { cache } from "react";
 import ExcelJS from "exceljs";
-import { and, eq, ilike, isNotNull, isNull, ne, notExists, or, sql, type SQL } from "drizzle-orm";
+import { and, eq, ilike, inArray, isNotNull, isNull, ne, notExists, or, sql, type SQL } from "drizzle-orm";
 
 import {
   eventEmailLog,
@@ -9,8 +9,16 @@ import {
   eventRegistrations,
   eventResults,
   users,
+  userTeams,
   type ParticipationStatus,
 } from "@/db/schema";
+import { adminRaceLabel, type AdminRaceFilter } from "@/features/admin/components/teams/labels";
+import {
+  PLACEMENT_TEAM_SLUGS,
+  type PlacementTeamSlug,
+  type RaceFormat,
+  type TeamCategory,
+} from "@/features/teams/config";
 import { awardCheckInRewards } from "@/features/wallet/accruals";
 import { executor, getDb, type DbExecutor } from "@/lib/db";
 import { getBibSlots, getEventBySlug } from "@/lib/events/registry";
@@ -44,6 +52,11 @@ export type RosterRow = {
   heatFinishedAt: Date | null;
   checkedInAt: Date | null;
   createdAt: Date;
+  /** Which race the row is for (ADR 0016) — what the roster's Race column reads. */
+  raceFormat: RaceFormat;
+  /** The team-race row's team, if it still exists; null for the mile. */
+  teamSlug: string | null;
+  teamCategory: TeamCategory | null;
 };
 
 const ROSTER_COLUMNS = {
@@ -66,10 +79,14 @@ const ROSTER_COLUMNS = {
   heatFinishedAt: eventHeats.finishedAt,
   checkedInAt: eventRegistrations.checkedInAt,
   createdAt: eventRegistrations.createdAt,
+  raceFormat: eventRegistrations.raceFormat,
+  // Read through a left join on `team_id` — every roster read below carries it.
+  teamSlug: userTeams.slug,
+  teamCategory: userTeams.category,
 };
 
 /** Which roster column the table is ordered by. */
-export type RosterSortKey = "bib" | "name" | "status" | "registered-at" | "best";
+export type RosterSortKey = "bib" | "name" | "race" | "status" | "registered-at" | "best";
 
 export type RosterSort = { key: RosterSortKey; dir: "asc" | "desc" };
 
@@ -82,9 +99,27 @@ export const DEFAULT_ROSTER_SORT: RosterSort = { key: "bib", dir: "asc" };
 /** What a runner sorts and is searched under: surname, or the single-field name. */
 const SORT_NAME = sql`coalesce(${users.lastName}, ${users.name})`;
 
+/**
+ * The Race column's order (#84): the mile first, then the placement teams in
+ * `PLACEMENT_TEAM_SLUGS` order (RED men, BLACK men, RED women, BLACK women),
+ * then any other team-race row. Ranks rather than labels so the order is the
+ * chips' order, not the alphabet's.
+ */
+const RACE_RANK = sql`case when ${eventRegistrations.raceFormat} = 'individual' then 0 ${sql.join(
+  PLACEMENT_TEAM_SLUGS.map(
+    (slug, i) => sql`when ${userTeams.slug} = ${slug} then ${sql.raw(String(i + 1))}`,
+  ),
+  sql` `,
+)} else ${sql.raw(String(PLACEMENT_TEAM_SLUGS.length + 1))} end`;
+
 /** How the roster is filtered — shared by the page read and its count. */
 export type RosterFilter = {
   status?: ParticipationStatus;
+  /**
+   * The race (#84): `"mile"` for individual rows, a placement team's slug for
+   * that team's team-race rows. Composes with `status` — "RED men, confirmed".
+   */
+  race?: AdminRaceFilter;
   q?: string;
   /**
    * Widen the free-text search to the runner's club. Off by default because the
@@ -111,6 +146,12 @@ function rosterFilters(eventSlug: string, opts: RosterFilter): SQL[] {
 
   if (opts.status) {
     filters.push(eq(eventRegistrations.status, opts.status));
+  }
+
+  if (opts.race === "mile") {
+    filters.push(eq(eventRegistrations.raceFormat, "individual"));
+  } else if (opts.race) {
+    filters.push(eq(eventRegistrations.raceFormat, "team"), eq(userTeams.slug, opts.race));
   }
 
   const q = opts.q?.trim();
@@ -158,6 +199,7 @@ function rosterOrder(sort: RosterSort): SQL[] {
   const primary: Record<RosterSortKey, SQL> = {
     bib: sql`${eventRegistrations.bib} ${dir} nulls last`,
     name: sql`${SORT_NAME} ${dir} nulls last`,
+    race: sql`${RACE_RANK} ${dir}`,
     // Enum columns order by declaration, which here is the participation
     // lifecycle itself: registered → confirmed → checked_in → no_show.
     status: sql`${eventRegistrations.status} ${dir}`,
@@ -192,6 +234,7 @@ export async function getEventRoster(
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
     // Left, not inner: an unseeded runner is still on the roster.
     .leftJoin(eventHeats, eq(eventRegistrations.heatId, eventHeats.id))
+    .leftJoin(userTeams, eq(eventRegistrations.teamId, userTeams.id))
     .where(and(...rosterFilters(eventSlug, opts)))
     .orderBy(...rosterOrder(opts.sort ?? DEFAULT_ROSTER_SORT));
 
@@ -219,6 +262,8 @@ export async function countEventRoster(
     .from(eventRegistrations)
     // Inner join, as in the read: the free-text filter is over user columns.
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
+    // Left, as in the read: the race filter is over the team's slug.
+    .leftJoin(userTeams, eq(eventRegistrations.teamId, userTeams.id))
     .where(and(...rosterFilters(eventSlug, opts)));
   return row?.count ?? 0;
 }
@@ -234,6 +279,7 @@ export async function getRosterRowById(
     .from(eventRegistrations)
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
     .leftJoin(eventHeats, eq(eventRegistrations.heatId, eventHeats.id))
+    .leftJoin(userTeams, eq(eventRegistrations.teamId, userTeams.id))
     .where(and(eq(eventRegistrations.eventSlug, eventSlug), eq(eventRegistrations.id, registrationId)))
     .limit(1);
   return row ? { ...row, status: row.status as ParticipationStatus } : null;
@@ -299,6 +345,64 @@ export const getRosterStats = cache(async (
   // `cancelled` is deprecated and never set; skip any legacy rows defensively.
   for (const r of rows) {
     if (r.status !== "cancelled") out[r.status] = r.count;
+  }
+  return out;
+});
+
+/** One race chip's worth of the roster: the whole night, never the filter. */
+export type RosterRaceStats = {
+  mile: number;
+  /** Every placement team, in `PLACEMENT_TEAM_SLUGS` order, with its category. */
+  teams: Array<{ slug: PlacementTeamSlug; category: TeamCategory | null; count: number }>;
+  /** Team-race rows whose team is not (or no longer) a placement team. */
+  otherTeam: number;
+};
+
+/**
+ * Registrations per race for an event (#84) — the race chips' counts, the
+ * status chips' sibling. Like {@link getRosterStats} it counts the whole roster
+ * (minus deprecated `cancelled`), so a chip says what is available rather than
+ * what the other filter leaves showing. Request-cached for the same reason.
+ *
+ * All four placement teams come back even at zero, with the category read off
+ * `user_teams`, so the chip row has a stable shape and a label for each.
+ */
+export const getRosterRaceStats = cache(async (eventSlug: string): Promise<RosterRaceStats> => {
+  const db = getDb();
+  const [counts, teams] = await Promise.all([
+    db
+      .select({
+        raceFormat: eventRegistrations.raceFormat,
+        slug: userTeams.slug,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(eventRegistrations)
+      .leftJoin(userTeams, eq(eventRegistrations.teamId, userTeams.id))
+      .where(and(eq(eventRegistrations.eventSlug, eventSlug), ne(eventRegistrations.status, "cancelled")))
+      .groupBy(eventRegistrations.raceFormat, userTeams.slug),
+    db
+      .select({ slug: userTeams.slug, category: userTeams.category })
+      .from(userTeams)
+      .where(inArray(userTeams.slug, [...PLACEMENT_TEAM_SLUGS])),
+  ]);
+
+  const out: RosterRaceStats = {
+    mile: 0,
+    teams: PLACEMENT_TEAM_SLUGS.map((slug) => ({
+      slug,
+      category: teams.find((t) => t.slug === slug)?.category ?? null,
+      count: 0,
+    })),
+    otherTeam: 0,
+  };
+  for (const r of counts) {
+    if (r.raceFormat !== "team") {
+      out.mile += r.count;
+      continue;
+    }
+    const team = out.teams.find((t) => t.slug === r.slug);
+    if (team) team.count += r.count;
+    else out.otherTeam += r.count;
   }
   return out;
 });
@@ -404,6 +508,7 @@ export async function buildEventRosterWorkbook(eventSlug: string): Promise<Buffe
     { header: "Bib", key: "bib", width: 8 },
     { header: "First name", key: "firstName", width: 20 },
     { header: "Surname", key: "lastName", width: 20 },
+    { header: "Race", key: "race", width: 18 },
     { header: "Sex", key: "sex", width: 6 },
     { header: "Date of birth", key: "dob", width: 14 },
     { header: "Age cat.", key: "ageCat", width: 10 },
@@ -423,6 +528,7 @@ export async function buildEventRosterWorkbook(eventSlug: string): Promise<Buffe
       bib: r.bib ?? "",
       firstName: r.firstName ?? "",
       lastName: r.lastName ?? "",
+      race: adminRaceLabel(r),
       sex: r.sex ?? "",
       dob: fmtDob(r.dateOfBirth),
       ageCat: ageCategoryForDob(r.dateOfBirth, eventDate),

@@ -128,6 +128,7 @@ export function RosterDrawer({
           </Section>
 
           <Section label="Race">
+            <Detail label="Race">{row.race}</Detail>
             <Detail label="Heat">
               {row.heatLabel === null
                 ? null

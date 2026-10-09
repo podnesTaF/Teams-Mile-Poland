@@ -208,6 +208,13 @@ export function RosterTable({
                 ) : null}
                 <SortHeader sort={sort} hrefs={sortHrefs} sortKey="bib" label="Bib" className="w-[68px]" />
                 <SortHeader sort={sort} hrefs={sortHrefs} sortKey="name" label="Runner" />
+                <SortHeader
+                  sort={sort}
+                  hrefs={sortHrefs}
+                  sortKey="race"
+                  label="Race"
+                  className="w-[150px]"
+                />
                 <PlainHeader label="Club" className="hidden lg:table-cell" />
                 <PlainHeader label="Cat." className="hidden w-[92px] sm:table-cell" />
                 <SortHeader
@@ -511,6 +518,15 @@ function RosterTableRow({
         >
           {row.name}
         </button>
+      </td>
+      {/* Which race the runner registered for (ADR 0016) — the column a manager
+          composes a team from (#84). Read-only: membership decides it. */}
+      <td
+        data-roster-race={row.raceFormat}
+        data-roster-race-team={row.raceTeam ?? undefined}
+        className={cn(CELL, "whitespace-nowrap", row.raceFormat === "team" && "text-admin-ink")}
+      >
+        {row.race}
       </td>
       <td className={cn(CELL, "hidden lg:table-cell")}>{row.club || "—"}</td>
       <td className={cn(CELL, "hidden sm:table-cell")}>

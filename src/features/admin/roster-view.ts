@@ -23,10 +23,12 @@ import {
   type RosterRow,
 } from "./events-data";
 import { formatAdminDateTime } from "./format";
+import { adminRaceLabel } from "./components/teams/labels";
 import type { HeatWithFill } from "./heats-data";
 import type { SeasonBest } from "./roster-best";
 import { formatHeatTime } from "@/lib/events/heat-time";
 import { formatTime } from "@/lib/events/time";
+import type { RaceFormat } from "@/features/teams/config";
 
 export type RosterRowView = {
   id: string;
@@ -36,6 +38,12 @@ export type RosterRowView = {
   email: string;
   phone: string | null;
   club: string | null;
+  /** Which race (ADR 0016) — the `data-roster-race` marker. */
+  raceFormat: RaceFormat;
+  /** The team-race row's team slug, null for the mile. */
+  raceTeam: string | null;
+  /** "Mile" or "Team · RED men" (#84), as the Race column, drawer and export print it. */
+  race: string;
   sex: "M" | "F" | null;
   /** Age category against the event date; `""` when no date of birth is on file. */
   category: string;
@@ -74,6 +82,9 @@ export function toRosterRowView(
     email: row.email,
     phone: row.phone,
     club: row.club,
+    raceFormat: row.raceFormat,
+    raceTeam: row.raceFormat === "team" ? row.teamSlug : null,
+    race: adminRaceLabel(row),
     sex: row.sex,
     category: ageCategoryForDob(row.dateOfBirth, eventDate),
     dateOfBirth: row.dateOfBirth ? row.dateOfBirth.toISOString().slice(0, 10) : "",

@@ -1,8 +1,8 @@
 /**
- * The roster table's list state — search, status filter, sort and page — as it
- * travels in the URL.
+ * The roster table's list state — search, status and race filters, sort and
+ * page — as it travels in the URL.
  *
- * All four live in the query string rather than in client state, which is what
+ * All of it lives in the query string rather than in client state, which is what
  * makes a roster view linkable, back-button-correct and survivable across the
  * form-post → redirect round-trip every admin mutation performs. This module is
  * the one place that reads them out of `searchParams` and writes them back into
@@ -16,6 +16,9 @@
  * Pure: no database, no React. Kept out of `events-data.ts` so a client
  * component could import the href helpers without pulling Drizzle behind them.
  */
+
+import type { AdminRaceFilter } from "@/features/admin/components/teams/labels";
+import { isPlacementTeamSlug } from "@/features/teams/config";
 
 import {
   DEFAULT_ROSTER_SORT,
@@ -33,7 +36,14 @@ export const ROSTER_STATUSES: ParticipationStatus[] = [
 ];
 
 /** Columns the table can be ordered by; anything else falls back to the default. */
-export const ROSTER_SORT_KEYS: RosterSortKey[] = ["bib", "name", "status", "registered-at", "best"];
+export const ROSTER_SORT_KEYS: RosterSortKey[] = [
+  "bib",
+  "name",
+  "race",
+  "status",
+  "registered-at",
+  "best",
+];
 
 /**
  * Rows per page. Sized so a full page fits a laptop screen without scrolling the
@@ -50,6 +60,8 @@ export type RosterSearchParams = Record<string, string | string[] | undefined>;
 
 export type RosterParams = {
   status?: ParticipationStatus;
+  /** `?race=` (#84): `mile` or a placement team's slug; composes with `status`. */
+  race?: AdminRaceFilter;
   /** Trimmed free text; `""` when there is no search. */
   q: string;
   sort: RosterSort;
@@ -78,6 +90,12 @@ function parseSort(value: string): RosterSort {
     : DEFAULT_ROSTER_SORT;
 }
 
+/** `mile` or a placement team slug; anything else is no race filter. */
+function parseRace(value: string): AdminRaceFilter | undefined {
+  if (value === "mile") return "mile";
+  return isPlacementTeamSlug(value) ? value : undefined;
+}
+
 /** Read the whole list state out of a roster page's query string. */
 export function parseRosterParams(query: RosterSearchParams): RosterParams {
   const status = param(query, "status");
@@ -86,6 +104,7 @@ export function parseRosterParams(query: RosterSearchParams): RosterParams {
     status: ROSTER_STATUSES.includes(status as ParticipationStatus)
       ? (status as ParticipationStatus)
       : undefined,
+    race: parseRace(param(query, "race")),
     q: param(query, "q").slice(0, MAX_QUERY_LENGTH),
     sort: parseSort(param(query, "sort")),
     page: Number.isInteger(page) && page > 0 ? page : 1,
@@ -94,7 +113,7 @@ export function parseRosterParams(query: RosterSearchParams): RosterParams {
 
 /** Whether the admin has narrowed the roster at all — the two empty states differ. */
 export function isFiltered(params: RosterParams): boolean {
-  return Boolean(params.status) || params.q !== "";
+  return Boolean(params.status) || Boolean(params.race) || params.q !== "";
 }
 
 /**
@@ -116,6 +135,7 @@ export function rosterHref(
   const next = { ...params, page: 1, ...patch };
   const search = new URLSearchParams();
   if (next.status) search.set("status", next.status);
+  if (next.race) search.set("race", next.race);
   if (next.q) search.set("q", next.q);
   if (sortToken(next.sort) !== sortToken(DEFAULT_ROSTER_SORT)) {
     search.set("sort", sortToken(next.sort));

@@ -9,12 +9,15 @@ import { RosterTable } from "@/features/admin/components/roster/roster-table";
 import { adminButton } from "@/features/admin/components/shell/admin-button";
 import { AdminEmptyState } from "@/features/admin/components/shell/admin-empty-state";
 import { adminInput } from "@/features/admin/components/shell/admin-field";
+import { adminPlacementTeamLabel } from "@/features/admin/components/teams/labels";
 import {
   countEventRoster,
   DEFAULT_ROSTER_SORT,
   getEventRoster,
+  getRosterRaceStats,
   getRosterStats,
   type ParticipationStatus,
+  type RosterRaceStats,
   type RosterRow,
   type RosterSortKey,
 } from "@/features/admin/events-data";
@@ -41,7 +44,7 @@ import {
 } from "@/features/admin/roster-view";
 import { userCan } from "@/lib/auth/user-session";
 import { getBibPool, getEventBySlug } from "@/lib/events/registry";
-import { isSeriesEvent, type EventStatus } from "@/lib/events/types";
+import { acceptsTeams, isSeriesEvent, type EventStatus } from "@/lib/events/types";
 import { cn } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 
@@ -54,7 +57,7 @@ type PageProps = {
  * The Roster tab: who has entered this event, and the one destructive action on
  * them.
  *
- * Its entire list state — `?q=`, `?status=`, `?sort=`, `?page=` — lives in the
+ * Its entire list state — `?q=`, `?status=`, `?race=`, `?sort=`, `?page=` — lives in the
  * URL and is applied by the database (`roster-query.ts` reads and writes the
  * params; `events-data.ts` runs them). Nothing here is a client table: a
  * paginated view has to survive a server action's redirect, be linkable to a
@@ -92,11 +95,17 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
   const eventDate = new Date(event.date);
   // Club is in the search here and nowhere else: the desk's box next door shares
   // this read but promises name / email / bib only.
-  const filter = { status: requested.status, q: requested.q, searchClub: true };
+  const filter = {
+    status: requested.status,
+    race: requested.race,
+    q: requested.q,
+    searchClub: true,
+  };
 
-  const [stats, matches] = await Promise.all([
+  const [stats, raceStats, matches] = await Promise.all([
     // Request-cached: the event header above this page already asked for these.
     getRosterStats(slug),
+    getRosterRaceStats(slug),
     countEventRoster(slug, filter),
   ]);
 
@@ -147,7 +156,22 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
       {/* No controls above an empty roster: there is nothing to search, filter
           or sort, and the empty state should be the only thing on the page. */}
       {registrations === 0 ? null : (
-        <RosterToolbar slug={slug} list={list} stats={stats} registrations={registrations} />
+        <RosterToolbar
+          slug={slug}
+          list={list}
+          stats={stats}
+          registrations={registrations}
+          raceStats={raceStats}
+          // The race chips (#84) are the manager's composing view, so they
+          // show on a night with a team path — or wherever a team-race row or
+          // a `?race=` already is, so a filter is never applied invisibly.
+          showRace={
+            acceptsTeams(event) ||
+            raceStats.teams.some((t) => t.count > 0) ||
+            raceStats.otherTeam > 0 ||
+            Boolean(list.race)
+          }
+        />
       )}
 
       {registrations === 0 ? (
@@ -168,7 +192,7 @@ export default async function AdminEventRosterPage({ params, searchParams }: Pag
           <AdminEmptyState title="No runners match this view">
             {plainDescription(list)} Nothing has been removed —{" "}
             {plural(registrations, "runner is", "runners are")} still on this roster. Clear the
-            search or pick a different status to see them.
+            search or pick a different status or race to see them.
           </AdminEmptyState>
         </div>
       ) : (
@@ -252,6 +276,11 @@ function plainDescription(list: RosterParams): string {
   const parts: string[] = [];
   if (list.q) parts.push(`nothing matches “${list.q}”`);
   if (list.status) parts.push(`no runner is ${list.status.replaceAll("_", " ")}`);
+  if (list.race) {
+    parts.push(
+      list.race === "mile" ? "nobody is running the mile" : "nobody is running for that team",
+    );
+  }
   return parts.length === 0 ? "" : `In this event ${parts.join(" and ")}.`;
 }
 
@@ -270,7 +299,7 @@ function sortHrefs(slug: string, list: RosterParams): Record<RosterSortKey, stri
 /* ── controls ───────────────────────────────────────────────────────── */
 
 /**
- * Search box and status chips.
+ * Search box, status chips and race chips.
  *
  * `next/form` with an empty `action` is the documented shape for a form whose
  * only job is to update this route's search params
@@ -280,19 +309,26 @@ function sortHrefs(slug: string, list: RosterParams): Record<RosterSortKey, stri
  * of blanking the page. It also means the locale prefix needs no handling — the
  * route it navigates to is this one.
  *
- * The filter is a row of links for the same reason the search is a form: every
- * control here only ever writes the URL.
+ * The filters are rows of links for the same reason the search is a form: every
+ * control here only ever writes the URL. Status and race are independent rows,
+ * and each chip keeps the other row's choice — "RED men" then "confirmed" is
+ * one URL, `?status=confirmed&race=ab-praga-poludnie`, the view a manager
+ * composes a team from (#84). Both rows count the whole roster, not the view.
  */
 function RosterToolbar({
   slug,
   list,
   stats,
   registrations,
+  raceStats,
+  showRace,
 }: {
   slug: string;
   list: RosterParams;
   stats: Record<ParticipationStatus, number>;
   registrations: number;
+  raceStats: RosterRaceStats;
+  showRace: boolean;
 }) {
   const sort = sortToken(list.sort);
 
@@ -304,6 +340,7 @@ function RosterToolbar({
             not: a new search re-shuffles what is on which page, and page 7 of a
             different list is never what was meant. */}
         {list.status ? <input type="hidden" name="status" value={list.status} /> : null}
+        {list.race ? <input type="hidden" name="race" value={list.race} /> : null}
         {sort === sortToken(DEFAULT_ROSTER_SORT) ? null : (
           <input type="hidden" name="sort" value={sort} />
         )}
@@ -353,6 +390,42 @@ function RosterToolbar({
           </FilterChip>
         ))}
       </div>
+
+      {showRace ? (
+        <div
+          data-roster-race-chips
+          aria-label="Filter by race"
+          className="admin-scroll flex gap-1.5 overflow-x-auto pb-0.5"
+        >
+          <FilterChip
+            href={rosterHref(slug, list, { race: undefined })}
+            active={!list.race}
+            count={registrations}
+            race="all"
+          >
+            All races
+          </FilterChip>
+          <FilterChip
+            href={rosterHref(slug, list, { race: "mile" })}
+            active={list.race === "mile"}
+            count={raceStats.mile}
+            race="mile"
+          >
+            Mile
+          </FilterChip>
+          {raceStats.teams.map((team) => (
+            <FilterChip
+              key={team.slug}
+              href={rosterHref(slug, list, { race: team.slug })}
+              active={list.race === team.slug}
+              count={team.count}
+              race={team.slug}
+            >
+              Team · {adminPlacementTeamLabel(team.slug, team.category)}
+            </FilterChip>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -361,23 +434,32 @@ function FilterChip({
   href,
   active,
   count,
+  race,
   children,
 }: {
   href: string;
   active: boolean;
   count: number;
+  /**
+   * Set on a race chip (#84): its `?race=` value, or `all`. Race chips keep
+   * the team colours' capitals ("RED men") rather than title-casing them.
+   */
+  race?: string;
   children: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      data-roster-filter={active ? "active" : "idle"}
+      data-roster-filter={race ? undefined : active ? "active" : "idle"}
+      data-roster-race-filter={race}
+      data-active={race ? (active ? "true" : "false") : undefined}
       aria-current={active ? "true" : undefined}
       className={cn(
         "inline-flex shrink-0 items-center gap-2 rounded-pill border px-3 py-1.5 font-sans text-[12.5px] font-medium normal-case not-italic capitalize leading-none transition-colors",
         active
           ? "border-admin-accent bg-admin-accent-soft text-admin-ink"
           : "border-admin-line text-admin-muted hover:border-admin-line-2 hover:text-admin-ink",
+        race && "normal-case",
       )}
     >
       {children}
