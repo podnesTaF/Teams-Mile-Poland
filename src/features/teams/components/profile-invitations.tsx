@@ -42,7 +42,7 @@ export async function ProfileInvitations({ userId }: { userId: string }) {
       <h3 className="iv-title pf-h2">{t("profileHeading")}</h3>
       <div className="reg-list">
         {invitations.map(({ invitation, team }) => (
-          <div key={invitation.id} className="reg-card">
+          <div key={invitation.id} className="reg-card reg-card--plain">
             <div className="reg-card__body">
               <span className="reg-card__title">{team.name}</span>
               <div className="reg-card__meta">

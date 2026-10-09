@@ -126,7 +126,7 @@ export function EntryManagerControls({
       {members.length > 0 ? (
         <div className="reg-list" data-entry-control-rows="1">
           {members.map((member) => (
-            <div key={member.userId} className="reg-card" data-entry-control-row={member.userId}>
+            <div key={member.userId} className="reg-card reg-card--plain" data-entry-control-row={member.userId}>
               <div className="reg-card__body">
                 <span className="reg-card__title">{member.displayName}</span>
                 <div className="reg-card__meta">

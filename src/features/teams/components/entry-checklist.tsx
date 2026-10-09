@@ -60,7 +60,7 @@ export async function EntryChecklist({
         {members.map((member) => (
           <div
             key={member.userId}
-            className="reg-card"
+            className="reg-card reg-card--plain"
             data-entry-member={member.userId}
             data-entry-confirmed={member.confirmed ? "1" : "0"}
           >
