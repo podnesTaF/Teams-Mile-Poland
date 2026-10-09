@@ -114,7 +114,9 @@ export async function sendEventKind(
     const content = eventMailContent(kind, r.locale, r.fullName);
     const ticket = makeEventTicketUrl(r.registrationId, { locale: r.locale });
     try {
-      await resend.emails.send({
+      // `send()` RETURNS `{ error }` rather than throwing: an unread result
+      // would log a rejected send as `sent` and consume the kind for good.
+      const { error } = await resend.emails.send({
         from: FROM_EMAIL,
         to: r.email,
         subject: content.title,
@@ -132,8 +134,14 @@ export async function sendEventKind(
           footerMeta: eventFooterMeta(event),
           // Only the reminders ask, and only of someone who has not answered.
           showConfirm: asksForConfirmation(kind) && r.status === "registered",
+          // A team-race registration's 3d / 1d reminders name its team.
+          teamLabel: r.teamLabel,
         }),
       });
+      if (error) {
+        summary.failed += 1;
+        continue;
+      }
       await db
         .insert(eventEmailLog)
         .values({ eventRegistrationId: r.registrationId, kind, status: "sent" })

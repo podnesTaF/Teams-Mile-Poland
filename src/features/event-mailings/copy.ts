@@ -268,6 +268,45 @@ export function confirmBlockCopy(locale: MailLocale): ConfirmBlockCopy {
 }
 
 /**
+ * The one sentence a `team` registration's 3d and 1d reminders add (ADR 0016,
+ * #85): which placement team the runner is down for. Same template, same kind,
+ * same log row — an `individual` registration gets no line and its email is
+ * unchanged. Two voices: while the runner has not answered, the line leads into
+ * the confirm block below it (the manager composes the team from the confirmed
+ * members); once they have, it only names the team.
+ */
+const TEAM_LINE_KINDS: readonly EventScheduledKind[] = ["reminder_3d", "reminder_1d"];
+
+const TEAM_LINE: Record<MailLocale, { asking: (team: string) => string; named: (team: string) => string }> = {
+  ua: {
+    asking: (team) =>
+      `Ти біжиш за команду ${team} — підтверди, що будеш, щоб менеджер міг включити тебе до складу.`,
+    named: (team) => `Ти біжиш у командному забігу за команду ${team}.`,
+  },
+  pl: {
+    asking: (team) =>
+      `Biegniesz w drużynie ${team} — potwierdź, że będziesz, aby menedżer mógł uwzględnić Cię w składzie.`,
+    named: (team) => `W biegu drużynowym startujesz w drużynie ${team}.`,
+  },
+  en: {
+    asking: (team) =>
+      `You are running for ${team} — confirm you are coming, so your manager can count you in.`,
+    named: (team) => `You are running for ${team} in the team race.`,
+  },
+};
+
+export function teamReminderLine(
+  kind: EventScheduledKind,
+  locale: MailLocale,
+  teamLabel: string | null | undefined,
+  asking: boolean,
+): string | null {
+  if (!teamLabel || !TEAM_LINE_KINDS.includes(kind)) return null;
+  const copy = TEAM_LINE[locale];
+  return asking ? copy.asking(teamLabel) : copy.named(teamLabel);
+}
+
+/**
  * Copy for the manual, admin-triggered "your photos are live" mailing
  * (`media_live` kind — PRD #14, slice #18). Not part of the scheduled chain, so
  * it lives outside {@link BUILDERS}. `title` doubles as the email subject and the

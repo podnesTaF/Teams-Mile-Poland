@@ -51,7 +51,8 @@ export async function LandingView() {
   // /register modal flow. Drives the hero + mid-page CTAs.
   const featuredIsLegacy = isLegacyEvent(featuredEvent);
   // Main-page "Register" leads to the events list so the visitor picks a race
-  // night first, then registers (or enters a team) from its detail page.
+  // night first, then registers from its detail page — the race (team or
+  // individual) follows the runner's roster there (ADR 0016).
   const registerHref = featuredIsLegacy ? "/register" : "/#events";
   // The "start a team / join a team" cards belong to the legacy team flow only.
   // For a current-stack featured event the EventSeries cards are the entry point.

@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 
 import { eventRegistrations, users, type ParticipationStatus } from "@/db/schema";
+import { placementTeamsById, type PlacementTeam } from "@/features/teams/placement";
 import { getDb } from "@/lib/db";
 
 import { asMailLocale, type MailLocale } from "./copy";
@@ -12,6 +13,11 @@ export type EventRecipient = {
   locale: MailLocale;
   /** Drives the conditional confirmation ask in the reminder templates. */
   status: ParticipationStatus;
+  /**
+   * The placement team a `team` registration runs for ("RED" / "BLACK"), or
+   * `null` for the individual mile (ADR 0016) — the reminders name the team.
+   */
+  teamLabel: PlacementTeam["label"] | null;
 };
 
 /**
@@ -30,6 +36,8 @@ export async function eligibleForEvent(eventSlug: string): Promise<EventRecipien
       lastName: users.lastName,
       locale: eventRegistrations.locale,
       status: eventRegistrations.status,
+      raceFormat: eventRegistrations.raceFormat,
+      teamId: eventRegistrations.teamId,
     })
     .from(eventRegistrations)
     .innerJoin(users, eq(eventRegistrations.userId, users.id))
@@ -40,11 +48,18 @@ export async function eligibleForEvent(eventSlug: string): Promise<EventRecipien
       ),
     );
 
+  // One read for every team in the list; an individual-only night asks nothing.
+  const teams = await placementTeamsById(
+    rows.filter((r) => r.raceFormat === "team").map((r) => r.teamId),
+  );
+
   return rows.map((r) => ({
     registrationId: r.registrationId,
     email: r.email,
     fullName: [r.firstName, r.lastName].filter(Boolean).join(" ").trim() || r.name || r.email,
     locale: asMailLocale(r.locale),
     status: r.status as ParticipationStatus,
+    teamLabel:
+      r.raceFormat === "team" && r.teamId ? (teams.get(r.teamId)?.label ?? null) : null,
   }));
 }

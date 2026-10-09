@@ -4,6 +4,7 @@ import { Btn, C, EmailShell, Field, HeroBand, SectionPad } from "@/emails/compon
 import {
   confirmBlockCopy,
   eventMailContent,
+  teamReminderLine,
   UI,
   type EventMailAction,
   type MailLocale,
@@ -45,6 +46,7 @@ export function EventLifecycleEmail({
   whenWhere,
   footerMeta,
   showConfirm = false,
+  teamLabel = null,
 }: {
   kind: EventScheduledKind;
   locale: MailLocale;
@@ -54,8 +56,15 @@ export function EventLifecycleEmail({
   /** Event-specific footer line — see {@link eventFooterMeta}. */
   footerMeta?: string;
   showConfirm?: boolean;
+  /**
+   * The placement team of a `team` registration ("RED"), `null` for the
+   * individual mile. The 3d / 1d reminders name it ({@link teamReminderLine});
+   * with `null` nothing is added and the email is the individual one.
+   */
+  teamLabel?: string | null;
 }) {
   const c = eventMailContent(kind, locale, fullName);
+  const teamLine = teamReminderLine(kind, locale, teamLabel, showConfirm);
   const ui = UI[locale];
   const para = { margin: "0 0 12px", fontSize: "14px", lineHeight: "1.6", color: C.text } as const;
 
@@ -85,6 +94,10 @@ export function EventLifecycleEmail({
               </li>
             ))}
           </ul>
+        ) : null}
+
+        {teamLine ? (
+          <Text style={{ ...para, color: C.white, fontWeight: 700 }}>{teamLine}</Text>
         ) : null}
 
         {showConfirm ? <ConfirmAsk locale={locale} href={urls.confirm} /> : null}

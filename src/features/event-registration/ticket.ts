@@ -208,14 +208,14 @@ const TEAM_RACE_COPY: Record<
     line: "A few days before the night we will ask you to confirm you are coming; your manager then composes the team.",
   },
   pl: {
-    subject: (team, date) => `Gratulacje — biegniesz w drużynie ${team} ${date}`,
+    subject: (team, date) => `Gratulacje — ${date} biegniesz w drużynie ${team}`,
     heading: (team) => `Biegniesz w drużynie ${team}`,
-    line: "Kilka dni przed wieczorem biegowym poprosimy Cię o potwierdzenie, że będziesz; potem Twój menedżer ustala skład drużyny.",
+    line: "Kilka dni przed biegiem poprosimy Cię o potwierdzenie obecności, a potem Twój menedżer ustali skład drużyny.",
   },
   ua: {
-    subject: (team, date) => `Вітаємо — ви біжите за ${team} ${date}`,
-    heading: (team) => `Ви біжите за ${team}`,
-    line: "За кілька днів до вечора забігу ми попросимо вас підтвердити, що ви прийдете; після цього ваш менеджер формує склад команди.",
+    subject: (team, date) => `Вітаємо — ${date} ви біжите за команду ${team}`,
+    heading: (team) => `Ви біжите за команду ${team}`,
+    line: "За кілька днів до забігу ми попросимо вас підтвердити участь, а потім ваш менеджер сформує склад команди.",
   },
 };
 

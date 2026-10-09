@@ -86,7 +86,7 @@ export async function sendManagementHandedOverMail(
       greeting: t("greeting", { name: recipient.firstName }),
       intro: t("intro", { team: team.name }),
       dutiesTitle: t("dutiesTitle"),
-      duties: [t("duty1"), t("duty2"), t("duty3")],
+      duties: [t("duty1"), t("duty3")],
       team: facts,
       labels,
       ctaLabel: t("cta"),

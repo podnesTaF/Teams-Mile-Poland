@@ -20,8 +20,6 @@ const SECTIONS = [
   {
     heading: "register",
     links: [
-      { label: "start", href: "/register/team" },
-      { label: "free", href: "/register/solo" },
       { label: "contactUs", href: "/#contact" },
     ],
   },

@@ -443,7 +443,7 @@
       "items": {
         "noTeam": {
           "q": "Czy można bez drużyny?",
-          "a": "Tak. Jeśli nie masz drużyny, po prostu zarejestruj się solo. Po biegu pomożemy uformować drużyny spośród uczestników na podstawie ich wyników."
+          "a": "Tak. Zapisz się na indywidualną milę rankingową. Menedżerowie zapraszają biegaczy z wynikiem rankingowym do drużyny RED lub BLACK — od następnego wieczoru biegniesz już z drużyną."
         },
         "cost": {
           "q": "Ile kosztuje udział?",
@@ -550,8 +550,6 @@
       "schedule": "Harmonogram",
       "venue": "Miejsce",
       "documents": "Dokumenty",
-      "start": "Załóż drużynę",
-      "free": "Znajdź mi drużynę",
       "contactUs": "Kontakt",
       "rules": "Regulamin",
       "refund": "Zwroty",
@@ -1044,9 +1042,9 @@
           "cta": "Wybierz inny wieczór"
         },
         "openPaid": {
-          "kicker": "Otwarte · wstęp płatny",
+          "kicker": "Otwarte · start płatny",
           "bannerTitle": "Zapisy otwarte",
-          "bannerTxt": "Zapisy są otwarte. Wstęp jest płatny — cena jest poniżej. Obowiązuje regulamin.",
+          "bannerTxt": "Zapisy są otwarte. Mila indywidualna jest płatna — cena jest poniżej. Obowiązuje regulamin.",
           "note": "Przed finalizacją potwierdzisz datę, godzinę, miejsce i regulamin.",
           "cta": "Zapisz się na wydarzenie →"
         }
@@ -1166,20 +1164,19 @@
       "teamLegend": "Czas drużyny to suma mil drużyny: mila każdego RACERA plus mila każdej pary ACE + JOKER (meta JOKERA). Czas ACE to odczyt w strefie zmiany."
     },
     "teamEvent": {
-      "enteredLabel": "Zgłoszone drużyny",
-      "enteredSub": "Kompletne drużyny na liście zgłoszeń",
-      "notice": "To bieg drużynowy. Zgłoszenia przyjmujemy tylko od drużyn — kapitan zgłasza kompletną drużynę, a każdy zawodnik potwierdza swój udział sam.",
+      "notice": "To wieczór drużynowy: w biegu drużynowym startują RED i BLACK. Ich członkowie zapisują się tutaj bezpłatnie — drużynę rozpoznamy automatycznie.",
       "rulesLink": "Zasady biegu drużynowego",
       "regulationsLink": "Regulamin Publiczny"
     },
     "entryExplainer": {
-      "team": "Bieg drużynowy — dla członków RED i BLACK, bezpłatnie: zapisz się, a rozpoznamy Twoją drużynę.",
+      "team": "Bieg drużynowy — dla członków RED i BLACK, bezpłatny. Zapisz się jak zwykle, a Twoją drużynę rozpoznamy automatycznie.",
       "individualPln": "Indywidualna mila rankingowa — {price} zł.",
       "individualAcer": "Indywidualna mila rankingowa — {amount} ACER.",
-      "individualFree": "Indywidualna mila rankingowa — bezpłatnie.",
+      "individualFree": "Indywidualna mila rankingowa — bezpłatna.",
       "noTeam": "Nie masz jeszcze drużyny? Przebiegnij jedną milę rankingową.",
-      "invite": "Menedżerowie zapraszają do drużyn biegaczy z rankingiem — od kolejnego wieczoru biegniesz z drużyną.",
-      "noTeamShort": "Nie masz drużyny? Zapisz się na milę rankingową — menedżerowie zapraszają biegaczy z rankingiem do drużyny na kolejny wieczór."
+      "invite": "Menedżerowie zapraszają biegaczy z wynikiem rankingowym do drużyny RED lub BLACK — od następnego wieczoru biegniesz już z drużyną.",
+      "noTeamShort": "Nie masz jeszcze drużyny? Zapisz się na milę rankingową — menedżerowie zapraszają biegaczy z wynikiem rankingowym do drużyny RED lub BLACK, a od następnego wieczoru biegniesz już z drużyną.",
+      "rulesLink": "Jak dołącza się do drużyny: Zasady biegu drużynowego, § 2.2"
     }
   },
   "auth": {
@@ -1413,28 +1410,15 @@
       "region": "Region",
       "regionTooShort": "Podaj miasto lub region, dla którego biega zespół.",
       "regionWarning": "Nazwa zespołu nie zawiera regionu. Regulamin o to prosi — mimo to możesz zapisać.",
-      "category": "Kategoria",
       "categoryOption": {
         "men": "Mężczyźni",
         "women": "Kobiety",
         "mixed": "Mieszany"
       },
-      "recruitingLabel": "Skład",
-      "recruitingOpenTitle": "Szukamy zawodników",
-      "recruitingOpenBody": "Zespół jest widoczny publicznie, a zawodnicy mogą prosić o dołączenie.",
-      "recruitingClosedTitle": "Skład jest kompletny",
-      "recruitingClosedBody": "Zespół nie pojawia się na publicznej liście. Zawodników dodajesz tylko przez zaproszenie.",
       "description": "Opis",
       "optional": "(opcjonalnie)",
       "descriptionHint": "Do 280 znaków. Widoczny na publicznej karcie zespołu.",
       "rulesLink": "Przeczytaj regulamin zespołów",
-      "submitCreate": "Załóż zespół",
-      "submitCreatePaid": "Załóż zespół za {price} ACER",
-      "priceLine": "Założenie zespołu kosztuje {price} ACER.",
-      "balanceLine": "Twoje saldo: {balance} ACER.",
-      "shortBy": "Brakuje Ci {missing} ACER, aby założyć zespół.",
-      "walletLink": "Otwórz portfel",
-      "walletLinkTopUp": "Doładuj portfel",
       "submitSave": "Zapisz zmiany",
       "submitting": "Zapisywanie…",
       "saved": "Zapisano."
@@ -1506,7 +1490,7 @@
       "ageBody": "Regulamin zespołów dopuszcza zawodników, którzy ukończyli 18 lat. Jeśli to pomyłka, sprawdź datę urodzenia w profilu."
     },
     "profile": {
-      "empty": "Nie należysz jeszcze do żadnej drużyny. Do drużyn dołącza się wyłącznie na zaproszenie menedżera.",
+      "empty": "Nie należysz jeszcze do żadnej drużyny. Przebiegnij milę rankingową — menedżerowie zapraszają biegaczy z wynikiem rankingowym do drużyny RED lub BLACK.",
       "open": "Otwórz"
     },
     "reasons": {
@@ -1538,7 +1522,7 @@
       "not_reserve": "Ten biegacz nie jest rezerwowym w tym zgłoszeniu.",
       "remind_limit": "Przypomnienie wysłano już w ciągu ostatnich 24 godzin.",
       "already_confirmed": "Ten udział został już potwierdzony.",
-      "insufficient_balance": "Nie masz wystarczająco ACER, aby założyć drużynę.",
+      "insufficient_balance": "Masz za mało ACER w portfelu.",
       "treasury_insufficient": "W kasie drużyny nie ma wystarczająco ACER na tę wypłatę.",
       "not_a_member": "Ta osoba nie jest już w składzie drużyny.",
       "invalid_amount": "Podaj kwotę w pełnych ACER w dozwolonym zakresie.",
@@ -1547,9 +1531,9 @@
       "cancelled": "To wydarzenie zostało odwołane.",
       "payment_unavailable": "Płatność jest teraz niedostępna. Spróbuj ponownie za kilka minut.",
       "payment_pending": "Opłata za to zgłoszenie została już wniesiona — zgłoszenie jest potwierdzane. Odśwież za chwilę.",
-      "paused": "Ta funkcja jest obecnie wyłączona — zgłoszeniami drużyn i składami zajmują się organizatorzy.",
+      "paused": "Ta funkcja jest obecnie wyłączona — zgłoszeniami drużyn i ich składami zajmują się organizatorzy.",
       "not_placement_team": "Obecnie nowych członków przyjmują tylko drużyny RED i BLACK.",
-      "creation_closed": "Nie można zakładać nowych drużyn — bieg drużynowy rozgrywają drużyny RED i BLACK."
+      "creation_closed": "Nie można zakładać nowych drużyn — w biegu drużynowym startują drużyny RED i BLACK."
     },
     "roster": {
       "managerHint": "Zanim odejdziesz, przekaż rolę kapitana innemu zawodnikowi — albo rozwiąż zespół, jeśli nie udało się go skompletować.",
@@ -1557,7 +1541,7 @@
       "cancel": "Anuluj",
       "leave": "Opuść zespół",
       "leaveTitle": "Opuścić ten zespół?",
-      "leaveMessage": "Twoje miejsce w składzie zostanie usunięte. Później możesz dostać zaproszenie albo ponownie poprosić o dołączenie.",
+      "leaveMessage": "Twoje miejsce w składzie zostanie usunięte. Menedżer może później zaprosić Cię ponownie.",
       "leaveConfirm": "Opuść",
       "remove": "Usuń",
       "removeTitle": "Usunąć tego zawodnika?",
@@ -1569,9 +1553,9 @@
       "handOverConfirm": "Przekaż",
       "dissolve": "Rozwiąż zespół",
       "dissolveTitle": "Rozwiązać ten zespół?",
-      "dissolveMessage": "Zespół, jego skład, zaproszenia i prośby o dołączenie zostaną trwale usunięte, a wszyscy pozostali zawodnicy dostaną wiadomość e-mail. Tej operacji nie można cofnąć.",
+      "dissolveMessage": "Drużyna, jej skład i zaproszenia zostaną trwale usunięte, a wszyscy pozostali członkowie dostaną wiadomość e-mail. Tej operacji nie można cofnąć.",
       "dissolveConfirm": "Rozwiąż",
-      "dissolveMessageTreasury": "Drużyna, jej skład, zaproszenia i prośby o dołączenie zostaną trwale usunięte, a każdy pozostały członek otrzyma e-mail. {amount} ACER w kasie przepada — najpierw je wypłać, jeśli chcesz je zachować. Tego nie da się cofnąć."
+      "dissolveMessageTreasury": "Drużyna, jej skład i zaproszenia zostaną trwale usunięte, a każdy pozostały członek otrzyma e-mail. {amount} ACER w kasie przepadnie — najpierw je wypłać, jeśli chcesz je zachować. Tego nie da się cofnąć."
     },
     "treasury": {
       "title": "Kasa drużyny",
@@ -1700,8 +1684,7 @@
         "categoryLabel": "Kategoria",
         "regionLabel": "Region",
         "dutiesTitle": "Co możesz teraz robić",
-        "duty1": "Zapraszać zawodników e-mailem i udostępniać kod zespołu.",
-        "duty2": "Przyjmować lub odrzucać prośby o dołączenie.",
+        "duty1": "Zapraszać zawodników do drużyny e-mailem.",
         "duty3": "Edytować zespół, usuwać zawodników i mianować kolejnego kapitana.",
         "cta": "Otwórz zespół"
       },
@@ -1711,7 +1694,7 @@
         "eyebrow": "Skład zespołu",
         "title": "Zespół został rozwiązany",
         "greeting": "Cześć {name},",
-        "intro": "Kapitan rozwiązał zespół {team}. Skład, zaproszenia i prośby o dołączenie zostały usunięte, a strona zespołu już się nie otwiera.",
+        "intro": "Kapitan rozwiązał zespół {team}. Skład i zaproszenia zostały usunięte, a strona zespołu już się nie otwiera.",
         "teamLabel": "Zespół",
         "categoryLabel": "Kategoria",
         "regionLabel": "Region",
@@ -1844,8 +1827,8 @@
     },
     "teamRace": {
       "title": "Bieg drużynowy · {team}",
-      "subtitle": "Jesteś w składzie {team}, więc zapisujesz się na bieg drużynowy.",
-      "note": "Bieg drużynowy jest bezpłatny dla członków RED i BLACK. Kilka dni przed wieczorem biegowym poprosimy Cię o potwierdzenie, że będziesz; potem Twój menedżer ustala skład drużyny."
+      "subtitle": "Jesteś w składzie drużyny {team}, więc zapisujesz się na bieg drużynowy.",
+      "note": "Bieg drużynowy jest bezpłatny dla członków RED i BLACK. Kilka dni przed biegiem poprosimy Cię o potwierdzenie obecności, a potem Twój menedżer ustali skład drużyny."
     },
     "guest": {
       "title": "Zapisz się na {event}",

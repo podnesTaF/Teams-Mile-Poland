@@ -443,7 +443,7 @@
       "items": {
         "noTeam": {
           "q": "Can I come without a team?",
-          "a": "Yes. If you don't have a team, just register solo. After the run we'll help form teams among participants based on their results."
+          "a": "Yes. Register for the individual rated mile. The managers invite rated runners into RED or BLACK, and from the next night you run with the team."
         },
         "cost": {
           "q": "How much does it cost to take part?",
@@ -550,8 +550,6 @@
       "schedule": "Schedule",
       "venue": "Venue",
       "documents": "Documents",
-      "start": "Register a team",
-      "free": "Find me a team",
       "contactUs": "Contact us",
       "rules": "Rules & regulations",
       "refund": "Refund policy",
@@ -1046,7 +1044,7 @@
         "openPaid": {
           "kicker": "Now open · paid entry",
           "bannerTitle": "Registration open",
-          "bannerTxt": "Registration is open. Entry is paid — the price is below. Terms of entry apply.",
+          "bannerTxt": "Registration is open. The individual mile is paid — the price is below. Terms of entry apply.",
           "note": "You'll confirm date, time, venue and terms before anything is final.",
           "cta": "Register for the event →"
         }
@@ -1166,20 +1164,19 @@
       "teamLegend": "Team time is the sum of the team's miles: each RACER's mile plus each ACE + JOKER pair's mile (the JOKER's finish). An ACE's time is the handover reading."
     },
     "teamEvent": {
-      "enteredLabel": "Teams entered",
-      "enteredSub": "Complete teams on the entry list",
-      "notice": "This is a team night. Entry is by team — a captain enters a complete team, and every member then confirms their own participation.",
+      "notice": "This is a team night: the team race is run by RED and BLACK. Their members register here, free — the team is recognised automatically.",
       "rulesLink": "Team Mile Rules",
       "regulationsLink": "Public Regulations"
     },
     "entryExplainer": {
-      "team": "Team race — for members of RED and BLACK, free: register and your team is recognised.",
+      "team": "Team race — for RED and BLACK members, free. Register as usual and we recognise your team automatically.",
       "individualPln": "Individual rated mile — {price} zł.",
       "individualAcer": "Individual rated mile — {amount} ACER.",
       "individualFree": "Individual rated mile — free.",
-      "noTeam": "No team yet? Run one rated mile.",
-      "invite": "The managers invite rated runners into a team — from the next night you run with it.",
-      "noTeamShort": "No team yet? Register for the rated mile — the managers invite rated runners into a team for the next night."
+      "noTeam": "Not on a team yet? Run one rated mile.",
+      "invite": "The managers invite rated runners into RED or BLACK — from the next night you run with the team.",
+      "noTeamShort": "Not on a team yet? Register for the rated mile — the managers invite rated runners into RED or BLACK, and from the next night you run with the team.",
+      "rulesLink": "How runners join a team: Team Mile Rules, § 2.2"
     }
   },
   "auth": {
@@ -1413,28 +1410,15 @@
       "region": "Region",
       "regionTooShort": "Enter the city or region your team runs for.",
       "regionWarning": "Your team name does not mention the region. The rules ask for it — you can still save.",
-      "category": "Category",
       "categoryOption": {
         "men": "Men",
         "women": "Women",
         "mixed": "Mixed"
       },
-      "recruitingLabel": "Roster",
-      "recruitingOpenTitle": "We are looking for runners",
-      "recruitingOpenBody": "The team is listed publicly and runners can ask to join.",
-      "recruitingClosedTitle": "The roster is complete",
-      "recruitingClosedBody": "The team stays off the public list. You add runners by invitation only.",
       "description": "Description",
       "optional": "(optional)",
       "descriptionHint": "Up to 280 characters. Shown on your public team card.",
       "rulesLink": "Read the team rules",
-      "submitCreate": "Create the team",
-      "submitCreatePaid": "Create the team for {price} ACER",
-      "priceLine": "Creating a team costs {price} ACER.",
-      "balanceLine": "Your balance: {balance} ACER.",
-      "shortBy": "You need {missing} more ACER to create a team.",
-      "walletLink": "Open your wallet",
-      "walletLinkTopUp": "Top up your wallet",
       "submitSave": "Save changes",
       "submitting": "Saving…",
       "saved": "Saved."
@@ -1506,7 +1490,7 @@
       "ageBody": "The team rules admit runners who are 18 or older. Check the date of birth on your profile if this is wrong."
     },
     "profile": {
-      "empty": "You are not on a team yet. Teams take new members by invitation from their managers.",
+      "empty": "You are not on a team yet. Run a rated mile — the managers invite rated runners into RED or BLACK.",
       "open": "Open"
     },
     "reasons": {
@@ -1538,7 +1522,7 @@
       "not_reserve": "That runner is not a reserve on this entry.",
       "remind_limit": "A reminder was already sent in the last 24 hours.",
       "already_confirmed": "This participation is already confirmed.",
-      "insufficient_balance": "You do not have enough ACER to create a team.",
+      "insufficient_balance": "You do not have enough ACER in your wallet.",
       "treasury_insufficient": "The team treasury does not hold enough ACER for this payout.",
       "not_a_member": "That person is no longer on the team roster.",
       "invalid_amount": "Enter a whole number of ACER within the allowed range.",
@@ -1557,7 +1541,7 @@
       "cancel": "Cancel",
       "leave": "Leave the team",
       "leaveTitle": "Leave this team?",
-      "leaveMessage": "Your seat on the roster is removed. You can be invited or ask to join again later.",
+      "leaveMessage": "Your seat on the roster is removed. A manager can invite you back later.",
       "leaveConfirm": "Leave",
       "remove": "Remove",
       "removeTitle": "Remove this runner?",
@@ -1569,9 +1553,9 @@
       "handOverConfirm": "Hand over",
       "dissolve": "Dissolve the team",
       "dissolveTitle": "Dissolve this team?",
-      "dissolveMessage": "The team, its roster, its invitations and its join requests are deleted for good, and every remaining member is told by email. This cannot be undone.",
+      "dissolveMessage": "The team, its roster and its invitations are deleted for good, and every remaining member is told by email. This cannot be undone.",
       "dissolveConfirm": "Dissolve",
-      "dissolveMessageTreasury": "The team, its roster, its invitations and its join requests are deleted for good, and every remaining member is told by email. The {amount} ACER in the treasury are forfeited — pay them out first if you want to keep them. This cannot be undone."
+      "dissolveMessageTreasury": "The team, its roster and its invitations are deleted for good, and every remaining member is told by email. The {amount} ACER in the treasury are forfeited — pay them out first if you want to keep them. This cannot be undone."
     },
     "treasury": {
       "title": "Treasury",
@@ -1700,8 +1684,7 @@
         "categoryLabel": "Category",
         "regionLabel": "Region",
         "dutiesTitle": "What you can do now",
-        "duty1": "Invite runners by email and share the team code.",
-        "duty2": "Accept or decline the requests to join that come in.",
+        "duty1": "Invite runners into the team by email.",
         "duty3": "Edit the team, remove members, or make somebody else captain.",
         "cta": "Open the team"
       },
@@ -1711,7 +1694,7 @@
         "eyebrow": "Team roster",
         "title": "The team has been dissolved",
         "greeting": "Hi {name},",
-        "intro": "{team} has been dissolved by its captain. The roster, its invitations and its join requests are gone, and the team page no longer opens.",
+        "intro": "{team} has been dissolved by its captain. The roster and its invitations are gone, and the team page no longer opens.",
         "teamLabel": "Team",
         "categoryLabel": "Category",
         "regionLabel": "Region",

@@ -10,6 +10,7 @@ import "./entry-explainer.css";
 import "./event-detail.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
+import { EntryRulesLink } from "@/features/event-registration/components/entry-rules-link";
 import { EventRegisterCta } from "@/features/event-registration/components/event-register-cta";
 import { ResultsTables } from "@/features/event-results/results-tables";
 import { Link } from "@/i18n/navigation";
@@ -321,7 +322,8 @@ export default async function EventDetailPage({ params }: PageProps) {
                   // A mixed night, open: one door (ADR 0016). The runner does
                   // not choose a race — the register flow derives it from the
                   // roster — so the CTA is the individual night's, and four
-                  // lines under it say how the two races are decided.
+                  // lines under it say how the two races are decided; a fifth
+                  // links the Team Mile Rules paragraph (§2.2) behind them.
                   <>
                     <EventRegisterCta
                       slug={slug}
@@ -347,6 +349,7 @@ export default async function EventDetailPage({ params }: PageProps) {
                       <p className="slots-note" data-entry-explainer-line="invite">
                         {t("entryExplainer.invite")}
                       </p>
+                      <EntryRulesLink locale={locale} />
                     </div>
                   </>
                 ) : state === "open" ? (
