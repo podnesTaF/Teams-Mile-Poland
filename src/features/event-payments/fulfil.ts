@@ -25,7 +25,13 @@ import { getDb } from "@/lib/db";
  * from the Stripe dashboard.
  */
 
-/** The registration-with-consent input, stored at checkout and written here. */
+/**
+ * The registration-with-consent input, stored at checkout and written here.
+ * Its `registration` carries the `raceFormat` / `teamId` that `registerForEvent`
+ * derived before the price fork (ADR 0016) — always `individual` on this path,
+ * since a team-race registration is free and never reaches Stripe. A payload
+ * parked before migration 0031 has neither and writes the column default.
+ */
 export type IndividualEntryPayload = Parameters<typeof createRegistrationWithConsent>[0];
 
 export type FulfilOutcome = "fulfilled" | "failed" | "already_handled" | "unpaid" | "unknown";

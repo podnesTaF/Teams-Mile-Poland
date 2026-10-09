@@ -42,6 +42,12 @@ type Props = {
   pricePln: number;
   /** Back from Stripe without paying (`?payment=cancelled`). */
   paymentCancelled?: boolean;
+  /**
+   * Set when the runner is on a placement roster (ADR 0016): the card confirms
+   * the **team race** for that team ("RED"), and the caller passes no price —
+   * the team race is free. `null` is the individual mile, as before.
+   */
+  teamRace?: { team: string } | null;
 };
 
 /**
@@ -82,6 +88,7 @@ export function RegisterConfirm({
   balanceAcer,
   pricePln,
   paymentCancelled = false,
+  teamRace = null,
 }: Props) {
   const t = useTranslations("register");
   const router = useRouter();
@@ -247,11 +254,19 @@ export function RegisterConfirm({
   );
 
   return (
-    <div className="rp">
+    <div
+      className="rp"
+      data-race-format={teamRace ? "team" : "individual"}
+      data-race-team={teamRace?.team}
+    >
       <header className="page-head rp-head">
         <span className="iv-eyebrow">{t("confirm.eyebrow")}</span>
-        <h1 className="iv-title">{t("confirm.title")}</h1>
-        <p className="iv-sub">{t("confirm.subtitle")}</p>
+        <h1 className="iv-title">
+          {teamRace ? t("teamRace.title", { team: teamRace.team }) : t("confirm.title")}
+        </h1>
+        <p className="iv-sub">
+          {teamRace ? t("teamRace.subtitle", { team: teamRace.team }) : t("confirm.subtitle")}
+        </p>
       </header>
 
       <form onSubmit={onSubmit} className="detail-grid rp-grid">
@@ -322,7 +337,11 @@ export function RegisterConfirm({
             </p>
           ) : null}
           <p className="slots-note">
-            {cardPaid ? t("payment.note", { price: pricePln }) : t("confirm.note")}{" "}
+            {teamRace
+              ? t("teamRace.note")
+              : cardPaid
+                ? t("payment.note", { price: pricePln })
+                : t("confirm.note")}{" "}
             {t("consent.requiredNotice")}
           </p>
           <p className="slots-note" data-spam-note="1">

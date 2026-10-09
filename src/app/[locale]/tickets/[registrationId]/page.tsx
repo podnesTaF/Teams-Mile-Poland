@@ -18,7 +18,12 @@ import {
   isConfirmationOpen,
   slugsWithPublishedHeats,
 } from "@/features/event-registration/confirmation";
-import { buildEventTicketView, loadEntryFee, makeEventTicketUrl } from "@/features/event-registration/ticket";
+import {
+  buildEventTicketView,
+  loadEntryFee,
+  loadRaceTeam,
+  makeEventTicketUrl,
+} from "@/features/event-registration/ticket";
 import { generateTicketQrPng } from "@/features/ticket/qr";
 import { verifyEventTicket } from "@/features/ticket/sign";
 import { DownloadTicketButton } from "@/features/ticket/components/download-ticket-button";
@@ -54,6 +59,7 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
     loaded.user,
     event,
     await loadEntryFee(loaded.registration),
+    await loadRaceTeam(loaded.registration),
   );
 
   const qrBuffer = await generateTicketQrPng(makeEventTicketUrl(registrationId, { locale }));
@@ -78,6 +84,15 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
   // rather than a second copy of "Heat" in three languages. The page's other,
   // pre-existing English literals are deliberately left alone (PRD #26).
   const tr = await getTranslations("profile.registrations");
+  // Which race (ADR 0016). A team row always says so; an individual row says
+  // so only while the night is ahead — a night completed before migration 0031
+  // carries the column default, and its team runners are in `team_results`, so
+  // "Individual mile" there could be untrue.
+  const raceLabel = view.teamLabel
+    ? tr("race.team", { team: view.teamLabel })
+    : event?.status === "completed"
+      ? null
+      : tr("race.individual");
   const heat =
     event?.status === "completed"
       ? undefined
@@ -126,6 +141,13 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
               <div className="tk-grid">
                 <Field label="Runner" value={view.fullName} />
                 <Field label="Entry" value={view.entryLabel} />
+                {raceLabel ? (
+                  <Field
+                    label={tr("race.label")}
+                    value={raceLabel}
+                    marker={view.raceFormat}
+                  />
+                ) : null}
                 <Field label="Email" value={view.email} />
                 {view.club ? <Field label="Club" value={view.club} /> : null}
                 <Field label="Bib" value={view.bib ? String(view.bib) : "Assigned at check-in"} />
@@ -204,9 +226,9 @@ export default async function EventTicketPage({ params, searchParams }: PageProp
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value, marker }: { label: string; value: string; marker?: string }) {
   return (
-    <div className="tk-field">
+    <div className="tk-field" data-ticket-race={marker}>
       <div className="tk-field__label">{label}</div>
       <div className="tk-field__value">{value}</div>
     </div>

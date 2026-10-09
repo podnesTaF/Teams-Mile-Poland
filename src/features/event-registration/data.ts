@@ -10,6 +10,8 @@ import {
   type RegistrationConsentRow,
   users,
 } from "@/db/schema";
+import type { RaceFormat } from "@/features/teams/config";
+import { raceFor } from "@/features/teams/placement";
 import { getAcerBalance, recordWalletTransaction } from "@/features/wallet/data";
 import { InsufficientAcerError } from "@/features/wallet/errors";
 import { getDb } from "@/lib/db";
@@ -50,6 +52,15 @@ export type FreeRegistrationInput = {
    * value. Real acceptance lives in `registration_consents`.
    */
   terms?: boolean;
+  /**
+   * Which race the row is for, and the placement team of a `team` row
+   * (ADR 0016) — always from `raceFor` (`features/teams/placement.ts`), never
+   * a literal. Optional only so a Stripe payload parked before migration 0031
+   * still writes: absent means the column default, `individual`.
+   * {@link createFreeRegistration} derives them itself when absent.
+   */
+  raceFormat?: RaceFormat;
+  teamId?: string | null;
 };
 
 /** The column values of a free registration, shared by both insert paths. */
@@ -60,6 +71,9 @@ function freeRegistrationValues(input: FreeRegistrationInput) {
     status: "registered" as const,
     terms: input.terms ?? false,
     locale: input.locale,
+    ...(input.raceFormat
+      ? { raceFormat: input.raceFormat, teamId: input.teamId ?? null }
+      : {}),
   };
 }
 
@@ -73,14 +87,23 @@ function freeRegistrationValues(input: FreeRegistrationInput) {
  * so there is nothing to record, and nobody's wallet was asked, so there is
  * nothing to charge. The runner-facing path is
  * {@link createRegistrationWithConsent}, and it is the only one that takes money.
+ *
+ * The race follows the roster here too (ADR 0016): a placement-team member
+ * comped by an admin gets a `team` row, anyone else an `individual` one, unless
+ * the caller already derived it.
  */
 export async function createFreeRegistration(
   input: FreeRegistrationInput,
 ): Promise<EventRegistrationRow> {
   const db = getDb();
+  const race = input.raceFormat
+    ? { raceFormat: input.raceFormat, teamId: input.teamId ?? null }
+    : await raceFor(input.userId);
   const [row] = await db
     .insert(eventRegistrations)
-    .values(freeRegistrationValues(input))
+    .values(
+      freeRegistrationValues({ ...input, raceFormat: race.raceFormat, teamId: race.teamId }),
+    )
     .returning();
   return row;
 }

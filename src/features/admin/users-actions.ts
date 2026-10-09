@@ -15,6 +15,7 @@ import {
   type EventRegistrationRow,
 } from "@/features/event-registration/data";
 import { sendEventTicketEmail } from "@/features/event-registration/ticket";
+import { placementTeamsById } from "@/features/teams/placement";
 
 import { adminPath, requireAdmin, safeLocale } from "./action-helpers";
 import { acceptsIndividuals } from "@/lib/events/types";
@@ -115,6 +116,9 @@ export async function adminRegisterUserForEvent(formData: FormData) {
   const ticketLocale = user.locale ?? defaultLocale;
   let registration: EventRegistrationRow;
   try {
+    // The race is derived inside from the runner's roster (ADR 0016): a
+    // placement-team member gets a free team-race row, anyone else an
+    // individual one.
     registration = await createFreeRegistration({ eventSlug, userId: id, locale: ticketLocale });
   } catch (error) {
     if (error instanceof Error && /unique|duplicate/i.test(error.message)) {
@@ -123,17 +127,31 @@ export async function adminRegisterUserForEvent(formData: FormData) {
     back(locale, suffix, "Could not register the user. Try again.");
   }
 
+  const team = registration.teamId
+    ? (await placementTeamsById([registration.teamId])).get(registration.teamId)
+    : undefined;
+  const race = team ? `Team race — ${team.label}` : "Individual mile";
+
   // The row exists now; report accurately if only the ticket email fails so the
   // admin knows the registration stands (rather than seeing a "failed" message
-  // and retrying into an "already registered" block).
+  // and retrying into an "already registered" block). The sender reports a
+  // rejected send as `sent: false` rather than throwing.
+  let sent = false;
   try {
-    await sendEventTicketEmail({ registration, user });
+    ({ sent } = await sendEventTicketEmail({ registration, user }));
   } catch {
+    sent = false;
+  }
+  if (!sent) {
     back(
       locale,
       suffix,
-      `Registered for ${event.name} — ${event.shortDate}, but the ticket email could not be sent.`,
+      `Registered for ${event.name} — ${event.shortDate} (${race}), but the ticket email could not be sent.`,
     );
   }
-  back(locale, suffix, `Registered for ${event.name} — ${event.shortDate}. Ticket email sent.`);
+  back(
+    locale,
+    suffix,
+    `Registered for ${event.name} — ${event.shortDate} (${race}). Ticket email sent.`,
+  );
 }

@@ -1359,7 +1359,12 @@
         "ineligible": "This registration is marked as a no-show. Please contact the organizers."
       },
       "awaitingConfirmation": "Awaiting your confirmation — your captain entered you, and we still need your acceptances.",
-      "confirmCta": "Confirm"
+      "confirmCta": "Confirm",
+      "race": {
+        "label": "Race",
+        "team": "Team race — {team}",
+        "individual": "Individual mile"
+      }
     },
     "results": {
       "title": "My results",
@@ -1836,6 +1841,11 @@
       "note": "No payment needed — the individual mile is free.",
       "spamNote": "Your ticket arrives by email. <b>If it is not in your inbox, check the spam folder.</b>",
       "finishing": "Completing your registration…"
+    },
+    "teamRace": {
+      "title": "Team race · {team}",
+      "subtitle": "You are on the {team} roster, so you are registering for the team race.",
+      "note": "The team race is free for RED and BLACK members. A few days before the night we will ask you to confirm you are coming; your manager then composes the team."
     },
     "guest": {
       "title": "Register for {event}",

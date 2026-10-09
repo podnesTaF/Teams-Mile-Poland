@@ -4,9 +4,10 @@ import { getTranslations } from "next-intl/server";
 import { GuestRegisterForm } from "@/features/event-registration/components/guest-register-form";
 import { RegisterConfirm } from "@/features/event-registration/components/register-confirm";
 import { getRegistration } from "@/features/event-registration/data";
-import { makeEventTicketUrl } from "@/features/event-registration/ticket";
+import { loadRaceTeam, makeEventTicketUrl } from "@/features/event-registration/ticket";
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import { getEntryWithTeam } from "@/features/teams/entries";
+import { placementTeamFor } from "@/features/teams/placement";
 import type { ProfileInput } from "@/features/profile/schemas";
 import { minorToAcer } from "@/features/wallet/config";
 import { getAcerBalance } from "@/features/wallet/data";
@@ -144,11 +145,24 @@ export async function EventRegisterContent({
     payment === "success" && pricePln > 0 ? <CheckoutReturn kind="entry_individual" /> : null;
 
   if (existing) {
+    // Names the race the row was written for (ADR 0016) — the registration's
+    // own columns, not today's roster, which may have changed since.
+    const tr = await getTranslations("profile.registrations");
+    const raceTeam = await loadRaceTeam(existing);
     return (
-      <section className="card-white rp-state">
+      <section
+        className="card-white rp-state"
+        data-registered-race={existing.raceFormat}
+        data-race-team={raceTeam?.label}
+      >
         {checkoutReturn}
         <h1 className="rp-state__title">{t("alreadyTitle")}</h1>
         <p className="iv-sub">{t("alreadyBody")}</p>
+        <p className="slots-note" data-registered-race-label="1">
+          {raceTeam
+            ? tr("race.team", { team: raceTeam.label })
+            : tr("race.individual")}
+        </p>
         <div className="iv-actions">
           <a href={makeEventTicketUrl(existing.id, { locale })} className="btn btn-red">
             {t("viewTicket")}
@@ -262,11 +276,19 @@ export async function EventRegisterContent({
   // Read only when there is something to spend it on: a free night asks nobody's
   // wallet, and a `SUM` over the ledger is not worth issuing to render a number
   // the screen will not show.
-  const balanceAcer = feeAcer > 0 ? minorToAcer(await getAcerBalance(user.id)) : 0;
+  //
+  // A placement-team member runs the team race, which is free (ADR 0016): the
+  // card says which race and costs nothing — the same derivation
+  // `registerForEvent` makes before its price fork, so the card and the action
+  // cannot disagree. The explainer is for runners without a team.
+  const memberTeam = await placementTeamFor(user.id);
+  const cardPricePln = memberTeam ? 0 : pricePln;
+  const cardFeeAcer = memberTeam ? 0 : feeAcer;
+  const balanceAcer = cardFeeAcer > 0 ? minorToAcer(await getAcerBalance(user.id)) : 0;
 
   return (
     <>
-      {explainer}
+      {memberTeam ? null : explainer}
       <RegisterConfirm
         eventSlug={slug}
         eventName={event.name}
@@ -278,9 +300,10 @@ export async function EventRegisterContent({
         docSet={docSet}
         docLocale={locale as "pl" | "en" | "ua"}
         consentItems={consentItems}
-        feeAcer={feeAcer}
+        feeAcer={cardFeeAcer}
         balanceAcer={balanceAcer}
-        pricePln={pricePln}
+        pricePln={cardPricePln}
+        teamRace={memberTeam ? { team: memberTeam.label } : null}
         paymentCancelled={payment === "cancelled"}
       />
     </>

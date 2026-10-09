@@ -17,6 +17,7 @@ import { minorToAcer } from "@/features/wallet/config";
 import { getAcerBalance } from "@/features/wallet/data";
 import { startIndividualCheckout } from "@/features/event-payments/checkout";
 import { individualEntryFeeMinor } from "@/features/wallet/entry-fees";
+import { raceFor } from "@/features/teams/placement";
 
 import { buildConsentRows, termsAcceptedFrom, validateConsentItems } from "@/lib/legal/consent";
 import type { DocSet } from "@/lib/legal/manifest";
@@ -178,6 +179,13 @@ export async function registerForEvent(
     return { ok: false, reason: "duplicate", message: "You're already registered for this event." };
   }
 
+  // The race follows the roster (ADR 0016), and it is decided before the price
+  // because it decides the price: a placement-team member runs the team race,
+  // which is free on every night — so a `team` registration takes the free
+  // branch below whatever the night charges, and never reaches Stripe.
+  const race = await raceFor(user.id);
+  const teamRace = race.team !== null;
+
   // Priced once, here, and handed down: the number the balance is judged against
   // and the number that is charged cannot differ, even across a re-pricing
   // mid-request. Never the column directly — `individualEntryFeeMinor` is the
@@ -185,8 +193,8 @@ export async function registerForEvent(
   //
   // A night priced in PLN is paid by card instead (ADR 0015), and the ACER fee
   // is then not taken at all: a night is never charged in both.
-  const pricePln = entryPricePln(event, "individual");
-  const feeMinor = pricePln > 0 ? 0 : individualEntryFeeMinor(event);
+  const pricePln = teamRace ? 0 : entryPricePln(event, "individual");
+  const feeMinor = teamRace || pricePln > 0 ? 0 : individualEntryFeeMinor(event);
   if (feeMinor > 0) {
     const balanceMinor = await getAcerBalance(user.id);
     if (balanceMinor < feeMinor) return insufficientAcer(feeMinor, balanceMinor);
@@ -250,6 +258,10 @@ export async function registerForEvent(
       userId: user.id,
       locale,
       terms: termsAcceptedFrom(docSet, submission.items),
+      // Carried in the Stripe payload too, so the webhook writes the race that
+      // was derived here (`fulfil.ts`).
+      raceFormat: race.raceFormat,
+      teamId: race.teamId,
     },
     submission: {
       docSet,

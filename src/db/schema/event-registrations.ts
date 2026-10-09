@@ -7,6 +7,9 @@ import { eventHeats } from "./event-heats";
 // here — and safe because every Drizzle `references()` is a lazy callback that
 // runs long after both modules have finished loading.
 import { teamEntries } from "./team-entries";
+import { userTeams } from "./user-teams";
+// Relative and type-only, like `user-teams.ts`: drizzle-kit never resolves it.
+import type { RaceFormat } from "../../features/teams/config";
 
 /**
  * Participation lifecycle for individual events. Live model:
@@ -115,6 +118,22 @@ export const eventRegistrations = pgTable(
      * mentions this column.
      */
     consentPending: boolean("consent_pending").default(false).notNull(),
+    /**
+     * Which race this registration is for (ADR 0016): `team` when the runner
+     * was on a placement roster at the moment they registered, `individual`
+     * otherwise. Derived on every write path by `raceFor`
+     * (`features/teams/placement.ts`), never chosen by the runner and never
+     * written as a literal. Per night, because membership changes between
+     * nights. Rows on nights completed before migration 0031 keep the default
+     * — their team runners are in `team_results`, not here.
+     */
+    raceFormat: text("race_format").$type<RaceFormat>().default("individual").notNull(),
+    /**
+     * The placement team a `team` registration runs for; `null` for every
+     * `individual` row. `set null` because a team disappearing must never be
+     * the reason a registration does.
+     */
+    teamId: uuid("team_id").references(() => userTeams.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [

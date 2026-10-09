@@ -3,7 +3,9 @@ import { and, eq, inArray, or } from "drizzle-orm";
 import { eventEmailLog, walletTransactions } from "@/db/schema";
 import { eventPayments } from "@/db/schema/event-payments";
 import { getAppUrl } from "@/features/registration/data";
+import type { RaceFormat } from "@/features/teams/config";
 import { teamEntryFeeKey } from "@/features/teams/entries";
+import { placementTeamsById, type PlacementTeam } from "@/features/teams/placement";
 import { generateTicketQrPng } from "@/features/ticket/qr";
 import { signEventTicket } from "@/features/ticket/sign";
 import { EventTicketEmail, eventTicketSubject } from "@/emails/event-ticket";
@@ -39,6 +41,10 @@ export type EventTicketView = {
   checkedInAt: Date | null;
   /** What the entry cost, already worded for the ticket ("Free", "Paid · 50.00 PLN"). */
   entryLabel: string;
+  /** Which race the registration is for (ADR 0016). */
+  raceFormat: RaceFormat;
+  /** The placement team's short label ("RED") on a `team` row, else `null`. */
+  teamLabel: string | null;
 };
 
 /**
@@ -158,6 +164,7 @@ export function buildEventTicketView(
   user: TicketUser,
   event: EventSummary | undefined,
   fee: EntryFee | null = null,
+  team: PlacementTeam | null = null,
 ): EventTicketView {
   return {
     registrationId: registration.id,
@@ -172,6 +179,71 @@ export function buildEventTicketView(
     eventVenue: event ? `${event.venue}, ${event.city}` : "",
     checkedInAt: registration.checkedInAt ?? null,
     entryLabel: entryLabelOf(fee),
+    raceFormat: registration.raceFormat,
+    teamLabel: registration.raceFormat === "team" ? (team?.label ?? null) : null,
+  };
+}
+
+/** The placement team a registration runs for, or `null` (individual row, or a team gone). */
+export async function loadRaceTeam(
+  registration: Pick<EventRegistrationRow, "teamId">,
+): Promise<PlacementTeam | null> {
+  if (!registration.teamId) return null;
+  return (await placementTeamsById([registration.teamId])).get(registration.teamId) ?? null;
+}
+
+/**
+ * The team variant of the confirmation email (ADR 0016): a placement-team
+ * member registering is told which team they run for and what happens next.
+ * Copy in the registration's locale — the language the runner registered in —
+ * with the English as the fallback, like {@link SET_PASSWORD_COPY}.
+ */
+const TEAM_RACE_COPY: Record<
+  string,
+  { subject: (team: string, date: string) => string; heading: (team: string) => string; line: string }
+> = {
+  en: {
+    subject: (team, date) => `Congratulations — you run for ${team} on ${date}`,
+    heading: (team) => `You run for ${team}`,
+    line: "A few days before the night we will ask you to confirm you are coming; your manager then composes the team.",
+  },
+  pl: {
+    subject: (team, date) => `Gratulacje — biegniesz w drużynie ${team} ${date}`,
+    heading: (team) => `Biegniesz w drużynie ${team}`,
+    line: "Kilka dni przed wieczorem biegowym poprosimy Cię o potwierdzenie, że będziesz; potem Twój menedżer ustala skład drużyny.",
+  },
+  ua: {
+    subject: (team, date) => `Вітаємо — ви біжите за ${team} ${date}`,
+    heading: (team) => `Ви біжите за ${team}`,
+    line: "За кілька днів до вечора забігу ми попросимо вас підтвердити, що ви прийдете; після цього ваш менеджер формує склад команди.",
+  },
+};
+
+const DATE_LOCALES: Record<string, string> = { en: "en-GB", pl: "pl-PL", ua: "uk-UA" };
+
+/** "17 October" / "17 października" / "17 жовтня" from an event's YYYY-MM-DD date. */
+function dayMonth(date: string, locale: string): string {
+  const parsed = new Date(`${date}T12:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return new Intl.DateTimeFormat(DATE_LOCALES[locale] ?? DATE_LOCALES[defaultLocale], {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  }).format(parsed);
+}
+
+export type TeamRaceEmailCopy = { subject: string; heading: string; line: string };
+
+export function teamRaceEmailCopy(
+  locale: string,
+  teamLabel: string,
+  eventDate: string,
+): TeamRaceEmailCopy {
+  const copy = TEAM_RACE_COPY[locale] ?? TEAM_RACE_COPY[defaultLocale];
+  return {
+    subject: copy.subject(teamLabel, dayMonth(eventDate, locale)),
+    heading: copy.heading(teamLabel),
+    line: copy.line,
   };
 }
 
@@ -194,7 +266,18 @@ export async function sendEventTicketEmail(input: {
     input.user,
     event,
     await loadEntryFee(input.registration),
+    await loadRaceTeam(input.registration),
   );
+  // A team-race registration gets the team variant — same kind, same log row,
+  // same idempotency below; only the subject and one paragraph differ.
+  const teamRace =
+    view.teamLabel !== null
+      ? teamRaceEmailCopy(
+          input.registration.locale,
+          view.teamLabel,
+          event?.date ?? input.registration.eventSlug,
+        )
+      : undefined;
   const ticketUrl = makeEventTicketUrl(input.registration.id, {
     locale: input.registration.locale,
   });
@@ -232,11 +315,12 @@ export async function sendEventTicketEmail(input: {
   const { error } = await resend.emails.send({
     from: FROM_EMAIL,
     to: view.email,
-    subject: eventTicketSubject(view),
+    subject: teamRace?.subject ?? eventTicketSubject(view),
     react: EventTicketEmail({
       view,
       ticketUrl,
       qrCid,
+      teamRace,
       setPassword: setPasswordCta(input.registration.locale),
     }),
     attachments: [{ filename: "ticket-qr.png", content: qrBuffer, contentId: qrCid }],

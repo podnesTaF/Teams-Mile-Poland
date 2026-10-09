@@ -1,6 +1,6 @@
 import { Img, Section, Text } from "@react-email/components";
 
-import type { EventTicketView } from "@/features/event-registration/ticket";
+import type { EventTicketView, TeamRaceEmailCopy } from "@/features/event-registration/ticket";
 
 import { Btn, C, EmailShell, Field, HeroBand, Rule, SectionPad } from "./components";
 
@@ -10,12 +10,18 @@ type Props = {
   qrCid: string;
   /** Localized set-password CTA — lets the runner set a password for later sign-in. */
   setPassword?: { line: string; cta: string; url: string };
+  /**
+   * The team variant (ADR 0016): a placement-team member's registration. The
+   * ticket is the same; the subject, a heading and one paragraph about the
+   * confirm-then-compose step are added, in the runner's language.
+   */
+  teamRace?: TeamRaceEmailCopy;
 };
 
-export function EventTicketEmail({ view, ticketUrl, qrCid, setPassword }: Props) {
+export function EventTicketEmail({ view, ticketUrl, qrCid, setPassword, teamRace }: Props) {
   return (
     <EmailShell
-      preview={eventTicketSubject(view)}
+      preview={teamRace?.subject ?? eventTicketSubject(view)}
       footerMeta={[view.eventVenue, view.eventDateLabel].filter(Boolean).join(" · ")}
     >
       <HeroBand
@@ -28,7 +34,22 @@ export function EventTicketEmail({ view, ticketUrl, qrCid, setPassword }: Props)
         <Field label="Runner" value={view.fullName} />
         {view.club ? <Field label="Club" value={view.club} /> : null}
         <Field label="Entry" value={`${view.entryLabel} — confirmed.`} />
+        {view.teamLabel ? <Field label="Race" value={`Team race — ${view.teamLabel}`} /> : null}
       </SectionPad>
+
+      {teamRace ? (
+        <>
+          <Rule />
+          <SectionPad>
+            <Text style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 700, color: C.white }}>
+              {teamRace.heading}
+            </Text>
+            <Text style={{ margin: 0, fontSize: "14px", lineHeight: "22px", color: C.text }}>
+              {teamRace.line}
+            </Text>
+          </SectionPad>
+        </>
+      ) : null}
 
       <Rule />
 

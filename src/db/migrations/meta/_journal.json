@@ -218,6 +218,13 @@
       "when": 1790332629698,
       "tag": "0030_magenta_dorian_gray",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1791542479110,
+      "tag": "0031_race_format_and_team",
+      "breakpoints": true
     }
   ]
 }

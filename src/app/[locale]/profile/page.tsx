@@ -25,6 +25,7 @@ import {
   slugsWithPublishedHeats,
 } from "@/features/event-registration/confirmation";
 import { makeEventTicketUrl } from "@/features/event-registration/ticket";
+import { placementTeamsById } from "@/features/teams/placement";
 import { SeriesList, type RaceRow } from "@/features/event-registration/components/series-list";
 import { ProfileForm } from "@/features/profile/components/profile-form";
 import {
@@ -135,6 +136,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   // Read-only heat display (PRD #26, slice #30) — published heats only, so the
   // card never shows a lane the runner has not been emailed about.
   const heats = await publishedHeatsByRegistration(registrations.map((r) => r.id));
+  // Which race each registration is for (ADR 0016) — one query for the list.
+  const raceTeams = await placementTeamsById(registrations.map((r) => r.teamId));
   const now = new Date();
   const notice = confirmNotice(c);
 
@@ -427,6 +430,16 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                     // A heat is only meaningful in the run-up to the race; once the
                     // event is completed the result, not the lane, is the story.
                     const heat = event?.status === "completed" ? undefined : heats.get(reg.id);
+                    // A team row always names its team; an individual row says
+                    // so only while the night is ahead — nights completed before
+                    // migration 0031 carry the default, and their team runners
+                    // are in `team_results` (same rule as the ticket page).
+                    const raceTeam = reg.teamId ? raceTeams.get(reg.teamId) : undefined;
+                    const raceLabel = raceTeam
+                      ? t("registrations.race.team", { team: raceTeam.label })
+                      : event?.status === "completed"
+                        ? null
+                        : t("registrations.race.individual");
                     return (
                       <div
                         key={reg.id}
@@ -441,6 +454,9 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                         <div className="reg-card__body">
                           <span className="reg-card__title">{event?.name ?? reg.eventSlug}</span>
                           <div className="reg-card__meta">
+                            {raceLabel ? (
+                              <span data-reg-race={reg.raceFormat}>{raceLabel}</span>
+                            ) : null}
                             <span>
                               {reg.bib
                                 ? `${t("registrations.bib")} #${reg.bib}`

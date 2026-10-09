@@ -126,6 +126,33 @@ export function isPlacementTeamSlug(slug: string): slug is PlacementTeamSlug {
 }
 
 /**
+ * The colour a placement team runs under — what a ticket, a profile card and
+ * the confirmation email print ("Team race — RED"). A proper name, the same in
+ * every language, so it is data here rather than a catalog key. The men's and
+ * women's team of one colour print the same word; the admin roster (#84)
+ * appends the category when it needs to tell them apart.
+ */
+export const PLACEMENT_TEAM_COLOURS: Record<PlacementTeamSlug, "RED" | "BLACK"> = {
+  "ab-praga-poludnie": "RED",
+  "ab-wilanow": "BLACK",
+  "ab-praga-poludnie-2": "RED",
+  "ab-wilanow-2": "BLACK",
+};
+
+/** The short label for a team slug: its colour for a placement team, else `null`. */
+export function placementTeamShortLabel(slug: string): "RED" | "BLACK" | null {
+  return isPlacementTeamSlug(slug) ? PLACEMENT_TEAM_COLOURS[slug] : null;
+}
+
+/**
+ * Which race a registration is for (ADR 0016, migration 0031): the **team**
+ * race for a runner on a placement roster at the moment they register, the
+ * **individual** mile for everyone else. Derived, never chosen — see
+ * `raceFor` in `placement.ts`, the one place a registration's value comes from.
+ */
+export type RaceFormat = "individual" | "team";
+
+/**
  * Whether the manager-driven team machinery of PRD #64 is on: entering a team
  * into a night and withdrawing it (`/teams/[slug]/entries/[eventSlug]`), and
  * the team treasury (`/teams/[slug]/treasury`, contributions and payouts).

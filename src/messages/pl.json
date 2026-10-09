@@ -1359,7 +1359,12 @@
         "ineligible": "Ta rejestracja jest oznaczona jako nieobecność. Skontaktuj się z organizatorami."
       },
       "awaitingConfirmation": "Czeka na Twoje potwierdzenie — kapitan zgłosił Cię do biegu, brakuje jeszcze Twoich zgód.",
-      "confirmCta": "Potwierdź"
+      "confirmCta": "Potwierdź",
+      "race": {
+        "label": "Bieg",
+        "team": "Bieg drużynowy — {team}",
+        "individual": "Mila indywidualna"
+      }
     },
     "results": {
       "title": "Moje wyniki",
@@ -1836,6 +1841,11 @@
       "note": "Bez opłat — bieg na milę jest darmowy.",
       "spamNote": "Bilet przyjdzie e-mailem. <b>Jeśli nie ma go w skrzynce, sprawdź folder spam.</b>",
       "finishing": "Finalizujemy Twoją rejestrację…"
+    },
+    "teamRace": {
+      "title": "Bieg drużynowy · {team}",
+      "subtitle": "Jesteś w składzie {team}, więc zapisujesz się na bieg drużynowy.",
+      "note": "Bieg drużynowy jest bezpłatny dla członków RED i BLACK. Kilka dni przed wieczorem biegowym poprosimy Cię o potwierdzenie, że będziesz; potem Twój menedżer ustala skład drużyny."
     },
     "guest": {
       "title": "Zapisz się na {event}",
