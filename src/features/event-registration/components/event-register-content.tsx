@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import { EntryRulesLink } from "@/features/event-registration/components/entry-rules-link";
 import { GuestRegisterForm } from "@/features/event-registration/components/guest-register-form";
 import { RegisterConfirm } from "@/features/event-registration/components/register-confirm";
 import { getRegistration } from "@/features/event-registration/data";
@@ -78,6 +79,7 @@ export async function EventRegisterContent({
       <p className="slots-note" data-entry-explainer-line="no-team">
         {te("entryExplainer.noTeamShort")}
       </p>
+      <EntryRulesLink locale={locale} />
     </div>
   ) : null;
 

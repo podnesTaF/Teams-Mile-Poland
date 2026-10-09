@@ -38,12 +38,10 @@ export async function TeamManagerPanel({
       <div className="pf-block" id="settings">
         <h2 className="iv-title pf-h2">{t("manageHeading")}</h2>
         <TeamForm
-          mode="edit"
           slug={team.slug}
           initial={{
             name: team.name,
             region: team.region,
-            category: team.category,
             recruiting: team.recruiting,
             description: team.description ?? "",
           }}

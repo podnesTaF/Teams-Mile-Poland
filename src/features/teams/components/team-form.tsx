@@ -3,48 +3,32 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { Link, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { slugify } from "@/features/admin/news-slug";
-import { minorToAcer } from "@/features/wallet/config";
 import { cn } from "@/lib/utils";
-import { trackEvent } from "@/lib/analytics";
 import { useActionRun } from "@/lib/use-action-run";
 
-import { createTeam, updateTeam } from "../actions/team";
-import { TEAM_CATEGORIES, type TeamCategory } from "../config";
+import { updateTeam } from "../actions/team";
 
 type FormState = {
   name: string;
   region: string;
-  category: TeamCategory;
   recruiting: boolean;
   description: string;
 };
 
 type Props = {
-  mode: "create" | "edit";
-  /** Required in `edit` mode — the team being edited. */
-  slug?: string;
+  /** The team being edited. */
+  slug: string;
   initial?: Partial<FormState>;
   /** Locale-aware `/legal/team-rules`, resolved on the server. */
   rulesHref: string;
-  /**
-   * What creating a team costs, in whole ACER, and what the creator holds, in
-   * minor units. `create` mode only — an edit is free, and the edit call site
-   * passes neither. A price of 0 turns the whole money block off, which is the
-   * same switch `createTeam` reads.
-   */
-  priceAcer?: number;
-  balanceMinor?: number;
-  /** Whether the wallet link may offer a top-up. Resolved on the server. */
-  purchaseEnabled?: boolean;
 };
 
 const EMPTY: FormState = {
   name: "",
   region: "",
-  category: "men",
-  recruiting: true,
+  recruiting: false,
   description: "",
 };
 
@@ -54,35 +38,24 @@ const REGION_MIN = 2;
 type TextField = "name" | "region";
 
 /**
- * The one team form, in both its shapes: creating a team and editing one.
- * Plain `useState` + the house dark form vocabulary (`.flabel.on-dark`,
- * `.finput.on-dark`, `.fselect.on-dark`, `.field-msg`), no react-hook-form.
+ * The team settings form on the manager view of `/teams/[slug]`. Plain
+ * `useState` + the house dark form vocabulary (`.flabel.on-dark`,
+ * `.finput.on-dark`, `.field-msg`), no react-hook-form.
+ *
+ * Edit only: a team cannot be created any more (ADR 0016), so the create shape
+ * of this form — category select, ACER price, "Create the team" — is gone with
+ * `/teams/new`. Category is immutable and is not shown.
+ *
+ * `recruiting` is not offered either: teams take members by invitation only,
+ * so "looking for runners, listed publicly" no longer means anything to a
+ * visitor. The flag stays an admin hint, edited from `/admin/teams`; this form
+ * sends back whatever value the team already has, so saving here never flips it.
  *
  * Validation is quiet until the runner has left a field or pressed submit:
  * a form that opens with red text under every empty field reads as already
  * failed. Hints are muted (`.fhint`), errors are red (`.field-msg`).
- *
- * Category is rendered only in `create` mode: it is immutable afterwards, so an
- * edit form that shows a disabled category select would just invite the
- * question. `recruiting` is a two-card choice — "roster complete, private" vs
- * "looking for runners, listed publicly" — so both answers are spelled out
- * instead of a single checkbox whose unchecked state means nothing obvious.
- *
- * Creating costs ACER, so the create form states the price and the balance
- * above the submit and disables the button when the wallet is short. That is a
- * courtesy, not the rule: the money is judged by `createTeam` inside its
- * transaction, and a form that has been open across a debit elsewhere still
- * comes back with `insufficient_balance` in the error banner.
  */
-export function TeamForm({
-  mode,
-  slug,
-  initial,
-  rulesHref,
-  priceAcer = 0,
-  balanceMinor = 0,
-  purchaseEnabled = false,
-}: Props) {
+export function TeamForm({ slug, initial, rulesHref }: Props) {
   const t = useTranslations("teams.form");
   const tReasons = useTranslations("teams.reasons");
   const router = useRouter();
@@ -124,31 +97,22 @@ export function TeamForm({
 
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (pending || short) return;
+    if (pending) return;
     if (!valid) {
       setTouched({ name: true, region: true });
       return;
     }
     setError(null);
     startTransition(async () => {
-      const payload = {
+      const result = await updateTeam(slug, {
         name: data.name.trim(),
         region: data.region.trim(),
         recruiting: data.recruiting,
         description: data.description.trim(),
-      };
-      const result =
-        mode === "create"
-          ? await createTeam({ ...payload, category: data.category })
-          : await updateTeam(slug ?? "", payload);
+      });
 
       if (!result.ok) {
         setError(tReasons(result.reason));
-        return;
-      }
-      if (mode === "create" && "slug" in result) {
-        trackEvent("team_create", { category: data.category, recruiting: data.recruiting });
-        router.push(`/teams/${result.slug}`);
         return;
       }
       setSaved(true);
@@ -160,17 +124,8 @@ export function TeamForm({
   const showRegionError = touched.region && regionError;
   const descriptionLeft = 280 - data.description.length;
 
-  // Money, in whole ACER for the copy — the props carry the price in ACER and
-  // the balance in minor units, because that is the honest shape of each on the
-  // server. Rounded up on the shortfall so "you need 0.5 more" never reads as
-  // "you need 0".
-  const paid = mode === "create" && priceAcer > 0;
-  const balanceAcer = minorToAcer(balanceMinor);
-  const short = paid && balanceAcer < priceAcer;
-  const missingAcer = Math.ceil(priceAcer - balanceAcer);
-
   return (
-    <form className="profile-form team-form" onSubmit={onSubmit} data-team-form={mode} noValidate>
+    <form className="profile-form team-form" onSubmit={onSubmit} data-team-form="edit" noValidate>
       {error ? (
         <div className="banner banner--red" role="alert">
           <div className="banner__body">
@@ -207,7 +162,7 @@ export function TeamForm({
             )}
           </label>
 
-          <label className={cn("block", mode !== "create" && "col-2")}>
+          <label className="block col-2">
             <span className="flabel on-dark">{t("region")}</span>
             <input
               className={cn("finput on-dark", showRegionError && "finput--err")}
@@ -221,23 +176,6 @@ export function TeamForm({
             />
             {showRegionError ? <span className="field-msg">{regionError}</span> : null}
           </label>
-
-          {mode === "create" ? (
-            <label className="block">
-              <span className="flabel on-dark">{t("category")}</span>
-              <select
-                className="fselect on-dark"
-                value={data.category}
-                onChange={(event) => set("category", event.target.value as TeamCategory)}
-              >
-                {TEAM_CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {t(`categoryOption.${category}`)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
         </div>
 
         {regionMissing ? (
@@ -248,28 +186,6 @@ export function TeamForm({
           </div>
         ) : null}
       </div>
-
-      <fieldset className="form-section team-form__fieldset">
-        <legend className="flabel on-dark">{t("recruitingLabel")}</legend>
-        <div className="choice-cards" role="radiogroup">
-          <ChoiceCard
-            name="team-recruiting"
-            value="open"
-            checked={data.recruiting}
-            onSelect={() => set("recruiting", true)}
-            title={t("recruitingOpenTitle")}
-            body={t("recruitingOpenBody")}
-          />
-          <ChoiceCard
-            name="team-recruiting"
-            value="closed"
-            checked={!data.recruiting}
-            onSelect={() => set("recruiting", false)}
-            title={t("recruitingClosedTitle")}
-            body={t("recruitingClosedBody")}
-          />
-        </div>
-      </fieldset>
 
       <div className="form-section">
         <label className="block">
@@ -292,26 +208,6 @@ export function TeamForm({
         </label>
       </div>
 
-      {paid ? (
-        <div className="form-section" data-team-price={priceAcer}>
-          <p className="fhint">
-            {t("priceLine", { price: priceAcer })} {t("balanceLine", { balance: balanceAcer })}
-          </p>
-          {short ? (
-            <div className="banner banner--warn" role="status" data-team-short="true">
-              <div className="banner__body">
-                <div className="banner__txt">
-                  {t("shortBy", { missing: missingAcer })}{" "}
-                  <Link href="/wallet">
-                    {purchaseEnabled ? t("walletLinkTopUp") : t("walletLink")}
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
       <div className="form-actions">
         <a
           className="form-actions__note team-form__rules"
@@ -321,50 +217,10 @@ export function TeamForm({
         >
           {t("rulesLink")} ↗
         </a>
-        <button type="submit" className="btn btn-red" disabled={pending || short}>
-          {pending
-            ? t("submitting")
-            : mode !== "create"
-              ? t("submitSave")
-              : paid
-                ? t("submitCreatePaid", { price: priceAcer })
-                : t("submitCreate")}
+        <button type="submit" className="btn btn-red" disabled={pending}>
+          {pending ? t("submitting") : t("submitSave")}
         </button>
       </div>
     </form>
-  );
-}
-
-function ChoiceCard({
-  name,
-  value,
-  checked,
-  onSelect,
-  title,
-  body,
-}: {
-  name: string;
-  value: string;
-  checked: boolean;
-  onSelect: () => void;
-  title: string;
-  body: string;
-}) {
-  return (
-    <label className={cn("choice-card", checked && "is-on")}>
-      <input
-        type="radio"
-        name={name}
-        value={value}
-        checked={checked}
-        onChange={onSelect}
-        className="choice-card__input"
-      />
-      <span className="choice-card__dot" aria-hidden />
-      <span className="choice-card__text">
-        <span className="choice-card__title">{title}</span>
-        <span className="choice-card__body">{body}</span>
-      </span>
-    </label>
   );
 }
