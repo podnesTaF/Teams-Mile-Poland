@@ -94,7 +94,62 @@ export type TeamActionReason =
   // payment for this team and night has settled and the entry is still being
   // written.
   | "payment_unavailable"
-  | "payment_pending";
+  | "payment_pending"
+  // Organiser-placed teams (ADR 0016): a door PRD #64 built that is switched
+  // off (`isTeamFormationEnabled`), or one self-service formation offered that
+  // is closed (join requests, the team code); an invitation into a team that is
+  // not one of `PLACEMENT_TEAM_SLUGS`; founding a team, which is impossible.
+  | "paused"
+  | "not_placement_team"
+  | "creation_closed";
+
+/**
+ * The four standing **placement teams** — Ace Battle Mile RED Warsaw and BLACK
+ * Warsaw, men's and women's (ADR 0016). They are entered on every night with a
+ * team path by definition, and they are the only teams that take new members:
+ * an invitation into any other team is refused `not_placement_team`.
+ *
+ * Slugs, not ids: the slug is what a page, an action and an admin read, and it
+ * never changes on rename (`updateTeam` leaves it alone).
+ */
+export const PLACEMENT_TEAM_SLUGS = [
+  "ab-praga-poludnie",
+  "ab-wilanow",
+  "ab-praga-poludnie-2",
+  "ab-wilanow-2",
+] as const;
+
+export type PlacementTeamSlug = (typeof PLACEMENT_TEAM_SLUGS)[number];
+
+export function isPlacementTeamSlug(slug: string): slug is PlacementTeamSlug {
+  return (PLACEMENT_TEAM_SLUGS as readonly string[]).includes(slug);
+}
+
+/**
+ * Whether the manager-driven team machinery of PRD #64 is on: entering a team
+ * into a night and withdrawing it (`/teams/[slug]/entries/[eventSlug]`), and
+ * the team treasury (`/teams/[slug]/treasury`, contributions and payouts).
+ *
+ * Off unless `TEAM_FORMATION_ENABLED=1` (ADR 0016): the placement teams are
+ * entered by definition and their members' race follows membership, so none of
+ * it has a job today — it is paused, not removed, because it is the natural
+ * second step once a night has run on the derived race. Same shape as
+ * `isTreasuryPayoutEnabled`; deliberately not `NEXT_PUBLIC_`, the server
+ * decides. Read on the server only — in a client bundle it is always `false`.
+ */
+export function isTeamFormationEnabled(): boolean {
+  return process.env.TEAM_FORMATION_ENABLED === "1";
+}
+
+/**
+ * Self-service formation — founding a team, the team code, join requests — is
+ * closed for good (ADR 0016). Not an env switch: the owner's rule is that only
+ * the four placement teams exist as destinations. A named constant rather than
+ * deleted bodies so the refusing actions read as the rule they enforce, and so
+ * the rows already written (pending join requests, every team's code) keep the
+ * readers the admin pages still use.
+ */
+export const SELF_SERVICE_FORMATION_CLOSED = true;
 
 /** The frozen failure half of every team action's return value. */
 export type TeamActionFailure = {

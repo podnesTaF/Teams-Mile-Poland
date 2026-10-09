@@ -9,7 +9,7 @@ import { getDb } from "@/lib/db";
 
 import { teamFailure, type TeamActionResult } from "../config";
 import { getTeamRoster } from "../data";
-import { requireTeamActor, requireTeamManagerOrAdmin } from "../guards";
+import { refuseUnlessPlacementTeam, requireTeamActor, requireTeamManagerOrAdmin } from "../guards";
 import {
   acceptInvitationForUser,
   declineInvitation,
@@ -79,6 +79,10 @@ export async function inviteByEmail(
 ): Promise<TeamActionResult<{ invitationId: string; email: string }>> {
   const gate = await requireTeamManagerOrAdmin(slug);
   if (!gate.ok) return gate;
+  // Only the four placement teams take new members (ADR 0016) — the manager's
+  // form and the admin's invite-on-behalf both arrive here.
+  const closed = refuseUnlessPlacementTeam(gate.team);
+  if (closed) return closed;
 
   const parsed = inviteSchema.safeParse(input);
   if (!parsed.success) return teamFailure("invalid");
@@ -170,6 +174,10 @@ export async function resendInvitation(
 
   const gate = await requireTeamManagerOrAdmin(found.team.slug);
   if (!gate.ok) return gate;
+  // A fresh link into a team that can no longer take members would only be
+  // refused on accept (ADR 0016).
+  const closed = refuseUnlessPlacementTeam(found.team);
+  if (closed) return closed;
 
   if (found.invitation.status !== "pending") return teamFailure("used");
 
@@ -260,6 +268,12 @@ export async function respondToInvitation(
     await declineInvitation(invitation.id);
     return { ok: true, teamSlug: team.slug, decision };
   }
+
+  // Declining stays open for every team; joining only a placement team
+  // (ADR 0016) — an invitation into one of the other teams can be turned down
+  // but no longer accepted.
+  const closed = refuseUnlessPlacementTeam(team);
+  if (closed) return closed;
 
   const accepted = await acceptInvitationForUser(invitation.id, actor.userId);
   if (!accepted.ok) return accepted;

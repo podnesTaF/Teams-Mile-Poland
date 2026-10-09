@@ -61,7 +61,7 @@ export async function sendRemovedFromTeamMail(
       outro: t("outro"),
       team: facts,
       labels,
-      cta: { label: t("cta"), href: appAbsoluteUrl(localePath(locale, "/teams/new")) },
+      cta: { label: t("cta"), href: appAbsoluteUrl(localePath(locale, "/profile")) },
     }),
   });
 }
@@ -120,7 +120,7 @@ export async function sendTeamDissolvedMail(
       outro: t("outro"),
       team: facts,
       labels,
-      cta: { label: t("cta"), href: appAbsoluteUrl(localePath(locale, "/teams/new")) },
+      cta: { label: t("cta"), href: appAbsoluteUrl(localePath(locale, "/profile")) },
     }),
   });
 }

@@ -2,7 +2,13 @@ import type { UserTeamMemberRow, UserTeamRow } from "@/db/schema/user-teams";
 import { coerceToDate, meetsMinParticipantAge } from "@/lib/age";
 import { getUser, isProfileComplete, userCan, type SessionUser } from "@/lib/auth/user-session";
 
-import { teamFailure, type TeamActionFailure, type TeamSex } from "./config";
+import {
+  isPlacementTeamSlug,
+  isTeamFormationEnabled,
+  teamFailure,
+  type TeamActionFailure,
+  type TeamSex,
+} from "./config";
 import { getTeamBySlug, getTeamMembership } from "./data";
 
 /**
@@ -14,7 +20,7 @@ import { getTeamBySlug, getTeamMembership } from "./data";
  * `features/admin/action-helpers.ts` redirects and `notFound()`s, which is right
  * for a *page* and wrong inside a server action: a thrown redirect from an
  * action gives the client island nothing to render. Pages do their own
- * redirecting (see `/teams/new`), actions get a `{ ok: false, reason }`.
+ * redirecting (see `/teams/invite/[token]`), actions get a `{ ok: false, reason }`.
  *
  * The age check is against **today**, not an event date: formation has no
  * event, and the team rules admit only adults (§2.1). Deliberately stricter
@@ -136,4 +142,26 @@ export function teamGateState(
   const dob = coerceToDate((user as { dateOfBirth?: unknown }).dateOfBirth);
   if (!dob || !meetsMinParticipantAge(dob)) return "age";
   return null;
+}
+
+/**
+ * Refuses an invitation into a team that is not a placement team (ADR 0016):
+ * only RED and BLACK, men's and women's, take new members. `null` when the
+ * team is one of `PLACEMENT_TEAM_SLUGS`.
+ *
+ * Shared by the invite (manager and admin on-behalf alike — both go through
+ * `inviteByEmail`), the resend and the accept, so no door into a roster skips
+ * it.
+ */
+export function refuseUnlessPlacementTeam(team: Pick<UserTeamRow, "slug">): TeamActionFailure | null {
+  return isPlacementTeamSlug(team.slug) ? null : teamFailure("not_placement_team");
+}
+
+/**
+ * Refuses a PRD #64 team-entry or treasury action while
+ * `TEAM_FORMATION_ENABLED` is not `1` (ADR 0016). `null` when the switch is on,
+ * and then the action behaves exactly as before.
+ */
+export function refuseUnlessFormationEnabled(): TeamActionFailure | null {
+  return isTeamFormationEnabled() ? null : teamFailure("paused");
 }

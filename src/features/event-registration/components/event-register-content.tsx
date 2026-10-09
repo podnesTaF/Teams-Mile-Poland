@@ -64,16 +64,20 @@ export async function EventRegisterContent({
   }
 
   const t = await getTranslations("register");
-  // On a mixed night this card is the individual door; the other door — being
-  // entered by a team manager — stays one link away so a runner who deep-linked
-  // here still gets the choice the event page offers (ADR 0009).
-  const teamAlternative = acceptsTeams(event) ? (
-    <p className="slots-note register-team-alt" data-team-alternative="1">
-      {t("teamAlternative")}{" "}
-      <Link href="/teams" className="link">
-        {t("teamAlternativeCta")}
-      </Link>
-    </p>
+  // On a night with a team path, the event page's explainer, shortened: who
+  // runs the team race and how a runner without a team gets onto one
+  // (ADR 0016). The price is already on the card below, so its line is left
+  // out. Same keys as the event page, so the two cannot drift apart.
+  const te = await getTranslations("events");
+  const explainer = acceptsTeams(event) ? (
+    <div className="entry-explainer entry-explainer--register" data-entry-explainer="1">
+      <p className="slots-note" data-entry-explainer-line="team">
+        {te("entryExplainer.team")}
+      </p>
+      <p className="slots-note" data-entry-explainer-line="no-team">
+        {te("entryExplainer.noTeamShort")}
+      </p>
+    </div>
   ) : null;
 
   // Priced once for this whole card, through the one helper (ADR 0013) — the
@@ -99,7 +103,7 @@ export async function EventRegisterContent({
     }
     return (
       <>
-        {teamAlternative}
+        {explainer}
         <GuestRegisterForm
           eventSlug={slug}
           eventName={event.name}
@@ -262,7 +266,7 @@ export async function EventRegisterContent({
 
   return (
     <>
-      {teamAlternative}
+      {explainer}
       <RegisterConfirm
         eventSlug={slug}
         eventName={event.name}

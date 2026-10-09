@@ -1,0 +1,21 @@
+/*
+ * The explainer under the one register CTA on a night with a team path
+ * (ADR 0016): how the team race and the individual mile are decided. Imported
+ * by the event page and the register page; the lines themselves are
+ * `.slots-note` (series-flows.css). Scoped under `.ace-landing` like
+ * series-flows.css.
+ */
+.ace-landing .entry-explainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+}
+.ace-landing .entry-explainer .slots-note {
+  margin: 0;
+}
+.ace-landing .entry-explainer--register {
+  margin: 0 auto 12px;
+  max-width: 620px;
+  text-align: center;
+}

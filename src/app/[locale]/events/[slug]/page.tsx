@@ -6,7 +6,7 @@ import "@/app/landing.css";
 import "@/app/series-flows.css";
 import "@/app/gallery.css";
 import "./heats/heats.css";
-import "./mixed-choice.css";
+import "./entry-explainer.css";
 import "./event-detail.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
@@ -16,7 +16,7 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { getEventDocuments, resolveDocumentFile } from "@/lib/events/documents";
 import { getEventMediaConfig } from "@/lib/events/media-config";
-import { individualEntryFeeMinor, teamEntryFeeMinor } from "@/features/wallet/entry-fees";
+import { individualEntryFeeMinor } from "@/features/wallet/entry-fees";
 import { minorToAcer } from "@/features/wallet/config";
 import { getEventBySlug, getFirstHeatTime } from "@/lib/events/registry";
 import { getPublicResults } from "@/lib/events/results-data";
@@ -135,50 +135,44 @@ export default async function EventDetailPage({ params }: PageProps) {
   const t = await getTranslations("events");
   const state = detailState(event.status);
   /**
-   * A team event is entered by its manager, never by a person (PRD #64, user
-   * stories 1 and 2); a mixed night takes both paths and asks the visitor to
-   * pick one (ADR 0009). That changes exactly one thing on this page — the
-   * CTA — and nothing else: the facts, the banner, the documents, the results
-   * and the gallery all read the same. (An entered-teams count used to sit
-   * above the CTA; it was dropped in September 2026, so this page no longer
-   * reads the entries table at all.)
+   * Every night has one door: the register flow (ADR 0016). On a night with a
+   * team path a runner's race follows their roster — a member of a placement
+   * team runs the team race free, everyone else the individual mile — so the
+   * visitor chooses nothing here; a short explainer under the CTA says how it
+   * works. A pure team night keeps its notice and the two team documents.
+   * The facts, the banner, the documents, the results and the gallery read the
+   * same on every kind of night.
    */
   const teamPath = acceptsTeams(event);
   const individualPath = acceptsIndividuals(event);
   const isTeamEvent = teamPath && !individualPath;
   /**
-   * What each door costs, in whole ACER (ADR 0013) — read through the fee
-   * helpers, never off the column, so this page, the register flow and the
+   * What the individual mile costs, in whole ACER (ADR 0013) — read through the
+   * fee helper, never off the column, so this page, the register flow and the
    * transaction that takes the money agree by construction.
    *
-   * Each price is gated on its own path, not merely on being non-zero: a
-   * team-only night carrying a stray individual fee must not advertise a door
-   * that does not exist here. `0` on a path means free, which is every night
-   * until an admin prices one, and the entry row keeps reading "Free" exactly
-   * as it did before fees existed.
+   * Gated on the individual path, not merely on being non-zero: a team-only
+   * night carrying a stray individual fee must not advertise a door that does
+   * not exist here. `0` means free, which is every night until an admin prices
+   * one, and the entry row keeps reading "Free" exactly as it did before fees
+   * existed.
+   *
+   * There is no team price on this page (ADR 0016): the team race is free for
+   * a placement team's members, and `team_price_pln` is read by nothing public.
    */
   //
-  // A door priced in PLN is paid by card (ADR 0015) and its ACER fee is not
-  // taken, so the PLN price replaces it here too. Each door ends up with one
-  // label, whichever currency it is in, and every site below prints that.
+  // A night priced in PLN is paid by card (ADR 0015) and its ACER fee is not
+  // taken, so the PLN price replaces it here too.
   const individualPricePln = individualPath ? entryPricePln(event, "individual") : 0;
-  const teamPricePln = teamPath ? entryPricePln(event, "team") : 0;
   const individualFeeAcer =
     individualPath && individualPricePln === 0 ? minorToAcer(individualEntryFeeMinor(event)) : 0;
-  const teamFeeAcer = teamPath && teamPricePln === 0 ? minorToAcer(teamEntryFeeMinor(event)) : 0;
   const individualFeeLabel =
     individualPricePln > 0
       ? t("detail.priceIndividual", { price: individualPricePln })
       : individualFeeAcer > 0
         ? t("detail.feeIndividual", { amount: individualFeeAcer })
         : null;
-  const teamFeeLabel =
-    teamPricePln > 0
-      ? t("detail.priceTeam", { price: teamPricePln })
-      : teamFeeAcer > 0
-        ? t("detail.feeTeam", { amount: teamFeeAcer })
-        : null;
-  const paidEntry = individualFeeLabel !== null || teamFeeLabel !== null;
+  const paidEntry = individualFeeLabel !== null;
   /**
    * Which of the state copy blocks the hero, the banner and the note read from.
    *
@@ -220,24 +214,14 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   /**
    * What the bottom bar on a phone offers, if anything: a bar only while
-   * registration is open, and one door per night — the register flow on an
-   * individual night, the teams area on a team night, and on a mixed night a
-   * jump to the entry card, because choosing a path (ADR 0009) is a decision
-   * the bar has no room to explain. The individual door is session-aware
-   * exactly like the card's, in its one-button form and under the one-word
-   * label: a logged-out visitor's tap lands on the register flow, which sends
-   * them through sign-up and back, so "Register" is true for both.
+   * registration is open, and the one door every night has — the register
+   * flow (ADR 0016). It is session-aware exactly like the card's, in its
+   * one-button form and under the one-word label: a logged-out visitor's tap
+   * lands on the register flow, which sends them through sign-up and back, so
+   * "Register" is true for both.
    */
   const barCta =
-    state !== "open" ? null : isTeamEvent ? (
-      <Link href="/teams" className="btn btn-red btn-block">
-        {t("teamEvent.cta")}
-      </Link>
-    ) : teamPath ? (
-      <a href="#entry" className="btn btn-red btn-block">
-        {t("detail.register")}
-      </a>
-    ) : (
+    state !== "open" ? null : (
       <EventRegisterCta
         compact
         slug={slug}
@@ -278,18 +262,15 @@ export default async function EventDetailPage({ params }: PageProps) {
 
             <aside className="evd-entry" id="entry">
               <div className="slots-card">
-                {/* One entry row, carrying whichever prices this night has:
-                    both on a mixed night, because the two doors cost different
-                    amounts and a visitor choosing between them needs both
-                    numbers in front of them. A free night keeps the row it
-                    always had. The `data-*` numbers are the assertable ones —
-                    the label is translated and the price is not. */}
+                {/* One entry row, carrying the individual mile's price — the
+                    only price this page prints (ADR 0016). A free night keeps
+                    the row it always had. The `data-*` numbers are the
+                    assertable ones — the label is translated and the price is
+                    not. */}
                 <div
                   className="slots-row"
                   data-event-fee-individual={individualFeeAcer}
-                  data-event-fee-team={teamFeeAcer}
                   data-event-price-individual={individualPricePln}
-                  data-event-price-team={teamPricePln}
                 >
                   <div className="slots-lbl">
                     <b>{t("detail.slots.entry")}</b>
@@ -297,7 +278,6 @@ export default async function EventDetailPage({ params }: PageProps) {
                   </div>
                   <div className={paidEntry ? "slots-val" : "slots-val slots-val--free"}>
                     {individualFeeLabel ? <div>{individualFeeLabel}</div> : null}
-                    {teamFeeLabel ? <div>{teamFeeLabel}</div> : null}
                     {/* `detail.feeFree` is deliberately unused: this row has
                         said "Free" through `detail.slots.free` since the page
                         existed, and two sentences for one fact are two
@@ -306,21 +286,21 @@ export default async function EventDetailPage({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* A team event has no individual register CTA at all — there
-                    is no per-person entry into one (PRD #64). What replaces it
-                    is the notice that entry is by team and the two documents a
-                    member will be asked to accept, on the eventless legal route
-                    (#58) so they can be read before anyone commits. */}
+                {/* A team event keeps its notice and the two documents a member
+                    will be asked to accept, on the eventless legal route (#58)
+                    so they can be read before anyone commits. Its CTA is the
+                    register flow like every other night's (ADR 0016). */}
                 {isTeamEvent ? (
                   <div data-team-entry-notice="1">
                     <p className="slots-note">{t("teamEvent.notice")}</p>
                     {state === "open" ? (
-                      <>
-                        <Link href="/teams" className="btn btn-red btn-block">
-                          {t("teamEvent.cta")}
-                        </Link>
-                        <p className="slots-note">{t("teamEvent.joinFree")}</p>
-                      </>
+                      <EventRegisterCta
+                        slug={slug}
+                        registerLabel={t(`detail.states.${copyState}.cta`)}
+                        createLabel={t("detail.cta.create")}
+                        signInPrompt={t("detail.cta.signInPrompt")}
+                        signInLabel={t("detail.cta.signIn")}
+                      />
                     ) : null}
                     <Link
                       href="/legal/team-rules"
@@ -338,65 +318,37 @@ export default async function EventDetailPage({ params }: PageProps) {
                     </Link>
                   </div>
                 ) : teamPath && state === "open" ? (
-                  // A mixed night, open: the visitor is asked how they want to
-                  // run before anything else (ADR 0009). Two doors, one card —
-                  // the individual register flow, or the team the manager
-                  // enters. A runner takes one path per night; the register
-                  // flow and the entry action each refuse the other's holder.
-                  <div className="mixed-choice" data-mixed-entry-choice="1">
-                    <p className="mixed-choice__title">{t("mixedEvent.choiceTitle")}</p>
-                    <div className="mixed-choice__option" data-mixed-option="individual">
-                      <b>{t("mixedEvent.individualTitle")}</b>
-                      {/* `individualSub` ends "and is free", which a priced
-                          night is not. The paid twin says the price *in the same
-                          sentence* rather than replacing the explanation with a
-                          number: on a mixed night this line is what a visitor
-                          chooses a door by, and "5 ACER" alone does not say what
-                          they would be signing up for. */}
-                      <small>
+                  // A mixed night, open: one door (ADR 0016). The runner does
+                  // not choose a race — the register flow derives it from the
+                  // roster — so the CTA is the individual night's, and four
+                  // lines under it say how the two races are decided.
+                  <>
+                    <EventRegisterCta
+                      slug={slug}
+                      registerLabel={t(`detail.states.${copyState}.cta`)}
+                      createLabel={t("detail.cta.create")}
+                      signInPrompt={t("detail.cta.signInPrompt")}
+                      signInLabel={t("detail.cta.signIn")}
+                    />
+                    <div className="entry-explainer" data-entry-explainer="1">
+                      <p className="slots-note" data-entry-explainer-line="team">
+                        {t("entryExplainer.team")}
+                      </p>
+                      <p className="slots-note" data-entry-explainer-line="individual">
                         {individualPricePln > 0
-                          ? t("mixedEvent.individualSubPln", { price: individualPricePln })
+                          ? t("entryExplainer.individualPln", { price: individualPricePln })
                           : individualFeeAcer > 0
-                            ? t("mixedEvent.individualSubPaid", { amount: individualFeeAcer })
-                            : t("mixedEvent.individualSub")}
-                      </small>
-                      <EventRegisterCta
-                        slug={slug}
-                        registerLabel={t("mixedEvent.individualCta")}
-                        createLabel={t("detail.cta.create")}
-                        signInPrompt={t("detail.cta.signInPrompt")}
-                        signInLabel={t("detail.cta.signIn")}
-                      />
+                            ? t("entryExplainer.individualAcer", { amount: individualFeeAcer })
+                            : t("entryExplainer.individualFree")}
+                      </p>
+                      <p className="slots-note" data-entry-explainer-line="no-team">
+                        {t("entryExplainer.noTeam")}
+                      </p>
+                      <p className="slots-note" data-entry-explainer-line="invite">
+                        {t("entryExplainer.invite")}
+                      </p>
                     </div>
-                    <div className="mixed-choice__or" aria-hidden>
-                      {t("mixedEvent.or")}
-                    </div>
-                    <div className="mixed-choice__option" data-mixed-option="team">
-                      <b>{t("mixedEvent.teamTitle")}</b>
-                      {/* Same shape as the individual option, and the paid twin
-                          also names *whose* money it is — the treasury, not the
-                          manager's own wallet (ADR 0012), which is the single
-                          most surprising thing about the team door. */}
-                      <small>
-                        {teamPricePln > 0
-                          ? t("mixedEvent.teamSubPln", { price: teamPricePln })
-                          : teamFeeAcer > 0
-                            ? t("mixedEvent.teamSubPaid", { amount: teamFeeAcer })
-                            : t("mixedEvent.teamSub")}
-                      </small>
-                      <Link href="/teams" className="btn btn-stroke-dark btn-block">
-                        {t("mixedEvent.teamCta")}
-                      </Link>
-                      <small>{t("teamEvent.joinFree")}</small>
-                    </div>
-                    <Link
-                      href="/legal/team-rules"
-                      className="link slots-note"
-                      data-team-rules-link="1"
-                    >
-                      {t("teamEvent.rulesLink")}
-                    </Link>
-                  </div>
+                  </>
                 ) : state === "open" ? (
                   // The label comes from whichever state block the rest of the
                   // hero is reading, so the button cannot say "Register free"
@@ -591,14 +543,13 @@ export default async function EventDetailPage({ params }: PageProps) {
         <StickyEntryBar watchId="entry">
           <div className="evd-bar__price">
             <span className="evd-bar__k">{t("detail.slots.entry")}</span>
-            {/* One line per priced door; the bar is 360px wide at its
-                narrowest and a single joined line does not fit beside the button. */}
+            {/* The individual mile's price — the only one this page prints
+                (ADR 0016). */}
             {paidEntry ? (
               <>
                 {individualFeeLabel ? (
                   <span className="evd-bar__v">{individualFeeLabel}</span>
                 ) : null}
-                {teamFeeLabel ? <span className="evd-bar__v">{teamFeeLabel}</span> : null}
               </>
             ) : (
               <span className="evd-bar__v evd-bar__v--free">{t("detail.slots.free")}</span>

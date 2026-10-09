@@ -55,6 +55,12 @@ const REFUSALS: Record<TeamActionReason, string> = {
   // Card-paid team nights (ADR 0015).
   payment_unavailable: "Stripe could not start the entry-fee checkout. Try again shortly.",
   payment_pending: "That team's entry fee has been paid and the entry is still being written.",
+  // Organiser-placed teams (ADR 0016).
+  paused:
+    "Paused: join requests and team codes are closed, and team entry / treasury need TEAM_FORMATION_ENABLED=1.",
+  not_placement_team:
+    "Only the four placement teams (RED and BLACK, men's and women's) take new members.",
+  creation_closed: "Creating a team is closed — only the four placement teams exist.",
 };
 
 /** The panel's sentence for a refused team action. */

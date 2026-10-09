@@ -12,11 +12,10 @@ import {
 } from "@/features/teams/components/entry-enter-button";
 import { EntryList } from "@/features/teams/components/entry-list";
 import { TeamCard } from "@/features/teams/components/team-card";
-import { TeamJoinCta } from "@/features/teams/components/team-join-cta";
 import { TeamManagerPanel } from "@/features/teams/components/team-manager-panel";
 import { TeamRoster } from "@/features/teams/components/team-roster";
-import { TeamShare } from "@/features/teams/components/team-share";
 import { TeamTreasury, userIdFromReference } from "@/features/teams/components/team-treasury";
+import { isTeamFormationEnabled } from "@/features/teams/config";
 import {
   getManagerFirstName,
   getManagerFirstNames,
@@ -30,11 +29,9 @@ import { getAcerBalance, getTeamAcerBalance, listWalletTransactions } from "@/fe
 import { teamEntryFeeMinor } from "@/features/wallet/entry-fees";
 import { isTreasuryPayoutEnabled } from "@/features/wallet/transfers";
 import { Link } from "@/i18n/navigation";
-import { getAppUrl } from "@/lib/app-url";
 import { getUser, userCan } from "@/lib/auth/user-session";
 import { getAllEvents } from "@/lib/events/store";
 import { entryPricePln } from "@/lib/events/types";
-import { localePath } from "@/lib/i18n/config";
 
 type PageProps = {
   params: Promise<{ locale: string; slug: string }>;
@@ -45,12 +42,16 @@ type PageProps = {
  * One team, in three views layered on top of each other:
  *
  *  - **public** — the card: name, region, category, the runner count,
- *    description, the manager's first name. No roster names, ever. Under it,
- *    the join call to action ({@link TeamJoinCta}): ask to join, or why not.
+ *    description, the manager's first name. No roster names, ever, and no way
+ *    in: joining is by invitation only (ADR 0016), so there is no join CTA.
  *  - **member** — plus the roster with names and roles, the runner count (with
- *    the men/women split on mixed teams), the code and the share link.
- *  - **manager** — plus the edit form, the code rotation and the recruiting
- *    toggle. An admin holding `edit` sees the manager view of any team.
+ *    the men/women split on mixed teams).
+ *  - **manager** — plus the invitations and the edit form. An admin holding
+ *    `edit` sees the manager view of any team.
+ *
+ * Team entry and the treasury (PRD #64) render only while
+ * `TEAM_FORMATION_ENABLED=1` (`isTeamFormationEnabled`, ADR 0016). The back
+ * link always goes to the profile: the public team list is gone.
  *
  * Dynamic on purpose (no `generateStaticParams`): what this page shows depends
  * on who is asking.
@@ -75,7 +76,9 @@ export default async function TeamPage({ params, searchParams }: PageProps) {
   const isMember = isOnRoster || userCan(user, "view");
   const isManager = Boolean(user) && (team.managerUserId === user?.id || userCan(user, "edit"));
 
-  const joinUrl = `${getAppUrl()}${localePath(locale, `/teams/join/${team.code}`)}`;
+  // Manager team entry and the treasury are paused (ADR 0016); with the switch
+  // off none of their reads run and none of their blocks render.
+  const formation = isTeamFormationEnabled();
 
   // Team entry (PRD #64, #67). Two blocks, both read here so the components
   // stay dumb: the manager's "Enter" list of open team events, and the Entries
@@ -84,8 +87,8 @@ export default async function TeamPage({ params, searchParams }: PageProps) {
   // The Enter list is read for the manager only — a plain member cannot enter,
   // and offering them a button that answers `forbidden` is worse than not
   // offering it. `getOpenTeamEvents` already excludes the frozen legacy night.
-  const entries = isMember ? await listEntriesForTeam(team.id) : [];
-  const enterableEvents: EnterableEvent[] = isManager
+  const entries = formation && isMember ? await listEntriesForTeam(team.id) : [];
+  const enterableEvents: EnterableEvent[] = formation && isManager
     ? await Promise.all(
         (await getOpenTeamEvents()).map(async (event) => {
           const entryId =
@@ -124,16 +127,19 @@ export default async function TeamPage({ params, searchParams }: PageProps) {
   // is read only for a person on the roster, because only they may pay in.
   // Payouts are a manager affordance and stay off until the Terms are revised
   // (`isTreasuryPayoutEnabled`); the action refuses either way.
+  //
+  // The balance is read whatever the switch says: the roster's dissolve
+  // confirmation warns about ACER left in the treasury.
   const treasuryMinor = isMember ? await getTeamAcerBalance(team.id) : 0;
-  const viewerBalanceMinor = isOnRoster && user ? await getAcerBalance(user.id) : 0;
-  const recent = isMember
+  const viewerBalanceMinor = formation && isOnRoster && user ? await getAcerBalance(user.id) : 0;
+  const recent = formation && isMember
     ? (await listWalletTransactions({ teamId: team.id }, { pageSize: 5 })).rows
     : [];
   const counterpartyNames = await getManagerFirstNames(
     recent.map((row) => userIdFromReference(row.reference)).filter((id): id is string => !!id),
   );
   const payout =
-    isManager && isTreasuryPayoutEnabled()
+    formation && isManager && isTreasuryPayoutEnabled()
       ? {
           candidates: roster.map((member) => ({
             userId: member.userId,
@@ -147,15 +153,9 @@ export default async function TeamPage({ params, searchParams }: PageProps) {
       <InteriorHeader />
       <main className="iv-main">
         <div className="iv-wrap">
-          {isMember ? (
-            <Link href="/profile" className="detail-back">
-              ← {t("back")}
-            </Link>
-          ) : (
-            <Link href="/teams" className="detail-back">
-              ← {t("backToTeams")}
-            </Link>
-          )}
+          <Link href="/profile" className="detail-back">
+            ← {t("back")}
+          </Link>
 
           <TeamCard team={team} roster={rosterSummary} managerFirstName={managerFirstName} />
 
@@ -169,28 +169,26 @@ export default async function TeamPage({ params, searchParams }: PageProps) {
                 isManager={isManager}
                 treasuryMinor={treasuryMinor}
               />
-              <TeamShare code={team.code} joinUrl={joinUrl} />
-              <TeamTreasury
-                slug={team.slug}
-                locale={locale}
-                treasuryMinor={treasuryMinor}
-                viewerBalanceMinor={viewerBalanceMinor}
-                canContribute={isOnRoster}
-                payout={payout}
-                recent={recent}
-                names={counterpartyNames}
-              />
+              {formation ? (
+                <TeamTreasury
+                  slug={team.slug}
+                  locale={locale}
+                  treasuryMinor={treasuryMinor}
+                  viewerBalanceMinor={viewerBalanceMinor}
+                  canContribute={isOnRoster}
+                  payout={payout}
+                  recent={recent}
+                  names={counterpartyNames}
+                />
+              ) : null}
             </>
           ) : (
-            <>
-              <TeamJoinCta team={team} seats={roster} user={user} />
-              <p className="iv-share__hint" data-team-view="public">
-                {t("publicRosterHidden")}
-              </p>
-            </>
+            <p className="iv-share__hint" data-team-view="public">
+              {t("publicRosterHidden")}
+            </p>
           )}
 
-          {isManager ? (
+          {formation && isManager ? (
             <EntryEnterButton
               teamSlug={team.slug}
               events={enterableEvents}
@@ -200,7 +198,7 @@ export default async function TeamPage({ params, searchParams }: PageProps) {
             />
           ) : null}
 
-          {isMember ? (
+          {formation && isMember ? (
             <EntryList teamSlug={team.slug} entries={entries} eventNames={eventNames} />
           ) : null}
 

@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import "@/app/landing.css";
 import "@/app/series-flows.css";
+import "../entry-explainer.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { EventRegisterContent } from "@/features/event-registration/components/event-register-content";

@@ -1052,10 +1052,8 @@
         }
       },
       "feeIndividual": "Individual entry: {amount} ACER",
-      "feeTeam": "Team entry: {amount} ACER",
       "feeFree": "Free entry",
-      "priceIndividual": "Individual entry: {price} zł",
-      "priceTeam": "Team entry: {price} zł"
+      "priceIndividual": "Individual entry: {price} zł"
     },
     "docs": {
       "heading": "Documents",
@@ -1167,28 +1165,21 @@
       "legPair": "pair mile",
       "teamLegend": "Team time is the sum of the team's miles: each RACER's mile plus each ACE + JOKER pair's mile (the JOKER's finish). An ACE's time is the handover reading."
     },
-    "mixedEvent": {
-      "choiceTitle": "How do you want to run this night?",
-      "individualTitle": "Individual mile",
-      "individualSub": "Run the mile on your own — registration takes a minute and is free.",
-      "individualCta": "Register as an individual →",
-      "or": "or",
-      "teamTitle": "With a team",
-      "teamSub": "Your team manager enters the whole team; every member then confirms their own place. One runner, one entry per night.",
-      "teamCta": "Find or create a team",
-      "individualSubPaid": "Run the mile on your own — registration takes a minute and costs {amount} ACER from your wallet.",
-      "teamSubPaid": "Your team manager enters the whole team for {amount} ACER from the team treasury; every member then confirms their own place. One runner, one entry per night.",
-      "individualSubPln": "Run the mile on your own — registration takes a minute and costs {price} zł, paid by card.",
-      "teamSubPln": "Your team manager enters the whole team for {price} zł, paid once by card; every member then confirms their own place. One runner, one entry per night."
-    },
     "teamEvent": {
       "enteredLabel": "Teams entered",
       "enteredSub": "Complete teams on the entry list",
       "notice": "This is a team night. Entry is by team — a captain enters a complete team, and every member then confirms their own participation.",
-      "cta": "Find or create a team",
-      "joinFree": "Joining a team is free.",
       "rulesLink": "Team Mile Rules",
       "regulationsLink": "Public Regulations"
+    },
+    "entryExplainer": {
+      "team": "Team race — for members of RED and BLACK, free: register and your team is recognised.",
+      "individualPln": "Individual rated mile — {price} zł.",
+      "individualAcer": "Individual rated mile — {amount} ACER.",
+      "individualFree": "Individual rated mile — free.",
+      "noTeam": "No team yet? Run one rated mile.",
+      "invite": "The managers invite rated runners into a team — from the next night you run with it.",
+      "noTeamShort": "No team yet? Register for the rated mile — the managers invite rated runners into a team for the next night."
     }
   },
   "auth": {
@@ -1410,12 +1401,7 @@
     "checkFields": "Check the highlighted fields and try again."
   },
   "teams": {
-    "landingCta": "Find a team",
     "form": {
-      "eyebrow": "Team",
-      "back": "Back to profile",
-      "createTitle": "Create a team",
-      "createSubtitle": "Your team exists the moment you save it. You become its captain and its first runner.",
       "name": "Team name",
       "nameHint": "Must be unique. The rules ask for your region in the name.",
       "nameTooShort": "At least 3 characters.",
@@ -1446,15 +1432,7 @@
       "walletLinkTopUp": "Top up your wallet",
       "submitSave": "Save changes",
       "submitting": "Saving…",
-      "saved": "Saved.",
-      "verifyTitle": "Confirm your email first",
-      "verifyBody": "Teams are formed by verified accounts. Open the link we sent you, then come back here.",
-      "verifyCta": "Resend the link",
-      "profileTitle": "Finish your profile",
-      "profileBody": "A team is built from runners, so we need your name, date of birth, sex and phone before you can create one.",
-      "profileCta": "Go to your profile",
-      "ageTitle": "You must be 18",
-      "ageBody": "The team rules admit runners who are 18 or older. Check the date of birth on your profile if this is wrong."
+      "saved": "Saved."
     },
     "page": {
       "eyebrow": "Team",
@@ -1462,9 +1440,7 @@
       "category": "Category",
       "region": "Region",
       "managerIs": "Captain: {name}",
-      "recruitingOn": "Looking for runners",
       "publicRosterHidden": "Roster names are shown to this team's members only.",
-      "backToTeams": "All teams",
       "rosterCountLabel": "Runners",
       "rosterCount": "{count, plural, one {# runner} other {# runners}}",
       "rosterSplit": "{men} men · {women} women",
@@ -1475,16 +1451,8 @@
       "rosterTitle": "Roster",
       "rosterHeading": "Who is on the team",
       "rosterYou": "(you)",
-      "codeHint": "Share the code or the link. Knowing it only lets someone ask to join — you decide.",
-      "codeLabel": "Team code",
-      "copy": "Copy link",
-      "copied": "Copied",
       "manageTitle": "Manage",
-      "manageHeading": "Team settings",
-      "codeHeading": "Team code",
-      "rotate": "Issue a new code",
-      "rotating": "Issuing…",
-      "rotateHint": "A new code stops the old one working. Requests already sent to you are not affected."
+      "manageHeading": "Team settings"
     },
     "invitations": {
       "eyebrow": "Team invitation",
@@ -1533,71 +1501,8 @@
       "ageBody": "The team rules admit runners who are 18 or older. Check the date of birth on your profile if this is wrong."
     },
     "profile": {
-      "empty": "You are not on a team yet. Create one, or ask a captain for their team code.",
-      "create": "Create a team",
+      "empty": "You are not on a team yet. Teams take new members by invitation from their managers.",
       "open": "Open"
-    },
-    "requests": {
-      "listEyebrow": "Teams",
-      "listTitle": "Teams looking for runners",
-      "listSubtitle": "Every team that has said it is looking for runners. Pick one and ask to join — the captain decides.",
-      "listCreateCta": "Or create your own team",
-      "listEmpty": "No team is looking for runners right now. Create one, or come back later.",
-      "listEmptyCategory": "No team in this category is looking for runners right now.",
-      "filterLabel": "Filter by category",
-      "filterAll": "All",
-      "askToJoin": "Ask to join",
-      "asking": "Sending…",
-      "sentBody": "Your request is with the captain. You will get an email as soon as they answer.",
-      "confirmTitle": "Ask to join {team}",
-      "confirmBody": "{team} is a {category} team. Asking to join does not put you on the roster — the captain decides.",
-      "confirmHint": "You can withdraw your request at any time from your profile.",
-      "signInHint": "You need an account to ask to join. We will bring you straight back here.",
-      "invitedNotice": "{team} has already invited you. Pressing the button puts you on the roster right away.",
-      "browseCta": "See other teams",
-      "openTeam": "Open the team",
-      "profileCta": "Go to your profile",
-      "verifyTitle": "Confirm your email first",
-      "verifyBody": "Teams are joined by verified accounts. Open the link we sent you, then come back to this page.",
-      "verifyCta": "Resend the link",
-      "profileGateBody": "A roster is built from runners, so we need your name, date of birth, sex and phone before you can ask to join.",
-      "ageTitle": "You must be 18",
-      "ageBody": "The team rules admit runners who are 18 or older. Check the date of birth on your profile if this is wrong.",
-      "memberTitle": "You are already on this team",
-      "memberBody": "You are on the roster of {team}, so there is nothing to ask for.",
-      "pendingTitle": "Your request is waiting",
-      "pendingBody": "You have already asked to join {team}. The captain has not answered yet.",
-      "queueHeading": "Runners asking to join",
-      "queueEmpty": "Nobody has asked to join. Share the team code or the join link to be found.",
-      "asked": "Asked {date}",
-      "accept": "Accept",
-      "accepting": "Accepting…",
-      "decline": "Decline",
-      "declining": "Declining…",
-      "profileHeading": "Requests you have sent",
-      "waiting": "Waiting for an answer",
-      "withdraw": "Withdraw",
-      "withdrawing": "Withdrawing…",
-      "viewTeam": "View team",
-      "sendRequest": "Send request",
-      "signInToAsk": "Sign in and ask to join",
-      "ctaEyebrow": "Join",
-      "ctaTitle": "Run with {team}",
-      "ctaBody": "This team is looking for runners. Ask to join — the captain decides and you get an email as soon as they answer.",
-      "ctaGateHint": "You will be asked to finish your account first. We bring you straight back.",
-      "notRecruitingTitle": "Not looking for runners right now",
-      "notRecruitingBody": "{team} is not taking requests at the moment. Its captain can still invite you directly.",
-      "sentTitle": "Request sent",
-      "invitedTitle": "You are invited",
-      "acceptInvitation": "Accept the invitation",
-      "backToTeam": "Back to the team",
-      "decidedOn": "Answered {date}",
-      "requestStatus": {
-        "pending": "Waiting",
-        "accepted": "Accepted",
-        "declined": "Declined",
-        "withdrawn": "Withdrawn"
-      }
     },
     "reasons": {
       "failed": "Something went wrong and the request did not complete. Reload the page to see whether it went through, then try again.",
@@ -1636,7 +1541,10 @@
       "payouts_disabled": "Treasury payouts are not available yet.",
       "cancelled": "This event has been cancelled.",
       "payment_unavailable": "Payment is unavailable right now. Please try again in a few minutes.",
-      "payment_pending": "This entry's fee has already been paid — the entry is being confirmed. Refresh in a moment."
+      "payment_pending": "This entry's fee has already been paid — the entry is being confirmed. Refresh in a moment.",
+      "paused": "This is switched off for now — the organisers handle team entry and team membership themselves.",
+      "not_placement_team": "Only the RED and BLACK teams take new members right now.",
+      "creation_closed": "New teams cannot be created — the team race is run by the RED and BLACK teams."
     },
     "roster": {
       "managerHint": "Make another runner captain before you leave, or dissolve the team if it is not coming together.",
@@ -1774,7 +1682,7 @@
         "categoryLabel": "Category",
         "regionLabel": "Region",
         "outro": "If this looks wrong, talk to the captain — they can invite you back at any time.",
-        "cta": "Start your own team"
+        "cta": "Open your profile"
       },
       "handedOver": {
         "subject": "You are now the captain of {team}",
@@ -1802,8 +1710,8 @@
         "teamLabel": "Team",
         "categoryLabel": "Category",
         "regionLabel": "Region",
-        "outro": "You are free to join another team in this category, or to start one yourself.",
-        "cta": "Start your own team"
+        "outro": "If another team invites you, the invitation reaches you by email and on your profile.",
+        "cta": "Open your profile"
       },
       "confirmRequest": {
         "subject": "Confirm your participation — {event}",
@@ -1963,8 +1871,6 @@
     "processingTitle": "Payment received",
     "processingBody": "We're preparing your ticket. It'll appear in your profile shortly.",
     "goToProfile": "Go to profile",
-    "teamAlternative": "Running with a team this night?",
-    "teamAlternativeCta": "Enter through your team instead",
     "alreadyTeamTitle": "Entered with your team",
     "alreadyTeamBody": "You're on this night's list as a member of {team}. Your confirmation and ticket come through the team, so there is nothing to register here.",
     "alreadyTeamCta": "Open your team",

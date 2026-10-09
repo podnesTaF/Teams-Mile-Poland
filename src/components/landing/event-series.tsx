@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
 import { SeriesList, type RaceRow } from "@/features/event-registration/components/series-list";
-import { Link } from "@/i18n/navigation";
 import { getSeriesEvents } from "@/lib/events/registry";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -12,16 +11,14 @@ const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "
  * show live fullness (free/paid slots left) without making the page dynamic.
  * The race list hides itself when the series is empty.
  *
- * The "form a team" CTA below it is deliberately **outside** that emptiness
- * check (PRD #57): a team is a standing roster that exists before any race
- * night is announced, so the one landing entry point into team formation must
- * not disappear on the days there is nothing to enter.
+ * There is no team-formation entry point here any more: the "Find a team"
+ * button went with the public team list (ADR 0016) — teams are joined by a
+ * manager's invitation only.
  */
 export async function EventSeries() {
   const events = await getSeriesEvents();
 
   const t = await getTranslations("events");
-  const tTeams = await getTranslations("teams");
 
   const rows: RaceRow[] = events.map((event) => {
     const [y, m, d] = event.date.split("-");
@@ -67,16 +64,6 @@ export async function EventSeries() {
             <SeriesList rows={rows} />
           </>
         ) : null}
-
-        {/* The one landing entry point into team formation. It points at the
-          * public recruiting list rather than at `/teams/new`: most people
-          * arriving here want a team, not to found one, and `/teams` carries
-          * the create link for the rest. */}
-        <div style={{ display: "flex", justifyContent: "center", marginTop: 28 }}>
-          <Link href="/teams" className="btn btn-stroke">
-            {tTeams("landingCta")}
-          </Link>
-        </div>
       </div>
     </section>
   );

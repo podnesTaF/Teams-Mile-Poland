@@ -6,7 +6,7 @@ import { users } from "@/db/schema/auth";
 import type { UserTeamRow } from "@/db/schema/user-teams";
 import { getDb } from "@/lib/db";
 
-import { teamFailure, type TeamActionResult } from "../config";
+import { SELF_SERVICE_FORMATION_CLOSED, teamFailure, type TeamActionResult } from "../config";
 import { getEligibilityCandidate, getRosterSeats, getTeamByCode } from "../data";
 import { checkEligibility, type RosterSeat } from "../eligibility";
 import { requireTeamActor, requireTeamManagerOrAdmin } from "../guards";
@@ -61,6 +61,10 @@ import { sendJoinRequestReceivedEmail, sendJoinRequestSentEmail } from "../mail-
 export async function requestToJoin(
   code: string,
 ): Promise<TeamActionResult<{ teamSlug: string; joined: boolean }>> {
+  // Join requests are closed (ADR 0016): a runner joins a placement team by a
+  // manager's or admin's invitation only. Pending rows stay as data.
+  if (SELF_SERVICE_FORMATION_CLOSED) return teamFailure("paused");
+
   const actor = await requireTeamActor();
   if (!actor.ok) return actor;
 
@@ -106,6 +110,8 @@ export async function requestToJoin(
 export async function withdrawJoinRequest(
   requestId: string,
 ): Promise<TeamActionResult<{ teamSlug: string }>> {
+  if (SELF_SERVICE_FORMATION_CLOSED) return teamFailure("paused");
+
   const actor = await requireTeamActor();
   if (!actor.ok) return actor;
 
@@ -130,6 +136,7 @@ export async function decideJoinRequest(
   requestId: string,
   decision: "accept" | "decline",
 ): Promise<TeamActionResult<{ teamSlug: string; decision: "accept" | "decline" }>> {
+  if (SELF_SERVICE_FORMATION_CLOSED) return teamFailure("paused");
   if (decision !== "accept" && decision !== "decline") return teamFailure("invalid");
 
   const found = await getJoinRequestById(requestId);

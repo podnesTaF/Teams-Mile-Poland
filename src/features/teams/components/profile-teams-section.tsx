@@ -4,15 +4,14 @@ import { Link } from "@/i18n/navigation";
 
 import { getMyTeams } from "../data";
 import { ProfileInvitations } from "./profile-invitations";
-import { ProfileJoinRequests } from "./profile-join-requests";
 
 /**
- * The profile's `#teams` section — one place for a runner's team life.
- *
- * #59 ships "my teams" and the create link; the pending-invitation and
- * pending-request lists arrive with #60 and #61 at the marked slots. Rendering
- * the empty state and the list from the same component keeps the "zero teams"
- * case honest: it is a state, not a missing section.
+ * The profile's `#teams` section — one place for a runner's team life: my
+ * teams and the invitations waiting for me. Nothing else: a team cannot be
+ * created and join requests are closed (ADR 0016), so neither the create link
+ * nor the sent-requests list renders. Rendering the empty state and the list
+ * from the same component keeps the "zero teams" case honest: it is a state,
+ * not a missing section.
  */
 export async function ProfileTeamsSection({ userId }: { userId: string }) {
   const t = await getTranslations("teams.profile");
@@ -56,18 +55,8 @@ export async function ProfileTeamsSection({ userId }: { userId: string }) {
         </div>
       )}
 
-      {/* SLOT — #60 pending invitations on the profile (accept / decline). */}
+      {/* Pending invitations on the profile (accept / decline). */}
       <ProfileInvitations userId={userId} />
-
-
-      {/* SLOT — #61 pending join requests on the profile (with withdraw). */}
-      <ProfileJoinRequests userId={userId} />
-
-      <div className="iv-actions" style={{ marginTop: 16 }}>
-        <Link className="btn btn-red" href="/teams/new">
-          {t("create")}
-        </Link>
-      </div>
     </section>
   );
 }

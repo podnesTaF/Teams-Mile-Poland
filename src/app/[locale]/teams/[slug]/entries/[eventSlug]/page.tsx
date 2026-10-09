@@ -7,6 +7,7 @@ import "@/app/series-flows.css";
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { EntryChecklist } from "@/features/teams/components/entry-checklist";
 import { EntryManagerControls } from "@/features/teams/components/entry-manager-controls";
+import { isTeamFormationEnabled } from "@/features/teams/config";
 import { getTeamBySlug, getTeamMembership } from "@/features/teams/data";
 import {
   getEntryByTeamAndEvent,
@@ -49,6 +50,8 @@ type PageProps = {
 export default async function TeamEntryPage({ params }: PageProps) {
   const { locale, slug, eventSlug } = await params;
   setRequestLocale(locale);
+  // Manager team entry is paused (ADR 0016).
+  if (!isTeamFormationEnabled()) notFound();
 
   const team = await getTeamBySlug(slug);
   if (!team) notFound();

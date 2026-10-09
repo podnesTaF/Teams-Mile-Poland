@@ -31,7 +31,7 @@ import {
   type EntryActionResult,
   type EntryFailure,
 } from "../entry-service";
-import { requireTeamManagerOrAdmin } from "../guards";
+import { refuseUnlessFormationEnabled, requireTeamManagerOrAdmin } from "../guards";
 import {
   lastConfirmRequestAt,
   sendConfirmRequestEmail,
@@ -127,6 +127,11 @@ export async function enterTeam(
   /** The page's locale — where Stripe sends the manager back on a card-paid night. */
   locale: string = defaultLocale,
 ): Promise<EntryActionResult<{ entryId: string } | { checkoutUrl: string }>> {
+  // Manager team entry is paused (ADR 0016): a placement team is entered on
+  // every night by definition, with no row and no action.
+  const paused = refuseUnlessFormationEnabled();
+  if (paused) return paused;
+
   const gate = await requireTeamManagerOrAdmin(teamSlug);
   if (!gate.ok) return gate;
   const team = gate.team;
@@ -325,6 +330,9 @@ export async function removeEntryMember(
  * invent a credit for a race it cannot name.
  */
 export async function withdrawEntry(entryId: string): Promise<EntryActionResult> {
+  const paused = refuseUnlessFormationEnabled();
+  if (paused) return paused;
+
   const gate = await gateEntry(entryId);
   if (!gate.ok) return gate;
   if (gate.entry.status !== "entered") return teamFailure("already_checked_in");

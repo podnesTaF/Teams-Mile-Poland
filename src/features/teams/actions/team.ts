@@ -7,7 +7,7 @@ import { TEAM_CREATION_PRICE_ACER, acerToMinor } from "@/features/wallet/config"
 import { getAcerBalance } from "@/features/wallet/data";
 import { getDb } from "@/lib/db";
 
-import { teamFailure, type TeamActionResult } from "../config";
+import { SELF_SERVICE_FORMATION_CLOSED, teamFailure, type TeamActionResult } from "../config";
 import {
   createTeamRows,
   isInsufficientAcer,
@@ -42,6 +42,9 @@ import { teamFormSchema, teamUpdateSchema, type TeamFormInput, type TeamUpdateIn
  * check true when two creates race, and it comes back as the same refusal.
  */
 export async function createTeam(input: TeamFormInput): Promise<TeamActionResult<{ slug: string }>> {
+  // Founding a team is impossible (ADR 0016): only the four placement teams exist.
+  if (SELF_SERVICE_FORMATION_CLOSED) return teamFailure("creation_closed");
+
   const actor = await requireTeamActor();
   if (!actor.ok) return actor;
 
@@ -138,6 +141,10 @@ export async function updateTeam(
  * invalidates a pending request (PRD #57, user story 16).
  */
 export async function rotateTeamCode(slug: string): Promise<TeamActionResult<{ code: string }>> {
+  // The team code was the key to a join request, and join requests are closed
+  // (ADR 0016) — a fresh code would open nothing.
+  if (SELF_SERVICE_FORMATION_CLOSED) return teamFailure("paused");
+
   const gate = await requireTeamManagerOrAdmin(slug);
   if (!gate.ok) return gate;
 

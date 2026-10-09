@@ -7,6 +7,7 @@ import "@/app/[locale]/wallet/wallet.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { counterpartyLine, userIdFromReference } from "@/features/teams/components/team-treasury";
+import { isTeamFormationEnabled } from "@/features/teams/config";
 import { getManagerFirstNames, getTeamBySlug, getTeamMembership } from "@/features/teams/data";
 import { WalletReference } from "@/features/wallet/components/team-reference";
 import {
@@ -43,6 +44,8 @@ export default async function TeamTreasuryPage({ params, searchParams }: PagePro
   const { locale, slug } = await params;
   const { page } = await searchParams;
   setRequestLocale(locale);
+  // The treasury is paused with manager team entry (ADR 0016).
+  if (!isTeamFormationEnabled()) notFound();
 
   const team = await getTeamBySlug(slug);
   if (!team) notFound();

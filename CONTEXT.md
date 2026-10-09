@@ -32,8 +32,9 @@ admitted wherever either path is.
 _Avoid_: format (that is the team format vs. the individual mile), hybrid
 
 **Mixed night**:
-A `mixed`-type event. A runner joins it by exactly one path — registering alone
-or being entered by their team — and the event page asks which first. One
+A `mixed`-type event. A runner joins it by exactly one path — the individual mile
+or the team race. Since ADR 0016 the event page has one register door and the
+path is not asked: it is the runner's **Race**, derived from their roster. One
 `event_registrations` row per person per night either way; a team-entered row
 carries `team_entry_id`. The corpus a runner signs follows their path, not the
 night. Heats on a mixed night are team heats (a teams figure is set) or
@@ -235,8 +236,9 @@ captain-declared number), capacity (that is a heat)
 
 **Member**:
 A runner on a team's roster — a `users` account, never a separate per-person row.
-Becomes one by accepting an **Invitation** or having a **Join request** accepted;
-both require a complete profile, because eligibility is read from `sex`.
+Becomes one by accepting an **Invitation** — since ADR 0016 only into a
+**Placement team** (a **Join request** used to be the other way in); accepting
+requires a complete profile, because eligibility is read from `sex`.
 _Avoid_: player, participant, runner row
 
 **Team entry**:
@@ -334,10 +336,28 @@ Not a platform role in team formation; expected to be picked with the race compo
 at check-in. Never use it for the **Manager**.
 _Avoid_: using it for the team owner
 
-**Recruiting**:
+**Placement team**:
+One of the four standing teams that run the team format from 10.10.2026 — Ace
+Battle Mile RED Warsaw and BLACK Warsaw, men's and women's (`PLACEMENT_TEAM_SLUGS`,
+ADR 0016). Entered on every night with a team path by definition — no **Team
+entry** row, no action, no fee. The only teams that take new members: invitations
+into any other team are refused.
+_Avoid_: official team, house team, default team, RED/BLACK as a category
+
+**Race (of a registration)**:
+Which race a **Registration** is for — the **team race** or the **individual mile**
+(`race_format` `team` / `individual`, with `team_id` on a team row). Derived from
+roster membership at the moment of registering, never chosen: a member of a
+**Placement team** runs the team race, free; anyone else the individual mile at the
+night's price. Recorded per registration because membership changes between nights.
+_Avoid_: entry path (that was ADR 0009's choice), format (that is the team format vs.
+the individual mile as formats), heat (that is the start group)
+
+**Recruiting** _(closed — ADR 0016)_:
 A team's declared state of wanting more runners. Set by the manager (first asked at
-creation), it lists the team publicly for join requests and marks it in admin for the
-organiser to place solo runners. Off means the roster is considered full by the team.
+creation), it used to list the team publicly for join requests; the public list is
+gone, and the flag survives only as a hint in admin for the organiser. Off means the
+roster is considered full by the team.
 _Avoid_: open (that is a legacy team status), looking-for-players
 
 **Invitation**:
@@ -348,16 +368,18 @@ the same invitation rather than creating a second one.
 _Avoid_: invite link (the link is a view of the invitation), invite code (that is the
 team code)
 
-**Team code**:
-A short, typable, rotatable identifier a manager shares so runners can find the team
-and ask to join. Knowing the code never admits anyone by itself — it only lets you
+**Team code** _(closed — ADR 0016)_:
+A short, typable, rotatable identifier a manager shared so runners could find the team
+and ask to join. Closed with join requests: the codes stay as data, nothing on the
+public site shows or accepts one, and rotating refuses. Knowing the code never admits anyone by itself — it only lets you
 knock. Distinct from the legacy code, which was the invite.
 _Avoid_: invite code, join code, password
 
-**Join request**:
+**Join request** _(closed — ADR 0016)_:
 A signed-in runner's ask to become a member, created by entering the team code or
 from the public recruiting list. Pending until the manager accepts or declines, or the
-runner withdraws. The mirror image of an **Invitation**: the runner initiates.
+runner withdraws. The mirror image of an **Invitation**: the runner initiates. Closed:
+filing, withdrawing and deciding all refuse; pending rows stay as data, read by admin.
 _Avoid_: application, request (bare), candidacy
 
 **ACER**:

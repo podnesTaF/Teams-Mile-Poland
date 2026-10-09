@@ -13,7 +13,11 @@ import {
 import { isTreasuryPayoutEnabled } from "@/features/wallet/transfers";
 
 import { teamFailure, type TeamActionReason, type TeamActionResult } from "../config";
-import { requireTeamManagerOrAdmin, requireTeamMember } from "../guards";
+import {
+  refuseUnlessFormationEnabled,
+  requireTeamManagerOrAdmin,
+  requireTeamMember,
+} from "../guards";
 import {
   treasuryContributionSchema,
   treasuryPayoutSchema,
@@ -71,6 +75,10 @@ export async function contributeToTreasury(
   slug: string,
   input: TreasuryContributionInput,
 ): Promise<TreasuryMoveResult> {
+  // The treasury is paused with manager team entry (ADR 0016).
+  const paused = refuseUnlessFormationEnabled();
+  if (paused) return paused;
+
   const member = await requireTeamMember(slug);
   if (!member.ok) return member;
 
@@ -115,6 +123,8 @@ export async function payoutFromTreasury(
   slug: string,
   input: TreasuryPayoutInput,
 ): Promise<TreasuryMoveResult> {
+  const paused = refuseUnlessFormationEnabled();
+  if (paused) return paused;
   if (!isTreasuryPayoutEnabled()) return teamFailure("payouts_disabled");
 
   const manager = await requireTeamManagerOrAdmin(slug);
