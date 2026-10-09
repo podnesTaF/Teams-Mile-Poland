@@ -996,7 +996,8 @@
       "slots": {
         "entry": "Wpisowe",
         "entrySub": "Każdy biegacz",
-        "free": "Za darmo"
+        "free": "Za darmo",
+        "teamRace": "Bieg drużynowy · {team} — dla Ciebie bezpłatnie"
       },
       "states": {
         "open": {

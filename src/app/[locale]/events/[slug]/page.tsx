@@ -11,6 +11,7 @@ import "./event-detail.css";
 
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { EntryRulesLink } from "@/features/event-registration/components/entry-rules-link";
+import { EntryPriceForViewer } from "@/features/event-registration/components/entry-price-for-viewer";
 import { EventRegisterCta } from "@/features/event-registration/components/event-register-cta";
 import { ResultsTables } from "@/features/event-results/results-tables";
 import { Link } from "@/i18n/navigation";
@@ -277,14 +278,24 @@ export default async function EventDetailPage({ params }: PageProps) {
                     <b>{t("detail.slots.entry")}</b>
                     <small>{t("detail.slots.entrySub")}</small>
                   </div>
-                  <div className={paidEntry ? "slots-val" : "slots-val slots-val--free"}>
+                  {/* The price as this visitor pays it: a RED/BLACK member
+                      sees "Free" and their team once the session is known
+                      (`/api/me/race`); everyone else sees the night's price
+                      the server rendered. Display only — the register page
+                      derives the race again when the row is written. */}
+                  <EntryPriceForViewer
+                    className={paidEntry ? "slots-val" : "slots-val slots-val--free"}
+                    freeClassName="slots-val slots-val--free"
+                    freeLabel={t("detail.slots.free")}
+                    teamTemplate={t("detail.slots.teamRace", { team: "{team}" })}
+                  >
                     {individualFeeLabel ? <div>{individualFeeLabel}</div> : null}
                     {/* `detail.feeFree` is deliberately unused: this row has
                         said "Free" through `detail.slots.free` since the page
                         existed, and two sentences for one fact are two
                         sentences to keep in step in three languages. */}
                     {paidEntry ? null : t("detail.slots.free")}
-                  </div>
+                  </EntryPriceForViewer>
                 </div>
 
                 {/* A team event keeps its notice and the two documents a member
@@ -548,15 +559,21 @@ export default async function EventDetailPage({ params }: PageProps) {
             <span className="evd-bar__k">{t("detail.slots.entry")}</span>
             {/* The individual mile's price — the only one this page prints
                 (ADR 0016). */}
-            {paidEntry ? (
-              <>
-                {individualFeeLabel ? (
-                  <span className="evd-bar__v">{individualFeeLabel}</span>
-                ) : null}
-              </>
-            ) : (
-              <span className="evd-bar__v evd-bar__v--free">{t("detail.slots.free")}</span>
-            )}
+            <EntryPriceForViewer
+              className="evd-bar__viewer"
+              freeClassName="evd-bar__v evd-bar__v--free"
+              freeLabel={t("detail.slots.free")}
+            >
+              {paidEntry ? (
+                <>
+                  {individualFeeLabel ? (
+                    <span className="evd-bar__v">{individualFeeLabel}</span>
+                  ) : null}
+                </>
+              ) : (
+                <span className="evd-bar__v evd-bar__v--free">{t("detail.slots.free")}</span>
+              )}
+            </EntryPriceForViewer>
           </div>
           <div className="evd-bar__cta">{barCta}</div>
         </StickyEntryBar>

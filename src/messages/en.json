@@ -996,7 +996,8 @@
       "slots": {
         "entry": "Entry",
         "entrySub": "Every runner",
-        "free": "Free"
+        "free": "Free",
+        "teamRace": "Team race · {team} — free for you"
       },
       "states": {
         "open": {

@@ -307,3 +307,21 @@
     transition: none;
   }
 }
+
+/* The price as the viewer pays it (ADR 0016): a RED/BLACK member sees "Free"
+ * with their team named under it; the sticky bar wraps its value in a
+ * transparent island so the bar keeps its own layout. */
+.ace-landing .slots-val__sub {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-cta), "Exo 2", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  text-transform: none;
+  color: var(--muted);
+}
+.ace-landing .evd-bar__viewer {
+  display: contents;
+}
