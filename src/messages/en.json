@@ -78,6 +78,7 @@
     "header": {
       "navLabel": "Main navigation",
       "cta": "REGISTER →",
+      "signUp": "SIGN UP →",
       "menuOpen": "Open menu",
       "menuClose": "Close menu",
       "nav": {
@@ -1185,6 +1186,7 @@
       "enteredSub": "Complete teams on the entry list",
       "notice": "This is a team night. Entry is by team — a captain enters a complete team, and every member then confirms their own participation.",
       "cta": "Find or create a team",
+      "joinFree": "Joining a team is free.",
       "rulesLink": "Team Mile Rules",
       "regulationsLink": "Public Regulations"
     }
@@ -1924,6 +1926,7 @@
       "cost": "Cost",
       "submit": "Confirm registration",
       "note": "No payment needed — the individual mile is free.",
+      "spamNote": "Your ticket arrives by email. <b>If it is not in your inbox, check the spam folder.</b>",
       "finishing": "Completing your registration…"
     },
     "guest": {

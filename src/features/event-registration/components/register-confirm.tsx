@@ -325,6 +325,9 @@ export function RegisterConfirm({
             {cardPaid ? t("payment.note", { price: pricePln }) : t("confirm.note")}{" "}
             {t("consent.requiredNotice")}
           </p>
+          <p className="slots-note" data-spam-note="1">
+            {t.rich("confirm.spamNote", { b: (chunks) => <strong>{chunks}</strong> })}
+          </p>
         </RegisterSummary>
       </form>
     </div>

@@ -315,9 +315,12 @@ export default async function EventDetailPage({ params }: PageProps) {
                   <div data-team-entry-notice="1">
                     <p className="slots-note">{t("teamEvent.notice")}</p>
                     {state === "open" ? (
-                      <Link href="/teams" className="btn btn-red btn-block">
-                        {t("teamEvent.cta")}
-                      </Link>
+                      <>
+                        <Link href="/teams" className="btn btn-red btn-block">
+                          {t("teamEvent.cta")}
+                        </Link>
+                        <p className="slots-note">{t("teamEvent.joinFree")}</p>
+                      </>
                     ) : null}
                     <Link
                       href="/legal/team-rules"
@@ -384,6 +387,7 @@ export default async function EventDetailPage({ params }: PageProps) {
                       <Link href="/teams" className="btn btn-stroke-dark btn-block">
                         {t("mixedEvent.teamCta")}
                       </Link>
+                      <small>{t("teamEvent.joinFree")}</small>
                     </div>
                     <Link
                       href="/legal/team-rules"

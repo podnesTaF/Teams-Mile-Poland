@@ -78,6 +78,7 @@
     "header": {
       "navLabel": "Główna nawigacja",
       "cta": "ZAREJESTRUJ SIĘ →",
+      "signUp": "ZAŁÓŻ KONTO →",
       "menuOpen": "Otwórz menu",
       "menuClose": "Zamknij menu",
       "nav": {
@@ -1185,6 +1186,7 @@
       "enteredSub": "Kompletne drużyny na liście zgłoszeń",
       "notice": "To bieg drużynowy. Zgłoszenia przyjmujemy tylko od drużyn — kapitan zgłasza kompletną drużynę, a każdy zawodnik potwierdza swój udział sam.",
       "cta": "Znajdź lub utwórz drużynę",
+      "joinFree": "Dołączenie do drużyny jest bezpłatne.",
       "rulesLink": "Zasady biegu drużynowego",
       "regulationsLink": "Regulamin Publiczny"
     }
@@ -1924,6 +1926,7 @@
       "cost": "Koszt",
       "submit": "Potwierdź rejestrację",
       "note": "Bez opłat — bieg na milę jest darmowy.",
+      "spamNote": "Bilet przyjdzie e-mailem. <b>Jeśli nie ma go w skrzynce, sprawdź folder spam.</b>",
       "finishing": "Finalizujemy Twoją rejestrację…"
     },
     "guest": {

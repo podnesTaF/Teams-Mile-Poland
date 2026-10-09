@@ -137,7 +137,11 @@ export function LandingHeader({
               </>
             ) : null}
             <LangPill tone="dark" />
-            {registrationOpen ? (
+            {!session ? (
+              <Link href="/auth/sign-up" className="btn btn-red btn-sm site-header__cta">
+                {t("signUp")}
+              </Link>
+            ) : registrationOpen ? (
               <HashLink href={registerHref} className="btn btn-red btn-sm site-header__cta">
                 {t("cta")}
               </HashLink>
@@ -173,12 +177,7 @@ export function LandingHeader({
                 {t(`nav.${key}`)}
               </a>
             ) : (
-              <Link
-                key={key}
-                href={href}
-                className="site-header__drawer-link"
-                onClick={closeMenu}
-              >
+              <Link key={key} href={href} className="site-header__drawer-link" onClick={closeMenu}>
                 {t(`nav.${key}`)}
               </Link>
             ),
@@ -194,7 +193,11 @@ export function LandingHeader({
             </>
           ) : null}
           <LangPill tone="dark" />
-          {registrationOpen ? (
+          {!session ? (
+            <Link href="/auth/sign-up" className="btn btn-red site-header__cta" onClick={closeMenu}>
+              {t("signUp")}
+            </Link>
+          ) : registrationOpen ? (
             <HashLink
               href={registerHref}
               className="btn btn-red site-header__cta"
