@@ -40,6 +40,41 @@ export const C = {
 
 const fontStack = "'Helvetica Neue', Helvetica, Arial, sans-serif";
 
+/**
+ * Responsive rules for the shell. Everything is still styled inline (Outlook,
+ * older clients), so phones only get these `!important` overrides — Gmail,
+ * Apple Mail and Outlook mobile all honour head `<style>` media queries.
+ * The 600px breakpoint equals the container width, so nothing changes on
+ * desktop. Below it, the card goes edge to edge and every block's side
+ * padding drops to 16px: on a 360px phone that turns ~250px of usable text
+ * width into ~328px.
+ *
+ * `.ab-html` scopes admin-authored broadcast HTML: pasted designs tend to be
+ * fixed-width tables with oversized images, both of which are forced fluid.
+ * `.ab-prose` adds readable defaults for the plain-message case only, where
+ * a bare `<h2>` or `<a>` would otherwise fall back to browser black on our
+ * dark card.
+ */
+const RESPONSIVE_CSS = `
+.ab-prose h1, .ab-prose h2, .ab-prose h3 { margin: 18px 0 8px; line-height: 1.25; color: ${C.white}; }
+.ab-prose h1 { font-size: 22px; } .ab-prose h2 { font-size: 18px; } .ab-prose h3 { font-size: 16px; }
+.ab-prose p { margin: 0 0 12px; }
+.ab-prose ul, .ab-prose ol { margin: 0 0 12px; padding-left: 20px; }
+.ab-prose a { color: #ff5a6b; }
+.ab-html img { max-width: 100%; height: auto; }
+@media only screen and (max-width: 600px) {
+  .ab-body { padding: 0 !important; }
+  .ab-brand { padding: 16px 16px 12px !important; }
+  .ab-card { border-radius: 0 !important; border-left: 0 !important; border-right: 0 !important; }
+  .ab-hero { padding: 22px 16px !important; }
+  .ab-hero-title { font-size: 24px !important; line-height: 1.1 !important; }
+  .ab-pad { padding: 20px 16px !important; }
+  .ab-footer { padding: 16px 16px 24px !important; }
+  .ab-html table { width: 100% !important; min-width: 0 !important; }
+  .ab-html td, .ab-html th { box-sizing: border-box !important; }
+}
+`;
+
 export function EmailShell({
   preview,
   footerMeta,
@@ -54,15 +89,22 @@ export function EmailShell({
 }) {
   return (
     <Html>
-      <Head />
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>{RESPONSIVE_CSS}</style>
+      </Head>
       <Preview>{preview}</Preview>
-      <Body style={{ margin: 0, backgroundColor: C.bg, padding: "28px 12px", fontFamily: fontStack }}>
+      <Body
+        className="ab-body"
+        style={{ margin: 0, backgroundColor: C.bg, padding: "28px 12px", fontFamily: fontStack }}
+      >
         <Container style={{ maxWidth: "600px", margin: "0 auto" }}>
-          <Section style={{ padding: "0 2px 16px" }}>
+          <Section className="ab-brand" style={{ padding: "0 2px 16px" }}>
             <BrandWordmark />
           </Section>
 
           <Section
+            className="ab-card"
             style={{
               backgroundColor: C.card,
               border: `1px solid ${C.border}`,
@@ -73,7 +115,7 @@ export function EmailShell({
             {children}
           </Section>
 
-          <Section style={{ padding: "18px 4px 0" }}>
+          <Section className="ab-footer" style={{ padding: "18px 4px 0" }}>
             <Text style={{ margin: 0, fontSize: "11px", lineHeight: "1.6", color: C.muted }}>
               ACE BATTLE RUN · {footerMeta ?? "Stadion Podskarbińska, Warsaw"}
             </Text>
@@ -118,6 +160,7 @@ export function HeroBand({
 }) {
   return (
     <Section
+      className="ab-hero"
       style={{
         background: `linear-gradient(135deg, ${C.red} 0%, ${C.redDark} 100%)`,
         backgroundColor: C.red,
@@ -137,6 +180,7 @@ export function HeroBand({
         {eyebrow}
       </Text>
       <Text
+        className="ab-hero-title"
         style={{
           margin: 0,
           fontSize: "30px",
@@ -216,7 +260,10 @@ export function Btn({
 
 export function SectionPad({ children, soft }: { children: React.ReactNode; soft?: boolean }) {
   return (
-    <Section style={{ padding: "22px 28px", backgroundColor: soft ? C.cardSoft : "transparent" }}>
+    <Section
+      className="ab-pad"
+      style={{ padding: "22px 28px", backgroundColor: soft ? C.cardSoft : "transparent" }}
+    >
       {children}
     </Section>
   );
