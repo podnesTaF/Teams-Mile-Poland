@@ -28,6 +28,7 @@ import { WhatIs } from "@/components/landing/what-is";
 import { getArchiveEvents, getPublishedMedia } from "@/lib/events/media-config";
 import { getFeaturedEvent, isRegistrationOpen } from "@/lib/events/registry";
 import { getResultsEventsWithDb } from "@/lib/events/results-data";
+import { getSeasonStrip } from "@/lib/events/season-strip";
 import { isLegacyEvent } from "@/lib/events/types";
 
 /**
@@ -45,6 +46,8 @@ export async function LandingView() {
   // overlaid from the `event_media` table (one batch read, no Drive calls).
   const archiveEvents = await getArchiveEvents();
   const archiveMedia = await getPublishedMedia(archiveEvents.map((e) => e.slug));
+  // The hero's season strip: the current rating series' nights, one dot each.
+  const season = await getSeasonStrip();
   const registrationOpen = isRegistrationOpen(featuredEvent);
   // Every event on the current stack — individual, team or mixed — is entered
   // from its own detail page; only the frozen legacy team event keeps the
@@ -69,12 +72,7 @@ export async function LandingView() {
       <ScrollReveal />
       <Parallax />
       <LandingHeader registrationOpen={registrationOpen} registerHref={registerHref} />
-      <Hero
-        registrationOpen={registrationOpen}
-        hasResults={resultsEvents.length > 0}
-        registerHref={registerHref}
-        nextEventDate={featuredEvent?.date ?? null}
-      />
+      <Hero registrationOpen={registrationOpen} registerHref={registerHref} season={season} />
       <EventSeries />
       <LatestNews />
       {resultsEvents.length > 0 && <Results events={resultsEvents} />}

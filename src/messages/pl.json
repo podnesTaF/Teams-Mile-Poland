@@ -123,6 +123,49 @@
         "faq": "FAQ"
       }
     },
+    "seasonHero": {
+      "pill": "Sezon jesienny · {from} → {to} · Warszawa",
+      "pillMobile": "Sezon · {from} → {to} · Warszawa",
+      "title": "Czerwoni czy Czarni?<br></br><red>7 000 zł</red> rozstrzygnie jedna mila.",
+      "sub": "Indywidualno-drużynowe zawody rankingowe na jedną milę.",
+      "lead": "Przebiegnij jedną milę indywidualną, zdobądź rating i biegnij za darmo dla swojej drużyny w meczach Ace Battle Mile 17 i 28 października.",
+      "leadMobile": "Zdobądź rating w jednej mili indywidualnej, a potem biegnij za darmo dla swojej drużyny 17 i 28 października.",
+      "ctaPrimary": "Zapisz się na milę →",
+      "ctaSecondary": "Dołącz do drużyny · za darmo",
+      "ctaResults": "Zobacz wyniki →",
+      "stripLabel": "Wieczory startowe sezonu",
+      "progress": "Postęp sezonu · {done} z {total} dni startowych za nami",
+      "progressMobile": "Sezon · {done} z {total} za nami",
+      "venueLine": "{venue} · odprawa {checkIn} · start {start}",
+      "venueLineNoStart": "{venue} · odprawa {checkIn}",
+      "nextMobile": "Następny: {date} {kind}",
+      "seasonDone": "Sezon zakończony",
+      "night": {
+        "ranking": "Ranking",
+        "matches": "Mecze drużynowe",
+        "final": "Finał · ceremonia nagród",
+        "done": "za nami",
+        "next": "następny",
+        "matchesShort": "mecze",
+        "finalShort": "finał"
+      }
+    },
+    "seasonTeams": {
+      "kicker": "Dwie drużyny gotowe",
+      "kickerDesktop": "Dwie drużyny gotowe · wybierz kolor",
+      "title": "Wybierz kolor",
+      "meta": "7 w drużynie · 3 Racer · 2 Ace · 2 Joker",
+      "manager": "Menedżer",
+      "captain": "Kapitan",
+      "vs": "VS",
+      "red": { "watermark": "RED", "tag": "Czerwoni", "name": "AB Red Team", "cta": "Dołącz do RED na WhatsApp →" },
+      "black": { "watermark": "BLACK", "tag": "Czarni", "name": "AB Black Team", "cta": "Dołącz do BLACK na WhatsApp →" },
+      "steps": {
+        "1": { "title": "Przebiegnij milę indywidualną", "sub": "Zapisz się na stronie" },
+        "2": { "title": "Zdobądź rating", "sub": "Czas z chipa, ranking krajowy" },
+        "3": { "title": "Dołącz do drużyny za darmo", "sub": "Zaproszenie do drużyny dostaniesz na stronie. Poznaj drużynę już dziś na WhatsApp." }
+      }
+    },
     "formatBand": {
       "title": "NOWY FORMAT BIEGÓW!",
       "subtitle": "ACE BATTLE RUN WARSZAWA",

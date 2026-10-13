@@ -27,6 +27,18 @@ export function seriesOf(date: string): RatingSeries | undefined {
   return RATING_SERIES.find((s) => s.from <= date && date <= s.to);
 }
 
+/**
+ * The series the site is "in" on `today` (YYYY-MM-DD): the window containing
+ * the day; between windows, the most recent one that has started; before the
+ * first window, the first. The landing hero's season strip is drawn from it.
+ */
+export function currentSeries(today: string): RatingSeries {
+  const containing = seriesOf(today);
+  if (containing) return containing;
+  const started = RATING_SERIES.filter((s) => s.from <= today);
+  return started[started.length - 1] ?? RATING_SERIES[0];
+}
+
 /** "26.06" — the day.month a series window is labelled with. */
 export function seriesDay(date: string): string {
   const [, m, d] = date.split("-");

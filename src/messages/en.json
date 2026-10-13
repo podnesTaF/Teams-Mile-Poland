@@ -123,6 +123,49 @@
         "faq": "FAQ"
       }
     },
+    "seasonHero": {
+      "pill": "Autumn season · {from} → {to} · Warsaw",
+      "pillMobile": "Season · {from} → {to} · Warsaw",
+      "title": "Red or Black?<br></br><red>7 000 zł</red> decided over one mile.",
+      "sub": "Individual and team rating races over one mile.",
+      "lead": "Run one individual mile to earn your rating, then race free for your team in the Ace Battle Mile matches on 17 and 28 October.",
+      "leadMobile": "Earn your rating in one individual mile, then race free for your team on 17 and 28 October.",
+      "ctaPrimary": "Register for a mile →",
+      "ctaSecondary": "Join a team · free",
+      "ctaResults": "View results →",
+      "stripLabel": "Season race nights",
+      "progress": "Season progress · {done} of {total} race days done",
+      "progressMobile": "Season · {done} of {total} done",
+      "venueLine": "{venue} · {checkIn} check-in · {start} start",
+      "venueLineNoStart": "{venue} · {checkIn} check-in",
+      "nextMobile": "Next: {date} {kind}",
+      "seasonDone": "Season complete",
+      "night": {
+        "ranking": "Ranking",
+        "matches": "Team matches",
+        "final": "Final · prize ceremony",
+        "done": "done",
+        "next": "next",
+        "matchesShort": "matches",
+        "finalShort": "final"
+      }
+    },
+    "seasonTeams": {
+      "kicker": "Two teams formed",
+      "kickerDesktop": "Two teams formed · pick your colour",
+      "title": "Pick your colour",
+      "meta": "7 per team · 3 Racer · 2 Ace · 2 Joker",
+      "manager": "Manager",
+      "captain": "Captain",
+      "vs": "VS",
+      "red": { "watermark": "RED", "tag": "Czerwoni", "name": "AB Red Team", "cta": "Join RED on WhatsApp →" },
+      "black": { "watermark": "BLACK", "tag": "Czarni", "name": "AB Black Team", "cta": "Join BLACK on WhatsApp →" },
+      "steps": {
+        "1": { "title": "Run an individual mile", "sub": "Register on the site" },
+        "2": { "title": "Get your rating", "sub": "Chip time, national ranking" },
+        "3": { "title": "Join a team, free", "sub": "You'll be invited to a team on the site. Meet your team on WhatsApp today." }
+      }
+    },
     "formatBand": {
       "title": "A NEW FORMAT OF RUNNING COMPETITIONS!",
       "subtitle": "ACE BATTLE RUN WARSAW",
