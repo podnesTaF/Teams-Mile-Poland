@@ -8,6 +8,7 @@ import "../events/[slug]/heats/heats.css";
 import { InteriorHeader } from "@/components/landing/interior-header";
 import { Link } from "@/i18n/navigation";
 import { buildLeaderboard, type LeaderboardPerson } from "@/lib/events/leaderboard";
+import { RATING_SERIES, seriesDay, seriesOf } from "@/lib/events/rating-series";
 import { getResultsEventsWithDb } from "@/lib/events/results-data";
 import { formatTime } from "@/lib/events/time";
 import type { Gender } from "@/lib/events/types";
@@ -19,7 +20,10 @@ import type { Gender } from "@/lib/events/types";
  */
 export const dynamic = "force-dynamic";
 
-type PageProps = { params: Promise<{ locale: string }> };
+type PageProps = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ series?: string }>;
+};
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
@@ -29,16 +33,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 /**
  * The season rating — the series standings the landing's results section links
- * to as its last tab. One row per athlete, ranked by their best mile across
- * every completed race (see `lib/events/leaderboard.ts`); men and women hold
- * separate boards because the level bars are gender-specific.
+ * to as its last tab. One board per rating series (`lib/events/rating-series.ts`
+ * — prizes are paid per series), picked by `?series=`, defaulting to the latest
+ * series that has results. Within it, one row per athlete, ranked by their best
+ * mile across the series' completed races (see `lib/events/leaderboard.ts`);
+ * men and women hold separate boards because the level bars are gender-specific.
  */
-export default async function RatingPage({ params }: PageProps) {
+export default async function RatingPage({ params, searchParams }: PageProps) {
   const { locale } = await params;
+  const { series: requested } = await searchParams;
   setRequestLocale(locale);
 
   const t = await getTranslations("rating");
-  const events = await getResultsEventsWithDb();
+  const allEvents = await getResultsEventsWithDb();
+  const latestWithResults = [...RATING_SERIES]
+    .reverse()
+    .find((s) => allEvents.some((e) => seriesOf(e.date)?.id === s.id));
+  const series =
+    RATING_SERIES.find((s) => s.id === requested) ??
+    latestWithResults ??
+    RATING_SERIES[RATING_SERIES.length - 1];
+  const events = allEvents.filter((e) => seriesOf(e.date)?.id === series.id);
   const people = buildLeaderboard(events);
   const boards: { gender: Gender; rows: LeaderboardPerson[] }[] = (["M", "F"] as const).map(
     (gender) => ({
@@ -52,7 +67,7 @@ export default async function RatingPage({ params }: PageProps) {
     <div className="ace-landing iv">
       <InteriorHeader />
       <main className="iv-main">
-        <div className="iv-wrap">
+        <div className="iv-wrap" data-rating-current={series.id}>
           <Link href="/#results" className="detail-back">
             {t("back")}
           </Link>
@@ -60,6 +75,20 @@ export default async function RatingPage({ params }: PageProps) {
           <span className="iv-eyebrow">{t("eyebrow")}</span>
           <h1 className="iv-title">{t("title")}</h1>
           <p className="iv-sub">{t("subtitle", { races: events.length, count: people.length })}</p>
+
+          <nav className="results__tabs rating-series" aria-label={t("series.label")}>
+            {RATING_SERIES.map((s) => (
+              <Link
+                key={s.id}
+                href={{ pathname: "/rating", query: { series: s.id } }}
+                className="results__tab"
+                aria-current={s.id === series.id ? "page" : undefined}
+                data-rating-series={s.id}
+              >
+                {t("series.tab", { n: s.id, from: seriesDay(s.from), to: seriesDay(s.to) })}
+              </Link>
+            ))}
+          </nav>
 
           {people.length === 0 ? (
             <div className="iv-card sl-state" data-rating-empty>

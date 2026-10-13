@@ -9,7 +9,7 @@ import {
   type DirectResultRef,
   type ParticipationRef,
 } from "@/lib/events/user-results";
-import type { EventSummary } from "@/lib/events/types";
+import type { EventSummary, Gender } from "@/lib/events/types";
 
 /**
  * A runner's best mile across the season, as the roster shows it beside their
@@ -32,6 +32,8 @@ export type SeasonBest = {
   timeCs: number;
   /** AB-mile level of that time (1 = top, 16 = entry). */
   level: number;
+  /** Sex the timing system recorded the best under — what the level was computed against. */
+  gender: Gender;
   eventSlug: string;
   /** ISO date of the race the best was set at. */
   date: string;
@@ -167,6 +169,7 @@ export async function getSeasonBests(
         best = {
           timeCs: m.entry.timeCs,
           level: m.level,
+          gender: m.entry.gender,
           eventSlug: m.event.slug,
           date: m.event.date,
           shortDate: m.event.shortDate,

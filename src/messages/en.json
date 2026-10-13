@@ -535,10 +535,14 @@
       "bestTime": "Best time"
     },
     "level": "Lvl {n}",
-    "note": "One row per athlete — the best mile across all completed races counts. The rating updates as soon as new results are imported.",
+    "note": "One row per athlete — the best mile across the series' completed races counts. Each series is ranked, and its prizes paid, separately. The rating updates as soon as new results are imported.",
     "empty": {
       "title": "No results yet",
-      "txt": "The season rating will appear here once the first race night's results are imported."
+      "txt": "This series' rating will appear here once its first race night's results are imported."
+    },
+    "series": {
+      "label": "Rating series",
+      "tab": "Series {n} · {from}–{to}"
     }
   },
   "footer": {

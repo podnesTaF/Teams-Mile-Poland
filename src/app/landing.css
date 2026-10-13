@@ -4517,6 +4517,17 @@
   border-style: dashed;
 }
 
+/* Rating page: the same pills pick a rating series (links, so aria-current). */
+.ace-landing .rating-series {
+  justify-content: flex-start;
+  margin-top: 22px;
+}
+.ace-landing .rating-series .results__tab[aria-current="page"] {
+  background: var(--acl-red);
+  border-color: var(--acl-red);
+  color: #fff;
+}
+
 /* Category switch — a joined two-segment control, the standard M/W toggle. */
 .ace-landing .results__gender {
   display: flex;

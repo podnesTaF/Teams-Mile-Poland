@@ -535,10 +535,14 @@
       "bestTime": "Najlepszy czas"
     },
     "level": "Poz. {n}",
-    "note": "Jeden wiersz na zawodnika — liczy się najlepsza mila ze wszystkich ukończonych biegów. Ranking aktualizuje się zaraz po imporcie nowych wyników.",
+    "note": "Jeden wiersz na zawodnika — liczy się najlepsza mila z ukończonych biegów danej serii. Każda seria ma osobny ranking i osobne nagrody. Ranking aktualizuje się zaraz po imporcie nowych wyników.",
     "empty": {
       "title": "Wyników jeszcze nie ma",
-      "txt": "Ranking sezonu pojawi się tutaj po zaimportowaniu wyników pierwszej nocy biegowej."
+      "txt": "Ranking tej serii pojawi się tutaj po zaimportowaniu wyników jej pierwszej nocy biegowej."
+    },
+    "series": {
+      "label": "Serie rankingu",
+      "tab": "Seria {n} · {from}–{to}"
     }
   },
   "footer": {
