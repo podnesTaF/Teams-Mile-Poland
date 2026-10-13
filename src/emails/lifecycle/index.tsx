@@ -115,10 +115,23 @@ export function LifecycleEmail({
 }
 
 /**
+ * Whether admin-authored broadcast HTML is a complete, self-styled design
+ * (a pasted newsletter built from layout tables) rather than a plain message.
+ * Designs bring their own header, backgrounds and spacing, so the shell must
+ * not stack its red hero band on top or wrap them in 28px of card padding —
+ * on a phone that nested twice and left ~200px for the content.
+ */
+export function isDesignedHtml(bodyHtml: string): boolean {
+  return /<table[\s>]/i.test(bodyHtml);
+}
+
+/**
  * Ad-hoc admin broadcast. `bodyHtml` is admin-authored (trusted) and rendered
- * inside the branded shell. User broadcasts pass `unsubscribe` to append a
- * localized opt-out footer; the frozen legacy mailer omits it (transactional
- * lifecycle emails never carry one), keeping its output byte-identical.
+ * inside the branded shell: a plain message gets the red hero band and the
+ * card padding; a pasted table design ({@link isDesignedHtml}) is shown as
+ * is, edge to edge inside the card. User broadcasts pass `unsubscribe` to
+ * append a localized opt-out footer; the frozen legacy mailer omits it
+ * (transactional lifecycle emails never carry one).
  */
 export function BroadcastEmail({
   subject,
@@ -131,22 +144,35 @@ export function BroadcastEmail({
   preview?: string;
   unsubscribe?: { line: string; cta: string; url: string };
 }) {
+  const designed = isDesignedHtml(bodyHtml);
+  const footer = unsubscribe ? (
+    <Text style={{ margin: designed ? 0 : "20px 0 0", fontSize: "12px", lineHeight: "1.6", color: C.muted }}>
+      {unsubscribe.line}{" "}
+      <Link href={unsubscribe.url} style={{ color: C.muted, textDecoration: "underline" }}>
+        {unsubscribe.cta}
+      </Link>
+    </Text>
+  ) : null;
+
+  if (designed) {
+    return (
+      <EmailShell preview={preview ?? subject}>
+        <div className="ab-html" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+        {footer ? <SectionPad>{footer}</SectionPad> : null}
+      </EmailShell>
+    );
+  }
+
   return (
     <EmailShell preview={preview ?? subject}>
       <HeroBand eyebrow="ACE BATTLE RUN" title={subject} />
       <SectionPad>
         <div
-          style={{ fontSize: "14px", lineHeight: "1.6", color: C.text }}
+          className="ab-html ab-prose"
+          style={{ fontSize: "15px", lineHeight: "1.6", color: C.text }}
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
-        {unsubscribe ? (
-          <Text style={{ margin: "20px 0 0", fontSize: "12px", lineHeight: "1.6", color: C.muted }}>
-            {unsubscribe.line}{" "}
-            <Link href={unsubscribe.url} style={{ color: C.muted, textDecoration: "underline" }}>
-              {unsubscribe.cta}
-            </Link>
-          </Text>
-        ) : null}
+        {footer}
       </SectionPad>
     </EmailShell>
   );

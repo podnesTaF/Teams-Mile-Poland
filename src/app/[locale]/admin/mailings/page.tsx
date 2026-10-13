@@ -206,6 +206,11 @@ async function MailingsBody({ locale, canEdit }: { locale: string; canEdit: bool
               className="iv-input"
               style={{ height: "auto", padding: "12px 14px", lineHeight: 1.5 }}
             />
+            <p className="iv-note" style={{ marginTop: 6, marginBottom: 0 }}>
+              Plain text or simple HTML gets the red header and card. A complete table-based
+              design (e.g. exported from a newsletter builder) is shown as is, edge to edge,
+              without the header — check it with Preview.
+            </p>
           </div>
           <div className="iv-actions" style={{ justifyContent: "space-between" }}>
             <BroadcastPreview locale={locale} withUnsubscribe={false} mailLocales={["en"]} />
@@ -402,7 +407,9 @@ function UserBroadcastSection({
             />
             <p className="iv-note" style={{ marginTop: 6, marginBottom: 0 }}>
               Sent to everyone whose language has no version below. Each recipient gets the
-              version matching their preferred language.
+              version matching their preferred language. Plain text or simple HTML gets the red
+              header and card; a complete table-based design (e.g. exported from a newsletter
+              builder) is shown as is, edge to edge, without the header — check it with Preview.
             </p>
           </div>
           <BroadcastVariantFields lang="pl" title="Polska wersja (optional)" />
