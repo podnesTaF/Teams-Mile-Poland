@@ -128,6 +128,14 @@
       "pillMobile": "Sezon · {from} → {to} · Warszawa",
       "title": "Czerwoni czy Czarni?<br></br><red>7 000 zł</red> rozstrzygnie jedna mila.",
       "sub": "Indywidualno-drużynowe zawody rankingowe na jedną milę.",
+      "prize": {
+        "label": "Pula nagród",
+        "total": "10 000 zł",
+        "team": "Drużynowa",
+        "teamValue": "7 000 zł",
+        "individual": "Indywidualna",
+        "individualValue": "3 000 zł"
+      },
       "lead": "Przebiegnij jedną milę indywidualną, zdobądź rating i biegnij za darmo dla swojej drużyny w meczach Ace Battle Mile 17 i 28 października.",
       "leadMobile": "Zdobądź rating w jednej mili indywidualnej, a potem biegnij za darmo dla swojej drużyny 17 i 28 października.",
       "ctaPrimary": "Zapisz się na milę →",
