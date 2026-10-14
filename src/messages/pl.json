@@ -298,6 +298,7 @@
       }
     },
     "invite": {
+      "gameVideoLabel": "Gra drużynowa",
       "videoLabel": "Bieg rankingowy",
       "chips": {
         "one": "Taktyka",

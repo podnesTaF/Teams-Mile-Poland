@@ -298,6 +298,7 @@
       }
     },
     "invite": {
+      "gameVideoLabel": "Team game",
       "videoLabel": "Rating run",
       "chips": {
         "one": "Tactics",

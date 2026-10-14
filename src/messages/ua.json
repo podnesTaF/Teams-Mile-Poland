@@ -298,6 +298,7 @@
       }
     },
     "invite": {
+      "gameVideoLabel": "Командна гра",
       "videoLabel": "Рейтинговий забіг",
       "chips": {
         "one": "Тактика",
