@@ -1476,7 +1476,8 @@
   max-width: 62ch;
 }
 .ace-landing .rp-grid {
-  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.85fr);
+  /* Wide enough for the uppercase "Register and Pay" label in every locale. */
+  grid-template-columns: minmax(0, 1.3fr) minmax(380px, 1fr);
 }
 .ace-landing .rp-card {
   padding: clamp(24px, 3vw, 36px);
@@ -1735,6 +1736,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.ace-landing .rp-actions .btn {
+  white-space: normal;
+  text-align: center;
 }
 .ace-landing .rp-actions .slots-note {
   margin: 0;
