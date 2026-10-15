@@ -2007,7 +2007,7 @@
     },
     "payment": {
       "amount": "{price} zł",
-      "submit": "Zarejestruj się",
+      "submit": "Zarejestruj się i zapłać",
       "note": "Płatność kartą na bezpiecznej stronie Stripe. Miejsce i bilet potwierdzamy, gdy tylko płatność przejdzie.",
       "guestNote": "płatne kartą przy potwierdzeniu zapisu.",
       "settlingTitle": "Płatność otrzymana",
