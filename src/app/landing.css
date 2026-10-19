@@ -4644,6 +4644,12 @@
   font-size: var(--fs-body-m);
   overflow-wrap: anywhere;
 }
+.ace-landing .results__podium-times {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
 .ace-landing .results__podium-time {
   font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
   font-weight: 700;
@@ -4723,10 +4729,6 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.ace-landing .results__podium-extra {
-  margin-top: -4px;
-}
-
 .ace-landing .results__empty {
   margin: clamp(26px, 4vw, 40px) 0 0;
   text-align: center;
@@ -4791,6 +4793,9 @@
   .ace-landing .results__podium-name {
     flex: 1;
     margin: 0 12px;
+  }
+  .ace-landing .results__podium-times {
+    align-items: flex-end;
   }
   .ace-landing .results__podium-level {
     display: none;
