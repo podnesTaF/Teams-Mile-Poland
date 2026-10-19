@@ -96,6 +96,24 @@ export function Hero({
                 })}
               </h1>
               <p className="hero__sub">{t("sub")}</p>
+              <dl className="hero__prize" aria-label={t("prize.label")}>
+                <div className="hero__prize-total">
+                  <dt>{t("prize.label")}</dt>
+                  <dd>{t("prize.total")}</dd>
+                </div>
+                <div className="hero__prize-split">
+                  <div className="hero__prize-part hero__prize-part--team">
+                    <dt>{t("prize.team")}</dt>
+                    <dd>{t("prize.teamValue")}</dd>
+                  </div>
+                  <div className="hero__prize-part hero__prize-part--solo">
+                    <dt>{t("prize.individual")}</dt>
+                    <dd>{t("prize.individualValue")}</dd>
+                  </div>
+                  {/* 7 000 / 3 000 of the fund: the bar's red share is the team pot. */}
+                  <span className="hero__prize-bar" aria-hidden />
+                </div>
+              </dl>
               <p className="hero__lead">
                 <span className="hero__d">{t("lead")}</span>
                 <span className="hero__m">{t("leadMobile")}</span>
