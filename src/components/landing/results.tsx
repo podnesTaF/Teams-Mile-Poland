@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
 import { computeLevel } from "@/lib/events/levels";
+import { nameKey } from "@/lib/events/name-key";
 import { formatTime } from "@/lib/events/time";
 import {
   acceptsIndividuals,
@@ -16,15 +17,29 @@ import {
 /** Ranks shown before "show all" — podium (1–3) plus the table (4–10). */
 const VISIBLE_ROWS = 10;
 
-/** One ranked finisher of the selected race, within the selected category. */
-type Row = {
+/** One mile a runner ran on the night. */
+type Mile = {
   /** Stable key, unique within the race (bibs are per-heat leases, ADR 0003). */
   id: string;
+  timeCs: number;
+  /** Run as a team RACER (ADR 0014) rather than in the individual mile. */
+  teamRace: boolean;
+};
+
+/**
+ * One ranked finisher of the selected race, within the selected category —
+ * one row per athlete, however many times they ran. A runner who did both the
+ * individual mile and the team race (or two heats) ranks by the individual
+ * mile and carries the other miles in `extra`; a runner who only ran for a
+ * team ranks by that mile, marked as such.
+ */
+type Row = Mile & {
   /** 1-based place within the gender category. */
   rank: number;
   name: string;
   level: number;
-  timeCs: number;
+  /** The athlete's other miles of the night, fastest first. */
+  extra: Mile[];
 };
 
 /**
@@ -51,20 +66,37 @@ export function Results({ events }: { events: EventSummary[] }) {
   if (withResults.length === 0) return null;
   const event = withResults.find((e) => e.slug === selected) ?? withResults[0];
 
-  const rows: Row[] = (event.results?.heats ?? [])
-    .flatMap((heat) =>
-      heat.entries
-        .filter((entry) => entry.gender === gender)
-        .map((entry) => ({
-          id: `${heat.number}:${entry.bib}`,
-          name: entry.name,
-          timeCs: entry.timeCs,
-        })),
-    )
+  // Miles grouped by athlete (name key — the import's own identity for a
+  // runner across heats), so a night where the same people run the individual
+  // mile and then the team race lists each of them once.
+  const athletes = new Map<string, { name: string; miles: Mile[] }>();
+  const everyone = new Set<string>();
+  for (const heat of event.results?.heats ?? []) {
+    for (const entry of heat.entries) {
+      const key = nameKey(entry.name);
+      everyone.add(key);
+      if (entry.gender !== gender) continue;
+      const athlete = athletes.get(key) ?? { name: entry.name, miles: [] };
+      athlete.miles.push({
+        id: `${heat.number}:${entry.bib}`,
+        timeCs: entry.timeCs,
+        teamRace: entry.team != null,
+      });
+      athletes.set(key, athlete);
+    }
+  }
+  const rows: Row[] = [...athletes.values()]
+    .map(({ name, miles }) => {
+      // Individual miles before team-race miles, fastest first within each.
+      const [first, ...extra] = miles
+        .slice()
+        .sort((a, b) => Number(a.teamRace) - Number(b.teamRace) || a.timeCs - b.timeCs);
+      return { ...first, name, extra, rank: 0, level: 0 };
+    })
     .sort((a, b) => a.timeCs - b.timeCs)
     .map((row, i) => ({ ...row, rank: i + 1, level: computeLevel(row.timeCs, gender) }));
 
-  const finishers = (event.results?.heats ?? []).reduce((n, h) => n + h.entries.length, 0);
+  const finishers = everyone.size;
   const podium = rows.slice(0, 3);
   const rest = showAll ? rows.slice(3) : rows.slice(3, VISIBLE_ROWS);
   const hasMore = rows.length > VISIBLE_ROWS;
@@ -141,6 +173,13 @@ export function Results({ events }: { events: EventSummary[] }) {
                   </span>
                   <span className="results__podium-name">{row.name}</span>
                   <span className="results__podium-time">{formatTime(row.timeCs)}</span>
+                  {row.teamRace && <span className="results__podium-extra">{t("teamRace")}</span>}
+                  {row.extra.map((mile) => (
+                    <span key={mile.id} className="results__podium-extra">
+                      {formatTime(mile.timeCs)}
+                      {mile.teamRace ? ` ${t("teamRace")}` : ""}
+                    </span>
+                  ))}
                   <span className="results__podium-level">{t("level", { n: row.level })}</span>
                 </li>
               ))}
@@ -169,7 +208,18 @@ export function Results({ events }: { events: EventSummary[] }) {
                         <td className="results__rank">{row.rank}</td>
                         <td className="results__name">{row.name}</td>
                         <td className="results__lvl">{t("level", { n: row.level })}</td>
-                        <td className="results__time">{formatTime(row.timeCs)}</td>
+                        <td className="results__time">
+                          {formatTime(row.timeCs)}
+                          {row.teamRace && (
+                            <span className="results__time-extra">{t("teamRace")}</span>
+                          )}
+                          {row.extra.map((mile) => (
+                            <span key={mile.id} className="results__time-extra">
+                              {formatTime(mile.timeCs)}
+                              {mile.teamRace ? ` ${t("teamRace")}` : ""}
+                            </span>
+                          ))}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

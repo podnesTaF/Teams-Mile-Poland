@@ -4692,6 +4692,21 @@
   font-family: var(--font-head), "Fira Sans Condensed", system-ui, sans-serif;
   font-weight: 700;
 }
+/* A runner's other mile of the night (team race, or a second heat) —
+   one row per athlete, the extra time below the ranked one. */
+.ace-landing .results__time-extra,
+.ace-landing .results__podium-extra {
+  display: block;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 500;
+  font-size: var(--fs-body-s);
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.ace-landing .results__podium-extra {
+  margin-top: -4px;
+}
 
 .ace-landing .results__empty {
   margin: clamp(26px, 4vw, 40px) 0 0;

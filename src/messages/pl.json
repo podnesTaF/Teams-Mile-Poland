@@ -552,6 +552,7 @@
         "time": "Czas"
       },
       "level": "Poz. {n}",
+      "teamRace": "(bieg drużynowy)",
       "showAll": "Pokaż wszystkich ({count})",
       "showLess": "Pokaż mniej",
       "fullResults": "Pełne wyniki biegu",

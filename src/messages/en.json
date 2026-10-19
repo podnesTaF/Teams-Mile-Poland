@@ -552,6 +552,7 @@
         "time": "Time"
       },
       "level": "Lvl {n}",
+      "teamRace": "(team race)",
       "showAll": "Show all {count}",
       "showLess": "Show less",
       "fullResults": "Full race results",
