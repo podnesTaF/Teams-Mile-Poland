@@ -172,14 +172,19 @@ export function Results({ events }: { events: EventSummary[] }) {
                     {row.rank}
                   </span>
                   <span className="results__podium-name">{row.name}</span>
-                  <span className="results__podium-time">{formatTime(row.timeCs)}</span>
-                  {row.teamRace && <span className="results__podium-extra">{t("teamRace")}</span>}
-                  {row.extra.map((mile) => (
-                    <span key={mile.id} className="results__podium-extra">
-                      {formatTime(mile.timeCs)}
-                      {mile.teamRace ? ` ${t("teamRace")}` : ""}
-                    </span>
-                  ))}
+                  {/* Ranked time with the athlete's other miles stacked under it. */}
+                  <span className="results__podium-times">
+                    <span className="results__podium-time">{formatTime(row.timeCs)}</span>
+                    {row.teamRace && (
+                      <span className="results__podium-extra">{t("teamRace")}</span>
+                    )}
+                    {row.extra.map((mile) => (
+                      <span key={mile.id} className="results__podium-extra">
+                        {formatTime(mile.timeCs)}
+                        {mile.teamRace ? ` ${t("teamRace")}` : ""}
+                      </span>
+                    ))}
+                  </span>
                   <span className="results__podium-level">{t("level", { n: row.level })}</span>
                 </li>
               ))}
