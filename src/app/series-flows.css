@@ -2970,6 +2970,14 @@
   font-size: 1.3rem;
   font-variant-numeric: tabular-nums;
 }
+/* ABM team rating — the division the team time earns in the prize-fund table. */
+.ace-landing .sl-team__rating {
+  margin: -2px 0 10px;
+  font-size: var(--fs-body-s);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+}
 .ace-landing .res-card__team {
   font-size: 0.72rem;
   letter-spacing: 0.08em;

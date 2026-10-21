@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
+import { formatTeamDivision, teamDivisionFor } from "@/features/teams/divisions";
 import type {
   PublicEventResults,
   PublicResultRow,
@@ -89,6 +90,12 @@ export async function ResultsTables({ results }: { results: PublicEventResults }
 
 async function TeamBlock({ team }: { team: PublicTeamResult }) {
   const t = await getTranslations("events");
+  // The ABM team rating — where the finished time lands in the prize-fund
+  // TEAM DIVISIONS TABLE — sits right under the time it is read from.
+  const rating =
+    team.timeCs !== null && team.status === "finished"
+      ? teamDivisionFor(team.timeCs, team.category)
+      : null;
   return (
     <section className="sl-team" data-results-team={team.name}>
       <header className="sl-team__head">
@@ -100,6 +107,11 @@ async function TeamBlock({ team }: { team: PublicTeamResult }) {
             : team.status.toUpperCase()}
         </span>
       </header>
+      {rating && (
+        <p className="sl-team__rating">
+          {t("results.teamRating", { division: formatTeamDivision(rating) })}
+        </p>
+      )}
       <div className="iv-tablewrap">
         <table className="iv-table sl-table">
           <thead>

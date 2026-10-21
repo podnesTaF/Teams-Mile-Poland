@@ -1,6 +1,12 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
-import { eventResults, teamResults, type ResultSplit, type ResultStatus } from "@/db/schema";
+import {
+  eventResults,
+  teamResults,
+  userTeams,
+  type ResultSplit,
+  type ResultStatus,
+} from "@/db/schema";
 import type { RaceRole } from "@/features/teams/rating-rules";
 import { db } from "@/lib/db";
 import { getEventBySlug, getPastEvents } from "./registry";
@@ -137,6 +143,12 @@ export type PublicTeamResult = {
   status: ResultStatus;
   place: number | null;
   timeCs: number | null;
+  /**
+   * Category of the linked platform team (`user_teams.category`), which
+   * picks the time-band column of the divisions table; null for a run the
+   * import could not link to a team (rated on the men's bands).
+   */
+  category: string | null;
   /** RACERS fastest first, then pair 1 (ACE, JOKER), then pair 2. */
   members: PublicResultRow[];
 };
@@ -207,8 +219,10 @@ export async function getPublicResults(slug: string): Promise<PublicEventResults
             status: teamResults.status,
             place: teamResults.place,
             timeCs: teamResults.timeCs,
+            category: userTeams.category,
           })
           .from(teamResults)
+          .leftJoin(userTeams, eq(teamResults.teamId, userTeams.id))
           .where(eq(teamResults.eventSlug, slug)),
       ]);
 

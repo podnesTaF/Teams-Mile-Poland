@@ -1219,7 +1219,8 @@
       },
       "legHandover": "handover",
       "legPair": "pair mile",
-      "teamLegend": "Team time is the sum of the team's miles: each RACER's mile plus each ACE + JOKER pair's mile (the JOKER's finish). An ACE's time is the handover reading."
+      "teamLegend": "Team time is the sum of the team's miles: each RACER's mile plus each ACE + JOKER pair's mile (the JOKER's finish). An ACE's time is the handover reading.",
+      "teamRating": "ABM Team Rating-({division})"
     },
     "teamEvent": {
       "notice": "This is a team night: the team race is run by RED and BLACK. Their members register here, free — the team is recognised automatically.",
